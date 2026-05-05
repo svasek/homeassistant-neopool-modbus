@@ -155,6 +155,10 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
                 ),
                 notification_id=f"{DOMAIN}_corrupted_gpio",
             )
+        else:
+            # Clear any previous notification if registers are now valid
+            persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_corrupted_gpio")
+            _LOGGER.info("GPIO registers passed sanity check: all values are valid")
 
     async def _async_update_data(self):
         # Winter mode: skip all Modbus communication; entities remain but show unknown values

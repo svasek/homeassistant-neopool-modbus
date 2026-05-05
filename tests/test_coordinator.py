@@ -776,6 +776,9 @@ class TestGpioSanityCheck:
     PATCH_TARGET = (
         "custom_components.vistapool.coordinator.persistent_notification.async_create"
     )
+    PATCH_DISMISS = (
+        "custom_components.vistapool.coordinator.persistent_notification.async_dismiss"
+    )
 
     def _make_coordinator(self, mock_entry):
         hass = MagicMock()
@@ -787,7 +790,7 @@ class TestGpioSanityCheck:
 
     def test_valid_gpio_values_no_notification(self, mock_entry):
         """No notification when all GPIO registers are within valid range."""
-        coordinator, _ = self._make_coordinator(mock_entry)
+        coordinator, hass = self._make_coordinator(mock_entry)
         data = {
             "MBF_PAR_FILT_GPIO": 2,
             "MBF_PAR_LIGHTING_GPIO": 3,
@@ -795,9 +798,13 @@ class TestGpioSanityCheck:
             "MBF_PAR_PH_ACID_RELAY_GPIO": 1,
             "MBF_PAR_UV_RELAY_GPIO": 0,
         }
-        with patch(self.PATCH_TARGET) as mock_notify:
+        with (
+            patch(self.PATCH_TARGET) as mock_notify,
+            patch(self.PATCH_DISMISS) as mock_dismiss,
+        ):
             coordinator._check_gpio_registers(data)
             mock_notify.assert_not_called()
+            mock_dismiss.assert_called_once_with(hass, "vistapool_corrupted_gpio")
 
     def test_corrupted_gpio_triggers_notification(self, mock_entry):
         """Notification is created when a GPIO register has an invalid value."""
