@@ -88,7 +88,7 @@ async def test_button_async_setup_entry_adds_entities(monkeypatch):
     monkeypatch.setitem(
         btn_module.BUTTON_DEFINITIONS, "TEST_BUTTON", {"icon": "mdi:test"}
     )
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     # Should add entity for each key in BUTTON_DEFINITIONS
     entities = async_add_entities.call_args[0][0]
     assert any(isinstance(e, VistaPoolButton) for e in entities)
@@ -113,7 +113,7 @@ async def test_button_async_setup_entry_no_data(monkeypatch, caplog):
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
-        await async_setup_entry(hass, entry, async_add_entities)
+        await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
         assert "No data from Modbus" in caplog.text
     async_add_entities.assert_not_called()
 
@@ -196,7 +196,7 @@ async def test_button_setup_entry_creates_backwash_with_gpio_only():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "BACKWASH" in keys
@@ -219,7 +219,7 @@ async def test_button_setup_entry_skips_backwash_without_valve():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "BACKWASH" not in keys

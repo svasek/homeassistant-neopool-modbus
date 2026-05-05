@@ -15,6 +15,8 @@
 """VistaPool Integration for Home Assistant - Binary Sensor Module"""
 
 import logging
+from collections.abc import Mapping
+from typing import Any
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -67,9 +69,9 @@ _MODULE_SUFFIXES = (
 
 def _should_skip_binary_sensor(
     key: str,
-    props: dict,
-    data: dict,
-    entry_options: dict,
+    props: dict[str, Any],
+    data: dict[str, Any],
+    entry_options: Mapping[str, Any],
 ) -> bool:
     """Return True if a binary sensor entity should not be created."""
     # Option-gated sensor
@@ -175,7 +177,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):
+class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool binary sensor."""
 
     _winter_mode_active = False  # binary sensors stay available during winter mode
@@ -195,9 +197,7 @@ class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = (
-            f"{self.coordinator.config_entry.entry_id}_{self._key.lower()}"
-        )
+        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._attr_device_class = props.get("device_class") or None
@@ -225,7 +225,7 @@ class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):
         await super().async_added_to_hass()
 
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self) -> bool | None:  # type: ignore[override]
         """Return True if the binary sensor is on."""
         if self._key == "Device Time Out Of Sync":
             if self.coordinator.data.get("MBF_PAR_TIME_LOW") is None:
@@ -261,12 +261,12 @@ class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):
             return None if value is None else bool(value)
 
     @property
-    def icon(self) -> str | None:
+    def icon(self) -> str | None:  # type: ignore[override]
         """Return custom icon depending on state."""
         return self._icon_on if self.is_on else self._icon_off or None
 
     @property
-    def native_value(self) -> bool | None:
+    def native_value(self) -> bool | None:  # type: ignore[override]
         """Return the actual sensor value."""
         # Return the actual sensor value from coordinator data
         return self.coordinator.data.get(self._key)

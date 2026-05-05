@@ -457,7 +457,7 @@ async def test_winter_mode_returns_empty_dict_when_no_cached_data(mock_entry):
     coordinator = VistaPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id
     )
-    coordinator.data = None
+    coordinator.data = None  # type: ignore[assignment]
 
     with patch("custom_components.vistapool.coordinator._LOGGER") as mock_logger:
         data = await coordinator._async_update_data()
@@ -591,7 +591,7 @@ async def test_winter_mode_restores_capabilities_from_options_on_restart(mock_en
         MagicMock(), client, mock_entry, mock_entry.entry_id
     )
     # Simulate the very first _async_update_data call after restart (data is None)
-    coordinator.data = None
+    coordinator.data = None  # type: ignore[assignment]
 
     data = await coordinator._async_update_data()
 

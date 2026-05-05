@@ -95,7 +95,7 @@ async def test_turn_on_auto_time_sync(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
-    ent.coordinator.set_auto_time_sync.assert_awaited_with(True)
+    mock_coordinator.set_auto_time_sync.assert_awaited_with(True)
 
 
 @pytest.mark.asyncio
@@ -106,7 +106,7 @@ async def test_turn_off_auto_time_sync(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
-    ent.coordinator.set_auto_time_sync.assert_awaited_with(False)
+    mock_coordinator.set_auto_time_sync.assert_awaited_with(False)
 
 
 @pytest.mark.asyncio
@@ -348,7 +348,7 @@ async def test_switch_async_setup_entry_adds_entities(monkeypatch):
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS, "aux1", {"switch_type": "relay_timer"}
     )
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "manual" in keys
@@ -382,7 +382,7 @@ async def test_switch_setup_skips_smart_antifreeze_when_no_temp(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_PAR_SMART_ANTI_FREEZE" not in keys
@@ -404,7 +404,7 @@ async def test_switch_async_setup_entry_no_data(caplog):
     entry = DummyEntry()
     async_add_entities = MagicMock()
     with caplog.at_level("WARNING"):
-        await async_setup_entry(hass, entry, async_add_entities)
+        await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
         assert "No data from Modbus" in caplog.text
     async_add_entities.assert_not_called()
 
@@ -436,7 +436,7 @@ async def test_switch_async_setup_entry_option_disabled(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "Test Option Switch" not in keys
@@ -486,7 +486,7 @@ async def test_switch_setup_skips_hidro_cover_without_hydro_module():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_ENABLE" not in keys
     assert "MBF_PAR_HIDRO_TEMP_SHUTDOWN" not in keys
@@ -513,7 +513,7 @@ async def test_switch_setup_creates_hidro_cover_with_hydro_module():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_ENABLE" in keys
     assert "MBF_PAR_HIDRO_TEMP_SHUTDOWN" in keys
@@ -540,7 +540,7 @@ async def test_switch_setup_skips_hidro_temp_shutdown_without_temp_sensor():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_ENABLE" in keys  # cover switch is still shown
     assert (
@@ -569,7 +569,7 @@ async def test_switch_setup_skips_hidro_cover_without_cover_sensor():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_ENABLE" not in keys
     assert "MBF_PAR_HIDRO_TEMP_SHUTDOWN" not in keys
@@ -670,7 +670,7 @@ async def test_turn_on_winter_mode(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
-    ent.coordinator.set_winter_mode.assert_awaited_with(True)
+    mock_coordinator.set_winter_mode.assert_awaited_with(True)
 
 
 @pytest.mark.asyncio
@@ -682,7 +682,7 @@ async def test_turn_off_winter_mode(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
-    ent.coordinator.set_winter_mode.assert_awaited_with(False)
+    mock_coordinator.set_winter_mode.assert_awaited_with(False)
 
 
 def test_is_on_winter_mode(mock_coordinator):
@@ -852,7 +852,7 @@ async def test_switch_setup_includes_uv_mode_when_relay_assigned(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_PAR_UV_MODE" in keys
@@ -885,7 +885,7 @@ async def test_switch_setup_skips_uv_mode_when_no_relay(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_PAR_UV_MODE" not in keys
@@ -918,7 +918,7 @@ async def test_switch_setup_skips_uv_mode_when_key_missing(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_PAR_UV_MODE" not in keys
@@ -951,7 +951,7 @@ async def test_switch_setup_skips_uv_mode_when_gpio_out_of_range(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_PAR_UV_MODE" not in keys
@@ -965,7 +965,7 @@ async def test_follow_up_refresh_called_on_turn_on(mock_coordinator):
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
-    ent.coordinator.request_refresh_with_followup.assert_called_once()
+    mock_coordinator.request_refresh_with_followup.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -976,7 +976,7 @@ async def test_follow_up_refresh_called_on_turn_off(mock_coordinator):
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
-    ent.coordinator.request_refresh_with_followup.assert_called_once()
+    mock_coordinator.request_refresh_with_followup.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -988,8 +988,8 @@ async def test_no_follow_up_refresh_for_non_io_switch(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
-    ent.coordinator.async_request_refresh.assert_awaited_once()
-    ent.coordinator.request_refresh_with_followup.assert_not_called()
+    mock_coordinator.async_request_refresh.assert_awaited_once()
+    mock_coordinator.request_refresh_with_followup.assert_not_called()
 
 
 @pytest.mark.asyncio

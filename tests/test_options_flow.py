@@ -36,8 +36,8 @@ async def test_options_show_form():
     mock_config_entry.options = {}
     flow = make_flow(mock_config_entry)
     result = await flow.async_step_init(user_input=None)
-    assert result["type"] == "form"
-    schema = result["data_schema"]
+    assert result.get("type") == "form"
+    schema = result.get("data_schema")
     assert "scan_interval" in str(schema)
 
 
@@ -48,8 +48,8 @@ async def test_options_save_options():
     flow = make_flow(mock_config_entry)
     user_input = {"enable_backwash_option": True, "measure_when_filtration_off": False}
     result = await flow.async_step_init(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert result["data"] == user_input
+    assert result.get("type") == "create_entry"
+    assert result.get("data", {}) == user_input
 
 
 @pytest.mark.asyncio
@@ -84,8 +84,8 @@ async def test_options_unlock_advanced_wrong(monkeypatch, caplog):
         user_input = {"unlock_advanced": "wrongpassword"}
         result = await flow.async_step_init(user_input=user_input)
         # Should show error in form
-        assert result["type"] == "form"
-        assert "unlock_advanced" in result["errors"]
+        assert result.get("type") == "form"
+        assert "unlock_advanced" in (result.get("errors") or {})
         # Should log warning
         assert "Wrong password for the advanced settings!" in caplog.text
 
@@ -124,8 +124,8 @@ async def test_options_unlock_advanced_wrong_slug_fallback(monkeypatch, caplog):
         mock_date.today.return_value.year = 2025
         user_input = {"unlock_advanced": "wrongpassword"}
         result = await flow.async_step_init(user_input=user_input)
-        assert result["type"] == "form"
-        assert "unlock_advanced" in result["errors"]
+        assert result.get("type") == "form"
+        assert "unlock_advanced" in (result.get("errors") or {})
         assert "Wrong password for the advanced settings!" in caplog.text
 
 
@@ -160,9 +160,9 @@ async def test_options_already_enabled():
     # Disable backwash — no password → save directly with reload
     user_input = {"enable_backwash_option": False}
     result = await flow.async_step_init(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert result["data"].get("enable_backwash_option") is False
-    assert flow.hass.async_create_task.called
+    assert result.get("type") == "create_entry"
+    assert result.get("data", {}).get("enable_backwash_option") is False
+    flow.hass.async_create_task.assert_called()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -180,10 +180,10 @@ async def test_async_step_advanced(monkeypatch):
     flow._base_options = {"use_light": False}
     user_input = {"enable_backwash_option": True, "use_light": True}  # changed value
     result = await flow.async_step_advanced(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert result["data"]["enable_backwash_option"] is True
+    assert result.get("type") == "create_entry"
+    assert result.get("data", {})["enable_backwash_option"] is True
     # Should call reload due to use_light change
-    assert flow.hass.async_create_task.called
+    flow.hass.async_create_task.assert_called()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -193,8 +193,8 @@ async def test_async_step_advanced_show_form():
     mock_config_entry.options = {}
     flow = make_flow(mock_config_entry)
     result = await flow.async_step_advanced(user_input=None)
-    assert result["type"] == "form"
-    assert result["step_id"] == "advanced"
+    assert result.get("type") == "form"
+    assert result.get("step_id") == "advanced"
     assert "data_schema" in result
 
 
@@ -206,8 +206,8 @@ async def test_options_reload_trigger(monkeypatch):
     flow = make_flow(mock_config_entry)
     user_input = {"use_light": True, "use_aux1": False}
     result = await flow.async_step_init(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert flow.hass.async_create_task.called
+    assert result.get("type") == "create_entry"
+    flow.hass.async_create_task.assert_called()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -218,8 +218,8 @@ async def test_options_reload_trigger_any_key():
     flow = make_flow(mock_config_entry)
     user_input = {"measure_when_filtration_off": True}
     result = await flow.async_step_init(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert flow.hass.async_create_task.called
+    assert result.get("type") == "create_entry"
+    flow.hass.async_create_task.assert_called()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -231,9 +231,9 @@ async def test_async_step_advanced_reload_on_backwash_toggle():
     flow._base_options = {}
     user_input = {"enable_backwash_option": True}
     result = await flow.async_step_advanced(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert result["data"]["enable_backwash_option"] is True
-    assert flow.hass.async_create_task.called
+    assert result.get("type") == "create_entry"
+    assert result.get("data", {})["enable_backwash_option"] is True
+    flow.hass.async_create_task.assert_called()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -245,8 +245,8 @@ async def test_async_step_advanced_no_reload_when_unchanged():
     flow._base_options = {}
     user_input = {"enable_backwash_option": True}
     result = await flow.async_step_advanced(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert not flow.hass.async_create_task.called
+    assert result.get("type") == "create_entry"
+    flow.hass.async_create_task.assert_not_called()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -256,8 +256,8 @@ async def test_async_step_init_show_form():
     mock_config_entry.options = {}
     flow = make_flow(mock_config_entry)
     result = await flow.async_step_init(user_input=None)
-    assert result["type"] == "form"
-    assert result["step_id"] == "init"
+    assert result.get("type") == "form"
+    assert result.get("step_id") == "init"
     assert "data_schema" in result
 
 
@@ -273,11 +273,11 @@ async def test_options_selector_values_coerced_to_int():
         "measure_when_filtration_off": False,
     }
     result = await flow.async_step_init(user_input=user_input)
-    assert result["type"] == "create_entry"
-    assert result["data"]["scan_interval"] == 60
-    assert isinstance(result["data"]["scan_interval"], int)
-    assert result["data"]["timer_resolution"] == 15
-    assert isinstance(result["data"]["timer_resolution"], int)
+    assert result.get("type") == "create_entry"
+    assert result.get("data", {})["scan_interval"] == 60
+    assert isinstance(result.get("data", {})["scan_interval"], int)
+    assert result.get("data", {})["timer_resolution"] == 15
+    assert isinstance(result.get("data", {})["timer_resolution"], int)
 
 
 @pytest.mark.asyncio
@@ -287,5 +287,5 @@ async def test_options_form_contains_use_cover_sensor():
     mock_config_entry.options = {}
     flow = make_flow(mock_config_entry)
     result = await flow.async_step_init(user_input=None)
-    assert result["type"] == "form"
-    assert "use_cover_sensor" in str(result["data_schema"])
+    assert result.get("type") == "form"
+    assert "use_cover_sensor" in str(result.get("data_schema"))

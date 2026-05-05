@@ -52,7 +52,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class VistaPoolButton(VistaPoolEntity, ButtonEntity):
+class VistaPoolButton(VistaPoolEntity, ButtonEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool button entity."""
 
     def __init__(self, coordinator, entry_id, key, props) -> None:
@@ -62,9 +62,7 @@ class VistaPoolButton(VistaPoolEntity, ButtonEntity):
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = (
-            f"{self.coordinator.config_entry.entry_id}_{self._key.lower()}"
-        )
+        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._attr_entity_category = props.get("entity_category") or None
@@ -125,6 +123,6 @@ class VistaPoolButton(VistaPoolEntity, ButtonEntity):
         await super().async_added_to_hass()
 
     @property
-    def icon(self) -> str | None:
+    def icon(self) -> str | None:  # type: ignore[override]
         """Return the icon for the button."""
         return self._attr_icon

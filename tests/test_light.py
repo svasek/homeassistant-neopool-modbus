@@ -163,7 +163,7 @@ async def test_light_async_setup_entry_adds_entities(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     assert any(isinstance(e, VistaPoolLight) for e in entities)
     assert any(e._key == "Test Light" for e in entities)
@@ -188,7 +188,7 @@ async def test_light_async_setup_entry_no_data(caplog):
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
-        await async_setup_entry(hass, entry, async_add_entities)
+        await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
         assert "No data from Modbus" in caplog.text
     async_add_entities.assert_not_called()
 
@@ -226,7 +226,7 @@ async def test_light_async_setup_entry_skips_without_lighting_gpio(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     assert not any(e._key == "Test Light" for e in entities)
 
@@ -260,7 +260,7 @@ async def test_light_async_setup_entry_option_disabled(monkeypatch):
         },
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     # Should skip entity, as option is False
     assert not any(e._key == "Test Option Light" for e in entities)
@@ -312,7 +312,7 @@ async def test_light_async_turn_on_no_client(mock_coordinator, light_props, capl
     ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
     # Ensure there is no client
     mock_coordinator.client = None
-    ent.hass = None
+    ent.hass = None  # type: ignore[assignment]
     with caplog.at_level("ERROR"):
         await ent.async_turn_on()
         assert "Modbus client not available" in caplog.text
@@ -323,7 +323,7 @@ async def test_light_async_turn_off_no_client(mock_coordinator, light_props, cap
     """Test async_turn_off does nothing if coordinator has no client."""
     ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
     mock_coordinator.client = None
-    ent.hass = None
+    ent.hass = None  # type: ignore[assignment]
     with caplog.at_level("ERROR"):
         await ent.async_turn_off()
         assert "Modbus client not available" in caplog.text

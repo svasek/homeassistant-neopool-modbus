@@ -30,6 +30,7 @@ from custom_components.vistapool.const import (
 async def test_show_user_form_on_init():
     flow = config_flow.VistaPoolConfigFlow()
     result = await flow.async_step_user(user_input=None)
+    assert result is not None
     assert result["type"] == "form"
     assert "errors" in result
     # Check if the form schema contains host, port, slave_id, name and modbus_framer
@@ -55,6 +56,7 @@ async def test_create_entry_success():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
         assert result["type"] == "create_entry"
         assert result["title"] == "Test Pool"
         assert result["data"]["host"] == "192.168.1.100"
@@ -77,6 +79,7 @@ async def test_create_entry_with_rtu_framer():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
         assert result["type"] == "create_entry"
         assert result["data"]["modbus_framer"] == "rtu"
 
@@ -95,6 +98,7 @@ async def test_create_entry_failure():
         new=AsyncMock(return_value=False),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
         assert result["type"] == "form"
         assert "host" in result["errors"]
         assert result["errors"]["host"] == "cannot_connect"
@@ -116,7 +120,7 @@ def test_async_get_options_flow(monkeypatch):
         DummyOptionsFlow,
     )
     config_entry = DummyConfigEntry()
-    handler = config_flow.VistaPoolConfigFlow.async_get_options_flow(config_entry)
+    handler = config_flow.VistaPoolConfigFlow.async_get_options_flow(config_entry)  # type: ignore[arg-type]
     assert isinstance(handler, DummyOptionsFlow)
     assert handler.called is True
 
@@ -142,6 +146,7 @@ async def test_reconfigure_shows_form_with_current_data():
     flow.context = {"entry_id": "abc123"}
 
     result = await flow.async_step_reconfigure(user_input=None)
+    assert result is not None
 
     assert result["type"] == "form"
     assert result["step_id"] == "reconfigure"
@@ -194,6 +199,7 @@ async def test_reconfigure_success():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_reconfigure(user_input)
+        assert result is not None
 
     assert result["type"] == "abort"
     assert result["reason"] == "reconfigure_successful"
@@ -239,6 +245,7 @@ async def test_reconfigure_cannot_connect():
         new=AsyncMock(return_value=False),
     ):
         result = await flow.async_step_reconfigure(user_input)
+        assert result is not None
 
     assert result["type"] == "form"
     assert result["step_id"] == "reconfigure"
@@ -258,6 +265,7 @@ async def test_reconfigure_entry_not_found_aborts():
     )
 
     result = await flow.async_step_reconfigure(user_input=None)
+    assert result is not None
 
     assert result["type"] == "abort"
     assert result["reason"] == "entry_not_found"
@@ -308,6 +316,7 @@ async def test_create_entry_scan_interval_coerced_to_int():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
     assert result["type"] == "create_entry"
     assert result["data"]["scan_interval"] == 30
     assert isinstance(result["data"]["scan_interval"], int)
@@ -318,6 +327,7 @@ async def test_user_form_contains_use_cover_sensor():
     """Config flow form schema must include use_cover_sensor toggle."""
     flow = config_flow.VistaPoolConfigFlow()
     result = await flow.async_step_user(user_input=None)
+    assert result is not None
     assert result["type"] == "form"
     assert "use_cover_sensor" in str(result["data_schema"])
 
@@ -398,6 +408,7 @@ async def test_create_entry_empty_name_uses_default():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
 
     assert result["type"] == "create_entry"
     assert result["title"] == DEFAULT_NAME
@@ -419,6 +430,7 @@ async def test_create_entry_no_name_key_uses_default():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
 
     assert result["type"] == "create_entry"
     assert result["title"] == DEFAULT_NAME
@@ -435,6 +447,7 @@ async def test_user_form_schema_boolean_defaults():
     """Schema defaults: use_filtration1=True, others False."""
     flow = config_flow.VistaPoolConfigFlow()
     result = await flow.async_step_user(user_input=None)
+    assert result is not None
     schema = result["data_schema"]
 
     bool_defaults = {
@@ -463,6 +476,7 @@ async def test_user_form_schema_connection_defaults():
     """Schema defaults for port, slave_id and modbus_framer match constants."""
     flow = config_flow.VistaPoolConfigFlow()
     result = await flow.async_step_user(user_input=None)
+    assert result is not None
     schema = result["data_schema"]
 
     defaults = {
@@ -498,6 +512,7 @@ async def test_create_entry_stores_use_light_flag():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
 
     assert result["type"] == "create_entry"
     assert result["data"]["use_light"] is True
@@ -521,6 +536,7 @@ async def test_create_entry_stores_filtration_flags():
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_user(user_input)
+        assert result is not None
 
     assert result["type"] == "create_entry"
     assert result["data"]["use_filtration1"] is False
@@ -547,6 +563,7 @@ async def test_reconfigure_schema_defaults_to_constants_when_keys_absent():
     flow.context = {"entry_id": "abc123"}
 
     result = await flow.async_step_reconfigure(user_input=None)
+    assert result is not None
     assert result["type"] == "form"
 
     schema_defaults = {

@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import asyncio
 from datetime import datetime, timedelta
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -268,7 +269,7 @@ async def test_write_timer_failure(config):
 async def test_async_write_aux_relay_success(config):
     """Test async_write_aux_relay returns None (success) or {} (connection error)."""
     client = vistapool_modbus.VistaPoolModbusClient(config)
-    client._perform_write_aux_relay = AsyncMock(return_value=None)
+    client._perform_write_aux_relay = AsyncMock(return_value=None)  # type: ignore[attr-defined]
     with pytest.raises(ModbusException):
         await client.async_write_aux_relay(1, True)
 
@@ -277,7 +278,7 @@ async def test_async_write_aux_relay_success(config):
 async def test_async_write_aux_relay_failure(config):
     """Test async_write_aux_relay returns {} if _perform_write_aux_relay raises Exception."""
     client = vistapool_modbus.VistaPoolModbusClient(config)
-    client._perform_write_aux_relay = AsyncMock(side_effect=Exception("aux fail"))
+    client._perform_write_aux_relay = AsyncMock(side_effect=Exception("aux fail"))  # type: ignore[attr-defined]
     with pytest.raises(ModbusException):
         await client.async_write_aux_relay(1, True)
 
@@ -1175,7 +1176,9 @@ RTU_CONFIG = {"host": "127.0.0.1", "port": 502, "slave_id": 1, "modbus_framer": 
 TCP_CONFIG = {"host": "127.0.0.1", "port": 502, "slave_id": 1, "modbus_framer": "tcp"}
 
 
-def _client_with_ctx(cfg):
+def _client_with_ctx(
+    cfg: dict,
+) -> tuple[vistapool_modbus.VistaPoolModbusClient, Any, Any, list]:
     """Return a (VistaPoolModbusClient, mock_ctx, mock_client, received) tuple."""
     client = vistapool_modbus.VistaPoolModbusClient(cfg)
     received = []
@@ -1423,7 +1426,7 @@ def test_install_fc20_filter_no_ctx_is_safe():
     """If client has no ctx attribute, the method must not raise."""
     client = vistapool_modbus.VistaPoolModbusClient(RTU_CONFIG)
     mock_client = type("MC", (), {})()
-    client._install_fc20_filter(mock_client)
+    client._install_fc20_filter(mock_client)  # type: ignore[arg-type]
 
 
 def test_install_fc20_filter_exception_is_safe():
@@ -1440,7 +1443,7 @@ def test_install_fc20_filter_exception_is_safe():
             raise RuntimeError("boom on set")
 
     mock_client = type("MC", (), {"ctx": BadCtx()})()
-    client._install_fc20_filter(mock_client)
+    client._install_fc20_filter(mock_client)  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio

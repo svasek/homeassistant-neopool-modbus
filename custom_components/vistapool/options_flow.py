@@ -19,6 +19,7 @@ from datetime import date
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from homeassistant.util import slugify
@@ -40,7 +41,7 @@ class VistaPoolOptionsFlowHandler(config_entries.OptionsFlow):
         super().__init__()
         self._base_options = {}
 
-    async def async_step_init(self, user_input=None) -> dict:
+    async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         """Handle the initial step of the options flow."""
         # Get current options from the config entry
         options = dict(self.config_entry.options)
@@ -158,7 +159,7 @@ class VistaPoolOptionsFlowHandler(config_entries.OptionsFlow):
             description_placeholders={},
         )
 
-    async def async_step_advanced(self, user_input=None) -> dict:
+    async def async_step_advanced(self, user_input=None) -> ConfigFlowResult:
         """Handle the advanced options step."""
         options = dict(self.config_entry.options)
         advanced_schema = vol.Schema(

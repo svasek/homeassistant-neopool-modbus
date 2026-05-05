@@ -68,7 +68,7 @@ async def test_async_setup_entry_adds_entities(monkeypatch):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     # Entities should be created and passed to async_add_entities
     # The number depends on your BINARY_SENSOR_DEFINITIONS (at least 1 expected)
@@ -113,7 +113,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(monkeypatch):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     entity_keys = [e._key for e in entities]
@@ -142,7 +142,7 @@ async def test_async_setup_entry_skips_ph_acid_pump_without_relay(monkeypatch):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     entity_keys = [e._key for e in entities]
@@ -171,7 +171,7 @@ async def test_async_setup_entry_skips_cl_module_sensor_without_chlorine(monkeyp
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     entity_keys = [e._key for e in entities]
@@ -201,7 +201,7 @@ async def test_async_setup_entry_skips_rx_module_sensor_without_redox(monkeypatc
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     entity_keys = [e._key for e in entities]
@@ -228,7 +228,7 @@ async def test_async_setup_entry_no_data(monkeypatch, caplog):
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
-        await async_setup_entry(hass, entry, async_add_entities)
+        await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
         # Should log warning
         assert "No data from Modbus" in caplog.text
     # No entities should be added
@@ -262,7 +262,7 @@ async def test_async_setup_entry_option_disables_sensor(monkeypatch):
         {"option": "sensor_option"},
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     # Should only add sensors without "option" or with option True
     entities = async_add_entities.call_args[0][0]
     assert not any(e._key == "Some Option Sensor" for e in entities)
@@ -288,7 +288,7 @@ async def test_async_setup_entry_skips_pool_cover_when_not_enabled(monkeypatch):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     # Pool Cover should NOT be in entities
     assert not any(e._key == "Pool Cover" for e in entities)
@@ -314,7 +314,7 @@ async def test_async_setup_entry_includes_pool_cover_when_enabled(monkeypatch):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     # Pool Cover SHOULD be in entities
     assert any(e._key == "Pool Cover" for e in entities)
@@ -478,7 +478,7 @@ async def test_async_setup_entry_includes_uv_lamp_when_relay_assigned():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     assert any(e._key == "UV Lamp" for e in entities)
 
@@ -504,7 +504,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_no_relay():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     assert not any(e._key == "UV Lamp" for e in entities)
 
@@ -529,7 +529,7 @@ async def test_async_setup_entry_creates_uv_lamp_when_key_missing():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     assert any(e._key == "UV Lamp" for e in entities)
 
@@ -555,7 +555,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_gpio_out_of_range():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     assert not any(e._key == "UV Lamp" for e in entities)
 
@@ -593,7 +593,7 @@ async def test_async_setup_entry_skips_pool_light_without_relay():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     entity_keys = [e._key for e in entities]
@@ -621,7 +621,7 @@ async def test_async_setup_entry_skips_filtration_pump_without_relay():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     entity_keys = [e._key for e in entities]
@@ -660,7 +660,7 @@ async def test_async_setup_entry_skips_pump_sensors_without_relay():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
 
@@ -706,7 +706,7 @@ async def test_async_setup_entry_pump_sensors_with_capability_snapshot():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
 
@@ -743,7 +743,7 @@ async def test_enabled_default_for_pump_and_problem_sensors():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     by_key = {e._key: e for e in entities}
 

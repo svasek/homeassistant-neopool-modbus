@@ -15,6 +15,7 @@
 """VistaPool Integration for Home Assistant - Sensor Module"""
 
 import logging
+from datetime import datetime
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -147,7 +148,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class VistaPoolSensor(VistaPoolEntity, SensorEntity):
+class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool sensor."""
 
     _winter_mode_active = False  # sensors stay available during winter mode
@@ -159,9 +160,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = (
-            f"{self.coordinator.config_entry.entry_id}_{self._key.lower()}"
-        )
+        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._attr_native_unit_of_measurement = props.get("unit") or None
@@ -193,8 +192,10 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
         await super().async_added_to_hass()
 
     @property
-    def icon(self) -> str | None:
-        raw = self.coordinator.data.get(self._key)
+    def icon(self) -> str | None:  # type: ignore[override]
+        raw: int | None = self.coordinator.data.get(self._key)
+        if raw is None:
+            return self._attr_icon or None
         # Filtration mode icons
         if self._key == "MBF_PAR_FILT_MODE":
             mode = FILTRATION_MODE_MAP.get(raw)
@@ -227,7 +228,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
         return self._attr_icon or None
 
     @property
-    def suggested_display_precision(self) -> int | None:
+    def suggested_display_precision(self) -> int | None:  # type: ignore[override]
         """Return the suggested display precision for the sensor value."""
         if self._key == "MBF_HIDRO_CURRENT" and not is_hydrolysis_in_percent(
             self.coordinator.data
@@ -236,7 +237,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
         return self._attr_suggested_display_precision
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def native_unit_of_measurement(self) -> str | None:  # type: ignore[override]
         """Return the unit of measurement for the sensor value."""
         if self._key == "MBF_HIDRO_CURRENT" and not is_hydrolysis_in_percent(
             self.coordinator.data
@@ -245,7 +246,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
         return self._attr_native_unit_of_measurement
 
     @property
-    def native_value(self) -> float | int | str | None:
+    def native_value(self) -> float | int | str | datetime | None:  # type: ignore[override]
         """Return the actual sensor value from coordinator data."""
 
         # If filtration is not running, some sensors should not return a value
@@ -253,7 +254,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
         # For example, temperature, pH, RX, conductivity, and voltage sensors
         # These sensors are only relevant when the filtration pump is running
         # Anyway, we allow to override this behavior in the options
-        measure_when_off = self.coordinator.config_entry.options.get(
+        measure_when_off = self.coordinator.entry.options.get(
             "measure_when_filtration_off", False
         )
         if (
@@ -335,14 +336,16 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
                 return "pol2"
             return "off"
         if self._key == "MBF_PAR_FILT_MODE":
-            raw = self.coordinator.data.get(self._key)
-            return FILTRATION_MODE_MAP.get(raw)
+            filt_mode: int | None = self.coordinator.data.get(self._key)
+            return FILTRATION_MODE_MAP.get(filt_mode) if filt_mode is not None else None
         if self._key == "FILTRATION_SPEED":
-            raw = self.coordinator.data.get(self._key)
-            return FILTRATION_SPEED_MAP.get(raw)
+            filt_speed: int | None = self.coordinator.data.get(self._key)
+            return (
+                FILTRATION_SPEED_MAP.get(filt_speed) if filt_speed is not None else None
+            )
         if self._key == "MBF_PH_STATUS_ALARM":
-            raw = self.coordinator.data.get(self._key)
-            return PH_STATUS_ALARM_MAP.get(raw)
+            ph_alarm: int | None = self.coordinator.data.get(self._key)
+            return PH_STATUS_ALARM_MAP.get(ph_alarm) if ph_alarm is not None else None
         if self._key == "MBF_PAR_INTELLIGENT_TT_NEXT_INTERVAL":
             # Convert seconds to timestamp using helper function
             seconds = self.coordinator.data.get(self._key)
@@ -350,7 +353,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):
         return self.coordinator.data.get(self._key)
 
     @property
-    def options(self) -> list[str] | None:
+    def options(self) -> list[str] | None:  # type: ignore[override]
         """Return the list of options for the sensor."""
         if self._key == "MBF_PAR_FILT_MODE":
             return list(FILTRATION_MODE_MAP.values())

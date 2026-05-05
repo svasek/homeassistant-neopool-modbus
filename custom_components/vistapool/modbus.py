@@ -18,7 +18,9 @@ import asyncio
 import logging
 import time
 from collections import deque
+from collections.abc import Callable
 from datetime import datetime, timedelta
+from typing import overload
 
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ConnectionException, ModbusException
@@ -387,7 +389,7 @@ class VistaPoolModbusClient:
         """Read all data with retry logic."""
         self._total_operations += 1
         max_retries = 2
-        last_error = None
+        last_error: Exception | None = None
 
         for attempt in range(max_retries):
             try:
@@ -418,7 +420,7 @@ class VistaPoolModbusClient:
 
         # All retries failed
         _LOGGER.error("All read attempts failed: %s", last_error)
-        raise last_error
+        raise last_error  # type: ignore[misc]
 
     async def _read_register_ranges(
         self,
@@ -475,7 +477,17 @@ class VistaPoolModbusClient:
     async def _perform_read_all(self) -> dict:
         result = {}
 
-        def get_safe(regs, idx, transform=None) -> int | None:
+        @overload
+        def get_safe(regs: list[int], idx: int) -> int | None: ...
+        @overload
+        def get_safe(
+            regs: list[int], idx: int, transform: Callable[[int], int | float]
+        ) -> int | float | None: ...
+        def get_safe(
+            regs: list[int],
+            idx: int,
+            transform: Callable[[int], int | float] | None = None,
+        ) -> int | float | None:
             """Safely get a register value or return None if missing. Optionally apply a transform."""
             try:
                 val = regs[idx]
@@ -484,7 +496,7 @@ class VistaPoolModbusClient:
                 return None
             if val is None:
                 return None  # pragma: no cover
-            return transform(val) if callable(transform) else val
+            return transform(val) if transform is not None else val
 
         force_full = True
         notification = 0

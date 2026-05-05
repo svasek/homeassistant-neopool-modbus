@@ -44,7 +44,7 @@ async def is_host_port_open(host, port, timeout=3):
         return False
 
 
-class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for VistaPool."""
 
     VERSION = 1

@@ -16,8 +16,10 @@
 
 import asyncio
 import logging
+from collections.abc import Mapping
+from typing import Any
 
-from homeassistant.components.number import NumberEntity
+from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -36,7 +38,12 @@ from .helpers import is_hydrolysis_in_percent
 _LOGGER = logging.getLogger(__name__)
 
 
-def _should_skip_number(key: str, props: dict, data: dict, entry_options: dict) -> bool:
+def _should_skip_number(
+    key: str,
+    props: dict[str, Any],
+    data: dict[str, Any],
+    entry_options: Mapping[str, Any],
+) -> bool:
     """Return True if a number entity should not be created."""
     # Only create number entities if enabled in options
     option_key = props.get("option")
@@ -117,7 +124,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class VistaPoolNumber(VistaPoolEntity, NumberEntity):
+class VistaPoolNumber(VistaPoolEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool number entity."""
 
     def __init__(self, coordinator, entry_id, key, props) -> None:
@@ -134,16 +141,14 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = (
-            f"{self.coordinator.config_entry.entry_id}_{self._key.lower()}"
-        )
+        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._attr_native_unit_of_measurement = props.get("unit", None)
         self._attr_native_min_value = props.get("min", None)
         self._attr_native_max_value = props.get("max", None)
         self._attr_native_step = props.get("step", 1.0)
-        self._attr_mode = "box"
+        self._attr_mode = NumberMode.BOX
 
         self._attr_device_class = props.get("device_class") or None
         self._attr_entity_category = props.get("entity_category") or None
@@ -250,12 +255,12 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):
         return None
 
     @property
-    def icon(self) -> str | None:
+    def icon(self) -> str | None:  # type: ignore[override]
         """Return custom icon depending on state."""
         return self._attr_icon or None
 
     @property
-    def native_value(self) -> float | int | str | None:
+    def native_value(self) -> float | int | str | None:  # type: ignore[override]
         """Return the actual number value."""
         raw = self.coordinator.data.get(self._data_key)
         if raw is not None and self._mask is not None:
@@ -270,7 +275,7 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):
 
     # Property to set correct native value for hydrolysis
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def native_unit_of_measurement(self) -> str | None:  # type: ignore[override]
         """Return the unit of measurement for the number value."""
         if self._key == "MBF_PAR_HIDRO":
             # Dynamically determine unit based on machine configuration using the same logic as Tasmota
@@ -279,7 +284,7 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):
 
     # Property to set correct native max value for hydrolysis
     @property
-    def native_max_value(self) -> float | None:
+    def native_max_value(self) -> float | None:  # type: ignore[override]
         """Return the maximum value for the number entity."""
         if self._key == "MBF_PAR_HIDRO":
             hidro_nom = self.coordinator.data.get("MBF_PAR_HIDRO_NOM")
@@ -288,7 +293,7 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):
         return self._attr_native_max_value
 
     @property
-    def native_step(self) -> float | None:
+    def native_step(self) -> float | None:  # type: ignore[override]
         """Return the step value for the number entity."""
         if self._key == "MBF_PAR_HIDRO":
             # 1.0 step in percent mode, 0.1 step in g/h mode (matches display precision and register scale)

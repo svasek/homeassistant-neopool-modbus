@@ -359,7 +359,8 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Modbus communication error: %s", err)
 
             # Exponential backoff: double the interval, but never more than max
-            next_interval = self.update_interval * 2
+            current_interval = self.update_interval or self.normal_update_interval
+            next_interval = current_interval * 2
             if next_interval > self.max_update_interval:  # pragma: no cover
                 next_interval = self.max_update_interval
             if self.update_interval != next_interval:
@@ -413,4 +414,4 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
 
     @property
     def device_slug(self):  # pragma: no cover
-        return self.config_entry.unique_id or slugify(self.device_name)
+        return self.entry.unique_id or slugify(self.device_name)

@@ -16,7 +16,8 @@
 
 import logging
 
-from homeassistant.components.light import ColorMode, LightEntity
+from homeassistant.components.light import LightEntity
+from homeassistant.components.light.const import ColorMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -59,7 +60,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class VistaPoolLight(VistaPoolEntity, LightEntity):
+class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool light entity."""
 
     def __init__(self, coordinator, entry_id, key, props) -> None:
@@ -69,9 +70,7 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = (
-            f"{self.coordinator.config_entry.entry_id}_{self._key.lower()}"
-        )
+        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._switch_type = props.get("switch_type") or None
@@ -80,9 +79,9 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):
         self._icon_off = props.get("icon_off")
 
         # Initialize properties for relay timer switches
-        self.timer_block_addr = props.get("timer_block_addr") or None
-        self.function_addr = props.get("function_addr") or None
-        self.function_code = props.get("function_code") or None
+        self.timer_block_addr: int = props.get("timer_block_addr", 0)
+        self.function_addr: int = props.get("function_addr", 0)
+        self.function_code: int = props.get("function_code", 0)
 
         _LOGGER.debug(
             "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
@@ -166,7 +165,7 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):
         await super().async_added_to_hass()
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool:  # type: ignore[override]
         """Return True if the light is ON."""
         if self._switch_type == "relay_timer":
             enable_val = self.coordinator.data.get("relay_light_enable", None)
@@ -174,7 +173,7 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):
         return False
 
     @property
-    def available(self) -> bool:
+    def available(self) -> bool:  # type: ignore[override]
         """Return True if the light is available."""
         if not super().available:
             return False
@@ -184,7 +183,7 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):
         return True
 
     @property
-    def icon(self) -> str | None:
+    def icon(self) -> str | None:  # type: ignore[override]
         """Return custom icon depending on state."""
         if self._icon_on and self._icon_off:
             return self._icon_on if self.is_on else self._icon_off
@@ -193,13 +192,13 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):
         return None
 
     @property
-    def supported_color_modes(self) -> set[str]:
+    def supported_color_modes(self) -> set[str]:  # type: ignore[override]
         """Return the color modes supported by this light."""
         # For simple on/off light, the correct mode is COLOR_MODE_ONOFF (or ColorMode.ONOFF)
         return {ColorMode.ONOFF}
 
     @property
-    def color_mode(self) -> str:
+    def color_mode(self) -> str:  # type: ignore[override]
         """Return the current color mode of the light."""
         # Actual mode is always onoff, as brightness and color are not available
         return ColorMode.ONOFF

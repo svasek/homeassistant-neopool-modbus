@@ -15,6 +15,8 @@
 """VistaPool Integration for Home Assistant - Switch Module"""
 
 import logging
+from collections.abc import Mapping
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -32,7 +34,12 @@ from .entity import VistaPoolEntity
 _LOGGER = logging.getLogger(__name__)
 
 
-def _should_skip_switch(key: str, props: dict, data: dict, entry_options: dict) -> bool:
+def _should_skip_switch(
+    key: str,
+    props: dict[str, Any],
+    data: dict[str, Any],
+    entry_options: Mapping[str, Any],
+) -> bool:
     """Return True if a switch entity should not be created."""
     # Only create relay switches if enabled in options
     option_key = props.get("option")
@@ -90,7 +97,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):
+class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool switch entity."""
 
     def __init__(self, coordinator, entry_id, key, props) -> None:
@@ -100,9 +107,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = (
-            f"{self.coordinator.config_entry.entry_id}_{self._key.lower()}"
-        )
+        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._switch_type = props.get("switch_type") or None
@@ -118,12 +123,12 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):
         self._attr_icon = props.get("icon") or None
 
         # Initialize properties for relay timer switches
-        self.timer_block_addr = props.get("timer_block_addr") or None
-        self.function_addr = props.get("function_addr") or None
-        self.function_code = props.get("function_code") or None
+        self.timer_block_addr: int = props.get("timer_block_addr", 0)
+        self.function_addr: int = props.get("function_addr", 0)
+        self.function_code: int = props.get("function_code", 0)
 
         # Initialize properties for bitmask switches
-        self._mask_bit = props.get("mask_bit") or None
+        self._mask_bit: int = props.get("mask_bit", 0)
         self._data_key = props.get("data_key") or self._key
 
         _LOGGER.debug(
@@ -310,7 +315,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):
                 data[self._data_key] = current & ~self._mask_bit
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool:  # type: ignore[override]
         """Return True if the switch is on."""
         if self._switch_type == "manual_filtration":
             if self.coordinator.data.get("MBF_PAR_FILT_MODE") == 1:
@@ -339,7 +344,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):
         return False
 
     @property
-    def available(self) -> bool:
+    def available(self) -> bool:  # type: ignore[override]
         """Return True if the switch is available."""
         # These switches are pure HA settings (not device state) – always operable.
         if self._switch_type in ("winter_mode", "auto_time_sync"):
@@ -362,7 +367,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):
         return True
 
     @property
-    def icon(self) -> str | None:
+    def icon(self) -> str | None:  # type: ignore[override]
         """Return the icon to use in the frontend, depending on the state."""
         if self._icon_on and self._icon_off:
             return self._icon_on if self.is_on else self._icon_off

@@ -171,6 +171,7 @@ async def test_async_set_native_value_and_debounce(mock_coordinator):
     # Patch asyncio.sleep to run immediately
     with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
         await ent.async_set_native_value(6.5)
+        assert ent._pending_write_task is not None
         await ent._pending_write_task
     # Should have written 13 (6.5*2)
     ent.coordinator.client.async_write_register.assert_awaited_with(
@@ -191,6 +192,7 @@ async def test_debounced_write_mirrors_setpoints_from_heating_register(
     ent.async_write_ha_state = MagicMock()
     with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
         await ent.async_set_native_value(28)
+        assert ent._pending_write_task is not None
         await ent._pending_write_task
     # Expect two ordered writes: first to HEATING, then to INTELLIGENT with apply=True
     ent.coordinator.client.async_write_register.assert_has_awaits(
@@ -216,6 +218,7 @@ async def test_debounced_write_mirrors_setpoints_from_intelligent_register(
     ent.async_write_ha_state = MagicMock()
     with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
         await ent.async_set_native_value(26)
+        assert ent._pending_write_task is not None
         await ent._pending_write_task
     ent.coordinator.client.async_write_register.assert_has_awaits(
         [
@@ -349,7 +352,7 @@ async def test_number_async_setup_entry_adds_entities(monkeypatch):
     )
     monkeypatch.setitem(num_module.NUMBER_DEFINITIONS, "DUMMY", {"register": 0x0206})
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     assert any(isinstance(e, VistaPoolNumber) for e in entities)
     # Should include all keys above
@@ -393,7 +396,7 @@ async def test_number_setup_skips_smart_when_no_temp(monkeypatch):
         num_module.NUMBER_DEFINITIONS, "MBF_PAR_SMART_TEMP_LOW", {"register": 0x0419}
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_PAR_SMART_TEMP_HIGH" not in keys
@@ -442,7 +445,7 @@ async def test_number_async_setup_entry_skips_unassigned(monkeypatch):
         num_module.NUMBER_DEFINITIONS, "MBF_PAR_CL1", {"register": 0x0205}
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     # Should not include any filtered-out keys
@@ -486,7 +489,7 @@ async def test_number_setup_skips_cover_without_cover_sensor(monkeypatch):
         {"register": 0x042D, "option": "use_cover_sensor"},
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_REDUCTION" not in keys
     assert "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE" not in keys
@@ -526,7 +529,7 @@ async def test_number_setup_creates_cover_with_cover_sensor(monkeypatch):
         {"register": 0x042D, "option": "use_cover_sensor"},
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_REDUCTION" in keys
     assert "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE" in keys
@@ -563,7 +566,7 @@ async def test_number_setup_skips_cover_without_hydro_module(monkeypatch):
         {"register": 0x042D, "option": "use_cover_sensor"},
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_REDUCTION" not in keys
     assert "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE" not in keys
@@ -600,7 +603,7 @@ async def test_number_setup_skips_temp_shutdown_without_temp_sensor(monkeypatch)
         {"register": 0x042D, "option": "use_cover_sensor"},
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_HIDRO_COVER_REDUCTION" in keys  # cover reduction still shown
     assert "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE" not in keys
@@ -758,7 +761,7 @@ async def test_async_setup_entry_no_data(caplog):
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
-        await async_setup_entry(hass, entry, async_add_entities)
+        await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
         assert "No data from Modbus" in caplog.text
     async_add_entities.assert_not_called()
 
@@ -784,7 +787,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(caplog):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]

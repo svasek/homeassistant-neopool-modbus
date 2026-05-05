@@ -23,10 +23,11 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify as ha_slugify
 
 from .const import DOMAIN, NAME
+from .coordinator import VistaPoolCoordinator
 from .helpers import get_machine_name, modbus_regs_to_hex_string, parse_version
 
 
-class VistaPoolEntity(CoordinatorEntity):
+class VistaPoolEntity(CoordinatorEntity[VistaPoolCoordinator]):
     """Base class for VistaPool entities."""
 
     _attr_has_entity_name = True
@@ -37,19 +38,19 @@ class VistaPoolEntity(CoordinatorEntity):
         self._entry_id = entry_id
 
     @property
-    def available(self) -> bool:
+    def available(self) -> bool:  # type: ignore[override]
         """Return False for control entities while winter mode is active."""
         if self._winter_mode_active and getattr(self.coordinator, "winter_mode", False):
             return False
         return super().available
 
     @property
-    def translation_key(self) -> str | None:
+    def translation_key(self) -> str | None:  # type: ignore[override]
         """Return the translation key for the entity."""
         return getattr(self, "_attr_translation_key", None)  # pragma: no cover
 
     @property
-    def device_info(self) -> dict:  # pragma: no cover
+    def device_info(self) -> dict:  # type: ignore[override]  # pragma: no cover
         """Return device information for the entity."""
         data = self.coordinator.data or {}
         serial_number = modbus_regs_to_hex_string(data.get("MBF_POWER_MODULE_NODEID"))

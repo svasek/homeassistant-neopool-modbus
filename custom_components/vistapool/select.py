@@ -16,6 +16,8 @@
 
 import asyncio
 import logging
+from collections.abc import Mapping
+from typing import Any
 
 from homeassistant.components.select import SelectEntity
 
@@ -46,7 +48,12 @@ _FILTRATION_SPEED_KEYS = (
 )
 
 
-def _should_skip_select(key: str, props: dict, data: dict, entry_options: dict) -> bool:
+def _should_skip_select(
+    key: str,
+    props: dict[str, Any],
+    data: dict[str, Any],
+    entry_options: Mapping[str, Any],
+) -> bool:
     """Return True if a select entity should not be created."""
     # Skip filtration speed selects if pump type is not set
     if key in _FILTRATION_SPEED_KEYS and not bool(
@@ -101,7 +108,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     async_add_entities(entities)
 
 
-class VistaPoolSelect(VistaPoolEntity, SelectEntity):
+class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool select entity."""
 
     def __init__(self, coordinator, entry_id, key, props) -> None:
@@ -111,9 +118,7 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = (
-            f"{self.coordinator.config_entry.entry_id}_{self._key.lower()}"
-        )
+        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._attr_icon = props.get("icon") or None
@@ -365,7 +370,7 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):
         await super().async_added_to_hass()
 
     @property
-    def options(self) -> list[str]:
+    def options(self) -> list[str]:  # type: ignore[override]
         """Return the list of options for the select entity."""
         option_keys = list(self._options_map.keys())
 
@@ -397,7 +402,7 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):
         # current_option and async_select_option work correctly regardless of
         # whether options() has been evaluated first.
         if self._key == "MBF_PAR_FILT_MODE":
-            backwash_allowed = self.coordinator.config_entry.options.get(
+            backwash_allowed = self.coordinator.entry.options.get(
                 "enable_backwash_option", False
             ) or has_filtvalve(self.coordinator.data)
             if not backwash_allowed:
@@ -426,7 +431,7 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):
         if self._select_type == "timer_time":
             resolution = max(
                 1,
-                self.coordinator.config_entry.options.get(
+                self.coordinator.entry.options.get(
                     "timer_resolution", DEFAULT_TIMER_RESOLUTION
                 ),
             )
@@ -503,7 +508,7 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):
             data[self._key] = value
 
     @property
-    def current_option(self) -> str | None:
+    def current_option(self) -> str | None:  # type: ignore[override]
         """Return the current option for the select entity."""
         if self._key == "MBF_CELL_BOOST":
             reg_val = self.coordinator.data.get(self._key)
@@ -576,7 +581,7 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):
         return seconds_to_hhmm(value)  # pragma: no cover
 
     @property
-    def available(self) -> bool:
+    def available(self) -> bool:  # type: ignore[override]
         if self._key == "MBF_PAR_FILTRATION_SPEED":
             if not super().available:
                 return False

@@ -430,7 +430,7 @@ async def test_sensor_async_setup_entry_adds_entities(monkeypatch):
     hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
     async_add_entities = MagicMock()
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     # Should add all defined sensors present in data
     keys = [e._key for e in entities]
@@ -473,7 +473,7 @@ async def test_sensor_async_setup_entry_detected_flags(monkeypatch):
     hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
     async_add_entities = MagicMock()
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     # MBF_MEASURE_PH and MBF_MEASURE_RX should be skipped
@@ -505,7 +505,7 @@ async def test_sensor_async_setup_entry_model_mask(monkeypatch):
     hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
     async_add_entities = MagicMock()
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_ION_CURRENT" not in keys
@@ -531,7 +531,7 @@ async def test_sensor_hidro_skipped_without_hydrolysis(monkeypatch):
     hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
     async_add_entities = MagicMock()
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_HIDRO_CURRENT" not in keys
@@ -545,6 +545,7 @@ def make_sensor(props, key, data):
     mock_coord.device_slug = "vistapool"
     mock_coord.config_entry.entry_id = "test_entry"
     mock_coord.config_entry.options = {}
+    mock_coord.entry.options = {}
     return VistaPoolSensor(mock_coord, "test_entry", key, props)
 
 
@@ -602,6 +603,33 @@ def test_icon_default_icon():
     assert ent.icon == "mdi:test"
 
 
+def test_icon_ph_alarm_unknown_status_code():
+    """PH_STATUS_ALARM with a raw value not in the map falls back to _attr_icon."""
+    ent = make_sensor(
+        {"icon": "mdi:ph-fallback"}, "MBF_PH_STATUS_ALARM", {"MBF_PH_STATUS_ALARM": 99}
+    )
+    assert ent.icon == "mdi:ph-fallback"
+
+
+def test_icon_fallback_for_non_special_key():
+    """A key with a non-None raw value that has no special icon logic returns _attr_icon."""
+    ent = make_sensor({"icon": "mdi:gauge"}, "MBF_MEASURE_RX", {"MBF_MEASURE_RX": 500})
+    assert ent.icon == "mdi:gauge"
+
+
+def test_native_value_returns_none_when_filtration_off():
+    """Sensors in the filtration-dependent set return None when pump is off."""
+    ent = make_sensor(
+        {"unit": "°C"},
+        "MBF_MEASURE_TEMPERATURE",
+        {
+            "MBF_MEASURE_TEMPERATURE": 25.5,
+            "Filtration Pump": False,
+        },
+    )
+    assert ent.native_value is None
+
+
 @pytest.mark.asyncio
 async def test_sensor_temperature_skip_when_inactive():
     """Test that MBF_MEASURE_TEMPERATURE is skipped when MBF_PAR_TEMPERATURE_ACTIVE is 0."""
@@ -623,7 +651,7 @@ async def test_sensor_temperature_skip_when_inactive():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
@@ -651,7 +679,7 @@ async def test_sensor_temperature_created_when_active():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
@@ -674,6 +702,7 @@ async def test_sensor_intelligent_key_skip_without_heating(sensor_key, value):
         options = {}
 
     class DummyCoordinator:
+        data: dict = {}
         config_entry = DummyEntry()
         device_slug = "vistapool"
 
@@ -688,7 +717,7 @@ async def test_sensor_intelligent_key_skip_without_heating(sensor_key, value):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert sensor_key not in keys
@@ -710,6 +739,7 @@ async def test_sensor_intelligent_key_created_with_heating(sensor_key, value):
         options = {}
 
     class DummyCoordinator:
+        data: dict = {}
         config_entry = DummyEntry()
         device_slug = "vistapool"
 
@@ -724,7 +754,7 @@ async def test_sensor_intelligent_key_created_with_heating(sensor_key, value):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert sensor_key in keys
@@ -776,7 +806,7 @@ async def test_async_setup_entry_no_data(caplog):
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
-        await async_setup_entry(hass, entry, async_add_entities)
+        await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
         assert "No data from Modbus" in caplog.text
     async_add_entities.assert_not_called()
 
@@ -816,7 +846,7 @@ async def test_sensor_setup_with_capability_snapshot_only():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
@@ -851,6 +881,7 @@ async def test_sensor_filtvalve_remaining_skipped_without_besgo():
         options = {}
 
     class DummyCoordinator:
+        data: dict = {}
         config_entry = DummyEntry()
         device_slug = "vistapool"
 
@@ -861,7 +892,7 @@ async def test_sensor_filtvalve_remaining_skipped_without_besgo():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_REMAINING" not in keys
@@ -876,6 +907,7 @@ async def test_sensor_filtvalve_remaining_created_with_besgo():
         options = {}
 
     class DummyCoordinator:
+        data: dict = {}
         config_entry = DummyEntry()
         device_slug = "vistapool"
 
@@ -889,7 +921,7 @@ async def test_sensor_filtvalve_remaining_created_with_besgo():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_REMAINING" in keys
@@ -904,6 +936,7 @@ async def test_sensor_filtvalve_remaining_created_with_gpio_only():
         options = {}
 
     class DummyCoordinator:
+        data: dict = {}
         config_entry = DummyEntry()
         device_slug = "vistapool"
 
@@ -918,7 +951,7 @@ async def test_sensor_filtvalve_remaining_created_with_gpio_only():
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_REMAINING" in keys

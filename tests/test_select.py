@@ -46,6 +46,7 @@ def mock_coordinator():
     config_entry.unique_id = "test_slug"
     config_entry.options = {}
     mock.config_entry = config_entry
+    mock.entry = config_entry
     return mock
 
 
@@ -317,7 +318,7 @@ async def test_async_select_option_relay_mode(mock_coordinator):
     ent.hass.services.async_call = AsyncMock()
     await ent.async_select_option("manual")
     ent.hass.services.async_call.assert_awaited()
-    ent.coordinator.async_set_updated_data.assert_called()
+    mock_coordinator.async_set_updated_data.assert_called()
 
 
 @pytest.mark.asyncio
@@ -334,7 +335,7 @@ async def test_async_select_option_backwash(mock_coordinator):
         "MBF_PAR_TEMPERATURE_ACTIVE": 0,
     }
     ent.coordinator.device_name = "vistapool"
-    ent.coordinator.config_entry.options = {"enable_backwash_option": True}
+    ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     # Verify the injection path works: options property must include "backwash"
@@ -360,7 +361,7 @@ async def test_async_select_option_backwash_from_manual(mock_coordinator):
         "MBF_PAR_FILTVALVE_GPIO": 0,  # no valve => manual
     }
     ent.coordinator.device_name = "vistapool"
-    ent.coordinator.config_entry.options = {"enable_backwash_option": True}
+    ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     assert "backwash" in ent.options
@@ -388,7 +389,7 @@ async def test_async_select_option_backwash_from_manual_auto_valve(mock_coordina
         "MBF_PAR_FILTVALVE_GPIO": 5,
     }
     ent.coordinator.device_name = "vistapool"
-    ent.coordinator.config_entry.options = {"enable_backwash_option": True}
+    ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     assert "backwash" in ent.options
@@ -648,7 +649,7 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
         "custom_components.vistapool.select.get_filtration_pump_type", lambda x: True
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     assert "MBF_PAR_FILTRATION_SPEED" in keys
@@ -679,7 +680,7 @@ async def test_select_async_setup_entry_option_disabled(monkeypatch):
         "custom_components.vistapool.select.get_filtration_pump_type", lambda x: True
     )
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]
     # Should not include TEST_SELECT, as option is False
@@ -702,7 +703,7 @@ async def test_select_async_setup_entry_no_data(caplog):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     async_add_entities.assert_not_called()
     assert "No data from Modbus" in caplog.text
 
@@ -769,7 +770,7 @@ def test_current_option_ph_pump_delay(mock_coordinator):
     )
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 120}
     assert ent.current_option == "120"
-    mock_coordinator.data["MBF_PAR_RELAY_ACTIVATION_DELAY"] = None
+    mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": None}  # type: ignore[dict-item]
     assert ent.current_option is None
 
 
@@ -836,7 +837,7 @@ async def test_select_filtvalve_period_minutes_skipped_without_besgo(mock_coordi
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_PERIOD_MINUTES" not in keys
@@ -863,7 +864,7 @@ async def test_select_filtvalve_period_minutes_created_with_besgo(mock_coordinat
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_PERIOD_MINUTES" in keys
@@ -894,7 +895,7 @@ async def test_select_filtvalve_period_minutes_created_with_gpio_only(mock_coord
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_PERIOD_MINUTES" in keys
@@ -1011,7 +1012,7 @@ async def test_select_filtvalve_mode_skipped_without_besgo(mock_coordinator):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_MODE" not in keys
@@ -1038,7 +1039,7 @@ async def test_select_filtvalve_mode_created_with_besgo(mock_coordinator):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_MODE" in keys
@@ -1069,7 +1070,7 @@ async def test_select_filtvalve_mode_created_with_gpio_only(mock_coordinator):
     entry = DummyEntry()
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     keys = [e._key for e in async_add_entities.call_args[0][0]]
     assert "MBF_PAR_FILTVALVE_MODE" in keys
@@ -1152,6 +1153,7 @@ async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
 
     class DummyEntry:
         entry_id = "test_entry"
+        options: dict = {}
 
     class DummyCoordinator:
         data = {
@@ -1164,10 +1166,9 @@ async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
     hass = MagicMock()
     hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
-    entry.options = {}
     async_add_entities = MagicMock()
 
-    await async_setup_entry(hass, entry, async_add_entities)
+    await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
 
     entities = async_add_entities.call_args[0][0]
     keys = [e._key for e in entities]

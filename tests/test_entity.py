@@ -77,7 +77,7 @@ def _make_entity(
     entity = VistaPoolEntity.__new__(VistaPoolEntity)
     entity.coordinator = coordinator
     if switch_type is not None:
-        entity._switch_type = switch_type
+        entity._switch_type = switch_type  # type: ignore[attr-defined]
     return entity
 
 
