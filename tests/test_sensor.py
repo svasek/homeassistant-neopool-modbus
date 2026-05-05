@@ -31,6 +31,7 @@ def mock_coordinator():
     mock.data = {}
     mock.config_entry.options = {}
     mock.config_entry.entry_id = "test_entry"
+    mock.entry = mock.config_entry
     mock.device_slug = "vistapool"
     return mock
 
@@ -545,7 +546,7 @@ def make_sensor(props, key, data):
     mock_coord.device_slug = "vistapool"
     mock_coord.config_entry.entry_id = "test_entry"
     mock_coord.config_entry.options = {}
-    mock_coord.entry.options = {}
+    mock_coord.entry = mock_coord.config_entry
     return VistaPoolSensor(mock_coord, "test_entry", key, props)
 
 
@@ -768,6 +769,7 @@ def test_sensor_intelligent_tt_next_interval_calls_helper():
     mock_coordinator.data = {"MBF_PAR_INTELLIGENT_TT_NEXT_INTERVAL": 3600}
     mock_coordinator.config_entry.options = {}
     mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.entry = mock_coordinator.config_entry
     mock_coordinator.device_slug = "vistapool"
 
     props = {"device_class": "timestamp"}
@@ -978,6 +980,7 @@ def test_sensor_filtration_remaining_native_value():
     mock_coordinator.data = {"FILTRATION_REMAINING": 1800}
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.config_entry.options = {}
+    mock_coordinator.entry = mock_coordinator.config_entry
     mock_coordinator.device_slug = "vistapool"
 
     from custom_components.vistapool.sensor import VistaPoolSensor
@@ -992,6 +995,7 @@ def test_sensor_filtration_remaining_none_when_idle():
     mock_coordinator.data = {"FILTRATION_REMAINING": None}
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.config_entry.options = {}
+    mock_coordinator.entry = mock_coordinator.config_entry
     mock_coordinator.device_slug = "vistapool"
 
     from custom_components.vistapool.sensor import VistaPoolSensor
