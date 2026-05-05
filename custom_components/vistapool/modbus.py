@@ -26,7 +26,14 @@ from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ConnectionException, ModbusException
 from pymodbus.framer import FramerType
 
-from .const import DEFAULT_MODBUS_FRAMER, TIMER_BLOCKS, is_valid_relay_gpio
+from .const import (
+    COMMAND_REGISTERS,
+    DEFAULT_MODBUS_FRAMER,
+    EEPROM_SAVE_REGISTER,
+    EXEC_REGISTER,
+    TIMER_BLOCKS,
+    is_valid_relay_gpio,
+)
 from .helpers import (
     build_timer_block,
     get_filtration_speed,
@@ -1049,8 +1056,10 @@ class VistaPoolModbusClient:
                 _LOGGER.error("Read failed at 0x%04X: %s", address, confirm)
                 return None
 
-            # Verify the read-back matches the written value
-            if confirm.registers != value:
+            # Verify the read-back matches the written value.
+            # Skip verification for command registers (e.g. EEPROM save, EXEC)
+            # that auto-clear to 0 after being processed by the controller.
+            if address not in COMMAND_REGISTERS and confirm.registers != value:
                 wrote = value if len(value) > 1 else value[0]
                 read_back = (
                     confirm.registers if len(value) > 1 else confirm.registers[0]
@@ -1068,22 +1077,30 @@ class VistaPoolModbusClient:
             if apply:
                 await asyncio.sleep(0.1)
                 result = await modbus_acall(
-                    client.write_registers, self._unit, address=0x02F0, values=[1]
+                    client.write_registers,
+                    self._unit,
+                    address=EEPROM_SAVE_REGISTER,
+                    values=[1],
                 )
 
                 if result.isError():  # pragma: no cover
-                    _LOGGER.error("EEPROM save failed (0x02F0): %s", result)
+                    _LOGGER.error(
+                        "EEPROM save failed (0x%04X): %s", EEPROM_SAVE_REGISTER, result
+                    )
                     return None
-                _LOGGER.debug("EEPROM save triggered (0x02F0)")
+                _LOGGER.debug("EEPROM save triggered (0x%04X)", EEPROM_SAVE_REGISTER)
 
                 await asyncio.sleep(0.1)
                 result = await modbus_acall(
-                    client.write_registers, self._unit, address=0x02F5, values=[1]
+                    client.write_registers,
+                    self._unit,
+                    address=EXEC_REGISTER,
+                    values=[1],
                 )
                 if result.isError():  # pragma: no cover
-                    _LOGGER.error("EXEC failed (0x02F5): %s", result)
+                    _LOGGER.error("EXEC failed (0x%04X): %s", EXEC_REGISTER, result)
                     return None
-                _LOGGER.debug("Config EXEC triggered (0x02F5)")
+                _LOGGER.debug("Config EXEC triggered (0x%04X)", EXEC_REGISTER)
                 await asyncio.sleep(0.1)
 
             # Return useful dict if everything succeeded
@@ -1153,7 +1170,10 @@ class VistaPoolModbusClient:
                 client.write_registers, self._unit, address=0x0289, values=[0]
             )
             await modbus_acall(
-                client.write_registers, self._unit, address=0x02F5, values=[1]
+                client.write_registers,
+                self._unit,
+                address=EXEC_REGISTER,
+                values=[1],
             )
             self._successful_write_ops += 1
             self._successful_writes.append((f"0x{addr:04X}", time.time()))
@@ -1333,11 +1353,17 @@ class VistaPoolModbusClient:
             await asyncio.sleep(0.1)
             # Write to EEPROM and execute
             await modbus_acall(
-                client.write_registers, self._unit, address=0x02F0, values=[1]
+                client.write_registers,
+                self._unit,
+                address=EEPROM_SAVE_REGISTER,
+                values=[1],
             )
             await asyncio.sleep(0.1)
             await modbus_acall(
-                client.write_registers, self._unit, address=0x02F5, values=[1]
+                client.write_registers,
+                self._unit,
+                address=EXEC_REGISTER,
+                values=[1],
             )
             await asyncio.sleep(0.1)
 

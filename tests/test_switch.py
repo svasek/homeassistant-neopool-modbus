@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.vistapool.const import EXEC_REGISTER
 from custom_components.vistapool.switch import VistaPoolSwitch, async_setup_entry
 
 
@@ -124,7 +125,7 @@ async def test_turn_on_relay_timer(mock_coordinator):
     await ent.async_turn_on()
     ent.coordinator.client.async_write_register.assert_any_await(0x0100, 7)
     ent.coordinator.client.async_write_register.assert_any_await(0x0200, 3)
-    ent.coordinator.client.async_write_register.assert_any_await(0x02F5, 1)
+    ent.coordinator.client.async_write_register.assert_any_await(EXEC_REGISTER, 1)
 
 
 @pytest.mark.asyncio
@@ -136,7 +137,7 @@ async def test_turn_off_relay_timer(mock_coordinator):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
     ent.coordinator.client.async_write_register.assert_any_await(0x0200, 4)
-    ent.coordinator.client.async_write_register.assert_any_await(0x02F5, 1)
+    ent.coordinator.client.async_write_register.assert_any_await(EXEC_REGISTER, 1)
 
 
 @pytest.mark.asyncio
