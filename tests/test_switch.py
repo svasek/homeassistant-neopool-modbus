@@ -1060,7 +1060,7 @@ def test_optimistic_update_noop_when_data_is_none(mock_coordinator):
 
 
 @pytest.mark.asyncio
-async def test_turn_on_relay_timer_missing_config(mock_coordinator):
+async def test_turn_on_relay_timer_missing_config(mock_coordinator, caplog):
     """relay_timer turn_on logs error and returns when config is missing."""
     props = make_props(switch_type="relay_timer")
     ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
@@ -1068,10 +1068,11 @@ async def test_turn_on_relay_timer_missing_config(mock_coordinator):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
     ent.coordinator.client.async_write_register.assert_not_awaited()
+    assert "Missing relay_timer config for aux1" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_turn_off_relay_timer_missing_config(mock_coordinator):
+async def test_turn_off_relay_timer_missing_config(mock_coordinator, caplog):
     """relay_timer turn_off logs error and returns when timer_block_addr is missing."""
     props = make_props(switch_type="relay_timer")
     ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
@@ -1079,10 +1080,11 @@ async def test_turn_off_relay_timer_missing_config(mock_coordinator):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
     ent.coordinator.client.async_write_register.assert_not_awaited()
+    assert "Missing timer_block_addr for aux1" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_turn_on_climate_mode_missing_function_addr(mock_coordinator):
+async def test_turn_on_climate_mode_missing_function_addr(mock_coordinator, caplog):
     """climate_mode turn_on logs error when function_addr is missing."""
     props = make_props(switch_type="climate_mode")
     ent = VistaPoolSwitch(mock_coordinator, "test_entry", "clima", props)
@@ -1090,10 +1092,11 @@ async def test_turn_on_climate_mode_missing_function_addr(mock_coordinator):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
     ent.coordinator.client.async_write_register.assert_not_awaited()
+    assert "Missing function_addr for clima" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_turn_off_climate_mode_missing_function_addr(mock_coordinator):
+async def test_turn_off_climate_mode_missing_function_addr(mock_coordinator, caplog):
     """climate_mode turn_off logs error when function_addr is missing."""
     props = make_props(switch_type="climate_mode")
     ent = VistaPoolSwitch(mock_coordinator, "test_entry", "clima", props)
@@ -1101,10 +1104,11 @@ async def test_turn_off_climate_mode_missing_function_addr(mock_coordinator):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
     ent.coordinator.client.async_write_register.assert_not_awaited()
+    assert "Missing function_addr for clima" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_turn_on_bitmask_missing_config(mock_coordinator):
+async def test_turn_on_bitmask_missing_config(mock_coordinator, caplog):
     """bitmask turn_on logs error when function_addr/mask_bit is missing."""
     props = make_props(switch_type="bitmask")
     ent = VistaPoolSwitch(mock_coordinator, "test_entry", "bit", props)
@@ -1112,10 +1116,11 @@ async def test_turn_on_bitmask_missing_config(mock_coordinator):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
     ent.coordinator.client.async_write_register.assert_not_awaited()
+    assert "Missing bitmask config for bit" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_turn_off_bitmask_missing_config(mock_coordinator):
+async def test_turn_off_bitmask_missing_config(mock_coordinator, caplog):
     """bitmask turn_off logs error when function_addr/mask_bit is missing."""
     props = make_props(switch_type="bitmask")
     ent = VistaPoolSwitch(mock_coordinator, "test_entry", "bit", props)
@@ -1123,3 +1128,4 @@ async def test_turn_off_bitmask_missing_config(mock_coordinator):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
     ent.coordinator.client.async_write_register.assert_not_awaited()
+    assert "Missing bitmask config for bit" in caplog.text
