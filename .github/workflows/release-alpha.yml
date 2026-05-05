@@ -61,8 +61,19 @@ jobs:
       - name: Determine bump type from PR title
         id: bump
         run: |
-          # Get PR title (from PR comment trigger or from current branch's open PR)
+          # Parse optional override from comment (e.g. "/alpha-release minor")
           if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            COMMENT="${{ github.event.comment.body }}"
+            OVERRIDE=$(echo "$COMMENT" | awk '{print $2}')
+            if [[ "$OVERRIDE" == "minor" || "$OVERRIDE" == "feat" ]]; then
+              echo "type=minor" >> "$GITHUB_OUTPUT"
+              echo "🔧 Bump type from comment override: minor ($OVERRIDE)"
+              exit 0
+            elif [[ "$OVERRIDE" == "patch" || "$OVERRIDE" == "fix" ]]; then
+              echo "type=patch" >> "$GITHUB_OUTPUT"
+              echo "🔧 Bump type from comment override: patch ($OVERRIDE)"
+              exit 0
+            fi
             PR_TITLE="${{ steps.pr.outputs.title }}"
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.bump_type }}" != "auto" ]]; then
             echo "type=${{ github.event.inputs.bump_type }}" >> "$GITHUB_OUTPUT"
