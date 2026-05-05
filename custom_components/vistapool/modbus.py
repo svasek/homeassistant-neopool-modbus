@@ -427,7 +427,8 @@ class VistaPoolModbusClient:
 
         # All retries failed
         _LOGGER.error("All read attempts failed: %s", last_error)
-        raise last_error  # type: ignore[misc]
+        assert last_error is not None
+        raise last_error
 
     async def _read_register_ranges(
         self,

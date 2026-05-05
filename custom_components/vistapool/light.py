@@ -79,9 +79,9 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
         self._icon_off = props.get("icon_off")
 
         # Initialize properties for relay timer switches
-        self.timer_block_addr: int = props.get("timer_block_addr", 0)
-        self.function_addr: int = props.get("function_addr", 0)
-        self.function_code: int = props.get("function_code", 0)
+        self.timer_block_addr: int | None = props.get("timer_block_addr")
+        self.function_addr: int | None = props.get("function_addr")
+        self.function_code: int | None = props.get("function_code")
 
         _LOGGER.debug(
             "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
@@ -102,6 +102,13 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
             _LOGGER.error("Modbus client not available for writing registers.")
             return
         if self._switch_type == "relay_timer":
+            if (
+                self.function_addr is None
+                or self.function_code is None
+                or self.timer_block_addr is None
+            ):
+                _LOGGER.error("Missing relay_timer config for %s", self._key)
+                return
             _LOGGER.debug(
                 "Turning ON %s: function_addr=0x%04X, timer_block_addr=0x%04X",
                 self._key,
@@ -132,6 +139,9 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
             _LOGGER.error("Modbus client not available for writing registers.")
             return
         if self._switch_type == "relay_timer":
+            if self.timer_block_addr is None:
+                _LOGGER.error("Missing timer_block_addr for %s", self._key)
+                return
             _LOGGER.debug(
                 "Turning OFF %s: timer_block_addr=0x%04X",
                 self._key,

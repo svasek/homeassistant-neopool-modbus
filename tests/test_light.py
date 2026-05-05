@@ -70,6 +70,7 @@ def test_light_is_on(mock_coordinator, light_props):
 async def test_light_async_turn_on(mock_coordinator, light_props):
     ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
     ent.function_addr = 0x0100
+    ent.function_code = 7
     ent.timer_block_addr = 0x0200
     ent.hass = MagicMock()
     ent.async_write_ha_state = MagicMock()
@@ -81,6 +82,7 @@ async def test_light_async_turn_on(mock_coordinator, light_props):
 async def test_light_async_turn_off(mock_coordinator, light_props):
     ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
     ent.function_addr = 0x0100
+    ent.function_code = 7
     ent.timer_block_addr = 0x0200
     ent.hass = MagicMock()
     ent.async_write_ha_state = MagicMock()
@@ -385,3 +387,23 @@ def test_optimistic_update_light_noop_when_data_is_none(mock_coordinator, light_
     mock_coordinator.data = None
     ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
     ent._optimistic_update(True)  # Should not raise
+
+
+@pytest.mark.asyncio
+async def test_light_turn_on_missing_config(mock_coordinator, light_props):
+    """turn_on logs error and returns when relay_timer config is missing."""
+    ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
+    ent.hass = MagicMock()
+    ent.async_write_ha_state = MagicMock()
+    await ent.async_turn_on()
+    mock_coordinator.client.async_write_register.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_light_turn_off_missing_config(mock_coordinator, light_props):
+    """turn_off logs error and returns when timer_block_addr is missing."""
+    ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
+    ent.hass = MagicMock()
+    ent.async_write_ha_state = MagicMock()
+    await ent.async_turn_off()
+    mock_coordinator.client.async_write_register.assert_not_awaited()

@@ -123,12 +123,12 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
         self._attr_icon = props.get("icon") or None
 
         # Initialize properties for relay timer switches
-        self.timer_block_addr: int = props.get("timer_block_addr", 0)
-        self.function_addr: int = props.get("function_addr", 0)
-        self.function_code: int = props.get("function_code", 0)
+        self.timer_block_addr: int | None = props.get("timer_block_addr")
+        self.function_addr: int | None = props.get("function_addr")
+        self.function_code: int | None = props.get("function_code")
 
         # Initialize properties for bitmask switches
-        self._mask_bit: int = props.get("mask_bit", 0)
+        self._mask_bit: int | None = props.get("mask_bit")
         self._data_key = props.get("data_key") or self._key
 
         _LOGGER.debug(
@@ -164,6 +164,13 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
         elif self._switch_type == "winter_mode":
             await self.coordinator.set_winter_mode(True)
         elif self._switch_type == "relay_timer":
+            if (
+                self.function_addr is None
+                or self.function_code is None
+                or self.timer_block_addr is None
+            ):
+                _LOGGER.error("Missing relay_timer config for %s", self._key)
+                return
             _LOGGER.debug(
                 "Turning ON relay %s: function_addr=0x%04X, timer_block_addr=0x%04X",
                 self._key,
@@ -175,20 +182,20 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             )  # Set function (if needed)
             await client.async_write_register(self.timer_block_addr, 3)  # Always on
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
-        elif self._switch_type == "climate_mode":
+        elif self._switch_type in ("climate_mode", "smart_anti_freeze", "uv_mode"):
+            if self.function_addr is None:
+                _LOGGER.error("Missing function_addr for %s", self._key)
+                return
             _LOGGER.debug(
-                "Setting climate mode ON via register 0x%04X", self.function_addr
+                "Setting %s ON via register 0x%04X",
+                self._switch_type,
+                self.function_addr,
             )
-            await client.async_write_register(self.function_addr, 1)
-        elif self._switch_type == "smart_anti_freeze":
-            _LOGGER.debug(
-                "Setting smart antifreeze ON via register 0x%04X", self.function_addr
-            )
-            await client.async_write_register(self.function_addr, 1)
-        elif self._switch_type == "uv_mode":
-            _LOGGER.debug("Setting UV mode ON via register 0x%04X", self.function_addr)
             await client.async_write_register(self.function_addr, 1)
         elif self._switch_type == "bitmask":
+            if self.function_addr is None or self._mask_bit is None:
+                _LOGGER.error("Missing bitmask config for %s", self._key)
+                return
             current = int(self.coordinator.data.get(self._data_key, 0) or 0)
             new_value = current | self._mask_bit
             _LOGGER.debug(
@@ -237,6 +244,9 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
         elif self._switch_type == "winter_mode":
             await self.coordinator.set_winter_mode(False)
         elif self._switch_type == "relay_timer":
+            if self.timer_block_addr is None:
+                _LOGGER.error("Missing timer_block_addr for %s", self._key)
+                return
             _LOGGER.debug(
                 "Turning OFF relay %s: timer_block_addr=0x%04X",
                 self._key,
@@ -244,20 +254,20 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             )
             await client.async_write_register(self.timer_block_addr, 4)  # Always off
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
-        elif self._switch_type == "climate_mode":
+        elif self._switch_type in ("climate_mode", "smart_anti_freeze", "uv_mode"):
+            if self.function_addr is None:
+                _LOGGER.error("Missing function_addr for %s", self._key)
+                return
             _LOGGER.debug(
-                "Setting climate mode OFF via register 0x%04X", self.function_addr
+                "Setting %s OFF via register 0x%04X",
+                self._switch_type,
+                self.function_addr,
             )
-            await client.async_write_register(self.function_addr, 0)
-        elif self._switch_type == "smart_anti_freeze":
-            _LOGGER.debug(
-                "Setting smart antifreeze OFF via register 0x%04X", self.function_addr
-            )
-            await client.async_write_register(self.function_addr, 0)
-        elif self._switch_type == "uv_mode":
-            _LOGGER.debug("Setting UV mode OFF via register 0x%04X", self.function_addr)
             await client.async_write_register(self.function_addr, 0)
         elif self._switch_type == "bitmask":
+            if self.function_addr is None or self._mask_bit is None:
+                _LOGGER.error("Missing bitmask config for %s", self._key)
+                return
             current = int(self.coordinator.data.get(self._data_key, 0) or 0)
             new_value = current & ~self._mask_bit
             _LOGGER.debug(
@@ -307,7 +317,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             data["MBF_PAR_SMART_ANTI_FREEZE"] = 1 if state else 0
         elif self._switch_type == "uv_mode":
             data["MBF_PAR_UV_MODE"] = 1 if state else 0
-        elif self._switch_type == "bitmask":
+        elif self._switch_type == "bitmask" and self._mask_bit is not None:
             current = int(data.get(self._data_key, 0) or 0)
             if state:
                 data[self._data_key] = current | self._mask_bit
@@ -338,7 +348,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             return bool(self.coordinator.data.get("MBF_PAR_SMART_ANTI_FREEZE", 0))
         elif self._switch_type == "uv_mode":
             return bool(self.coordinator.data.get("MBF_PAR_UV_MODE", 0))
-        elif self._switch_type == "bitmask":
+        elif self._switch_type == "bitmask" and self._mask_bit is not None:
             raw = int(self.coordinator.data.get(self._data_key, 0) or 0)
             return bool(raw & self._mask_bit)
         return False
