@@ -809,10 +809,10 @@ class TestGpioSanityCheck:
         with patch(self.PATCH_TARGET) as mock_notify:
             coordinator._check_gpio_registers(data)
             mock_notify.assert_called_once()
-            call_kwargs = mock_notify.call_args.kwargs
-            assert call_kwargs.pop("hass", None) is None or True
-            # hass is passed as first positional arg
+            # hass must be passed as first positional arg, not as keyword
             assert mock_notify.call_args.args[0] is hass
+            assert "hass" not in mock_notify.call_args.kwargs
+            call_kwargs = mock_notify.call_args.kwargs
             assert "Corrupted GPIO" in call_kwargs["title"]
             assert "22846" in call_kwargs["message"]
             assert "MBF_PAR_FILT_GPIO" in call_kwargs["message"]
