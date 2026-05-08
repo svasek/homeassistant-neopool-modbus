@@ -5,9 +5,14 @@ on:
   workflow_dispatch:
     inputs:
       version_suffix:
-        description: "Optional suffix (default: alpha). Examples: alpha, beta, rc"
+        description: "Pre-release suffix"
         required: false
         default: "alpha"
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
       bump_type:
         description: "Version bump type"
         required: false
@@ -30,10 +35,13 @@ jobs:
   alpha-release:
     runs-on: ubuntu-latest
     # Run on workflow_dispatch OR when a PR comment matches one of the trigger commands
+    # Only repo owner or collaborators can trigger via comment
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' &&
        github.event.issue.pull_request &&
+       (github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'COLLABORATOR') &&
        (startsWith(github.event.comment.body, '/alpha-release') ||
         startsWith(github.event.comment.body, '/release-alpha') ||
         startsWith(github.event.comment.body, '/dev-release') ||
@@ -60,11 +68,15 @@ jobs:
       # ── 2. Calculate alpha version ──────────────────────────────────
       - name: Determine bump type from PR title
         id: bump
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_TITLE_FROM_API: ${{ steps.pr.outputs.title }}
+          EVENT_NAME: ${{ github.event_name }}
+          BUMP_INPUT: ${{ github.event.inputs.bump_type }}
         run: |
           # Parse optional override from comment (e.g. "/alpha-release minor")
-          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
-            COMMENT="${{ github.event.comment.body }}"
-            OVERRIDE=$(echo "$COMMENT" | awk '{print $2}')
+          if [[ "$EVENT_NAME" == "issue_comment" ]]; then
+            OVERRIDE=$(echo "$COMMENT_BODY" | awk '{print $2}')
             if [[ "$OVERRIDE" == "minor" || "$OVERRIDE" == "feat" ]]; then
               echo "type=minor" >> "$GITHUB_OUTPUT"
               echo "🔧 Bump type from comment override: minor ($OVERRIDE)"
@@ -74,10 +86,10 @@ jobs:
               echo "🔧 Bump type from comment override: patch ($OVERRIDE)"
               exit 0
             fi
-            PR_TITLE="${{ steps.pr.outputs.title }}"
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.bump_type }}" != "auto" ]]; then
-            echo "type=${{ github.event.inputs.bump_type }}" >> "$GITHUB_OUTPUT"
-            echo "🔧 Bump type from manual input: ${{ github.event.inputs.bump_type }}"
+            PR_TITLE="$PR_TITLE_FROM_API"
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" && "$BUMP_INPUT" != "auto" ]]; then
+            echo "type=$BUMP_INPUT" >> "$GITHUB_OUTPUT"
+            echo "🔧 Bump type from manual input: $BUMP_INPUT"
             exit 0
           else
             # Try to find an open PR for the current branch
@@ -130,11 +142,13 @@ jobs:
 
       # ── 3. Build release zip ────────────────────────────────────────
       - name: Patch manifest.json with alpha version
+        env:
+          ALPHA_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          jq '.version = "${{ steps.version.outputs.version }}"' \
+          jq --arg v "$ALPHA_VERSION" '.version = $v' \
             custom_components/vistapool/manifest.json > tmp.$$.json
           mv tmp.$$.json custom_components/vistapool/manifest.json
-          echo "✅ manifest.json version set to ${{ steps.version.outputs.version }}"
+          echo "✅ manifest.json version set to $ALPHA_VERSION"
 
       - name: Create release archive
         run: |
@@ -148,11 +162,11 @@ jobs:
       - name: Create GitHub pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.event_name == 'issue_comment' && steps.pr.outputs.ref || github.ref_name }}
+          SHORT_SHA: ${{ steps.version.outputs.short_sha }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          BRANCH="${{ github.event_name == 'issue_comment' && steps.pr.outputs.ref || github.ref_name }}"
-          SHORT_SHA="${{ steps.version.outputs.short_sha }}"
-          TAG="${{ steps.version.outputs.tag }}"
-          VERSION="${{ steps.version.outputs.version }}"
 
           NOTES="## 🧪 Alpha Pre-release \`${VERSION}\`
 
@@ -179,10 +193,12 @@ jobs:
         if: github.event_name == 'issue_comment'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          VERSION="${{ steps.version.outputs.version }}"
-          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${TAG}"
+          RELEASE_URL="https://github.com/${REPO}/releases/tag/${TAG}"
 
           COMMENT="🧪 **Alpha pre-release created:** [\`${VERSION}\`](${RELEASE_URL})
 
@@ -192,4 +208,4 @@ jobs:
           3. Select version \`${VERSION}\` and install
           4. Restart Home Assistant"
 
-          gh pr comment ${{ github.event.issue.number }} --body "$COMMENT"
+          gh pr comment "$PR_NUMBER" --body "$COMMENT"
