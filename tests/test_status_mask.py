@@ -73,6 +73,7 @@ def test_decode_ph_rx_cl_cd_status_bits_basic():
     unit = "pH"
     result = decode_ph_rx_cl_cd_status_bits(status, unit)
     assert result["pH flow sensor problem"] is True
+    assert result["pH regulation out of range"] is False
     assert result["pH module control status"] is False
     assert result["pH acid pump active"] is True
     assert result["pH pump active"] is False
@@ -89,6 +90,21 @@ def test_decode_ph_rx_cl_cd_status_bits_no_acid_for_non_ph():
     result = decode_ph_rx_cl_cd_status_bits(status, "Redox")
     assert "Redox acid pump active" not in result
     assert "Redox pump active" in result
+
+
+def test_decode_ph_rx_cl_cd_status_bits_regulation_out_of_range():
+    """Bit 7 (0x0080) indicates regulation out of range."""
+    status = 0xE584  # bit 7 set, alarm 4, bits 13-15 set
+    result = decode_ph_rx_cl_cd_status_bits(status, "pH")
+    assert result["pH regulation out of range"] is True
+    assert result["pH control module"] is True
+    assert result["pH measurement active"] is True
+    assert result["pH measurement module detected"] is True
+
+    # Without bit 7
+    status_no_bit7 = 0xE504  # same but bit 7 clear
+    result2 = decode_ph_rx_cl_cd_status_bits(status_no_bit7, "pH")
+    assert result2["pH regulation out of range"] is False
 
 
 def test_decode_ion_status_bits_basic():

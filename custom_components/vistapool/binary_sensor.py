@@ -59,6 +59,7 @@ RELAY_GPIO_GUARD_MAP = {
 # Suffixes used to match sensors against their measurement module detection status.
 _MODULE_SUFFIXES = (
     "flow sensor problem",
+    "regulation out of range",
     "module control status",
     "control status",
     "pump active",

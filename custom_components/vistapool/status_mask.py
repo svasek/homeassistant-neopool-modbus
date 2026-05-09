@@ -82,6 +82,7 @@ def decode_ph_rx_cl_cd_status_bits(status: int | None, unit: str) -> dict:
     """Decode the status bits for pH, Redox, Chlorine, and Conductivity sensors."""
     # Status bits are 16 bits, where each bit represents a status flag
     # Bit 3:  Flow sensor problem
+    # Bit 7:  Regulation out of range (value too far from setpoint)
     # Bit 10: Module control status (flow detection control)
     # Bit 11: Acid pump active (pH only; depends on MBF_PAR_PH_ACID_RELAY_GPIO)
     # Bit 12: Pump active (base pump for pH; dosing pump for Rx/CL/CD)
@@ -92,6 +93,7 @@ def decode_ph_rx_cl_cd_status_bits(status: int | None, unit: str) -> dict:
         return {}
     result = {
         f"{unit} flow sensor problem": bool(status & 0x0008),
+        f"{unit} regulation out of range": bool(status & 0x0080),
         f"{unit} module control status": bool(status & 0x0400),
         f"{unit} pump active": bool(status & 0x1000),
         f"{unit} control module": bool(status & 0x2000),
