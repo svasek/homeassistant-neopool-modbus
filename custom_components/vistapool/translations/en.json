@@ -496,11 +496,11 @@
   "services": {
     "set_timer": {
       "name": "Set timer",
-      "description": "Set or update a timer in the Vistapool device.",
+      "description": "Set or update a timer on the pool controller.",
       "fields": {
         "entry_id": {
           "name": "Entry ID",
-          "description": "The unique ID of the Vistapool device entry. Optional."
+          "description": "The unique ID of the integration entry. Optional."
         },
         "timer": {
           "name": "Timer name",
@@ -513,6 +513,28 @@
         "stop": {
           "name": "Stop time",
           "description": "Stop time in HH:MM format (e.g., 16:00)."
+        }
+      }
+    },
+    "write_register": {
+      "name": "Write register",
+      "description": "Write a value to a Modbus holding register using FC16 with read-back verification.",
+      "fields": {
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "The unique ID of the integration entry. Optional."
+        },
+        "address": {
+          "name": "Register address",
+          "description": "Modbus register address (decimal or hex, e.g. 1539 or 0x0603)."
+        },
+        "value": {
+          "name": "Value",
+          "description": "Value to write (0–65535, decimal or hex)."
+        },
+        "apply": {
+          "name": "Apply",
+          "description": "Save to EEPROM and execute after write (default: true)."
         }
       }
     }

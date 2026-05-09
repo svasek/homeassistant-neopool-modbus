@@ -496,11 +496,11 @@
   "services": {
     "set_timer": {
       "name": "Nastavit časovač",
-      "description": "Nastaví nebo upraví časovač v zařízení Vistapool.",
+      "description": "Nastaví nebo upraví časovač na řídící jednotce bazénu.",
       "fields": {
         "entry_id": {
           "name": "ID záznamu",
-          "description": "Jedinečný identifikátor záznamu zařízení Vistapool. Volitelné."
+          "description": "Jedinečný identifikátor záznamu integrace. Volitelné."
         },
         "timer": {
           "name": "Název časovače",
@@ -513,6 +513,28 @@
         "stop": {
           "name": "Čas konce",
           "description": "Čas konce ve formátu HH:MM (například 16:00)."
+        }
+      }
+    },
+    "write_register": {
+      "name": "Zápis registru",
+      "description": "Zapíše hodnotu do Modbus holding registru pomocí FC16 s ověřením zpětným čtením.",
+      "fields": {
+        "entry_id": {
+          "name": "ID záznamu",
+          "description": "Jedinečný identifikátor záznamu integrace. Volitelné."
+        },
+        "address": {
+          "name": "Adresa registru",
+          "description": "Adresa Modbus registru (dekadicky nebo hexadecimálně, např. 1539 nebo 0x0603)."
+        },
+        "value": {
+          "name": "Hodnota",
+          "description": "Hodnota k zápisu (0–65535, dekadicky nebo hexadecimálně)."
+        },
+        "apply": {
+          "name": "Použít",
+          "description": "Uložit do EEPROM a provést po zápisu (výchozí: true)."
         }
       }
     }

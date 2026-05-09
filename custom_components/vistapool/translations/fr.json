@@ -497,11 +497,11 @@
   "services": {
     "set_timer": {
       "name": "Définir un minuteur",
-      "description": "Définissez ou mettez à jour un minuteur sur l’appareil VistaPool.",
+      "description": "Définissez ou mettez à jour un minuteur sur le contrôleur de piscine.",
       "fields": {
         "entry_id": {
-          "name": "ID d’entrée",
-          "description": "Identifiant unique de l’entrée de l’appareil VistaPool. Optionnel."
+          "name": "ID d'entrée",
+          "description": "Identifiant unique de l'entrée d'intégration. Optionnel."
         },
         "timer": {
           "name": "Nom du minuteur",
@@ -514,6 +514,28 @@
         "stop": {
           "name": "Heure de fin",
           "description": "Heure de fin au format HH:MM (par ex. 16:00)."
+        }
+      }
+    },
+    "write_register": {
+      "name": "Écrire registre",
+      "description": "Écrit une valeur dans un registre Modbus holding via FC16 avec vérification par relecture.",
+      "fields": {
+        "entry_id": {
+          "name": "ID d'entrée",
+          "description": "Identifiant unique de l'entrée d'intégration. Optionnel."
+        },
+        "address": {
+          "name": "Adresse du registre",
+          "description": "Adresse du registre Modbus (décimal ou hexadécimal, par ex. 1539 ou 0x0603)."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Valeur à écrire (0–65535, décimal ou hexadécimal)."
+        },
+        "apply": {
+          "name": "Appliquer",
+          "description": "Enregistrer en EEPROM et exécuter après l'écriture (par défaut : true)."
         }
       }
     }

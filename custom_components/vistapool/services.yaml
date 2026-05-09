@@ -49,3 +49,36 @@ set_timer:
           max: 604800
           step: 1
       description: "Repeat interval in seconds for AUX/Light timers (e.g. 86400 = every day). Not used for filtration timers."
+
+write_register:
+  name: Write Register
+  description: >
+    Write a value to a Modbus holding register using FC16 (Write Multiple Registers).
+    The write is verified by reading the register back. By default, the value is saved
+    to EEPROM and applied (set apply: false to skip).
+  fields:
+    entry_id:
+      required: false
+      example: "your-entry-id"
+      selector:
+        text:
+      description: "Entry ID of the integration instance"
+    address:
+      required: true
+      example: "0x0432"
+      selector:
+        text:
+      description: "Modbus register address (decimal or hex, e.g. 1074 or 0x0432)"
+    value:
+      required: true
+      example: "2"
+      selector:
+        text:
+      description: "Value to write (0–65535, decimal or hex, e.g. 2 or 0x0002)"
+    apply:
+      required: false
+      example: true
+      default: true
+      selector:
+        boolean:
+      description: "Save to EEPROM and execute after write (default: true)"

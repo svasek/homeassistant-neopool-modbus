@@ -22,7 +22,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS, TIMER_BLOCKS
 from .coordinator import VistaPoolCoordinator
@@ -79,6 +78,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Forward entities setup to Home Assistant
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Register services (only once, when the first entry is set up)
+    if not (
+        hass.services.has_service(DOMAIN, "set_timer")
+        and hass.services.has_service(DOMAIN, "write_register")
+    ):
+        _register_services(hass)
+
     return True
 
 
@@ -96,14 +103,30 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if not hass.data[DOMAIN]:
             if hass.services.has_service(DOMAIN, "set_timer"):
                 hass.services.async_remove(DOMAIN, "set_timer")
+            if hass.services.has_service(DOMAIN, "write_register"):
+                hass.services.async_remove(DOMAIN, "write_register")
     return unload_ok
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the VistaPool integration."""
-    from .helpers import get_timer_interval, hhmm_to_seconds
+def _register_services(hass: HomeAssistant) -> None:
+    """Register VistaPool services."""
+    from .helpers import get_timer_interval, hhmm_to_seconds, parse_register_int
 
-    # Register the service to set timers
+    def _get_coordinator(call):
+        """Resolve coordinator from service call data."""
+        entries = hass.data.get(DOMAIN, {})
+        entry_id = call.data.get("entry_id")
+        if not entry_id:
+            entry_id = next(iter(entries), None)
+        if not entry_id:
+            raise ServiceValidationError("No entry_id found for VistaPool service call")
+        coordinator = entries.get(entry_id)
+        if not coordinator:
+            raise ServiceValidationError(
+                f"No VistaPool coordinator found for entry_id '{entry_id}'"
+            )
+        return coordinator
+
     async def async_handle_set_timer(call) -> None:
         """Handle the set_timer service call."""
         try:
@@ -121,16 +144,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             start = call.data.get("start")
             stop = call.data.get("stop")
             enable = call.data.get("enable")
-            entry_id = call.data.get("entry_id")
             period = call.data.get("period")
-            if not entry_id:
-                # fallback: if entry_id is not provided, use the first entry_id in hass.data[DOMAIN]
-                entry_id = next(iter(hass.data[DOMAIN]), None)
-            if not entry_id:
-                raise ServiceValidationError(
-                    "No entry_id found for VistaPool service call"
-                )
-            coordinator = hass.data[DOMAIN][entry_id]
+            coordinator = _get_coordinator(call)
             # Convert start and stop times to seconds
             start_sec = hhmm_to_seconds(start) if start else None
             stop_sec = hhmm_to_seconds(stop) if stop else None
@@ -160,5 +175,48 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             )
             raise ServiceValidationError(f"Timer setting failed: {e}") from e
 
+    async def async_handle_write_register(call) -> None:
+        """Handle the write_register service call."""
+        try:
+            raw_address = call.data["address"]
+            raw_value = call.data["value"]
+        except KeyError as exc:
+            raise ServiceValidationError(f"Missing required parameter '{exc.args[0]}'")
+
+        address = parse_register_int(raw_address, "address")
+        value = parse_register_int(raw_value, "value")
+        apply = call.data.get("apply", True)
+        coordinator = _get_coordinator(call)
+
+        try:
+            result = await coordinator.client.async_write_register(
+                address, value, apply=apply
+            )
+            if result is None:
+                raise ServiceValidationError(
+                    f"Write to register 0x{address:04X} failed"
+                )
+            confirmed = result.get("confirmed")
+            _LOGGER.info(
+                "Service write_register: 0x%04X = %s (confirmed: %s, apply: %s)",
+                address,
+                result.get("value"),
+                confirmed,
+                apply,
+            )
+            if confirmed != value:
+                raise ServiceValidationError(
+                    f"Write verification failed at 0x{address:04X}: "
+                    f"wrote {value}, read back {confirmed}"
+                )
+            coordinator.request_refresh_with_followup()
+        except ServiceValidationError:
+            raise
+        except Exception as e:
+            _LOGGER.error("Failed to write register 0x%04X: %s", address, e)
+            raise ServiceValidationError(
+                f"Register write failed at 0x{address:04X}: {e}"
+            ) from e
+
     hass.services.async_register(DOMAIN, "set_timer", async_handle_set_timer)
-    return True
+    hass.services.async_register(DOMAIN, "write_register", async_handle_write_register)

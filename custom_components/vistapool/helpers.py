@@ -23,6 +23,7 @@ and parse version information.
 import datetime
 
 import homeassistant.util.dt as dt_util
+from homeassistant.exceptions import ServiceValidationError
 
 
 # This function takes a dictionary of data and returns the device time as a datetime object
@@ -363,3 +364,20 @@ def has_filtvalve(data: dict) -> bool:
     gpio = data.get("MBF_PAR_FILTVALVE_GPIO") or 0
     enable = data.get("MBF_PAR_FILTVALVE_ENABLE") or 0
     return is_valid_relay_gpio(gpio) or enable != 0
+
+
+def parse_register_int(raw, name: str) -> int:
+    """Parse an integer from decimal or hex string (e.g. '1539' or '0x0603')."""
+    if isinstance(raw, bool):
+        raise ServiceValidationError(
+            f"Invalid {name} '{raw}': use a decimal number or hex (0x\u2026)"
+        )
+    try:
+        val = int(raw, 0) if isinstance(raw, str) else int(raw)
+    except (ValueError, TypeError):
+        raise ServiceValidationError(
+            f"Invalid {name} '{raw}': use a decimal number or hex (0x\u2026)"
+        )
+    if not 0 <= val <= 65535:
+        raise ServiceValidationError(f"{name} {val} out of range (0\u201365535)")
+    return val

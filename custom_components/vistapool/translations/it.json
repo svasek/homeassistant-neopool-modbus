@@ -496,11 +496,11 @@
   "services": {
     "set_timer": {
       "name": "Imposta timer",
-      "description": "Imposta o aggiorna un timer nel dispositivo VistaPool.",
+      "description": "Imposta o aggiorna un timer sul controller della piscina.",
       "fields": {
         "entry_id": {
           "name": "ID voce",
-          "description": "L'ID univoco della voce del dispositivo VistaPool. Opzionale."
+          "description": "L'ID univoco della voce di integrazione. Opzionale."
         },
         "timer": {
           "name": "Nome timer",
@@ -513,6 +513,28 @@
         "stop": {
           "name": "Ora di fine",
           "description": "Ora di fine nel formato HH:MM (ad es. 16:00)."
+        }
+      }
+    },
+    "write_register": {
+      "name": "Scrivi registro",
+      "description": "Scrive un valore in un registro Modbus holding tramite FC16 con verifica di rilettura.",
+      "fields": {
+        "entry_id": {
+          "name": "ID voce",
+          "description": "L'ID univoco della voce di integrazione. Opzionale."
+        },
+        "address": {
+          "name": "Indirizzo registro",
+          "description": "Indirizzo del registro Modbus (decimale o esadecimale, ad es. 1539 o 0x0603)."
+        },
+        "value": {
+          "name": "Valore",
+          "description": "Valore da scrivere (0–65535, decimale o esadecimale)."
+        },
+        "apply": {
+          "name": "Applica",
+          "description": "Salva in EEPROM ed esegui dopo la scrittura (predefinito: true)."
         }
       }
     }

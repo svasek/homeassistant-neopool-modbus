@@ -496,11 +496,11 @@
   "services": {
     "set_timer": {
       "name": "Timer einstellen",
-      "description": "Stellen oder aktualisieren Sie einen Timer im VistaPool-Gerät ein.",
+      "description": "Stellen oder aktualisieren Sie einen Timer am Pool-Controller ein.",
       "fields": {
         "entry_id": {
           "name": "Entry ID",
-          "description": "Die eindeutige ID des VistaPool-Geräteeintrags. Optional."
+          "description": "Die eindeutige ID des Integrationseintrags. Optional."
         },
         "timer": {
           "name": "Timer-Name",
@@ -513,6 +513,28 @@
         "stop": {
           "name": "Stoppzeit",
           "description": "Stoppzeit im HH:MM-Format (z. B. 16:00)."
+        }
+      }
+    },
+    "write_register": {
+      "name": "Register schreiben",
+      "description": "Schreibt einen Wert in ein Modbus-Holding-Register mit FC16 und Rücklese-Verifizierung.",
+      "fields": {
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Die eindeutige ID des Integrationseintrags. Optional."
+        },
+        "address": {
+          "name": "Registeradresse",
+          "description": "Modbus-Registeradresse (dezimal oder hexadezimal, z. B. 1539 oder 0x0603)."
+        },
+        "value": {
+          "name": "Wert",
+          "description": "Zu schreibender Wert (0–65535, dezimal oder hexadezimal)."
+        },
+        "apply": {
+          "name": "Anwenden",
+          "description": "Nach dem Schreiben ins EEPROM speichern und ausführen (Standard: true)."
         }
       }
     }

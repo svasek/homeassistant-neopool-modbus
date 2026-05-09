@@ -496,11 +496,11 @@
   "services": {
     "set_timer": {
       "name": "Configurar temporizador",
-      "description": "Configura o actualiza un temporizador en el dispositivo VistaPool.",
+      "description": "Configura o actualiza un temporizador en el controlador de piscina.",
       "fields": {
         "entry_id": {
           "name": "ID de entrada",
-          "description": "El ID único de la entrada del dispositivo VistaPool. Opcional."
+          "description": "El ID único de la entrada de integración. Opcional."
         },
         "timer": {
           "name": "Nombre del temporizador",
@@ -513,6 +513,28 @@
         "stop": {
           "name": "Hora de finalización",
           "description": "Hora de finalización en formato HH:MM (por ejemplo, 16:00)."
+        }
+      }
+    },
+    "write_register": {
+      "name": "Escribir registro",
+      "description": "Escribe un valor en un registro Modbus holding usando FC16 con verificación de lectura.",
+      "fields": {
+        "entry_id": {
+          "name": "ID de entrada",
+          "description": "El ID único de la entrada de integración. Opcional."
+        },
+        "address": {
+          "name": "Dirección del registro",
+          "description": "Dirección del registro Modbus (decimal o hexadecimal, p. ej. 1539 o 0x0603)."
+        },
+        "value": {
+          "name": "Valor",
+          "description": "Valor a escribir (0–65535, decimal o hexadecimal)."
+        },
+        "apply": {
+          "name": "Aplicar",
+          "description": "Guardar en EEPROM y ejecutar tras la escritura (por defecto: true)."
         }
       }
     }

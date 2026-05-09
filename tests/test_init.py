@@ -19,7 +19,7 @@ from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.vistapool import (
     _cleanup_removed_entities,
-    async_setup,
+    _register_services,
     async_setup_entry,
     async_unload_entry,
 )
@@ -48,8 +48,12 @@ async def test_async_handle_set_timer_happy(monkeypatch):
     }
 
     # Register service and extract handler
-    await async_setup(hass, {})
-    service_func = hass.services.async_register.call_args[0][2]
+    _register_services(hass)
+    service_func = next(
+        c.args[2]
+        for c in hass.services.async_register.call_args_list
+        if c.args[1] == "set_timer"
+    )
 
     await service_func(call)
 
@@ -82,8 +86,12 @@ async def test_async_handle_set_timer_entry_id_fallback(monkeypatch):
         # "entry_id" intentionally missing!
     }
 
-    await async_setup(hass, {})
-    service_func = hass.services.async_register.call_args[0][2]
+    _register_services(hass)
+    service_func = next(
+        c.args[2]
+        for c in hass.services.async_register.call_args_list
+        if c.args[1] == "set_timer"
+    )
     await service_func(call)
 
     coordinator.client.write_timer.assert_awaited_once_with(
@@ -106,8 +114,12 @@ async def test_async_handle_set_timer_missing_entry(monkeypatch):
         # no entry_id, and no fallback available
     }
 
-    await async_setup(hass, {})
-    service_func = hass.services.async_register.call_args[0][2]
+    _register_services(hass)
+    service_func = next(
+        c.args[2]
+        for c in hass.services.async_register.call_args_list
+        if c.args[1] == "set_timer"
+    )
     with pytest.raises(ServiceValidationError):
         await service_func(call)
 
@@ -131,8 +143,12 @@ async def test_async_handle_set_timer_write_timer_exception(monkeypatch):
         "entry_id": "entryX",
     }
 
-    await async_setup(hass, {})
-    service_func = hass.services.async_register.call_args[0][2]
+    _register_services(hass)
+    service_func = next(
+        c.args[2]
+        for c in hass.services.async_register.call_args_list
+        if c.args[1] == "set_timer"
+    )
     with pytest.raises(ServiceValidationError):
         await service_func(call)
 
@@ -152,8 +168,12 @@ async def test_async_handle_set_timer_invalid_timer_name(monkeypatch):
         "entry_id": "entry1",
     }
 
-    await async_setup(hass, {})
-    service_func = hass.services.async_register.call_args[0][2]
+    _register_services(hass)
+    service_func = next(
+        c.args[2]
+        for c in hass.services.async_register.call_args_list
+        if c.args[1] == "set_timer"
+    )
     with pytest.raises(ServiceValidationError, match="Invalid timer name"):
         await service_func(call)
 
@@ -168,8 +188,12 @@ async def test_async_handle_set_timer_missing_timer_key(monkeypatch):
     call = MagicMock()
     call.data = {"start": "08:00", "stop": "09:00", "entry_id": "entry1"}
 
-    await async_setup(hass, {})
-    service_func = hass.services.async_register.call_args[0][2]
+    _register_services(hass)
+    service_func = next(
+        c.args[2]
+        for c in hass.services.async_register.call_args_list
+        if c.args[1] == "set_timer"
+    )
     with pytest.raises(ServiceValidationError, match="Missing required parameter"):
         await service_func(call)
 
@@ -254,13 +278,260 @@ async def test_async_unload_entry_no_client():
 
 
 @pytest.mark.asyncio
-async def test_async_setup_registers_service():
-    """Test async_setup registers the sync_time service."""
+async def test_register_services():
+    """Test _register_services registers set_timer and write_register services."""
     hass = MagicMock()
     hass.services.async_register = MagicMock()
-    result = await async_setup(hass, {})
+    _register_services(hass)
+    assert hass.services.async_register.call_count == 2
+    registered = {c.args[1] for c in hass.services.async_register.call_args_list}
+    assert "set_timer" in registered
+    assert "write_register" in registered
+
+
+def _get_write_register_handler(hass):
+    """Helper: register services and return the write_register handler."""
+    _register_services(hass)
+    return next(
+        c.args[2]
+        for c in hass.services.async_register.call_args_list
+        if c.args[1] == "write_register"
+    )
+
+
+@pytest.mark.asyncio
+async def test_write_register_decimal():
+    """Test write_register with decimal address and value."""
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.client.async_write_register = AsyncMock(
+        return_value={"value": 5, "confirmed": 5}
+    )
+    coordinator.request_refresh_with_followup = MagicMock()
+    hass.data = {"vistapool": {"entry1": coordinator}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "1539", "value": "5", "entry_id": "entry1"}
+    await handler(call)
+    coordinator.client.async_write_register.assert_awaited_once_with(
+        1539, 5, apply=True
+    )
+
+
+@pytest.mark.asyncio
+async def test_write_register_hex():
+    """Test write_register with hex address and value."""
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.client.async_write_register = AsyncMock(
+        return_value={"value": 0, "confirmed": 0}
+    )
+    coordinator.request_refresh_with_followup = MagicMock()
+    hass.data = {"vistapool": {"entry1": coordinator}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0604", "value": "0x0000", "entry_id": "entry1"}
+    await handler(call)
+    coordinator.client.async_write_register.assert_awaited_once_with(
+        0x0604, 0, apply=True
+    )
+
+
+@pytest.mark.asyncio
+async def test_write_register_int_passthrough():
+    """Test write_register when YAML passes native int values."""
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.client.async_write_register = AsyncMock(
+        return_value={"value": 2, "confirmed": 2}
+    )
+    coordinator.request_refresh_with_followup = MagicMock()
+    hass.data = {"vistapool": {"entry1": coordinator}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": 1074, "value": 2, "entry_id": "entry1"}
+    await handler(call)
+    coordinator.client.async_write_register.assert_awaited_once_with(
+        1074, 2, apply=True
+    )
+
+
+@pytest.mark.asyncio
+async def test_write_register_invalid_hex():
+    """Test write_register raises on invalid hex string."""
+    hass = MagicMock()
+    hass.data = {"vistapool": {"entry1": MagicMock()}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0xZZZZ", "value": "5", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="Invalid address"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_write_register_out_of_range():
+    """Test write_register raises when value > 65535."""
+    hass = MagicMock()
+    hass.data = {"vistapool": {"entry1": MagicMock()}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0001", "value": "70000", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="out of range"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_write_register_apply_false():
+    """Test write_register passes apply=False when specified."""
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.client.async_write_register = AsyncMock(
+        return_value={"value": 5, "confirmed": 5}
+    )
+    coordinator.request_refresh_with_followup = MagicMock()
+    hass.data = {"vistapool": {"entry1": coordinator}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {
+        "address": "0x0603",
+        "value": "5",
+        "apply": False,
+        "entry_id": "entry1",
+    }
+    await handler(call)
+    coordinator.client.async_write_register.assert_awaited_once_with(
+        0x0603, 5, apply=False
+    )
+
+
+@pytest.mark.asyncio
+async def test_write_register_rejects_bool():
+    """Test write_register raises when address or value is a boolean."""
+    hass = MagicMock()
+    hass.data = {"vistapool": {"entry1": MagicMock()}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": True, "value": "5", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="Invalid address"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_write_register_missing_param():
+    """Test write_register raises when required parameter is missing."""
+    hass = MagicMock()
+    hass.data = {"vistapool": {"entry1": MagicMock()}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0001", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="Missing required parameter"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_write_register_returns_none():
+    """Test write_register raises when async_write_register returns None."""
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.client.async_write_register = AsyncMock(return_value=None)
+    hass.data = {"vistapool": {"entry1": coordinator}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="failed"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_write_register_verification_mismatch():
+    """Test write_register raises when read-back value differs from written value."""
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.client.async_write_register = AsyncMock(
+        return_value={"value": 1, "confirmed": 99}
+    )
+    hass.data = {"vistapool": {"entry1": coordinator}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="Write verification failed"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_write_register_generic_exception():
+    """Test write_register wraps unexpected exceptions in ServiceValidationError."""
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.client.async_write_register = AsyncMock(
+        side_effect=RuntimeError("connection lost")
+    )
+    hass.data = {"vistapool": {"entry1": coordinator}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="Register write failed"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_get_coordinator_not_found():
+    """Test _get_coordinator raises when entry_id has no coordinator."""
+    hass = MagicMock()
+    hass.data = {"vistapool": {"entry1": MagicMock()}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0001", "value": "1", "entry_id": "nonexistent"}
+    with pytest.raises(ServiceValidationError, match="No VistaPool coordinator"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_async_setup_entry_registers_services():
+    """Test async_setup_entry calls _register_services when no services exist."""
+    hass = MagicMock()
+    hass.data = {}
+    hass.config_entries = MagicMock()
+    hass.config_entries.async_forward_entry_setups = AsyncMock()
+    hass.services.has_service = MagicMock(return_value=False)
+    hass.services.async_register = MagicMock()
+
+    entry = MagicMock()
+    entry.entry_id = "test_entry"
+    entry.data = {
+        "host": "1.2.3.4",
+        "port": 502,
+        "name": "Pool",
+        "slave_id": 1,
+    }
+    entry.options = {}
+
+    with (
+        patch("custom_components.vistapool.VistaPoolModbusClient"),
+        patch("custom_components.vistapool.VistaPoolCoordinator") as mock_coord_cls,
+        patch("custom_components.vistapool._cleanup_removed_entities"),
+    ):
+        mock_coord = MagicMock()
+        mock_coord.async_config_entry_first_refresh = AsyncMock()
+        mock_coord_cls.return_value = mock_coord
+
+        result = await async_setup_entry(hass, entry)
+
     assert result is True
-    hass.services.async_register.assert_called_once()
+    # Verify services were registered (has_service returned False)
+    assert hass.services.async_register.call_count == 2
 
 
 def test_cleanup_removes_orphaned_entities():
