@@ -372,6 +372,10 @@ def parse_register_int(raw, name: str) -> int:
         raise ServiceValidationError(
             f"Invalid {name} '{raw}': use a decimal number or hex (0x\u2026)"
         )
+    if isinstance(raw, float):
+        raise ServiceValidationError(
+            f"Invalid {name} '{raw}': use an integer, not a float"
+        )
     try:
         val = int(raw, 0) if isinstance(raw, str) else int(raw)
     except (ValueError, TypeError):

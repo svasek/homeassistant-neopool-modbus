@@ -79,12 +79,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Forward entities setup to Home Assistant
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Register services (only once, when the first entry is set up)
-    if not (
-        hass.services.has_service(DOMAIN, "set_timer")
-        and hass.services.has_service(DOMAIN, "write_register")
-    ):
-        _register_services(hass)
+    # Register services (idempotent — each service is registered only if missing)
+    _register_services(hass)
 
     return True
 
@@ -186,6 +182,10 @@ def _register_services(hass: HomeAssistant) -> None:
         address = parse_register_int(raw_address, "address")
         value = parse_register_int(raw_value, "value")
         apply = call.data.get("apply", True)
+        if not isinstance(apply, bool):
+            raise ServiceValidationError(
+                f"Invalid apply '{apply}': must be a boolean (true/false)"
+            )
         coordinator = _get_coordinator(call)
 
         try:
@@ -218,5 +218,9 @@ def _register_services(hass: HomeAssistant) -> None:
                 f"Register write failed at 0x{address:04X}: {e}"
             ) from e
 
-    hass.services.async_register(DOMAIN, "set_timer", async_handle_set_timer)
-    hass.services.async_register(DOMAIN, "write_register", async_handle_write_register)
+    if not hass.services.has_service(DOMAIN, "set_timer"):
+        hass.services.async_register(DOMAIN, "set_timer", async_handle_set_timer)
+    if not hass.services.has_service(DOMAIN, "write_register"):
+        hass.services.async_register(
+            DOMAIN, "write_register", async_handle_write_register
+        )

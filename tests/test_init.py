@@ -48,6 +48,7 @@ async def test_async_handle_set_timer_happy(monkeypatch):
     }
 
     # Register service and extract handler
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     service_func = next(
         c.args[2]
@@ -86,6 +87,7 @@ async def test_async_handle_set_timer_entry_id_fallback(monkeypatch):
         # "entry_id" intentionally missing!
     }
 
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     service_func = next(
         c.args[2]
@@ -114,6 +116,7 @@ async def test_async_handle_set_timer_missing_entry(monkeypatch):
         # no entry_id, and no fallback available
     }
 
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     service_func = next(
         c.args[2]
@@ -143,6 +146,7 @@ async def test_async_handle_set_timer_write_timer_exception(monkeypatch):
         "entry_id": "entryX",
     }
 
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     service_func = next(
         c.args[2]
@@ -168,6 +172,7 @@ async def test_async_handle_set_timer_invalid_timer_name(monkeypatch):
         "entry_id": "entry1",
     }
 
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     service_func = next(
         c.args[2]
@@ -188,6 +193,7 @@ async def test_async_handle_set_timer_missing_timer_key(monkeypatch):
     call = MagicMock()
     call.data = {"start": "08:00", "stop": "09:00", "entry_id": "entry1"}
 
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     service_func = next(
         c.args[2]
@@ -282,6 +288,7 @@ async def test_register_services():
     """Test _register_services registers set_timer and write_register services."""
     hass = MagicMock()
     hass.services.async_register = MagicMock()
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     assert hass.services.async_register.call_count == 2
     registered = {c.args[1] for c in hass.services.async_register.call_args_list}
@@ -289,8 +296,23 @@ async def test_register_services():
     assert "write_register" in registered
 
 
+@pytest.mark.asyncio
+async def test_register_services_partial():
+    """Test _register_services only registers missing services."""
+    hass = MagicMock()
+    hass.services.async_register = MagicMock()
+    # set_timer exists, write_register does not
+    hass.services.has_service = MagicMock(
+        side_effect=lambda domain, name: name == "set_timer"
+    )
+    _register_services(hass)
+    assert hass.services.async_register.call_count == 1
+    assert hass.services.async_register.call_args.args[1] == "write_register"
+
+
 def _get_write_register_handler(hass):
     """Helper: register services and return the write_register handler."""
+    hass.services.has_service = MagicMock(return_value=False)
     _register_services(hass)
     return next(
         c.args[2]
@@ -411,6 +433,24 @@ async def test_write_register_apply_false():
 
 
 @pytest.mark.asyncio
+async def test_write_register_apply_invalid_type():
+    """Test write_register raises when apply is not a boolean."""
+    hass = MagicMock()
+    hass.data = {"vistapool": {"entry1": MagicMock()}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {
+        "address": "0x0001",
+        "value": "1",
+        "apply": "false",
+        "entry_id": "entry1",
+    }
+    with pytest.raises(ServiceValidationError, match="Invalid apply"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
 async def test_write_register_rejects_bool():
     """Test write_register raises when address or value is a boolean."""
     hass = MagicMock()
@@ -420,6 +460,19 @@ async def test_write_register_rejects_bool():
     call = MagicMock()
     call.data = {"address": True, "value": "5", "entry_id": "entry1"}
     with pytest.raises(ServiceValidationError, match="Invalid address"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_write_register_rejects_float():
+    """Test write_register raises when address or value is a float."""
+    hass = MagicMock()
+    hass.data = {"vistapool": {"entry1": MagicMock()}}
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": 1.5, "value": "5", "entry_id": "entry1"}
+    with pytest.raises(ServiceValidationError, match="not a float"):
         await handler(call)
 
 
