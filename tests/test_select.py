@@ -756,6 +756,7 @@ def test_options_ph_pump_delay(mock_coordinator):
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 20}
     opts = ent.options
     assert "10" in opts and "300" in opts
+    assert "900" in opts and "1800" in opts and "3600" in opts and "10800" in opts
     # current value should be present even if not in the fixed list
     mock_coordinator.data["MBF_PAR_RELAY_ACTIVATION_DELAY"] = 25
     opts = ent.options
