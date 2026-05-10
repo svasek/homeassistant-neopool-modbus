@@ -474,19 +474,19 @@
       "relay_activation_delay": {
         "name": "Opóźnienie uruchomienia pompy pH",
         "state": {
-          "10s": "10 sekund",
-          "20s": "20 sekund",
-          "30s": "30 sekund",
-          "40s": "40 sekund",
-          "50s": "50 sekund",
-          "1m": "1 minuta",
-          "2m": "2 minuty",
-          "3m": "3 minuty",
-          "5m": "5 minut",
-          "15m": "15 minut",
-          "30m": "30 minut",
-          "1h": "1 godzina",
-          "3h": "3 godziny"
+          "10": "10 sekund",
+          "20": "20 sekund",
+          "30": "30 sekund",
+          "40": "40 sekund",
+          "50": "50 sekund",
+          "60": "1 minuta",
+          "120": "2 minuty",
+          "180": "3 minuty",
+          "300": "5 minut",
+          "900": "15 minut",
+          "1800": "30 minut",
+          "3600": "1 godzina",
+          "10800": "3 godziny"
         }
       },
       "intelligent_filt_min_time": { "name": "Inteligentny: Minimalny czas filtracji" },

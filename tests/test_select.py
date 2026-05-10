@@ -57,19 +57,19 @@ def make_props(**kwargs):
 
 
 DELAY_OPTIONS_MAP = {
-    10: "10s",
-    20: "20s",
-    30: "30s",
-    40: "40s",
-    50: "50s",
-    60: "1m",
-    120: "2m",
-    180: "3m",
-    300: "5m",
-    900: "15m",
-    1800: "30m",
-    3600: "1h",
-    10800: "3h",
+    10: "10",
+    20: "20",
+    30: "30",
+    40: "40",
+    50: "50",
+    60: "60",
+    120: "120",
+    180: "180",
+    300: "300",
+    900: "900",
+    1800: "1800",
+    3600: "3600",
+    10800: "10800",
 }
 
 
@@ -776,8 +776,8 @@ def test_options_ph_pump_delay(mock_coordinator):
     )
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 20}
     opts = ent.options
-    assert "10s" in opts and "5m" in opts
-    assert "15m" in opts and "30m" in opts and "1h" in opts
+    assert "10" in opts and "300" in opts
+    assert "900" in opts and "1800" in opts and "3600" in opts
     # current value should be present even if not in the fixed list
     mock_coordinator.data["MBF_PAR_RELAY_ACTIVATION_DELAY"] = 25
     opts = ent.options
@@ -785,7 +785,7 @@ def test_options_ph_pump_delay(mock_coordinator):
 
 
 def test_current_option_ph_pump_delay(mock_coordinator):
-    """Test that current_option returns the delay in seconds as string."""
+    """Test that current_option returns the mapped label for the register value."""
     props = make_props(
         options_map=DELAY_OPTIONS_MAP, register=0x0433, select_type="mapped_register"
     )
@@ -793,7 +793,7 @@ def test_current_option_ph_pump_delay(mock_coordinator):
         mock_coordinator, "test_entry", "MBF_PAR_RELAY_ACTIVATION_DELAY", props
     )
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 120}
-    assert ent.current_option == "2m"
+    assert ent.current_option == "120"
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": None}  # type: ignore[dict-item]
     assert ent.current_option is None
 
@@ -812,12 +812,10 @@ async def test_async_select_option_ph_pump_delay(mock_coordinator):
     )
     mock_coordinator.client = AsyncMock()
     ent.coordinator.client = mock_coordinator.client
-    ent.coordinator.async_request_refresh = AsyncMock()
-    ent.async_write_ha_state = Mock()
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 60}
 
-    # Select 3m (180s) -> should write 170 (device internally adds 10s)
-    await ent.async_select_option("3m")
+    # Select 180 (180s) -> should write 170 (device internally adds 10s)
+    await ent.async_select_option("180")
     ent.coordinator.client.async_write_register.assert_awaited_with(0x0433, 170)
     # Optimistic update should set the register value (not the write value)
     assert mock_coordinator.data["MBF_PAR_RELAY_ACTIVATION_DELAY"] == 180
