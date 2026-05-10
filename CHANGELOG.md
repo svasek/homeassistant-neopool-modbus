@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.26.1](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v1.26.0...v1.26.1) (2026-05-10)
+
+
+### 🐛 Bug Fixes
+
+* **binary_sensor:** 🐛 remove regulation out of range sensors ([126f8ea](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/126f8eab5a0267dfbf8911c6c30b590de2a85990))
+* **number:** 🩹 extend pH setpoint range and add longer pump delay intervals ([940d059](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/940d059a8fafa68af61384c8705956fa0af363f7)), closes [#141](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/141)
+
+
+### ♻️ Refactoring
+
+* **select:** ♻️ unify select entities under mapped_register type ([#143](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/143)) ([699d23c](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/699d23c38620a340178a7208aae81891daaf2312))
+
 ## [1.26.0](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v1.25.0...v1.26.0) (2026-05-09)
 
 
