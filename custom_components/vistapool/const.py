@@ -588,8 +588,8 @@ NUMBER_DEFINITIONS = {
     },
     "MBF_PAR_PH1": {
         "name": "pH Max Limit",
-        "min": 5.0,
-        "max": 9.0,
+        "min": 0.0,
+        "max": 14.0,
         "step": 0.1,
         "register": 0x0504,  # MBF_PAR_PH1
         "scale": 100.0,
@@ -598,8 +598,8 @@ NUMBER_DEFINITIONS = {
     },
     "MBF_PAR_PH2": {
         "name": "pH Min Limit",
-        "min": 5.0,
-        "max": 9.0,
+        "min": 0.0,
+        "max": 14.0,
         "step": 0.1,
         "register": 0x0505,  # MBF_PAR_PH2
         "scale": 100.0,

@@ -420,7 +420,21 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
 
         # Provide static options (seconds) for pH pump activation delay
         if self._key == "MBF_PAR_RELAY_ACTIVATION_DELAY":
-            opts = ["10", "20", "30", "40", "50", "60", "90", "120", "180", "300"]
+            opts = [
+                "10",
+                "20",
+                "30",
+                "40",
+                "50",
+                "60",
+                "120",
+                "180",
+                "300",
+                "900",
+                "1800",
+                "3600",
+                "10800",
+            ]
             current = self.coordinator.data.get(self._key)
             if isinstance(current, int) and str(current) not in opts:
                 return [str(current)] + opts
