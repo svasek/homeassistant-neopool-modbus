@@ -154,42 +154,24 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers.")
             return
-        # Intelligent min filtration time: accept labels (e.g., "6h") or raw minutes (e.g., "360")
-        if self._key == "MBF_PAR_INTELLIGENT_FILT_MIN_TIME":
-            # Map label -> minutes
+        # Mapped register selects (INTELLIGENT_FILT_MIN_TIME, FILTVALVE_PERIOD_MINUTES,
+        # RELAY_ACTIVATION_DELAY): reverse-lookup option label to register value,
+        # apply optional write_offset, and write to register.
+        if self._select_type == "mapped_register":
             reverse_map = {v: k for k, v in self._options_map.items()}
-            minutes = reverse_map.get(option)
-            if minutes is None:
-                # Try to parse numeric minutes from string
+            value = reverse_map.get(option)
+            if value is None:
                 try:
-                    if isinstance(option, str) and option.endswith("m"):
-                        minutes = int(option[:-1])
-                    else:
-                        minutes = int(option)  # pragma: no cover
+                    value = int(option.rstrip("ms"))
                 except Exception:  # pragma: no cover
                     return
-            await client.async_write_register(self._register or 0x041D, minutes)
+            write_val = value + self._props.get("write_offset", 0)
+            await client.async_write_register(self._register, max(0, write_val))
             await asyncio.sleep(0.2)
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
-            return
-
-        # Backwash repeat interval: accept mapped labels (e.g. "1_day") or raw "Xm" strings
-        if self._key == "MBF_PAR_FILTVALVE_PERIOD_MINUTES":
-            reverse_map = {v: k for k, v in self._options_map.items()}
-            minutes = reverse_map.get(option)
-            if minutes is None:
-                try:
-                    if isinstance(option, str) and option.endswith("m"):
-                        minutes = int(option[:-1])
-                    else:  # pragma: no cover
-                        minutes = int(option)
-                except Exception:  # pragma: no cover
-                    return
-            await client.async_write_register(self._register or 0x04ED, minutes)
-            await asyncio.sleep(0.2)
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
+            self._optimistic_update(value)
+            if self.coordinator.data is not None:
+                self.coordinator.async_set_updated_data(self.coordinator.data)
+            self.coordinator.request_refresh_with_followup()
             return
         if self._select_type == "timer_time":
             timer_name, field = self._key.rsplit("_", 1)
@@ -309,20 +291,6 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
             await asyncio.sleep(0.2)
             return
 
-        # Special handling: pH pump activation delay uses device-internal +10s offset.
-        if self._key == "MBF_PAR_RELAY_ACTIVATION_DELAY":
-            try:
-                seconds = int(option)
-            except Exception:  # pragma: no cover
-                return
-            # Device adds +10s internally, so write (selected - 10)
-            write_val = max(0, seconds - 10)
-            await client.async_write_register(0x0433, write_val)
-            await asyncio.sleep(0.2)
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
-            return
-
         value = None
         for k, v in self._options_map.items():
             if v == option:
@@ -418,28 +386,6 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
         ):
             option_keys = [k for k in option_keys if k != 2]
 
-        # Provide static options (seconds) for pH pump activation delay
-        if self._key == "MBF_PAR_RELAY_ACTIVATION_DELAY":
-            opts = [
-                "10",
-                "20",
-                "30",
-                "40",
-                "50",
-                "60",
-                "120",
-                "180",
-                "300",
-                "900",
-                "1800",
-                "3600",
-                "10800",
-            ]
-            current = self.coordinator.data.get(self._key)
-            if isinstance(current, int) and str(current) not in opts:
-                return [str(current)] + opts
-            return opts
-
         # Generate options list based on config entry options
         # Also, handle Timer options in cases where doesn't fit the options_map
         if self._select_type == "timer_time":
@@ -485,21 +431,14 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
                 options = ["auto_linked"] + options
             return options
 
-        # Intelligent min filtration time: return labels 2h..12h, but if device holds an unknown minutes value,
-        # prepend the raw number as string like we do for timers.
-        if self._key == "MBF_PAR_INTELLIGENT_FILT_MIN_TIME":
+        # Mapped register selects: return labels from options_map.
+        # If device holds an unknown value, prepend raw fallback string.
+        if self._select_type == "mapped_register":
             options = [self._options_map[k] for k in option_keys]
             value = self.coordinator.data.get(self._key)
             if isinstance(value, int) and value not in self._options_map:
-                return [f"{value}m"] + options
-            return options
-
-        # Backwash repeat interval: same pattern as INTELLIGENT_FILT_MIN_TIME
-        if self._key == "MBF_PAR_FILTVALVE_PERIOD_MINUTES":
-            options = [self._options_map[k] for k in option_keys]
-            value = self.coordinator.data.get(self._key)
-            if isinstance(value, int) and value not in self._options_map:
-                return [f"{value}m"] + options
+                suffix = self._props.get("fallback_suffix", "")
+                return [f"{value}{suffix}"] + options
             return options
 
         return [self._options_map[k] for k in option_keys]
@@ -516,9 +455,9 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
         elif self._key in (
             "MBF_PAR_FILT_MODE",
             "MBF_PAR_FILTVALVE_MODE",
-            "MBF_PAR_FILTVALVE_PERIOD_MINUTES",
-            "MBF_PAR_INTELLIGENT_FILT_MIN_TIME",
         ):
+            data[self._key] = value
+        elif self._select_type == "mapped_register":
             data[self._key] = value
 
     @property
@@ -565,22 +504,13 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
                 return "auto_linked"
             return self._options_map.get(value)  # pragma: no cover
 
-        if self._key == "MBF_PAR_RELAY_ACTIVATION_DELAY":
-            value = self.coordinator.data.get(self._key)
-            return str(value) if value is not None else None
-
-        if self._key == "MBF_PAR_INTELLIGENT_FILT_MIN_TIME":
+        # Mapped register selects: return label from options_map or raw fallback
+        if self._select_type == "mapped_register":
             value = self.coordinator.data.get(self._key)
             if value is None:  # pragma: no cover
                 return None
-            # Return mapped label or the raw minutes as string when unknown
-            return self._options_map.get(value, f"{value}m")
-
-        if self._key == "MBF_PAR_FILTVALVE_PERIOD_MINUTES":
-            value = self.coordinator.data.get(self._key)
-            if value is None:  # pragma: no cover
-                return None
-            return self._options_map.get(value, f"{value}m")
+            suffix = self._props.get("fallback_suffix", "")
+            return self._options_map.get(value, f"{value}{suffix}")
 
         if self._key == "MBF_PAR_FILTVALVE_MODE":
             value = self.coordinator.data.get(self._key)

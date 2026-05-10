@@ -472,7 +472,24 @@
           "active_redox": "Actif (contrôle Redox)"
         }
       },
-      "relay_activation_delay": { "name": "Délai d'activation de la pompe pH (s)" },
+      "relay_activation_delay": {
+        "name": "Délai d'activation de la pompe pH",
+        "state": {
+          "10": "10 secondes",
+          "20": "20 secondes",
+          "30": "30 secondes",
+          "40": "40 secondes",
+          "50": "50 secondes",
+          "60": "1 minute",
+          "120": "2 minutes",
+          "180": "3 minutes",
+          "300": "5 minutes",
+          "900": "15 minutes",
+          "1800": "30 minutes",
+          "3600": "1 heure",
+          "10800": "3 heures"
+        }
+      },
       "intelligent_filt_min_time": { "name": "Intelligent: Temps minimum de filtration" },
       "filtvalve_period_minutes": {
         "name": "Intervalle de rétrolavage automatique",

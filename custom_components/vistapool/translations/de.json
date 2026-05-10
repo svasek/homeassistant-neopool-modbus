@@ -471,7 +471,24 @@
           "active_redox": "Aktiv (Redoxsteuerung)"
         }
       },
-      "relay_activation_delay": { "name": "pH-Pumpenstartverzögerung (s)" },
+      "relay_activation_delay": {
+        "name": "pH-Pumpenstartverzögerung",
+        "state": {
+          "10": "10 Sekunden",
+          "20": "20 Sekunden",
+          "30": "30 Sekunden",
+          "40": "40 Sekunden",
+          "50": "50 Sekunden",
+          "60": "1 Minute",
+          "120": "2 Minuten",
+          "180": "3 Minuten",
+          "300": "5 Minuten",
+          "900": "15 Minuten",
+          "1800": "30 Minuten",
+          "3600": "1 Stunde",
+          "10800": "3 Stunden"
+        }
+      },
       "intelligent_filt_min_time": { "name": "Intelligent: Minimale Filterzeit" },
       "filtvalve_period_minutes": {
         "name": "Rückspülintervall",

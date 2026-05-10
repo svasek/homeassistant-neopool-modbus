@@ -471,7 +471,24 @@
           "active_redox": "Aktivní (řízeno redoxem)"
         }
       },
-      "relay_activation_delay": { "name": "Zpoždění aktivace pH pumpy (s)" },
+      "relay_activation_delay": {
+        "name": "Zpoždění aktivace pH pumpy",
+        "state": {
+          "10": "10 sekund",
+          "20": "20 sekund",
+          "30": "30 sekund",
+          "40": "40 sekund",
+          "50": "50 sekund",
+          "60": "1 minuta",
+          "120": "2 minuty",
+          "180": "3 minuty",
+          "300": "5 minut",
+          "900": "15 minut",
+          "1800": "30 minut",
+          "3600": "1 hodina",
+          "10800": "3 hodiny"
+        }
+      },
       "intelligent_filt_min_time": { "name": "Inteligentní: Minimální doba filtrace" },
       "filtvalve_period_minutes": {
         "name": "Interval automatického proplachování",
