@@ -56,6 +56,23 @@ def make_props(**kwargs):
     return d
 
 
+DELAY_OPTIONS_MAP = {
+    10: "10s",
+    20: "20s",
+    30: "30s",
+    40: "40s",
+    50: "50s",
+    60: "1m",
+    120: "2m",
+    180: "3m",
+    300: "5m",
+    900: "15m",
+    1800: "30m",
+    3600: "1h",
+    10800: "3h",
+}
+
+
 @pytest.fixture
 def boost_props():
     return {
@@ -246,6 +263,8 @@ def test_current_option_default(mock_coordinator):
 
 def _intelligent_min_time_props():
     return {
+        "select_type": "mapped_register",
+        "fallback_suffix": "m",
         "options_map": {
             120: "2h",
             180: "3h",
@@ -749,14 +768,16 @@ async def test_async_select_option_stop_field(mock_coordinator):
 
 def test_options_ph_pump_delay(mock_coordinator):
     """Test that the pH pump delay select returns the expected fixed options."""
-    props = make_props()
+    props = make_props(
+        options_map=DELAY_OPTIONS_MAP, register=0x0433, select_type="mapped_register"
+    )
     ent = VistaPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_RELAY_ACTIVATION_DELAY", props
     )
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 20}
     opts = ent.options
-    assert "10" in opts and "300" in opts
-    assert "900" in opts and "1800" in opts and "3600" in opts and "10800" in opts
+    assert "10s" in opts and "5m" in opts
+    assert "15m" in opts and "30m" in opts and "1h" in opts
     # current value should be present even if not in the fixed list
     mock_coordinator.data["MBF_PAR_RELAY_ACTIVATION_DELAY"] = 25
     opts = ent.options
@@ -765,12 +786,14 @@ def test_options_ph_pump_delay(mock_coordinator):
 
 def test_current_option_ph_pump_delay(mock_coordinator):
     """Test that current_option returns the delay in seconds as string."""
-    props = make_props()
+    props = make_props(
+        options_map=DELAY_OPTIONS_MAP, register=0x0433, select_type="mapped_register"
+    )
     ent = VistaPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_RELAY_ACTIVATION_DELAY", props
     )
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 120}
-    assert ent.current_option == "120"
+    assert ent.current_option == "2m"
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": None}  # type: ignore[dict-item]
     assert ent.current_option is None
 
@@ -778,7 +801,12 @@ def test_current_option_ph_pump_delay(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_ph_pump_delay(mock_coordinator):
     """Test that selecting a delay writes (value - 10) to register 0x0433."""
-    props = make_props()
+    props = make_props(
+        options_map=DELAY_OPTIONS_MAP,
+        register=0x0433,
+        select_type="mapped_register",
+        write_offset=-10,
+    )
     ent = VistaPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_RELAY_ACTIVATION_DELAY", props
     )
@@ -786,10 +814,13 @@ async def test_async_select_option_ph_pump_delay(mock_coordinator):
     ent.coordinator.client = mock_coordinator.client
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = Mock()
+    mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 60}
 
-    # Select 180s -> should write 170 (device internally adds 10s)
-    await ent.async_select_option("180")
+    # Select 3m (180s) -> should write 170 (device internally adds 10s)
+    await ent.async_select_option("3m")
     ent.coordinator.client.async_write_register.assert_awaited_with(0x0433, 170)
+    # Optimistic update should set the register value (not the write value)
+    assert mock_coordinator.data["MBF_PAR_RELAY_ACTIVATION_DELAY"] == 180
 
 
 @pytest.mark.asyncio

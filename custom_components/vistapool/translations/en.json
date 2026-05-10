@@ -471,7 +471,24 @@
           "active_redox": "Active (Redox control)"
         }
       },
-      "relay_activation_delay": { "name": "pH pump activation delay (s)" },
+      "relay_activation_delay": {
+        "name": "pH pump activation delay",
+        "state": {
+          "10s": "10 seconds",
+          "20s": "20 seconds",
+          "30s": "30 seconds",
+          "40s": "40 seconds",
+          "50s": "50 seconds",
+          "1m": "1 minute",
+          "2m": "2 minutes",
+          "3m": "3 minutes",
+          "5m": "5 minutes",
+          "15m": "15 minutes",
+          "30m": "30 minutes",
+          "1h": "1 hour",
+          "3h": "3 hours"
+        }
+      },
       "intelligent_filt_min_time": { "name": "Intelligent: Minimum Filtration Time" },
       "filtvalve_period_minutes": {
         "name": "Backwash Repeat Interval",
