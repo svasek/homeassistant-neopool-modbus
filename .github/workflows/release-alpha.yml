@@ -53,11 +53,30 @@ jobs:
         id: pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUM: ${{ github.event.issue.number }}
         run: |
-          PR_JSON=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
+          PR_JSON=$(gh api "repos/${REPO}/pulls/${PR_NUM}")
           echo "ref=$(echo "$PR_JSON" | jq -r .head.ref)" >> "$GITHUB_OUTPUT"
           echo "sha=$(echo "$PR_JSON" | jq -r .head.sha)" >> "$GITHUB_OUTPUT"
           echo "title=$(echo "$PR_JSON" | jq -r .title)" >> "$GITHUB_OUTPUT"
+          echo "number=${PR_NUM}" >> "$GITHUB_OUTPUT"
+          echo "url=$(echo "$PR_JSON" | jq -r .html_url)" >> "$GITHUB_OUTPUT"
+
+          # Fetch linked/closing issues via GraphQL
+          ISSUES=$(gh api graphql -f query='
+            query($owner: String!, $repo: String!, $pr: Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number: $pr) {
+                  closingIssuesReferences(first: 10) {
+                    nodes { number url title }
+                  }
+                }
+              }
+            }' -f owner="${REPO%%/*}" -f repo="${REPO##*/}" -F pr="${PR_NUM}" \
+            --jq '.data.repository.pullRequest.closingIssuesReferences.nodes | map(.number | tostring) | join(",")')
+          echo "linked_issues=${ISSUES}" >> "$GITHUB_OUTPUT"
+          echo "📎 Linked issues: ${ISSUES:-none}"
 
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -166,10 +185,19 @@ jobs:
           SHORT_SHA: ${{ steps.version.outputs.short_sha }}
           TAG: ${{ steps.version.outputs.tag }}
           VERSION: ${{ steps.version.outputs.version }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+          PR_TITLE: ${{ steps.pr.outputs.title }}
         run: |
+          # Build PR reference line if available
+          PR_LINE=""
+          if [[ -n "$PR_NUMBER" ]]; then
+            PR_LINE="**Pull Request:** [#${PR_NUMBER} – ${PR_TITLE}](${PR_URL})"
+          fi
 
           NOTES="## 🧪 Alpha Pre-release \`${VERSION}\`
 
+          ${PR_LINE}
           **Branch:** \`${BRANCH}\`
           **Commit:** \`${SHORT_SHA}\`
 
@@ -209,3 +237,29 @@ jobs:
           4. Restart Home Assistant"
 
           gh pr comment "$PR_NUMBER" --body "$COMMENT"
+
+      - name: Comment on linked issues
+        if: github.event_name == 'issue_comment' && steps.pr.outputs.linked_issues != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          LINKED_ISSUES: ${{ steps.pr.outputs.linked_issues }}
+        run: |
+          RELEASE_URL="https://github.com/${REPO}/releases/tag/${TAG}"
+
+          IFS=',' read -ra ISSUES <<< "$LINKED_ISSUES"
+          for ISSUE_NUM in "${ISSUES[@]}"; do
+            COMMENT="🧪 **Alpha pre-release [\`${VERSION}\`](${RELEASE_URL})** is available for testing (from PR #${PR_NUMBER}).
+
+          To install via HACS:
+          1. Open HACS → Integrations → VistaPool Modbus
+          2. Click ⋮ → *Redownload* → enable *Show beta versions*
+          3. Select version \`${VERSION}\` and install
+          4. Restart Home Assistant"
+
+            gh issue comment "$ISSUE_NUM" --body "$COMMENT"
+            echo "💬 Commented on issue #${ISSUE_NUM}"
+          done
