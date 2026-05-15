@@ -47,6 +47,8 @@
         // Python tooling
         "ms-python.python",
         "ms-python.vscode-pylance",
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
         "charliermarsh.ruff",
 
         // Optional: Docker tooling (handy for logs/inspecting)
