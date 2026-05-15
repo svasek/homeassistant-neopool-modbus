@@ -4,8 +4,8 @@
 - NeoPool is a control system originally developed by **Sugar Valley** (acquired by **Hayward** in 2016), available under many brand names and in multiple device variants.
 - Full local control, real-time sensors, timers, relays, automation support, and more.
 
-[![Release](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/release.yml/badge.svg)](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/release.yml)
-[![Hassfest](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/hassfest.yml/badge.svg)](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/hassfest.yml)
+[![Release](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/release.yaml/badge.svg)](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/release.yaml)
+[![Hassfest](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/hassfest.yaml)
 [![HACS](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/hacs.yaml/badge.svg)](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/hacs.yaml)
 [![CodeQL](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/svasek/homeassistant-vistapool-modbus/actions/workflows/github-code-scanning/codeql)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
