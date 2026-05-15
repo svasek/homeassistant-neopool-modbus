@@ -1,0 +1,7 @@
+{
+  "pythonVersion": "3.14",
+  "pythonPlatform": "Linux",
+  "typeCheckingMode": "basic",
+  "include": ["custom_components/vistapool"],
+  "exclude": ["tests"],
+}

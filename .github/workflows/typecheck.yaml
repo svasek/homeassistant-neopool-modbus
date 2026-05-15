@@ -1,0 +1,40 @@
+name: Type Check
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "custom_components/vistapool/**"
+      - ".github/workflows/typecheck.yaml"
+      - "pyrightconfig.json"
+  pull_request:
+    paths:
+      - "custom_components/vistapool/**"
+      - ".github/workflows/typecheck.yml"
+      - "pyrightconfig.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  basedpyright:
+    name: BasedPyright
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install basedpyright pymodbus homeassistant-stubs
+
+      - name: Run BasedPyright
+        run: basedpyright custom_components/vistapool
