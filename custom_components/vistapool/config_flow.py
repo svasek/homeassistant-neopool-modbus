@@ -18,6 +18,7 @@ import asyncio
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers import translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
@@ -69,7 +70,7 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
         except Exception:  # noqa: BLE001
             return DEFAULT_NAME
 
-    async def async_step_user(self, user_input=None) -> dict | None:
+    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
         """Handle the initial step of the configuration flow."""
         default_name = await self._async_get_default_name()
         data_schema = vol.Schema(
@@ -138,9 +139,12 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
             data_schema=data_schema,
         )
 
-    async def async_step_reconfigure(self, user_input=None) -> dict | None:
+    async def async_step_reconfigure(self, user_input=None) -> ConfigFlowResult:
         """Handle reconfiguration of an existing entry."""
-        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        entry_id = self.context.get("entry_id")
+        if entry_id is None:
+            return self.async_abort(reason="entry_not_found")
+        entry = self.hass.config_entries.async_get_entry(entry_id)
         if entry is None:
             return self.async_abort(reason="entry_not_found")
 
