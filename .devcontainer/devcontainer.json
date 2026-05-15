@@ -47,9 +47,12 @@
         // Python tooling
         "ms-python.python",
         "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+
+        // Optional: Git/GitHub tooling
+        "github.vscode-github-actions",
         "mhutchie.git-graph",
         "eamodio.gitlens",
-        "charliermarsh.ruff",
 
         // Optional: Docker tooling (handy for logs/inspecting)
         "ms-azuretools.vscode-docker",
