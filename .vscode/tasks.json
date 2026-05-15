@@ -4,7 +4,7 @@
     {
       "label": "HomeAssistant",
       "type": "shell",
-      "command": "sleep 3 && hass -v -c /config",
+      "command": "hass -v -c /config",
       "isBackground": true,
       "runOptions": { "runOn": "folderOpen" },
       "presentation": { "reveal": "always", "panel": "dedicated", "group": "logs" }

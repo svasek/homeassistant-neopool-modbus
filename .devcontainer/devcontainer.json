@@ -14,10 +14,9 @@
   "workspaceFolder": "/workspace",
   "remoteUser": "vscode",
 
-  // Ensure pipx-installed tools and dev workspace are in PATH and PYTHONPATH.
+  // Ensure pipx-installed tools are in PATH.
   "remoteEnv": {
     "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin",
-    "PYTHONPATH": "/usr/local/lib/python3.13/site-packages:/home/vscode/.local/lib/python3.13/site-packages:${containerWorkspaceFolder}",
     "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
     "GH_TOKEN": "${localEnv:GH_TOKEN}"
   },
@@ -62,11 +61,12 @@
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
 
-        // Let Pylance resolve imports
-        "python.analysis.extraPaths": [
-          "/usr/local/lib/python3.13/site-packages",
-          "/home/vscode/.local/lib/python3.13/site-packages/"
-        ],
+        // Point Pylance at the container Python — it will auto-discover site-packages.
+        // HA is installed as an editable install from /usr/src/homeassistant (custom .pth finder
+        // that Pylance cannot follow), so we add that path explicitly. It has no Python version
+        // in it, so it stays valid across HA/Python updates.
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "python.analysis.extraPaths": ["/usr/src/homeassistant"],
         "python.analysis.typeCheckingMode": "off",
         "python.analysis.diagnosticSeverityOverrides": { "reportMissingImports": "none" },
 

@@ -8,5 +8,5 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports.ruff": "always"
   },
-  "python.analysis.typeCheckingMode": "standard"
+  "python-envs.defaultEnvManager": "ms-python.python:system"
 }
