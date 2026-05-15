@@ -1,0 +1,47 @@
+name: CodeSpell
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "custom_components/vistapool/**"
+      - "tests/**"
+      - "docs/**"
+      - "*.md"
+      - "*.yaml"
+      - "*.yml"
+      - "pyproject.toml"
+      - ".github/workflows/codespell.yaml"
+  pull_request:
+    paths:
+      - "custom_components/vistapool/**"
+      - "tests/**"
+      - "docs/**"
+      - "*.md"
+      - "*.yaml"
+      - "*.yml"
+      - "pyproject.toml"
+      - ".github/workflows/codespell.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  codespell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install CodeSpell
+        run: pip install --upgrade codespell
+
+      - name: Run CodeSpell
+        run: |
+          git ls-files | grep -Ev '^custom_components/vistapool/translations/' \
+            | xargs codespell --toml pyproject.toml

@@ -3,5 +3,5 @@
   "pythonPlatform": "Linux",
   "typeCheckingMode": "basic",
   "include": ["custom_components/vistapool"],
-  "exclude": ["tests"],
+  "exclude": ["tests", "**/node_modules", "**/__pycache__", "**/.*", ".venv"]
 }
