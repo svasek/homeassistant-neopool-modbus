@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.26.2](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v1.26.1...v1.26.2) (2026-05-19)
+
+
+### 🐛 Bug Fixes
+
+* **config_flow:** 🩹 fix return type annotations and safe context access ([3bcf8d3](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/3bcf8d3579fa4c7dc5d9bcd57d90d3144b4b1997))
+
+
+### 🎨 Style
+
+* 💄 added icon images ([f642f01](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/f642f01bc63f80b84a90b5a8bc654f7e4fb63721))
+
 ## [1.26.1](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v1.26.0...v1.26.1) (2026-05-10)
 
 
