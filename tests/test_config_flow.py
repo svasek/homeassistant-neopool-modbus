@@ -734,24 +734,26 @@ async def test_trial_modbus_read_success():
         "name": "TestPool",
     }
 
-    # Mock successful Modbus read with serial number
-    mock_client = AsyncMock()
-    # 6 Modbus registers: [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
-    # modbus_regs_to_hex_string converts to "0000000100AC00CD00120034"
-    mock_client.async_read_all = AsyncMock(
-        return_value={
-            "MBF_POWER_MODULE_NODEID": [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
-        }
-    )
-    mock_client.close = AsyncMock()
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
 
-    with patch(
-        "custom_components.vistapool.modbus.VistaPoolModbusClient",
-        return_value=mock_client,
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock()
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
     ):
         serial = await async_get_device_serial(user_input)
 
-    assert serial is not None
     assert serial == "0000000100AC00CD00120034"
     mock_client.close.assert_called_once()
 
@@ -767,13 +769,12 @@ async def test_trial_modbus_read_timeout():
         "slave_id": DEFAULT_SLAVE_ID,
     }
 
-    # Mock timeout
     mock_client = AsyncMock()
-    mock_client.async_read_all = AsyncMock(side_effect=asyncio.TimeoutError())
-    mock_client.close = AsyncMock()
+    mock_client.connect = AsyncMock(side_effect=asyncio.TimeoutError())
+    mock_client.close = MagicMock()
 
     with patch(
-        "custom_components.vistapool.modbus.VistaPoolModbusClient",
+        "pymodbus.client.AsyncModbusTcpClient",
         return_value=mock_client,
     ):
         serial = await async_get_device_serial(user_input)
@@ -784,7 +785,7 @@ async def test_trial_modbus_read_timeout():
 
 @pytest.mark.asyncio
 async def test_trial_modbus_read_no_serial_in_data():
-    """Test that trial Modbus read returns None if serial not in data."""
+    """Test that trial Modbus read returns None when registers return error."""
     from custom_components.vistapool.helpers import async_get_device_serial
 
     user_input = {
@@ -792,14 +793,22 @@ async def test_trial_modbus_read_no_serial_in_data():
         "port": DEFAULT_PORT,
     }
 
-    # Mock read but without MBF_POWER_MODULE_NODEID
-    mock_client = AsyncMock()
-    mock_client.async_read_all = AsyncMock(return_value={"OTHER_KEY": [1, 2, 3]})
-    mock_client.close = AsyncMock()
+    mock_response = MagicMock()
+    mock_response.isError.return_value = True
 
-    with patch(
-        "custom_components.vistapool.modbus.VistaPoolModbusClient",
-        return_value=mock_client,
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock()
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
     ):
         serial = await async_get_device_serial(user_input)
 
@@ -850,11 +859,11 @@ async def test_trial_modbus_read_general_exception():
     }
 
     mock_client = AsyncMock()
-    mock_client.async_read_all = AsyncMock(side_effect=OSError("Connection refused"))
-    mock_client.close = AsyncMock()
+    mock_client.connect = AsyncMock(side_effect=OSError("Connection refused"))
+    mock_client.close = MagicMock()
 
     with patch(
-        "custom_components.vistapool.modbus.VistaPoolModbusClient",
+        "pymodbus.client.AsyncModbusTcpClient",
         return_value=mock_client,
     ):
         serial = await async_get_device_serial(user_input)

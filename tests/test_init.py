@@ -775,7 +775,7 @@ async def test_async_migrate_entry_v1_to_v2_success():
 
 @pytest.mark.asyncio
 async def test_async_migrate_entry_v1_to_v2_serial_unavailable():
-    """Test migration falls back to entry_id when serial cannot be read."""
+    """Test migration defers when serial cannot be read (retries on next restart)."""
     hass = MagicMock()
 
     config_entry = MagicMock()
@@ -785,28 +785,15 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable():
     config_entry.title = "My Pool"
     config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
 
-    mock_registry = MagicMock()
-
-    with (
-        patch(
-            "custom_components.vistapool.migration.async_get_device_serial",
-            new=AsyncMock(return_value=None),
-        ),
-        patch(
-            "custom_components.vistapool.migration.er.async_get",
-            return_value=mock_registry,
-        ),
-        patch(
-            "custom_components.vistapool.migration.er.async_entries_for_config_entry",
-            return_value=[],
-        ),
+    with patch(
+        "custom_components.vistapool.migration.async_get_device_serial",
+        new=AsyncMock(return_value=None),
     ):
         result = await async_migrate_entry(hass, config_entry)
 
     assert result is True
-    hass.config_entries.async_update_entry.assert_called_once_with(
-        config_entry, unique_id="old_entry_id_456", version=2
-    )
+    # Version must NOT be bumped — migration will retry on next HA restart
+    hass.config_entries.async_update_entry.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -838,7 +825,7 @@ async def test_async_migrate_entry_v1_to_v2_duplicate_detected():
 
 @pytest.mark.asyncio
 async def test_async_migrate_entry_entity_update_error():
-    """Test migration continues when individual entity update fails."""
+    """Test migration defers version bump when entity update fails."""
     hass = MagicMock()
 
     config_entry = MagicMock()
@@ -875,3 +862,5 @@ async def test_async_migrate_entry_entity_update_error():
 
     assert result is True
     mock_registry.async_update_entity.assert_called_once()
+    # Version must NOT be bumped — migration will retry on next HA restart
+    hass.config_entries.async_update_entry.assert_not_called()

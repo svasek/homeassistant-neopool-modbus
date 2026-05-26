@@ -391,7 +391,10 @@ def parse_register_int(raw, name: str) -> int:
 
 
 async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | None:
-    """Perform trial Modbus read to get device serial number.
+    """Perform minimal Modbus read to get device serial number.
+
+    Reads only MBF_POWER_MODULE_NODEID (registers 0x0004–0x0009, 6 regs)
+    instead of a full register dump.
 
     Args:
         config: Configuration dict with host, port, slave_id, modbus_framer.
@@ -404,26 +407,43 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
     import asyncio
 
     from homeassistant.const import CONF_HOST, CONF_PORT
+    from pymodbus.client import AsyncModbusTcpClient
+    from pymodbus.framer import FramerType
 
-    from .modbus import VistaPoolModbusClient
+    from .modbus_compat import modbus_acall
 
-    client = VistaPoolModbusClient(config)
+    host = config.get(CONF_HOST)
+    port = config.get(CONF_PORT, 502)
+    slave_id = config.get("slave_id", 1)
+    framer_str = config.get("modbus_framer", "tcp").strip().lower()
+    framer = FramerType.RTU if framer_str == "rtu" else FramerType.SOCKET
+
+    client = AsyncModbusTcpClient(host, port=port, timeout=timeout, framer=framer)
     try:
-        data = await asyncio.wait_for(client.async_read_all(), timeout=timeout)
-        if data and "MBF_POWER_MODULE_NODEID" in data:
-            serial = modbus_regs_to_hex_string(data["MBF_POWER_MODULE_NODEID"])
+        await asyncio.wait_for(client.connect(), timeout=timeout)
+        rr = await asyncio.wait_for(
+            modbus_acall(
+                client.read_holding_registers,
+                slave_id,
+                address=0x0004,
+                count=6,
+            ),
+            timeout=timeout,
+        )
+        if not rr.isError():
+            serial = modbus_regs_to_hex_string(list(rr.registers))
             if serial:
                 _LOGGER.debug("Trial Modbus read successful, serial: %s", serial)
                 return serial
     except asyncio.TimeoutError:
         _LOGGER.warning(
             "Trial Modbus read timed out for %s:%s",
-            config.get(CONF_HOST),
-            config.get(CONF_PORT),
+            host,
+            port,
         )
     except Exception as err:
         _LOGGER.warning("Trial Modbus read failed: %s", err)
     finally:
-        await client.close()
+        client.close()
 
     return None
