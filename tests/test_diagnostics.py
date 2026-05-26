@@ -34,6 +34,7 @@ async def test_diagnostics_redacts_sensitive_config_data():
     entry.options = {"option1": True}
     entry.title = "Test Pool"
     entry.entry_id = "entry1"
+    entry.unique_id = "neopool_0000000100AC00CD00120034"
     entry.version = 1
 
     client = MagicMock()
@@ -76,6 +77,9 @@ async def test_diagnostics_redacts_sensitive_config_data():
     assert stats["unit_id"] == 1
 
     assert diagnostics["config_entry"]["title"] == "Test Pool"
+    assert (
+        diagnostics["config_entry"]["unique_id"] == "neopool_0000000100AC00CD00120034"
+    )
     assert diagnostics["coordinator"]["firmware"] == "1.0"
     assert diagnostics["coordinator"]["model"] == "Vistapool"
 
@@ -86,6 +90,7 @@ async def test_diagnostics_without_coordinator():
     entry.data = {"host": "1.2.3.4"}
     entry.options = {}
     entry.entry_id = "entry42"
+    entry.unique_id = None
     entry.version = 1
     entry.title = "Pool"
     hass = MagicMock()
@@ -102,6 +107,7 @@ async def test_diagnostics_no_client():
     entry.data = {}
     entry.options = {}
     entry.entry_id = "entry1"
+    entry.unique_id = None
     entry.version = 1
     entry.title = "Pool"
     coordinator = MagicMock(
@@ -132,6 +138,7 @@ async def test_diagnostics_no_duplicate_data():
     entry.data = {}
     entry.options = {}
     entry.entry_id = "entry1"
+    entry.unique_id = None
     entry.version = 1
     entry.title = "Pool"
     coordinator = MagicMock()
