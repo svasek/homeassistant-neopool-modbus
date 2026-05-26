@@ -18,6 +18,7 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
@@ -64,58 +65,71 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
                 )
                 return False
 
-    # Migrate entity unique_ids in registry before bumping version
+    # Migrate entity unique_ids in registry before bumping version.
+    # Use all-or-nothing: collect planned changes, then apply. If any
+    # update fails, roll back already-applied changes to avoid a
+    # partially-migrated registry.
     entity_registry = er.async_get(hass)
     old_entry_id = config_entry.entry_id
-    migrated_count = 0
-    failed = False
+    old_prefix = f"{old_entry_id}_"
 
-    for entity_entry in list(
-        er.async_entries_for_config_entry(entity_registry, config_entry.entry_id)
+    # Build list of (entity_id, old_unique_id, new_unique_id) to migrate
+    planned: list[tuple[str, str, str]] = []
+    for entity_entry in er.async_entries_for_config_entry(
+        entity_registry, config_entry.entry_id
     ):
-        # Old format: {entry_id}_{key}
-        # New format: {new_unique_id}_{key}
-        old_prefix = f"{old_entry_id}_"
         if entity_entry.unique_id and entity_entry.unique_id.startswith(old_prefix):
             key_part = entity_entry.unique_id.replace(old_prefix, "", 1)
-            migrated_unique_id = f"{new_unique_id}_{key_part}"
-
-            _LOGGER.debug(
-                "Migrating entity %s: %s → %s",
-                entity_entry.entity_id,
-                entity_entry.unique_id,
-                migrated_unique_id,
+            planned.append(
+                (
+                    entity_entry.entity_id,
+                    entity_entry.unique_id,
+                    f"{new_unique_id}_{key_part}",
+                )
             )
 
-            try:
-                entity_registry.async_update_entity(
-                    entity_entry.entity_id,
-                    new_unique_id=migrated_unique_id,
-                )
-                migrated_count += 1
-            except Exception as err:
-                _LOGGER.error(
-                    "Failed to migrate entity %s: %s", entity_entry.entity_id, err
-                )
-                failed = True
-
-    if failed:
-        _LOGGER.error(
-            "Migration aborted for %s: entity update errors occurred. "
-            "Will retry on next restart.",
-            config_entry.title,
-        )
-        return True
+    # Apply changes, tracking successful updates for potential rollback
+    applied: list[tuple[str, str, str]] = []  # (entity_id, old_uid, new_uid)
+    for entity_id, old_uid, new_uid in planned:
+        _LOGGER.debug("Migrating entity %s: %s → %s", entity_id, old_uid, new_uid)
+        try:
+            entity_registry.async_update_entity(entity_id, new_unique_id=new_uid)
+            applied.append((entity_id, old_uid, new_uid))
+        except Exception as err:
+            _LOGGER.error("Failed to migrate entity %s: %s", entity_id, err)
+            # Roll back already-applied changes
+            for rb_entity_id, rb_old_uid, _rb_new_uid in applied:
+                try:
+                    entity_registry.async_update_entity(
+                        rb_entity_id, new_unique_id=rb_old_uid
+                    )
+                except Exception as rb_err:  # noqa: BLE001
+                    _LOGGER.error(
+                        "Rollback failed for entity %s: %s", rb_entity_id, rb_err
+                    )
+            _LOGGER.error(
+                "Migration aborted for %s: entity update error. "
+                "Will retry on next restart.",
+                config_entry.title,
+            )
+            return True
 
     # Bump version only after all entities migrated successfully
     hass.config_entries.async_update_entry(
         config_entry, unique_id=new_unique_id, version=2
     )
 
+    # Remove old device registered with entry_id identifier (now replaced by serial)
+    device_registry = dr.async_get(hass)
+    old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_entry_id)})
+    if old_device:
+        device_registry.async_remove_device(old_device.id)
+        _LOGGER.debug("Removed old device with identifier %s", old_entry_id)
+
     _LOGGER.info(
         "Migration completed for %s: %d entities migrated, unique_id=%s",
         config_entry.title,
-        migrated_count,
+        len(applied),
         new_unique_id,
     )
     return True

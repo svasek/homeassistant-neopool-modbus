@@ -412,7 +412,7 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
 
     from .modbus_compat import modbus_acall
 
-    host = config.get(CONF_HOST)
+    host = config.get(CONF_HOST, "")
     port = config.get(CONF_PORT, 502)
     slave_id = config.get("slave_id", 1)
     framer_str = config.get("modbus_framer", "tcp").strip().lower()
@@ -444,6 +444,11 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
     except Exception as err:
         _LOGGER.warning("Trial Modbus read failed: %s", err)
     finally:
-        client.close()
+        try:
+            result: object = client.close()
+            if asyncio.iscoroutine(result):
+                await result
+        except Exception:  # noqa: BLE001
+            pass
 
     return None

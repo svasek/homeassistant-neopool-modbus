@@ -32,7 +32,7 @@ DEFAULT_SERIAL_REGS = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
 DEFAULT_SERIAL_STRING = "0000000100AC00CD00120034"
 
 
-def make_test_flow_with_modbus_mock(serial_string=DEFAULT_SERIAL_STRING):
+def make_test_flow_with_modbus_mock(serial_string: str | None = DEFAULT_SERIAL_STRING):
     """Create a config flow instance with properly mocked hass.
 
     Args:
@@ -869,4 +869,78 @@ async def test_trial_modbus_read_general_exception():
         serial = await async_get_device_serial(user_input)
 
     assert serial is None
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_async_close():
+    """Test that trial Modbus read awaits close() when it returns a coroutine."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": "tcp",
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+
+    async def async_close():
+        pass
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock(return_value=async_close())
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial == "0000000100AC00CD00120034"
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_close_raises():
+    """Test that trial Modbus read handles close() exception gracefully."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock(side_effect=OSError("close failed"))
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial == "0000000100AC00CD00120034"
     mock_client.close.assert_called_once()
