@@ -398,7 +398,8 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
         timeout: Timeout in seconds for the Modbus read operation.
 
     Returns:
-        Formatted hex string like "0001ABCD1234", or None on failure.
+        Hex string from 6 registers (24 chars, e.g. "0000000100AC00CD00120034"),
+        or None on failure.
     """
     import asyncio
 

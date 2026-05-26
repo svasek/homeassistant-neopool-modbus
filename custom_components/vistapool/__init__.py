@@ -25,6 +25,8 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS, TIMER_BLOCKS
 from .coordinator import VistaPoolCoordinator
+from .helpers import modbus_regs_to_hex_string
+from .migration import async_migrate_entry  # noqa: F401
 from .modbus import VistaPoolModbusClient
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -72,8 +74,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Fallback: Ensure entry has unique_id set (for backward compatibility with v1 entries)
     if not entry.unique_id and coordinator.data:
-        from .helpers import modbus_regs_to_hex_string
-
         serial = modbus_regs_to_hex_string(
             coordinator.data.get("MBF_POWER_MODULE_NODEID")
         )

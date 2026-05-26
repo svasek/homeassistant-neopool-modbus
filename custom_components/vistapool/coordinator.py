@@ -414,4 +414,4 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
 
     @property
     def device_slug(self):  # pragma: no cover
-        return self.entry.unique_id or slugify(self.device_name)
+        return slugify(self.device_name)
