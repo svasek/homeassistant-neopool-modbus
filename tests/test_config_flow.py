@@ -55,20 +55,6 @@ def make_test_flow_with_modbus_mock(serial_string: str | None = DEFAULT_SERIAL_S
     return flow, serial_string
 
 
-@pytest.fixture
-def config_flow_with_mocked_hass():
-    """Fixture: ConfigFlow with properly mocked HomeAssistant instance."""
-    flow = config_flow.VistaPoolConfigFlow()
-    flow.hass = MagicMock()
-    flow.hass.data = {DOMAIN: {}}
-    flow.context = {}
-    # Mock the flow progress check
-    flow.hass.config_entries.flow.async_progress_by_handler.return_value = []
-    # Mock the existing entry check
-    flow.hass.config_entries.async_entry_for_domain_unique_id.return_value = None
-    return flow
-
-
 @pytest.mark.asyncio
 async def test_show_user_form_on_init():
     flow = config_flow.VistaPoolConfigFlow()
@@ -995,6 +981,46 @@ async def test_create_entry_with_duplicate_prevention():
     assert result["title"] == "TestPool"
     # Verify unique_id was set to neopool_{serial_string}
     assert flow.context.get("unique_id") == f"neopool_{serial_string}"
+
+
+@pytest.mark.asyncio
+async def test_create_entry_aborts_when_already_configured():
+    """Test that adding a device with an already-registered serial aborts."""
+    from homeassistant.data_entry_flow import AbortFlow
+
+    flow = config_flow.VistaPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow.hass.data = {DOMAIN: {}}
+    flow.context = {}
+    flow.hass.config_entries.flow.async_progress_by_handler = MagicMock(return_value=[])
+
+    # Simulate an existing entry with the same unique_id
+    existing_entry = MagicMock()
+    existing_entry.data = {}
+    flow.hass.config_entries.async_entry_for_domain_unique_id = MagicMock(
+        return_value=existing_entry
+    )
+
+    user_input = {
+        "host": "192.168.1.200",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "Second Pool",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
+        ),
+        pytest.raises(AbortFlow, match="already_configured"),
+    ):
+        await flow.async_step_user(user_input)
 
 
 @pytest.mark.asyncio
