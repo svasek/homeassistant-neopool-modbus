@@ -712,7 +712,7 @@ def test_cleanup_removes_orphans_with_serial_unique_id():
 # --- Migration tests ---
 
 DEFAULT_SERIAL_REGS = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
-DEFAULT_SERIAL_STRING = "0000000100AC00CD00120034"
+DEFAULT_SERIAL_STRING = "".join(f"{r:04X}" for r in DEFAULT_SERIAL_REGS)
 
 
 @pytest.mark.asyncio

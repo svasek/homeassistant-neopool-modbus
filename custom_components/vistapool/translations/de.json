@@ -33,7 +33,8 @@
     "error": {
       "cannot_connect": "Verbindung zur angegebenen Adresse und Port nicht möglich.",
       "cannot_read_modbus": "Verbunden, aber Modbus-Gerät kann nicht gelesen werden. Überprüfen Sie Slave-ID und Framer-Einstellungen.",
-      "serial_mismatch": "Das Gerät an dieser Adresse hat eine andere Seriennummer als das ursprünglich konfigurierte."
+      "serial_mismatch": "Das Gerät an dieser Adresse hat eine andere Seriennummer als das ursprünglich konfigurierte.",
+      "name_already_used": "Dieser Gerätename wird bereits verwendet. Bitte wählen Sie einen anderen Namen."
     },
     "abort": {
       "already_configured": "Dieses Gerät ist bereits konfiguriert.",

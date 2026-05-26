@@ -33,7 +33,8 @@
     "error": {
       "cannot_connect": "Cannot connect to the specified address and port.",
       "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check slave ID and framer settings.",
-      "serial_mismatch": "The device at this address has a different serial number than the one originally configured."
+      "serial_mismatch": "The device at this address has a different serial number than the one originally configured.",
+      "name_already_used": "This device name is already in use. Please choose a different name."
     },
     "abort": {
       "already_configured": "This device is already configured.",

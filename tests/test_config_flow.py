@@ -28,8 +28,8 @@ from custom_components.vistapool.const import (
 
 # Default serial register values for tests
 DEFAULT_SERIAL_REGS = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
-# Expected serial string from DEFAULT_SERIAL_REGS
-DEFAULT_SERIAL_STRING = "0000000100AC00CD00120034"
+# Expected serial string derived from DEFAULT_SERIAL_REGS
+DEFAULT_SERIAL_STRING = "".join(f"{r:04X}" for r in DEFAULT_SERIAL_REGS)
 
 
 def make_test_flow_with_modbus_mock(serial_string: str | None = DEFAULT_SERIAL_STRING):
@@ -1021,6 +1021,40 @@ async def test_create_entry_aborts_when_already_configured():
         pytest.raises(AbortFlow, match="already_configured"),
     ):
         await flow.async_step_user(user_input)
+
+
+@pytest.mark.asyncio
+async def test_create_entry_rejects_duplicate_name():
+    """Test that adding a device with an already-used name shows error."""
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
+    # Simulate an existing entry with the same name
+    existing_entry = MagicMock()
+    existing_entry.data = {"name": "Test Pool"}
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[existing_entry])
+
+    user_input = {
+        "host": "192.168.1.200",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "Test Pool",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
+        ),
+    ):
+        result = await flow.async_step_user(user_input)
+
+    assert result["type"] == "form"
+    assert result["errors"].get("name") == "name_already_used"
 
 
 @pytest.mark.asyncio

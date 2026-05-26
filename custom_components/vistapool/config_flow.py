@@ -23,6 +23,7 @@ from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers import translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
+from homeassistant.util import slugify
 
 from .const import (
     DEFAULT_MODBUS_FRAMER,
@@ -154,6 +155,16 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
             unique_id = f"neopool_{serial_number}"
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
+
+            # Validation 4: Unique device name (compare slugified to catch case/spacing variants)
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                if slugify(entry.data.get(CONF_NAME, "")) == slugify(device_name):
+                    errors[CONF_NAME] = "name_already_used"
+                    return self.async_show_form(
+                        step_id="user",
+                        data_schema=data_schema,
+                        errors=errors,
+                    )
 
             # Coerce types before creating entry
             if "scan_interval" in user_input:
