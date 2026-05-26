@@ -32,7 +32,8 @@
     },
     "error": {
       "cannot_connect": "No se puede conectar a la dirección y puerto especificados.",
-      "cannot_read_modbus": "Conectado, pero no se puede leer del dispositivo Modbus. Verifique el ID de esclavo y la configuración del marco."
+      "cannot_read_modbus": "Conectado, pero no se puede leer del dispositivo Modbus. Verifique el ID de esclavo y la configuración del marco.",
+      "serial_mismatch": "El dispositivo en esta dirección tiene un número de serie diferente al configurado originalmente."
     },
     "abort": {
       "already_configured": "Este dispositivo ya está configurado.",

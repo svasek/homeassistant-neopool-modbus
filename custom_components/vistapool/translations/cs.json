@@ -32,7 +32,8 @@
     },
     "error": {
       "cannot_connect": "Nelze se připojit k zadané IP adrese a portu.",
-      "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte slave ID a nastavení rámce."
+      "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte slave ID a nastavení rámce.",
+      "serial_mismatch": "Zařízení na této adrese má jiné sériové číslo než původně nakonfigurované."
     },
     "abort": {
       "already_configured": "Toto zařízení je již nakonfigurováno.",

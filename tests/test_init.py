@@ -904,7 +904,7 @@ async def test_async_migrate_entry_entity_update_error():
 
 @pytest.mark.asyncio
 async def test_async_migrate_entry_rollback_also_fails():
-    """Test migration handles rollback failure gracefully."""
+    """Test migration returns False when rollback fails to prevent duplicates."""
     hass = MagicMock()
 
     config_entry = MagicMock()
@@ -952,7 +952,7 @@ async def test_async_migrate_entry_rollback_also_fails():
     ):
         result = await async_migrate_entry(hass, config_entry)
 
-    assert result is True
+    assert result is False
     # 3 calls: migrate entity1 (ok), migrate entity2 (fail), rollback entity1 (fail)
     assert mock_registry.async_update_entity.call_count == 3
     hass.config_entries.async_update_entry.assert_not_called()

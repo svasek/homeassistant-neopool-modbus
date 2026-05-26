@@ -32,7 +32,8 @@
     },
     "error": {
       "cannot_connect": "Nie można połączyć się z podanym adresem i portem.",
-      "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID slave i ustawienia ramki."
+      "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID slave i ustawienia ramki.",
+      "serial_mismatch": "Urządzenie pod tym adresem ma inny numer seryjny niż pierwotnie skonfigurowane."
     },
     "abort": {
       "already_configured": "To urządzenie jest już skonfigurowane.",

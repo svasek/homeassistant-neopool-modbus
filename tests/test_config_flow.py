@@ -268,6 +268,7 @@ async def test_reconfigure_success():
     }
     mock_entry = MagicMock()
     mock_entry.data = existing_data
+    mock_entry.unique_id = None
 
     flow.hass = MagicMock()
     flow.hass.config_entries.async_get_entry.return_value = mock_entry
@@ -339,6 +340,129 @@ async def test_reconfigure_cannot_connect():
     assert result["type"] == "form"
     assert result["step_id"] == "reconfigure"
     assert result["errors"].get("host") == "cannot_connect"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_serial_mismatch():
+    """Reconfigure shows serial_mismatch error when device serial differs."""
+    flow = config_flow.VistaPoolConfigFlow()
+
+    mock_entry = MagicMock()
+    mock_entry.data = {
+        "host": "10.0.0.1",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+    mock_entry.unique_id = "neopool_0000000100AC00CD00120034"
+
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_get_entry.return_value = mock_entry
+    flow.context = {"entry_id": "abc123"}
+
+    user_input = {
+        "host": "10.0.0.99",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value="FFFFFFFFFFFFFFFFFFFFFFFF"),
+        ),
+    ):
+        result = await flow.async_step_reconfigure(user_input)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"].get("host") == "serial_mismatch"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_serial_read_fails():
+    """Reconfigure shows cannot_read_modbus when serial read fails."""
+    flow = config_flow.VistaPoolConfigFlow()
+
+    mock_entry = MagicMock()
+    mock_entry.data = {
+        "host": "10.0.0.1",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+    mock_entry.unique_id = "neopool_0000000100AC00CD00120034"
+
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_get_entry.return_value = mock_entry
+    flow.context = {"entry_id": "abc123"}
+
+    user_input = {
+        "host": "10.0.0.99",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await flow.async_step_reconfigure(user_input)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"].get("host") == "cannot_read_modbus"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_no_unique_id_skips_serial_check():
+    """Reconfigure skips serial check for v1 entries without unique_id."""
+    flow = config_flow.VistaPoolConfigFlow()
+
+    mock_entry = MagicMock()
+    mock_entry.data = {
+        "host": "10.0.0.1",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+        "name": "MyPool",
+    }
+    mock_entry.unique_id = None
+
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_get_entry.return_value = mock_entry
+    flow.context = {"entry_id": "abc123"}
+    flow.async_update_reload_and_abort = MagicMock(
+        return_value={"type": "abort", "reason": "reconfigure_successful"}
+    )
+
+    user_input = {
+        "host": "10.0.0.99",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+
+    with patch(
+        "custom_components.vistapool.config_flow.is_host_port_open",
+        new=AsyncMock(return_value=True),
+    ):
+        result = await flow.async_step_reconfigure(user_input)
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reconfigure_successful"
 
 
 @pytest.mark.asyncio

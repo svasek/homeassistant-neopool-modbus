@@ -98,6 +98,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         except Exception as err:
             _LOGGER.error("Failed to migrate entity %s: %s", entity_id, err)
             # Roll back already-applied changes
+            rollback_failed = False
             for rb_entity_id, rb_old_uid, _rb_new_uid in applied:
                 try:
                     entity_registry.async_update_entity(
@@ -107,6 +108,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
                     _LOGGER.error(
                         "Rollback failed for entity %s: %s", rb_entity_id, rb_err
                     )
+                    rollback_failed = True
+            if rollback_failed:
+                _LOGGER.error(
+                    "Migration aborted for %s: rollback incomplete — "
+                    "integration will not load to prevent duplicates.",
+                    config_entry.title,
+                )
+                return False
             _LOGGER.error(
                 "Migration aborted for %s: entity update error. "
                 "Will retry on next restart.",

@@ -203,6 +203,15 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
         if user_input is not None:
             errors = await self._async_validate_connection(user_input)
             if not errors:
+                # Verify the device serial matches this entry's unique_id
+                if entry.unique_id:
+                    serial = await async_get_device_serial({**current, **user_input})
+                    if serial and f"neopool_{serial}" != entry.unique_id:
+                        errors[CONF_HOST] = "serial_mismatch"
+                    elif not serial:
+                        errors[CONF_HOST] = "cannot_read_modbus"
+
+            if not errors:
                 new_data = {**current, **user_input}
                 return self.async_update_reload_and_abort(
                     entry,
