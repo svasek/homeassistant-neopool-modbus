@@ -44,7 +44,7 @@ async def async_get_config_entry_diagnostics(
     }
 
     # Coordinator state (contains data, errors, etc.)
-    coordinator = hass.data[DOMAIN].get(entry.entry_id)
+    coordinator = hass.data.get(DOMAIN, {}).get(entry.entry_id)
     if coordinator is None:
         return diagnostics
 
