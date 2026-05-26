@@ -71,11 +71,13 @@ async def test_button_async_setup_entry_adds_entities(monkeypatch):
     """Test async_setup_entry adds button entities for all definitions."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
 
     class DummyCoordinator:
         data = {"something": True}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -100,11 +102,13 @@ async def test_button_async_setup_entry_no_data(monkeypatch, caplog):
     """Test async_setup_entry logs warning and adds no entities when no data."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
 
     class DummyCoordinator:
         data = None
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -184,11 +188,13 @@ async def test_button_setup_entry_creates_backwash_with_gpio_only():
     """async_setup_entry creates BACKWASH button when only GPIO is set (ENABLE=0)."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
 
     class DummyCoordinator:
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 5}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -207,11 +213,13 @@ async def test_button_setup_entry_skips_backwash_without_valve():
     """async_setup_entry skips BACKWASH button when neither ENABLE nor GPIO is set."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
 
     class DummyCoordinator:
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()

@@ -70,6 +70,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Wait for the first update from the coordinator
     await coordinator.async_config_entry_first_refresh()
 
+    # Fallback: Ensure entry has unique_id set (for backward compatibility with v1 entries)
+    if not entry.unique_id and coordinator.data:
+        from .helpers import modbus_regs_to_hex_string
+
+        serial = modbus_regs_to_hex_string(
+            coordinator.data.get("MBF_POWER_MODULE_NODEID")
+        )
+        if serial:
+            unique_id = f"neopool_{serial}"
+            _LOGGER.debug(
+                "Assigning unique_id to entry %s: %s (backward compatibility)",
+                entry.entry_id,
+                unique_id,
+            )
+            hass.config_entries.async_update_entry(entry, unique_id=unique_id)
+
     # Store the coordinator and client in hass.data for easy access
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 

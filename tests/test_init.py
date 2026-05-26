@@ -231,6 +231,84 @@ async def test_async_setup_entry_success():
 
 
 @pytest.mark.asyncio
+async def test_async_setup_entry_fallback_unique_id():
+    """Test that async_setup_entry assigns unique_id from serial when entry has none."""
+    hass = MagicMock()
+    hass.config_entries = MagicMock()
+    hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=None)
+    config_entry = MagicMock()
+    config_entry.unique_id = None  # v1 entry without unique_id
+    config_entry.entry_id = "old_entry_id"
+
+    with patch("custom_components.vistapool.VistaPoolModbusClient"):
+        with patch(
+            "custom_components.vistapool.VistaPoolCoordinator"
+        ) as mock_coordinator:
+            mock_coord_instance = mock_coordinator.return_value
+            mock_coord_instance.async_config_entry_first_refresh = AsyncMock(
+                return_value=None
+            )
+            # Coordinator data with serial number registers
+            mock_coord_instance.data = {
+                "MBF_POWER_MODULE_NODEID": [
+                    0x0000,
+                    0x0001,
+                    0x00AC,
+                    0x00CD,
+                    0x0012,
+                    0x0034,
+                ],
+            }
+            with patch("custom_components.vistapool.er.async_get") as mock_er_get:
+                mock_registry = MagicMock()
+                mock_er_get.return_value = mock_registry
+                with patch(
+                    "custom_components.vistapool.er.async_entries_for_config_entry",
+                    return_value=[],
+                ):
+                    result = await async_setup_entry(hass, config_entry)
+                    assert result is True
+                    # Verify unique_id was set via async_update_entry
+                    hass.config_entries.async_update_entry.assert_called_once_with(
+                        config_entry,
+                        unique_id="neopool_0000000100AC00CD00120034",
+                    )
+
+
+@pytest.mark.asyncio
+async def test_async_setup_entry_fallback_no_serial():
+    """Test that async_setup_entry skips unique_id when serial is unavailable."""
+    hass = MagicMock()
+    hass.config_entries = MagicMock()
+    hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=None)
+    config_entry = MagicMock()
+    config_entry.unique_id = None  # v1 entry without unique_id
+    config_entry.entry_id = "old_entry_id"
+
+    with patch("custom_components.vistapool.VistaPoolModbusClient"):
+        with patch(
+            "custom_components.vistapool.VistaPoolCoordinator"
+        ) as mock_coordinator:
+            mock_coord_instance = mock_coordinator.return_value
+            mock_coord_instance.async_config_entry_first_refresh = AsyncMock(
+                return_value=None
+            )
+            # Data without serial number
+            mock_coord_instance.data = {"OTHER_KEY": [1, 2, 3]}
+            with patch("custom_components.vistapool.er.async_get") as mock_er_get:
+                mock_registry = MagicMock()
+                mock_er_get.return_value = mock_registry
+                with patch(
+                    "custom_components.vistapool.er.async_entries_for_config_entry",
+                    return_value=[],
+                ):
+                    result = await async_setup_entry(hass, config_entry)
+                    assert result is True
+                    # unique_id should NOT be set
+                    hass.config_entries.async_update_entry.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_async_unload_entry_success():
     """Test async_unload_entry completes successfully."""
     hass = MagicMock()

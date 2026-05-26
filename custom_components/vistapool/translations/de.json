@@ -31,9 +31,11 @@
       }
     },
     "error": {
-      "cannot_connect": "Verbindung zur angegebenen Adresse und Port nicht möglich."
+      "cannot_connect": "Verbindung zur angegebenen Adresse und Port nicht möglich.",
+      "cannot_read_modbus": "Verbunden, aber Modbus-Gerät kann nicht gelesen werden. Überprüfen Sie Slave-ID und Framer-Einstellungen."
     },
     "abort": {
+      "already_configured": "Dieses Gerät ist bereits konfiguriert.",
       "entry_not_found": "Der Integrationseintrag wurde nicht gefunden.",
       "reconfigure_successful": "Verbindungseinstellungen erfolgreich aktualisiert."
     }

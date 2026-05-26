@@ -311,6 +311,7 @@ async def test_number_async_setup_entry_adds_entities(monkeypatch):
     """Test async_setup_entry adds number entities for valid data."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -325,6 +326,7 @@ async def test_number_async_setup_entry_adds_entities(monkeypatch):
             "Chlorine measurement module detected": True,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -371,6 +373,7 @@ async def test_number_async_setup_entry_adds_entities(monkeypatch):
 @pytest.mark.asyncio
 async def test_number_setup_skips_smart_when_no_temp(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -380,6 +383,7 @@ async def test_number_setup_skips_smart_when_no_temp(monkeypatch):
             "MBF_PAR_HEATING_GPIO": True,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -408,6 +412,7 @@ async def test_number_async_setup_entry_skips_unassigned(monkeypatch):
     """Test async_setup_entry skips number entities if required relay is missing."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -420,6 +425,7 @@ async def test_number_async_setup_entry_skips_unassigned(monkeypatch):
             "Chlorine measurement module detected": False,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -461,6 +467,7 @@ async def test_number_setup_skips_cover_without_cover_sensor(monkeypatch):
     """Cover reduction numbers are skipped when cover sensor option is not enabled."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}  # use_cover_sensor defaults to False
 
@@ -469,6 +476,7 @@ async def test_number_setup_skips_cover_without_cover_sensor(monkeypatch):
             "Hydrolysis module detected": True,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -500,6 +508,7 @@ async def test_number_setup_creates_cover_with_cover_sensor(monkeypatch):
     """Cover reduction numbers are created when cover sensor option is enabled."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_cover_sensor": True}  # cover sensor option enabled
 
@@ -509,6 +518,7 @@ async def test_number_setup_creates_cover_with_cover_sensor(monkeypatch):
             "MBF_PAR_TEMPERATURE_ACTIVE": 1,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -540,12 +550,14 @@ async def test_number_setup_skips_cover_without_hydro_module(monkeypatch):
     """Cover reduction numbers are skipped when hydrolysis module is not present."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_cover_sensor": True}
 
     class DummyCoordinator:
         data = {"MBF_PAR_TEMPERATURE_ACTIVE": 1}  # Hydrolysis module not detected
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -577,12 +589,14 @@ async def test_number_setup_skips_temp_shutdown_without_temp_sensor(monkeypatch)
     """Shutdown temperature number is skipped when temperature sensor is inactive."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_cover_sensor": True}
 
     class DummyCoordinator:
         data = {"Hydrolysis module detected": True}  # hydro present, but no temp sensor
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -748,11 +762,13 @@ async def test_async_setup_entry_no_data(caplog):
     """Test async_setup_entry logs warning and adds no entities when data is None."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
 
     class DummyCoordinator:
         data = None
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -772,6 +788,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(caplog):
     from custom_components.vistapool.number import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -780,6 +797,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(caplog):
             "Hydrolysis module detected": False,  # No hydrolysis module
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()

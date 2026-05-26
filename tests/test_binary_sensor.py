@@ -43,6 +43,7 @@ async def test_async_setup_entry_adds_entities(monkeypatch):
 
     # Prepare a fake coordinator with sample data
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -61,6 +62,7 @@ async def test_async_setup_entry_adds_entities(monkeypatch):
             "Conductivity measurement module detected": True,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -96,6 +98,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(monkeypatch):
     """Test that HIDRO binary sensors are skipped when Hydrolysis module detected is False."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -106,6 +109,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(monkeypatch):
             "Hydrolysis module detected": False,  # No hydrolysis module
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -126,6 +130,7 @@ async def test_async_setup_entry_skips_ph_acid_pump_without_relay(monkeypatch):
     """Test that pH Acid Pump binary sensor is skipped when relay is not assigned."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -135,6 +140,7 @@ async def test_async_setup_entry_skips_ph_acid_pump_without_relay(monkeypatch):
             "MBF_PAR_PH_ACID_RELAY_GPIO": 0,  # No acid relay
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -154,6 +160,7 @@ async def test_async_setup_entry_skips_cl_module_sensor_without_chlorine(monkeyp
     """Test that CL module binary sensor is skipped when chlorine module is not detected."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -164,6 +171,7 @@ async def test_async_setup_entry_skips_cl_module_sensor_without_chlorine(monkeyp
             "Chlorine measurement module detected": False,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -184,6 +192,7 @@ async def test_async_setup_entry_skips_rx_module_sensor_without_redox(monkeypatc
     """Test that RX module binary sensor is skipped when redox module is not detected."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -194,6 +203,7 @@ async def test_async_setup_entry_skips_rx_module_sensor_without_redox(monkeypatc
             "Redox measurement module detected": False,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -214,12 +224,14 @@ async def test_async_setup_entry_no_data(monkeypatch, caplog):
     """Test async_setup_entry returns early if coordinator.data is None."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = None
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -240,12 +252,14 @@ async def test_async_setup_entry_option_disables_sensor(monkeypatch):
     """Test that sensors with options=False are skipped."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"sensor_option": False}
 
     class DummyCoordinator:
         data = {"MBF_PAR_MODEL": 0x0001}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -273,6 +287,7 @@ async def test_async_setup_entry_skips_pool_cover_when_not_enabled(monkeypatch):
     """Test that Pool Cover sensor is skipped when cover sensor option is not enabled."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}  # use_cover_sensor defaults to False
 
@@ -281,6 +296,7 @@ async def test_async_setup_entry_skips_pool_cover_when_not_enabled(monkeypatch):
             "MBF_PAR_MODEL": 0x0002,  # Hidro module present
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -299,6 +315,7 @@ async def test_async_setup_entry_includes_pool_cover_when_enabled(monkeypatch):
     """Test that Pool Cover sensor is included when cover sensor option is enabled."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_cover_sensor": True}  # cover sensor option enabled
 
@@ -307,6 +324,7 @@ async def test_async_setup_entry_includes_pool_cover_when_enabled(monkeypatch):
             "MBF_PAR_MODEL": 0x0002,  # Hidro module present
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -462,6 +480,7 @@ async def test_async_setup_entry_includes_uv_lamp_when_relay_assigned():
     """UV Lamp binary sensor is included when MBF_PAR_UV_RELAY_GPIO is set."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -471,6 +490,7 @@ async def test_async_setup_entry_includes_uv_lamp_when_relay_assigned():
             "MBF_PAR_UV_RELAY_GPIO": 3,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -488,6 +508,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_no_relay():
     """UV Lamp binary sensor is skipped when MBF_PAR_UV_RELAY_GPIO is 0."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -497,6 +518,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_no_relay():
             "MBF_PAR_UV_RELAY_GPIO": 0,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -514,6 +536,7 @@ async def test_async_setup_entry_creates_uv_lamp_when_key_missing():
     """UV Lamp binary sensor is created when MBF_PAR_UV_RELAY_GPIO is absent (old snapshot)."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -522,6 +545,7 @@ async def test_async_setup_entry_creates_uv_lamp_when_key_missing():
             "MBF_PAR_MODEL": 0x0001,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -539,6 +563,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_gpio_out_of_range():
     """UV Lamp binary sensor is skipped when MBF_PAR_UV_RELAY_GPIO is out of range."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -548,6 +573,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_gpio_out_of_range():
             "MBF_PAR_UV_RELAY_GPIO": 255,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -577,6 +603,7 @@ async def test_async_setup_entry_skips_pool_light_without_relay():
     """Test that Pool Light binary sensor is skipped when lighting relay is not assigned."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_light": True}
 
@@ -586,6 +613,7 @@ async def test_async_setup_entry_skips_pool_light_without_relay():
             "MBF_PAR_LIGHTING_GPIO": 0,  # No lighting relay
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -605,6 +633,7 @@ async def test_async_setup_entry_skips_filtration_pump_without_relay():
     """Test that Filtration Pump binary sensor is skipped when filtration relay is not assigned."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -614,6 +643,7 @@ async def test_async_setup_entry_skips_filtration_pump_without_relay():
             "MBF_PAR_FILT_GPIO": 0,  # No filtration relay
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -633,6 +663,7 @@ async def test_async_setup_entry_skips_pump_sensors_without_relay():
     """Pump status sensors are skipped when their relay GPIO is not assigned."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -653,6 +684,7 @@ async def test_async_setup_entry_skips_pump_sensors_without_relay():
             "MBF_PAR_CD_RELAY_GPIO": 0,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -680,6 +712,7 @@ async def test_async_setup_entry_pump_sensors_with_capability_snapshot():
     """Pump sensors survive HA restart in winter mode when GPIO keys are in capability snapshot."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -699,6 +732,7 @@ async def test_async_setup_entry_pump_sensors_with_capability_snapshot():
             "MBF_PAR_CD_RELAY_GPIO": 0,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -722,6 +756,7 @@ async def test_enabled_default_for_pump_and_problem_sensors():
     """Sensors like pH Acid Pump, HIDRO Low Flow, and shock mode are enabled by default."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -736,6 +771,7 @@ async def test_enabled_default_for_pump_and_problem_sensors():
             "Conductivity measurement module detected": True,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()

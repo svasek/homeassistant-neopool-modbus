@@ -21,9 +21,12 @@ and parse version information.
 """
 
 import datetime
+import logging
 
 import homeassistant.util.dt as dt_util
 from homeassistant.exceptions import ServiceValidationError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 # This function takes a dictionary of data and returns the device time as a datetime object
@@ -385,3 +388,41 @@ def parse_register_int(raw, name: str) -> int:
     if not 0 <= val <= 65535:
         raise ServiceValidationError(f"{name} {val} out of range (0\u201365535)")
     return val
+
+
+async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | None:
+    """Perform trial Modbus read to get device serial number.
+
+    Args:
+        config: Configuration dict with host, port, slave_id, modbus_framer.
+        timeout: Timeout in seconds for the Modbus read operation.
+
+    Returns:
+        Formatted hex string like "0001ABCD1234", or None on failure.
+    """
+    import asyncio
+
+    from homeassistant.const import CONF_HOST, CONF_PORT
+
+    from .modbus import VistaPoolModbusClient
+
+    client = VistaPoolModbusClient(config)
+    try:
+        data = await asyncio.wait_for(client.async_read_all(), timeout=timeout)
+        if data and "MBF_POWER_MODULE_NODEID" in data:
+            serial = modbus_regs_to_hex_string(data["MBF_POWER_MODULE_NODEID"])
+            if serial:
+                _LOGGER.debug("Trial Modbus read successful, serial: %s", serial)
+                return serial
+    except asyncio.TimeoutError:
+        _LOGGER.warning(
+            "Trial Modbus read timed out for %s:%s",
+            config.get(CONF_HOST),
+            config.get(CONF_PORT),
+        )
+    except Exception as err:
+        _LOGGER.warning("Trial Modbus read failed: %s", err)
+    finally:
+        await client.close()
+
+    return None

@@ -31,9 +31,11 @@
       }
     },
     "error": {
-      "cannot_connect": "No se puede conectar a la dirección y puerto especificados."
+      "cannot_connect": "No se puede conectar a la dirección y puerto especificados.",
+      "cannot_read_modbus": "Conectado, pero no se puede leer del dispositivo Modbus. Verifique el ID de esclavo y la configuración del marco."
     },
     "abort": {
+      "already_configured": "Este dispositivo ya está configurado.",
       "entry_not_found": "No se encontró la entrada de integración.",
       "reconfigure_successful": "Configuración de conexión actualizada correctamente."
     }

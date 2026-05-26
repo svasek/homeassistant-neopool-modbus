@@ -31,9 +31,11 @@
       }
     },
     "error": {
-      "cannot_connect": "Nelze se připojit k zadané IP adrese a portu."
+      "cannot_connect": "Nelze se připojit k zadané IP adrese a portu.",
+      "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte slave ID a nastavení rámce."
     },
     "abort": {
+      "already_configured": "Toto zařízení je již nakonfigurováno.",
       "entry_not_found": "Záznam integrace nebyl nalezen.",
       "reconfigure_successful": "Nastavení připojení bylo úspěšně aktualizováno."
     }
