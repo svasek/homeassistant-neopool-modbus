@@ -16,35 +16,35 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
+TO_REDACT = {"password", "token", "host", "port"}
+
 
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
-) -> dict:
+) -> dict[str, Any]:
     """Return diagnostics for a VistaPool config entry."""
 
-    diagnostics: dict = {}
+    diagnostics: dict[str, Any] = {}
 
-    # Basic config and options (without any sensitive data)
-    SENSITIVE_KEYS = {"password", "token", "host", "port"}
     diagnostics["config_entry"] = {
-        "data": {
-            k: v
-            for k, v in entry.data.items()
-            if not any(s in k for s in SENSITIVE_KEYS)
-        },
+        "data": async_redact_data(dict(entry.data), TO_REDACT),
         "options": dict(entry.options),
         "title": entry.title,
         "entry_id": entry.entry_id,
+        "unique_id": entry.unique_id,
         "version": entry.version,
     }
 
     # Coordinator state (contains data, errors, etc.)
-    coordinator = hass.data[DOMAIN].get(entry.entry_id)
+    coordinator = hass.data.get(DOMAIN, {}).get(entry.entry_id)
     if coordinator is None:
         return diagnostics
 
@@ -56,14 +56,13 @@ async def async_get_config_entry_diagnostics(
         "last_exception": str(getattr(coordinator, "last_exception", "")),
         "firmware": getattr(coordinator, "firmware", None),
         "model": getattr(coordinator, "model", None),
-        "client": str(getattr(coordinator, "client", "")),
     }
 
     # Additional client details
     client = getattr(coordinator, "client", None)
     if client and hasattr(client, "connection_stats"):
-        diagnostics["connection_stats"] = client.connection_stats
-
-    diagnostics["last_device_data"] = getattr(coordinator, "data", {})
+        diagnostics["connection_stats"] = async_redact_data(
+            dict(client.connection_stats), TO_REDACT
+        )
 
     return diagnostics
