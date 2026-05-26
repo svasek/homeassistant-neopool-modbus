@@ -784,6 +784,31 @@ async def test_trial_modbus_read_timeout():
 
 
 @pytest.mark.asyncio
+async def test_trial_modbus_read_connect_returns_false():
+    """Test that trial Modbus read returns None when connect() returns False."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock(return_value=False)
+    mock_client.close = MagicMock()
+
+    with patch(
+        "pymodbus.client.AsyncModbusTcpClient",
+        return_value=mock_client,
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial is None
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_trial_modbus_read_no_serial_in_data():
     """Test that trial Modbus read returns None when registers return error."""
     from custom_components.vistapool.helpers import async_get_device_serial

@@ -420,7 +420,10 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
 
     client = AsyncModbusTcpClient(host, port=port, timeout=timeout, framer=framer)
     try:
-        await asyncio.wait_for(client.connect(), timeout=timeout)
+        connected = await asyncio.wait_for(client.connect(), timeout=timeout)
+        if not connected:
+            _LOGGER.warning("Trial Modbus connect returned False for %s:%s", host, port)
+            return None
         rr = await asyncio.wait_for(
             modbus_acall(
                 client.read_holding_registers,
