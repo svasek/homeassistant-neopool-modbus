@@ -444,6 +444,8 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
             host,
             port,
         )
+    except asyncio.CancelledError:
+        raise
     except Exception as err:
         _LOGGER.warning("Trial Modbus read failed: %s", err)
     finally:
@@ -451,6 +453,8 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
             result: object = client.close()
             if asyncio.iscoroutine(result):
                 await result
+        except asyncio.CancelledError:
+            raise
         except Exception:  # noqa: BLE001
             pass
 

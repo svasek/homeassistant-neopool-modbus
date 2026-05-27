@@ -1153,3 +1153,63 @@ async def test_trial_modbus_read_close_raises():
 
     assert serial == "0000000100AC00CD00120034"
     mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_cancelled_error():
+    """Test that CancelledError is re-raised, not swallowed."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock(side_effect=asyncio.CancelledError())
+    mock_client.close = MagicMock()
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        pytest.raises(asyncio.CancelledError),
+    ):
+        await async_get_device_serial(user_input)
+
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_close_cancelled_error():
+    """Test that CancelledError in close() is re-raised."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock(side_effect=asyncio.CancelledError())
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+        pytest.raises(asyncio.CancelledError),
+    ):
+        await async_get_device_serial(user_input)
