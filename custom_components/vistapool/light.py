@@ -70,7 +70,9 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
         self._attr_suggested_object_id = (
             f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
         )
-        self._attr_unique_id = f"{self._entry_id}_{self._key.lower()}"
+        # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
+        device_id = self.coordinator.entry.unique_id or self._entry_id
+        self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._switch_type = props.get("switch_type") or None

@@ -15,6 +15,7 @@
 """VistaPool Integration for Home Assistant - Config Flow"""
 
 import asyncio
+import logging
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -22,6 +23,7 @@ from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers import translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
+from homeassistant.util import slugify
 
 from .const import (
     DEFAULT_MODBUS_FRAMER,
@@ -31,6 +33,9 @@ from .const import (
     DEFAULT_SLAVE_ID,
     DOMAIN,
 )
+from .helpers import async_get_device_serial
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def is_host_port_open(host, port, timeout=3):
@@ -48,7 +53,7 @@ async def is_host_port_open(host, port, timeout=3):
 class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for VistaPool."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def _async_validate_connection(self, user_input: dict) -> dict:
         """Validate host/port connectivity and return an errors dict."""
@@ -122,16 +127,69 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
             )
             user_input[CONF_NAME] = device_name
 
+            # Validation 1: TCP connection
             errors = await self._async_validate_connection(user_input)
             if errors:
-                # Keep the previously entered values except for required fields
                 return self.async_show_form(
                     step_id="user",
                     data_schema=data_schema,
                     errors=errors,
                 )
+
+            # Validation 2: Trial Modbus read → get serial number
+            serial_number = await async_get_device_serial(user_input)
+            if not serial_number:
+                errors[CONF_HOST] = "cannot_read_modbus"
+                _LOGGER.warning(
+                    "User cannot read from Modbus device at %s:%s",
+                    user_input.get(CONF_HOST),
+                    user_input.get(CONF_PORT),
+                )
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=data_schema,
+                    errors=errors,
+                )
+
+            # Validation 3: Duplicate prevention (unique_id based on serial)
+            unique_id = f"neopool_{serial_number}"
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
+
+            # Validation 3b: Catch unmigrated v1 entries (unique_id=None) by connection params
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                if entry.unique_id is not None:
+                    continue
+                if (
+                    entry.data.get(CONF_HOST) == user_input.get(CONF_HOST)
+                    and entry.data.get(CONF_PORT) == user_input.get(CONF_PORT)
+                    and entry.data.get("slave_id") == user_input.get("slave_id")
+                    and entry.data.get("modbus_framer")
+                    == user_input.get("modbus_framer")
+                ):
+                    return self.async_abort(reason="already_configured")
+
+            # Validation 4: Unique device name (compare slugified to catch case/spacing variants)
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                existing_name = entry.data.get(CONF_NAME) or entry.title
+                if slugify(existing_name) == slugify(device_name):
+                    errors[CONF_NAME] = "name_already_used"
+                    return self.async_show_form(
+                        step_id="user",
+                        data_schema=data_schema,
+                        errors=errors,
+                    )
+
+            # Coerce types before creating entry
             if "scan_interval" in user_input:
                 user_input["scan_interval"] = int(user_input["scan_interval"])
+
+            _LOGGER.info(
+                "Creating new VistaPool config entry: %s (serial: …%s)",
+                device_name,
+                serial_number[-6:],
+            )
+
             return self.async_create_entry(title=device_name, data=user_input)
 
         return self.async_show_form(
@@ -169,6 +227,15 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
         errors = {}
         if user_input is not None:
             errors = await self._async_validate_connection(user_input)
+            if not errors:
+                # Verify the device serial matches this entry's unique_id
+                if entry.unique_id:
+                    serial = await async_get_device_serial({**current, **user_input})
+                    if serial and f"neopool_{serial}" != entry.unique_id:
+                        errors[CONF_HOST] = "serial_mismatch"
+                    elif not serial:
+                        errors[CONF_HOST] = "cannot_read_modbus"
+
             if not errors:
                 new_data = {**current, **user_input}
                 return self.async_update_reload_and_abort(

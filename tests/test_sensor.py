@@ -403,6 +403,7 @@ async def test_sensor_async_setup_entry_adds_entities(monkeypatch):
     """Test async_setup_entry adds correct entities based on data."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -425,6 +426,7 @@ async def test_sensor_async_setup_entry_adds_entities(monkeypatch):
             "Hydrolysis module detected": True,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -457,6 +459,7 @@ async def test_sensor_async_setup_entry_detected_flags(monkeypatch):
     """Test async_setup_entry skips entities if 'detected' is missing/False."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -468,6 +471,7 @@ async def test_sensor_async_setup_entry_detected_flags(monkeypatch):
             "Redox measurement module detected": False,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -491,6 +495,7 @@ async def test_sensor_async_setup_entry_model_mask(monkeypatch):
     """Test async_setup_entry skips ION sensor if not present in model."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -500,6 +505,7 @@ async def test_sensor_async_setup_entry_model_mask(monkeypatch):
             "MBF_ION_CURRENT": 50,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -518,6 +524,7 @@ async def test_sensor_hidro_skipped_without_hydrolysis(monkeypatch):
     """Test async_setup_entry skips HIDRO sensors when Hydrolysis module detected is False."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -526,6 +533,7 @@ async def test_sensor_hidro_skipped_without_hydrolysis(monkeypatch):
             "Hydrolysis module detected": False,  # No hydrolysis module
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -636,6 +644,7 @@ async def test_sensor_temperature_skip_when_inactive():
     """Test that MBF_MEASURE_TEMPERATURE is skipped when MBF_PAR_TEMPERATURE_ACTIVE is 0."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -645,6 +654,7 @@ async def test_sensor_temperature_skip_when_inactive():
             "MBF_PAR_TEMPERATURE_ACTIVE": 0,  # Temperature inactive
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -664,6 +674,7 @@ async def test_sensor_temperature_created_when_active():
     """Test that MBF_MEASURE_TEMPERATURE is created when MBF_PAR_TEMPERATURE_ACTIVE is not 0."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -673,6 +684,7 @@ async def test_sensor_temperature_created_when_active():
             "MBF_PAR_TEMPERATURE_ACTIVE": 1,  # Temperature active
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -699,12 +711,14 @@ async def test_sensor_intelligent_key_skip_without_heating(sensor_key, value):
     """Intelligent-mode sensors are skipped when heating GPIO is not assigned."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data: dict = {}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     DummyCoordinator.data = {
@@ -736,12 +750,14 @@ async def test_sensor_intelligent_key_created_with_heating(sensor_key, value):
     """Intelligent-mode sensors are created when heating GPIO is assigned and temperature is active."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data: dict = {}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     DummyCoordinator.data = {
@@ -794,12 +810,14 @@ async def test_async_setup_entry_no_data(caplog):
     """Test async_setup_entry logs warning and adds no entities when data is None."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = None
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -823,6 +841,7 @@ async def test_sensor_setup_with_capability_snapshot_only():
     """
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -841,6 +860,7 @@ async def test_sensor_setup_with_capability_snapshot_only():
             # No measurement values – as returned after a restart in winter mode
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -879,12 +899,14 @@ async def test_sensor_filtvalve_remaining_skipped_without_besgo():
     """MBF_PAR_FILTVALVE_REMAINING sensor must be skipped when Besgo valve is not configured."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data: dict = {}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     DummyCoordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
@@ -905,12 +927,14 @@ async def test_sensor_filtvalve_remaining_created_with_besgo():
     """MBF_PAR_FILTVALVE_REMAINING sensor must be created when Besgo valve is configured."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data: dict = {}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     DummyCoordinator.data = {
@@ -934,12 +958,14 @@ async def test_sensor_filtvalve_remaining_created_with_gpio_only():
     """MBF_PAR_FILTVALVE_REMAINING sensor must be created when only GPIO is set (ENABLE=0)."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data: dict = {}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     DummyCoordinator.data = {

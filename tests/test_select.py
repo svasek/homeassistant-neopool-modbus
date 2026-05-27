@@ -636,6 +636,7 @@ async def test_async_select_option_filtration_timer_speed(
 @pytest.mark.asyncio
 async def test_select_async_setup_entry_adds_entities(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -646,6 +647,7 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
             "MBF_PAR_MODEL": 0x0002,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -678,12 +680,14 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
 @pytest.mark.asyncio
 async def test_select_async_setup_entry_option_disabled(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"test_option": False}
 
     class DummyCoordinator:
         data = {"MBF_PAR_FILTRATION_CONF": 1, "MBF_PAR_MODEL": 0x0002}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -709,12 +713,14 @@ async def test_select_async_setup_entry_option_disabled(monkeypatch):
 @pytest.mark.asyncio
 async def test_select_async_setup_entry_no_data(caplog):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = None
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -852,11 +858,13 @@ async def test_select_filtvalve_period_minutes_skipped_without_besgo(mock_coordi
     from custom_components.vistapool.select import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
 
@@ -879,11 +887,13 @@ async def test_select_filtvalve_period_minutes_created_with_besgo(mock_coordinat
     from custom_components.vistapool.select import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 1, "MBF_PAR_FILTVALVE_PERIOD_MINUTES": 1440}
 
@@ -906,11 +916,13 @@ async def test_select_filtvalve_period_minutes_created_with_gpio_only(mock_coord
     from custom_components.vistapool.select import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
         data = {
             "MBF_PAR_FILTVALVE_ENABLE": 0,
@@ -1027,11 +1039,13 @@ async def test_select_filtvalve_mode_skipped_without_besgo(mock_coordinator):
     from custom_components.vistapool.select import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
 
@@ -1054,11 +1068,13 @@ async def test_select_filtvalve_mode_created_with_besgo(mock_coordinator):
     from custom_components.vistapool.select import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 1, "MBF_PAR_FILTVALVE_MODE": 1}
 
@@ -1081,11 +1097,13 @@ async def test_select_filtvalve_mode_created_with_gpio_only(mock_coordinator):
     from custom_components.vistapool.select import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
         data = {
             "MBF_PAR_FILTVALVE_ENABLE": 0,
@@ -1182,6 +1200,7 @@ async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
     from custom_components.vistapool.select import async_setup_entry
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options: dict = {}
 
@@ -1191,6 +1210,7 @@ async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
             "pH measurement module detected": False,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()

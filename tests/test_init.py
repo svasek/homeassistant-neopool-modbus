@@ -20,9 +20,11 @@ from homeassistant.exceptions import ServiceValidationError
 from custom_components.vistapool import (
     _cleanup_removed_entities,
     _register_services,
+    async_migrate_entry,
     async_setup_entry,
     async_unload_entry,
 )
+from custom_components.vistapool.const import DEFAULT_PORT
 
 
 @pytest.mark.asyncio
@@ -669,3 +671,291 @@ def test_cleanup_no_orphans():
             _cleanup_removed_entities(hass, entry)
 
     mock_registry.async_remove.assert_not_called()
+
+
+def test_cleanup_removes_orphans_with_serial_unique_id():
+    """Test _cleanup_removed_entities matches new unique_id-prefixed entities (v2+)."""
+    hass = MagicMock()
+    entry = MagicMock()
+    entry.entry_id = "old_entry_id"
+    entry.unique_id = "neopool_0000000100AC00CD00120034"
+
+    # Orphan with new unique_id prefix (post-migration)
+    orphan_new = MagicMock()
+    orphan_new.unique_id = "neopool_0000000100AC00CD00120034_hidro on target"
+    orphan_new.entity_id = "binary_sensor.hydrolysis_on_target"
+
+    # Orphan with old entry_id prefix (pre-migration leftover)
+    orphan_old = MagicMock()
+    orphan_old.unique_id = "old_entry_id_hidro on target"
+    orphan_old.entity_id = "binary_sensor.hydrolysis_on_target_old"
+
+    valid = MagicMock()
+    valid.unique_id = "neopool_0000000100AC00CD00120034_hidro low flow"
+    valid.entity_id = "binary_sensor.hydrolysis_low_flow"
+
+    mock_registry = MagicMock()
+
+    with patch("custom_components.vistapool.er.async_get", return_value=mock_registry):
+        with patch(
+            "custom_components.vistapool.er.async_entries_for_config_entry",
+            return_value=[orphan_new, orphan_old, valid],
+        ):
+            _cleanup_removed_entities(hass, entry)
+
+    assert mock_registry.async_remove.call_count == 2
+    removed_ids = [c.args[0] for c in mock_registry.async_remove.call_args_list]
+    assert "binary_sensor.hydrolysis_on_target" in removed_ids
+    assert "binary_sensor.hydrolysis_on_target_old" in removed_ids
+
+
+# --- Migration tests ---
+
+DEFAULT_SERIAL_REGS = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+DEFAULT_SERIAL_STRING = "".join(f"{r:04X}" for r in DEFAULT_SERIAL_REGS)
+
+
+@pytest.mark.asyncio
+async def test_async_migrate_entry_v1_to_v2_success():
+    """Test migration from v1 (no unique_id) to v2 (serial-based unique_id)."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "old_entry_id_123"
+    config_entry.unique_id = None
+    config_entry.version = 1
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+
+    hass.config_entries.async_entries.return_value = []
+
+    mock_entity1 = MagicMock()
+    mock_entity1.unique_id = "old_entry_id_123_mbf_ph_measure"
+    mock_entity1.entity_id = "sensor.pool_ph"
+
+    mock_entity2 = MagicMock()
+    mock_entity2.unique_id = "old_entry_id_123_mbf_temperature"
+    mock_entity2.entity_id = "sensor.pool_temperature"
+
+    mock_entity_registry = MagicMock()
+    mock_entity_registry.async_update_entity = MagicMock()
+
+    mock_old_device = MagicMock()
+    mock_old_device.id = "old_device_id"
+    mock_device_registry = MagicMock()
+    mock_device_registry.async_get_device.return_value = mock_old_device
+
+    expected_unique_id = f"neopool_{DEFAULT_SERIAL_STRING}"
+
+    with (
+        patch(
+            "custom_components.vistapool.migration.async_get_device_serial",
+            new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
+        ),
+        patch(
+            "custom_components.vistapool.migration.er.async_get",
+            return_value=mock_entity_registry,
+        ),
+        patch(
+            "custom_components.vistapool.migration.er.async_entries_for_config_entry",
+            return_value=[mock_entity1, mock_entity2],
+        ),
+        patch(
+            "custom_components.vistapool.migration.dr.async_get",
+            return_value=mock_device_registry,
+        ),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
+
+    assert result is True
+    hass.config_entries.async_update_entry.assert_called_once_with(
+        config_entry, unique_id=expected_unique_id, version=2
+    )
+    assert mock_entity_registry.async_update_entity.call_count == 2
+    mock_entity_registry.async_update_entity.assert_any_call(
+        "sensor.pool_ph",
+        new_unique_id=f"{expected_unique_id}_mbf_ph_measure",
+    )
+    mock_entity_registry.async_update_entity.assert_any_call(
+        "sensor.pool_temperature",
+        new_unique_id=f"{expected_unique_id}_mbf_temperature",
+    )
+    # Old device with entry_id identifier should be updated to serial-based
+    mock_device_registry.async_get_device.assert_called_once_with(
+        identifiers={("vistapool", "old_entry_id_123")}
+    )
+    mock_device_registry.async_update_device.assert_called_once_with(
+        "old_device_id",
+        new_identifiers={("vistapool", expected_unique_id)},
+    )
+
+
+@pytest.mark.asyncio
+async def test_async_migrate_entry_v1_to_v2_serial_unavailable():
+    """Test migration defers when serial cannot be read (retries on next restart)."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "old_entry_id_456"
+    config_entry.unique_id = None
+    config_entry.version = 1
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+
+    with patch(
+        "custom_components.vistapool.migration.async_get_device_serial",
+        new=AsyncMock(return_value=None),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
+
+    assert result is True
+    # Version must NOT be bumped — migration will retry on next HA restart
+    hass.config_entries.async_update_entry.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_migrate_entry_v1_to_v2_duplicate_detected():
+    """Test migration fails when another entry already has the same serial."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "entry_aaa"
+    config_entry.unique_id = None
+    config_entry.version = 1
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+
+    existing_entry = MagicMock()
+    existing_entry.entry_id = "entry_bbb"
+    existing_entry.unique_id = f"neopool_{DEFAULT_SERIAL_STRING}"
+    hass.config_entries.async_entries.return_value = [existing_entry]
+
+    with patch(
+        "custom_components.vistapool.migration.async_get_device_serial",
+        new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
+
+    assert result is False
+    hass.config_entries.async_update_entry.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_migrate_entry_entity_update_error():
+    """Test migration rolls back and defers when entity update fails."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "old_entry_id_789"
+    config_entry.unique_id = None
+    config_entry.version = 1
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+
+    hass.config_entries.async_entries.return_value = []
+
+    # First entity will succeed, second will fail → first must be rolled back
+    mock_entity1 = MagicMock()
+    mock_entity1.unique_id = "old_entry_id_789_mbf_ph_measure"
+    mock_entity1.entity_id = "sensor.pool_ph"
+
+    mock_entity2 = MagicMock()
+    mock_entity2.unique_id = "old_entry_id_789_mbf_temperature"
+    mock_entity2.entity_id = "sensor.pool_temperature"
+
+    call_count = 0
+
+    def update_side_effect(entity_id, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        # First call (entity1 migration) succeeds
+        # Second call (entity2 migration) fails
+        # Third call (entity1 rollback) succeeds
+        if call_count == 2:
+            raise ValueError("registry conflict")
+
+    mock_registry = MagicMock()
+    mock_registry.async_update_entity.side_effect = update_side_effect
+
+    with (
+        patch(
+            "custom_components.vistapool.migration.async_get_device_serial",
+            new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
+        ),
+        patch(
+            "custom_components.vistapool.migration.er.async_get",
+            return_value=mock_registry,
+        ),
+        patch(
+            "custom_components.vistapool.migration.er.async_entries_for_config_entry",
+            return_value=[mock_entity1, mock_entity2],
+        ),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
+
+    assert result is True
+    # 3 calls: migrate entity1 (ok), migrate entity2 (fail), rollback entity1
+    assert mock_registry.async_update_entity.call_count == 3
+    # Verify rollback call restored entity1's original unique_id
+    mock_registry.async_update_entity.assert_any_call(
+        "sensor.pool_ph",
+        new_unique_id="old_entry_id_789_mbf_ph_measure",
+    )
+    # Version must NOT be bumped — migration will retry on next HA restart
+    hass.config_entries.async_update_entry.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_migrate_entry_rollback_also_fails():
+    """Test migration returns False when rollback fails to prevent duplicates."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "old_entry_id_789"
+    config_entry.unique_id = None
+    config_entry.version = 1
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+
+    hass.config_entries.async_entries.return_value = []
+
+    mock_entity1 = MagicMock()
+    mock_entity1.unique_id = "old_entry_id_789_mbf_ph_measure"
+    mock_entity1.entity_id = "sensor.pool_ph"
+
+    mock_entity2 = MagicMock()
+    mock_entity2.unique_id = "old_entry_id_789_mbf_temperature"
+    mock_entity2.entity_id = "sensor.pool_temperature"
+
+    call_count = 0
+
+    def update_side_effect(entity_id, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count >= 2:
+            # entity2 migration fails, then entity1 rollback also fails
+            raise ValueError("registry conflict")
+
+    mock_registry = MagicMock()
+    mock_registry.async_update_entity.side_effect = update_side_effect
+
+    with (
+        patch(
+            "custom_components.vistapool.migration.async_get_device_serial",
+            new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
+        ),
+        patch(
+            "custom_components.vistapool.migration.er.async_get",
+            return_value=mock_registry,
+        ),
+        patch(
+            "custom_components.vistapool.migration.er.async_entries_for_config_entry",
+            return_value=[mock_entity1, mock_entity2],
+        ),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
+
+    assert result is False
+    # 3 calls: migrate entity1 (ok), migrate entity2 (fail), rollback entity1 (fail)
+    assert mock_registry.async_update_entity.call_count == 3
+    hass.config_entries.async_update_entry.assert_not_called()

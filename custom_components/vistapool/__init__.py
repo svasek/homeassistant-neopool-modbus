@@ -25,6 +25,10 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS, TIMER_BLOCKS
 from .coordinator import VistaPoolCoordinator
+
+# Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
+# from the integration's __init__ module when config entry version changes.
+from .migration import async_migrate_entry  # noqa: F401
 from .modbus import VistaPoolModbusClient
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -35,7 +39,13 @@ _LOGGER = logging.getLogger(__name__)
 def _cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Remove orphaned entity-registry entries for entities no longer in definitions."""
     registry = er.async_get(hass)
-    removed_uids = {f"{entry.entry_id}_{key}" for key in REMOVED_ENTITY_KEYS}
+    # Match both old ({entry_id}_{key}) and new ({unique_id}_{key}) unique_id formats
+    prefixes = {entry.entry_id}
+    if entry.unique_id:
+        prefixes.add(entry.unique_id)
+    removed_uids = {
+        f"{prefix}_{key}" for prefix in prefixes for key in REMOVED_ENTITY_KEYS
+    }
     for entity_entry in er.async_entries_for_config_entry(registry, entry.entry_id):
         if entity_entry.unique_id in removed_uids:
             _LOGGER.debug(

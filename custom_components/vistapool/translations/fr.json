@@ -31,9 +31,13 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter à l'adresse et au port spécifiés."
+      "cannot_connect": "Impossible de se connecter à l'adresse et au port spécifiés.",
+      "cannot_read_modbus": "Connecté, mais impossible de lire le périphérique Modbus. Vérifiez l'ID esclave et les paramètres du cadre.",
+      "serial_mismatch": "L'appareil à cette adresse a un numéro de série différent de celui configuré à l'origine.",
+      "name_already_used": "Ce nom d'appareil est déjà utilisé. Veuillez choisir un nom différent."
     },
     "abort": {
+      "already_configured": "Cet appareil est déjà configuré.",
       "entry_not_found": "L'entrée d'intégration est introuvable.",
       "reconfigure_successful": "Paramètres de connexion mis à jour avec succès."
     }

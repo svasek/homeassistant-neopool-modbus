@@ -136,6 +136,7 @@ async def test_light_async_setup_entry_adds_entities(monkeypatch):
     """Test async_setup_entry adds light entities for enabled lights."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -145,6 +146,7 @@ async def test_light_async_setup_entry_adds_entities(monkeypatch):
             "MBF_PAR_LIGHTING_GPIO": 3,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -176,12 +178,14 @@ async def test_light_async_setup_entry_no_data(caplog):
     """Test async_setup_entry logs warning and adds no entities if no data."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = None
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -200,6 +204,7 @@ async def test_light_async_setup_entry_skips_without_lighting_gpio(monkeypatch):
     """Test async_setup_entry skips light when MBF_PAR_LIGHTING_GPIO is not assigned."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
@@ -209,6 +214,7 @@ async def test_light_async_setup_entry_skips_without_lighting_gpio(monkeypatch):
             "MBF_PAR_LIGHTING_GPIO": 0,  # No lighting relay
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -238,12 +244,14 @@ async def test_light_async_setup_entry_option_disabled(monkeypatch):
     """Test async_setup_entry skips light if option is False."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"test_option": False}
 
     class DummyCoordinator:
         data = {"relay_light_enable": 3}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()

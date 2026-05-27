@@ -54,11 +54,17 @@ class VistaPoolEntity(CoordinatorEntity[VistaPoolCoordinator]):
         """Return device information for the entity."""
         data = self.coordinator.data or {}
         serial_number = modbus_regs_to_hex_string(data.get("MBF_POWER_MODULE_NODEID"))
+
+        # Use entry.unique_id (serial-based in v2+) as device identifier,
+        # otherwise fall back to entry_id. Never use serial_number as identifier
+        # to avoid mid-run device identity flips when migration was deferred.
+        hw_identifier = self.coordinator.entry.unique_id or self._entry_id
+
         machine_type = (get_machine_name(data) or "").strip()
         model_prefix = "NeoPool Compatible: " if machine_type else "NeoPool Compatible"
 
         info = {
-            "identifiers": {(DOMAIN, self._entry_id)},
+            "identifiers": {(DOMAIN, hw_identifier)},
             "name": getattr(self.coordinator, "device_name", NAME),
             "model": f"{model_prefix}{machine_type}".strip(),
             "manufacturer": "Hayward (Sugar Valley)",

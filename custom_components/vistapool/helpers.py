@@ -21,9 +21,12 @@ and parse version information.
 """
 
 import datetime
+import logging
 
 import homeassistant.util.dt as dt_util
 from homeassistant.exceptions import ServiceValidationError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 # This function takes a dictionary of data and returns the device time as a datetime object
@@ -385,3 +388,75 @@ def parse_register_int(raw, name: str) -> int:
     if not 0 <= val <= 65535:
         raise ServiceValidationError(f"{name} {val} out of range (0\u201365535)")
     return val
+
+
+async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | None:
+    """Perform minimal Modbus read to get device serial number.
+
+    Reads only MBF_POWER_MODULE_NODEID (registers 0x0004–0x0009, 6 regs)
+    instead of a full register dump.
+
+    Args:
+        config: Configuration dict with host, port, slave_id, modbus_framer.
+        timeout: Timeout in seconds for the Modbus read operation.
+
+    Returns:
+        Hex string from 6 registers (24 chars, e.g. "0000000100AC00CD00120034"),
+        or None on failure.
+    """
+    import asyncio
+    import inspect
+
+    from homeassistant.const import CONF_HOST, CONF_PORT
+    from pymodbus.client import AsyncModbusTcpClient
+    from pymodbus.framer import FramerType
+
+    from .modbus_compat import modbus_acall
+
+    host = config.get(CONF_HOST, "")
+    port = config.get(CONF_PORT, 502)
+    slave_id = config.get("slave_id", 1)
+    framer_str = config.get("modbus_framer", "tcp").strip().lower()
+    framer = FramerType.RTU if framer_str == "rtu" else FramerType.SOCKET
+
+    client = AsyncModbusTcpClient(host, port=port, timeout=timeout, framer=framer)
+    try:
+        connected = await asyncio.wait_for(client.connect(), timeout=timeout)
+        if not connected:
+            _LOGGER.warning("Trial Modbus connect returned False for %s:%s", host, port)
+            return None
+        rr = await asyncio.wait_for(
+            modbus_acall(
+                client.read_holding_registers,
+                slave_id,
+                address=0x0004,
+                count=6,
+            ),
+            timeout=timeout,
+        )
+        if not rr.isError():
+            serial = modbus_regs_to_hex_string(list(rr.registers))
+            if serial:
+                _LOGGER.debug("Trial Modbus read successful, serial: %s", serial)
+                return serial
+    except asyncio.TimeoutError:
+        _LOGGER.warning(
+            "Trial Modbus read timed out for %s:%s",
+            host,
+            port,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception as err:
+        _LOGGER.warning("Trial Modbus read failed: %s", err)
+    finally:
+        try:
+            result: object = client.close()
+            if inspect.isawaitable(result):
+                await result
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001
+            pass
+
+    return None

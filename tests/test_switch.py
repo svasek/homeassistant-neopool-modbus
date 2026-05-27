@@ -328,12 +328,14 @@ def test_icon_on_off(mock_coordinator):
 @pytest.mark.asyncio
 async def test_switch_async_setup_entry_adds_entities(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = {"MBF_PAR_FILT_MODE": 0, "relay_aux1_enable": 3}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -359,12 +361,14 @@ async def test_switch_async_setup_entry_adds_entities(monkeypatch):
 @pytest.mark.asyncio
 async def test_switch_setup_skips_smart_antifreeze_when_no_temp(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = {"MBF_PAR_TEMPERATURE_ACTIVE": 0}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -392,12 +396,14 @@ async def test_switch_setup_skips_smart_antifreeze_when_no_temp(monkeypatch):
 @pytest.mark.asyncio
 async def test_switch_async_setup_entry_no_data(caplog):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = None
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -413,12 +419,14 @@ async def test_switch_async_setup_entry_no_data(caplog):
 @pytest.mark.asyncio
 async def test_switch_async_setup_entry_option_disabled(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"test_option": False}
 
     class DummyCoordinator:
         data = {"MBF_PAR_FILT_MODE": 0, "relay_aux1_enable": 3}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -474,12 +482,14 @@ async def test_switch_setup_skips_hidro_cover_without_hydro_module():
     """MBF_PAR_HIDRO_COVER_ENABLE is skipped when hydrolysis module is absent."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_cover_sensor": True}  # cover sensor option enabled
 
     class DummyCoordinator:
         data = {"Hydrolysis module detected": False}  # hydro module absent
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -498,6 +508,7 @@ async def test_switch_setup_creates_hidro_cover_with_hydro_module():
     """MBF_PAR_HIDRO_COVER_ENABLE is created when hydrolysis module is present and cover sensor option is enabled."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_cover_sensor": True}  # cover sensor option enabled
 
@@ -507,6 +518,7 @@ async def test_switch_setup_creates_hidro_cover_with_hydro_module():
             "MBF_PAR_TEMPERATURE_ACTIVE": 1,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -525,6 +537,7 @@ async def test_switch_setup_skips_hidro_temp_shutdown_without_temp_sensor():
     """MBF_PAR_HIDRO_TEMP_SHUTDOWN is skipped when temperature sensor is inactive."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {"use_cover_sensor": True}  # cover sensor option enabled
 
@@ -534,6 +547,7 @@ async def test_switch_setup_skips_hidro_temp_shutdown_without_temp_sensor():
             "MBF_PAR_TEMPERATURE_ACTIVE": 0,  # but temp sensor inactive
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -554,6 +568,7 @@ async def test_switch_setup_skips_hidro_cover_without_cover_sensor():
     """Cover entities are skipped when cover sensor option is not enabled in integration settings."""
 
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}  # use_cover_sensor defaults to False
 
@@ -563,6 +578,7 @@ async def test_switch_setup_skips_hidro_cover_without_cover_sensor():
             "MBF_PAR_TEMPERATURE_ACTIVE": 1,
         }
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -829,12 +845,14 @@ def test_is_on_uv_mode(mock_coordinator):
 @pytest.mark.asyncio
 async def test_switch_setup_includes_uv_mode_when_relay_assigned(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = {"MBF_PAR_UV_RELAY_GPIO": 3}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -862,12 +880,14 @@ async def test_switch_setup_includes_uv_mode_when_relay_assigned(monkeypatch):
 @pytest.mark.asyncio
 async def test_switch_setup_skips_uv_mode_when_no_relay(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = {"MBF_PAR_UV_RELAY_GPIO": 0}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -895,12 +915,14 @@ async def test_switch_setup_skips_uv_mode_when_no_relay(monkeypatch):
 @pytest.mark.asyncio
 async def test_switch_setup_skips_uv_mode_when_key_missing(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = {}  # no MBF_PAR_UV_RELAY_GPIO at all
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()
@@ -928,12 +950,14 @@ async def test_switch_setup_skips_uv_mode_when_key_missing(monkeypatch):
 @pytest.mark.asyncio
 async def test_switch_setup_skips_uv_mode_when_gpio_out_of_range(monkeypatch):
     class DummyEntry:
+        unique_id = None
         entry_id = "test_entry"
         options = {}
 
     class DummyCoordinator:
         data = {"MBF_PAR_UV_RELAY_GPIO": 255}
         config_entry = DummyEntry()
+        entry = config_entry
         device_slug = "vistapool"
 
     hass = MagicMock()

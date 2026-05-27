@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -24,6 +25,36 @@ from custom_components.vistapool.const import (
     DEFAULT_SLAVE_ID,
     DOMAIN,
 )
+
+# Default serial register values for tests
+DEFAULT_SERIAL_REGS = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+# Expected serial string derived from DEFAULT_SERIAL_REGS
+DEFAULT_SERIAL_STRING = "".join(f"{r:04X}" for r in DEFAULT_SERIAL_REGS)
+
+
+def make_test_flow_with_modbus_mock(serial_string: str | None = DEFAULT_SERIAL_STRING):
+    """Create a config flow instance with properly mocked hass.
+
+    Args:
+        serial_string: Serial number string to return from mock,
+                       or None to simulate Modbus timeout/failure.
+    Returns:
+        tuple: (flow, serial_string)
+    """
+    flow = config_flow.VistaPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow.hass.data = {DOMAIN: {}}
+    flow.context = {}
+    # Mock config_entries to return empty list for in-progress check (sync function)
+    flow.hass.config_entries.flow.async_progress_by_handler = MagicMock(return_value=[])
+    # Mock config_entries to return None for already configured check
+    flow.hass.config_entries.async_entry_for_domain_unique_id = MagicMock(
+        return_value=None
+    )
+    # Mock config_entries to return empty list for duplicate name/v1 checks
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
+
+    return flow, serial_string
 
 
 @pytest.mark.asyncio
@@ -44,16 +75,24 @@ async def test_show_user_form_on_init():
 
 @pytest.mark.asyncio
 async def test_create_entry_success():
-    flow = config_flow.VistaPoolConfigFlow()
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
         "slave_id": 1,
         "name": "Test Pool",
     }
-    with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
     ):
         result = await flow.async_step_user(user_input)
         assert result is not None
@@ -66,7 +105,8 @@ async def test_create_entry_success():
 @pytest.mark.asyncio
 async def test_create_entry_with_rtu_framer():
     """Test that modbus_framer='rtu' is accepted and stored in config entry."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
@@ -74,9 +114,16 @@ async def test_create_entry_with_rtu_framer():
         "name": "Test Pool RTU",
         "modbus_framer": "rtu",
     }
-    with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
     ):
         result = await flow.async_step_user(user_input)
         assert result is not None
@@ -85,8 +132,10 @@ async def test_create_entry_with_rtu_framer():
 
 
 @pytest.mark.asyncio
-async def test_create_entry_failure():
-    flow = config_flow.VistaPoolConfigFlow()
+async def test_create_entry_failure_cannot_connect():
+    """TCP connection failure returns cannot_connect error."""
+    flow, _ = make_test_flow_with_modbus_mock(None)
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
@@ -102,6 +151,34 @@ async def test_create_entry_failure():
         assert result["type"] == "form"
         assert "host" in result["errors"]
         assert result["errors"]["host"] == "cannot_connect"
+
+
+@pytest.mark.asyncio
+async def test_create_entry_failure_cannot_read_modbus():
+    """TCP connected but Modbus read fails returns cannot_read_modbus error."""
+    flow, _ = make_test_flow_with_modbus_mock(None)
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": 1,
+        "name": "Test Pool",
+    }
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await flow.async_step_user(user_input)
+        assert result is not None
+        assert result["type"] == "form"
+        assert "host" in result["errors"]
+        assert result["errors"]["host"] == "cannot_read_modbus"
 
 
 def test_async_get_options_flow(monkeypatch):
@@ -179,6 +256,7 @@ async def test_reconfigure_success():
     }
     mock_entry = MagicMock()
     mock_entry.data = existing_data
+    mock_entry.unique_id = None
 
     flow.hass = MagicMock()
     flow.hass.config_entries.async_get_entry.return_value = mock_entry
@@ -253,6 +331,129 @@ async def test_reconfigure_cannot_connect():
 
 
 @pytest.mark.asyncio
+async def test_reconfigure_serial_mismatch():
+    """Reconfigure shows serial_mismatch error when device serial differs."""
+    flow = config_flow.VistaPoolConfigFlow()
+
+    mock_entry = MagicMock()
+    mock_entry.data = {
+        "host": "10.0.0.1",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+    mock_entry.unique_id = "neopool_0000000100AC00CD00120034"
+
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_get_entry.return_value = mock_entry
+    flow.context = {"entry_id": "abc123"}
+
+    user_input = {
+        "host": "10.0.0.99",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value="FFFFFFFFFFFFFFFFFFFFFFFF"),
+        ),
+    ):
+        result = await flow.async_step_reconfigure(user_input)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"].get("host") == "serial_mismatch"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_serial_read_fails():
+    """Reconfigure shows cannot_read_modbus when serial read fails."""
+    flow = config_flow.VistaPoolConfigFlow()
+
+    mock_entry = MagicMock()
+    mock_entry.data = {
+        "host": "10.0.0.1",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+    mock_entry.unique_id = "neopool_0000000100AC00CD00120034"
+
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_get_entry.return_value = mock_entry
+    flow.context = {"entry_id": "abc123"}
+
+    user_input = {
+        "host": "10.0.0.99",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await flow.async_step_reconfigure(user_input)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"].get("host") == "cannot_read_modbus"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_no_unique_id_skips_serial_check():
+    """Reconfigure skips serial check for v1 entries without unique_id."""
+    flow = config_flow.VistaPoolConfigFlow()
+
+    mock_entry = MagicMock()
+    mock_entry.data = {
+        "host": "10.0.0.1",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+        "name": "MyPool",
+    }
+    mock_entry.unique_id = None
+
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_get_entry.return_value = mock_entry
+    flow.context = {"entry_id": "abc123"}
+    flow.async_update_reload_and_abort = MagicMock(
+        return_value={"type": "abort", "reason": "reconfigure_successful"}
+    )
+
+    user_input = {
+        "host": "10.0.0.99",
+        "port": 502,
+        "slave_id": 1,
+        "modbus_framer": "tcp",
+    }
+
+    with patch(
+        "custom_components.vistapool.config_flow.is_host_port_open",
+        new=AsyncMock(return_value=True),
+    ):
+        result = await flow.async_step_reconfigure(user_input)
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reconfigure_successful"
+
+
+@pytest.mark.asyncio
 async def test_reconfigure_entry_not_found_aborts():
     """When the entry cannot be found, the flow aborts gracefully."""
     flow = config_flow.VistaPoolConfigFlow()
@@ -323,7 +524,8 @@ async def test_is_host_port_open_success(monkeypatch):
 @pytest.mark.asyncio
 async def test_create_entry_scan_interval_coerced_to_int():
     """scan_interval submitted as string (from SelectSelector) must be saved as int."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
@@ -331,9 +533,15 @@ async def test_create_entry_scan_interval_coerced_to_int():
         "name": "Test Pool",
         "scan_interval": "30",  # SelectSelector returns strings
     }
-    with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
     ):
         result = await flow.async_step_user(user_input)
         assert result is not None
@@ -416,16 +624,23 @@ async def test_get_default_name_falls_back_on_translation_error():
 @pytest.mark.asyncio
 async def test_create_entry_empty_name_uses_default():
     """Empty string for name falls back to the default name."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
         "slave_id": 1,
         "name": "",  # empty → should fall back
     }
-    with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
     ):
         result = await flow.async_step_user(user_input)
         assert result is not None
@@ -438,16 +653,23 @@ async def test_create_entry_empty_name_uses_default():
 @pytest.mark.asyncio
 async def test_create_entry_no_name_key_uses_default():
     """Missing name key in user_input falls back to the default name."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
         "slave_id": 1,
         # no "name" key
     }
-    with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
     ):
         result = await flow.async_step_user(user_input)
         assert result is not None
@@ -519,7 +741,8 @@ async def test_user_form_schema_connection_defaults():
 @pytest.mark.asyncio
 async def test_create_entry_stores_use_light_flag():
     """use_light=True is persisted in the config entry data."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
@@ -527,9 +750,15 @@ async def test_create_entry_stores_use_light_flag():
         "name": "Test Pool",
         "use_light": True,
     }
-    with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
     ):
         result = await flow.async_step_user(user_input)
         assert result is not None
@@ -541,7 +770,8 @@ async def test_create_entry_stores_use_light_flag():
 @pytest.mark.asyncio
 async def test_create_entry_stores_filtration_flags():
     """Non-default filtration flags are persisted correctly."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
     user_input = {
         "host": "192.168.1.100",
         "port": DEFAULT_PORT,
@@ -551,9 +781,15 @@ async def test_create_entry_stores_filtration_flags():
         "use_filtration2": True,
         "use_filtration3": True,
     }
-    with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
     ):
         result = await flow.async_step_user(user_input)
         assert result is not None
@@ -595,3 +831,466 @@ async def test_reconfigure_schema_defaults_to_constants_when_keys_absent():
     assert schema_defaults["port"] == DEFAULT_PORT
     assert schema_defaults["slave_id"] == DEFAULT_SLAVE_ID
     assert schema_defaults["modbus_framer"] == DEFAULT_MODBUS_FRAMER
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_success():
+    """Test that trial Modbus read extracts device serial correctly."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "TestPool",
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock()
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial == "0000000100AC00CD00120034"
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_timeout():
+    """Test that trial Modbus read handles timeout gracefully."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock(side_effect=asyncio.TimeoutError())
+    mock_client.close = MagicMock()
+
+    with patch(
+        "pymodbus.client.AsyncModbusTcpClient",
+        return_value=mock_client,
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial is None
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_connect_returns_false():
+    """Test that trial Modbus read returns None when connect() returns False."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock(return_value=False)
+    mock_client.close = MagicMock()
+
+    with patch(
+        "pymodbus.client.AsyncModbusTcpClient",
+        return_value=mock_client,
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial is None
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_no_serial_in_data():
+    """Test that trial Modbus read returns None when registers return error."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = True
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock()
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial is None
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_create_entry_with_duplicate_prevention():
+    """Test that duplicate devices (same serial) are prevented."""
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "TestPool",
+        "scan_interval": "30",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=serial_string),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+    ):
+        result = await flow.async_step_user(user_input)
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == "TestPool"
+    # Verify unique_id was set to neopool_{serial_string}
+    assert flow.context.get("unique_id") == f"neopool_{serial_string}"
+
+
+@pytest.mark.asyncio
+async def test_create_entry_aborts_when_already_configured():
+    """Test that adding a device with an already-registered serial aborts."""
+    from homeassistant.data_entry_flow import AbortFlow
+
+    flow = config_flow.VistaPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow.hass.data = {DOMAIN: {}}
+    flow.context = {}
+    flow.hass.config_entries.flow.async_progress_by_handler = MagicMock(return_value=[])
+
+    # Simulate an existing entry with the same unique_id
+    existing_entry = MagicMock()
+    existing_entry.data = {}
+    flow.hass.config_entries.async_entry_for_domain_unique_id = MagicMock(
+        return_value=existing_entry
+    )
+
+    user_input = {
+        "host": "192.168.1.200",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "Second Pool",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
+        ),
+        pytest.raises(AbortFlow, match="already_configured"),
+    ):
+        await flow.async_step_user(user_input)
+
+
+@pytest.mark.asyncio
+async def test_create_entry_aborts_unmigrated_v1_duplicate():
+    """Test that adding a device aborts when an unmigrated v1 entry has same connection params."""
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
+    # Simulate an existing v1 entry (unique_id=None) with same connection params
+    existing_entry = MagicMock()
+    existing_entry.unique_id = None
+    existing_entry.data = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+    }
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[existing_entry])
+    # async_entry_for_domain_unique_id returns None (no migrated entry with this serial)
+    flow.hass.config_entries.async_entry_for_domain_unique_id = MagicMock(
+        return_value=None
+    )
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "My Pool",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
+        ),
+    ):
+        result = await flow.async_step_user(user_input)
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "already_configured"
+
+
+@pytest.mark.asyncio
+async def test_create_entry_rejects_duplicate_name():
+    """Test that adding a device with an already-used name shows error."""
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
+    # Simulate an existing entry with the same name
+    existing_entry = MagicMock()
+    existing_entry.data = {"name": "Test Pool"}
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[existing_entry])
+
+    user_input = {
+        "host": "192.168.1.200",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "Test Pool",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
+        ),
+    ):
+        result = await flow.async_step_user(user_input)
+
+    assert result["type"] == "form"
+    assert result["errors"].get("name") == "name_already_used"
+
+
+@pytest.mark.asyncio
+async def test_create_entry_rejects_duplicate_name_from_title():
+    """Test that duplicate name check falls back to entry.title when data has no name."""
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
+    # Simulate an existing entry without CONF_NAME in data — only title
+    existing_entry = MagicMock()
+    existing_entry.data = {}
+    existing_entry.title = "Test Pool"
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[existing_entry])
+
+    user_input = {
+        "host": "192.168.1.200",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "Test Pool",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
+        ),
+    ):
+        result = await flow.async_step_user(user_input)
+
+    assert result["type"] == "form"
+    assert result["errors"].get("name") == "name_already_used"
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_general_exception():
+    """Test that trial Modbus read handles non-timeout exceptions gracefully."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock(side_effect=OSError("Connection refused"))
+    mock_client.close = MagicMock()
+
+    with patch(
+        "pymodbus.client.AsyncModbusTcpClient",
+        return_value=mock_client,
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial is None
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_async_close():
+    """Test that trial Modbus read awaits close() when it returns a coroutine."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": "tcp",
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+
+    async def async_close():
+        pass
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock(return_value=async_close())
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial == "0000000100AC00CD00120034"
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_close_raises():
+    """Test that trial Modbus read handles close() exception gracefully."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock(side_effect=OSError("close failed"))
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+    ):
+        serial = await async_get_device_serial(user_input)
+
+    assert serial == "0000000100AC00CD00120034"
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_cancelled_error():
+    """Test that CancelledError is re-raised, not swallowed."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock(side_effect=asyncio.CancelledError())
+    mock_client.close = MagicMock()
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        pytest.raises(asyncio.CancelledError),
+    ):
+        await async_get_device_serial(user_input)
+
+    mock_client.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_trial_modbus_read_close_cancelled_error():
+    """Test that CancelledError in close() is re-raised."""
+    from custom_components.vistapool.helpers import async_get_device_serial
+
+    user_input = {
+        "host": "192.168.1.100",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+    }
+
+    mock_response = MagicMock()
+    mock_response.isError.return_value = False
+    mock_response.registers = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
+
+    mock_client = AsyncMock()
+    mock_client.connect = AsyncMock()
+    mock_client.close = MagicMock(side_effect=asyncio.CancelledError())
+
+    with (
+        patch(
+            "pymodbus.client.AsyncModbusTcpClient",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.vistapool.modbus_compat.modbus_acall",
+            new=AsyncMock(return_value=mock_response),
+        ),
+        pytest.raises(asyncio.CancelledError),
+    ):
+        await async_get_device_serial(user_input)

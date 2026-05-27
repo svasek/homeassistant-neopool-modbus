@@ -31,9 +31,13 @@
       }
     },
     "error": {
-      "cannot_connect": "Nie można połączyć się z podanym adresem i portem."
+      "cannot_connect": "Nie można połączyć się z podanym adresem i portem.",
+      "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID slave i ustawienia ramki.",
+      "serial_mismatch": "Urządzenie pod tym adresem ma inny numer seryjny niż pierwotnie skonfigurowane.",
+      "name_already_used": "Ta nazwa urządzenia jest już używana. Proszę wybrać inną nazwę."
     },
     "abort": {
+      "already_configured": "To urządzenie jest już skonfigurowane.",
       "entry_not_found": "Nie znaleziono wpisu integracji.",
       "reconfigure_successful": "Ustawienia połączenia zostały pomyślnie zaktualizowane."
     }
