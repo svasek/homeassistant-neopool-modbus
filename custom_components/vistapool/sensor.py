@@ -173,7 +173,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportInco
         self._attr_suggested_display_precision = props.get("display_precision")
 
         # Disable some entities by default.
-        if self._attr_suggested_object_id.endswith("_voltage"):  # pragma: no cover
+        if props.get("entity_registry_enabled_default") is False:
             self._attr_entity_registry_enabled_default = False
 
         _LOGGER.debug(
