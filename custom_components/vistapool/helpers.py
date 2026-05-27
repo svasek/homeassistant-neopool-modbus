@@ -240,12 +240,14 @@ def get_filtration_speed(data) -> int:
 
     par_filtration_conf = data.get("MBF_PAR_FILTRATION_CONF", 0)
     relay_speed = (relay_state & 0x0700) >> 8
-    if relay_speed == 1:
-        return 1  # Low
-    elif relay_speed == 2:
-        return 2  # Mid
-    elif relay_speed == 4:
+    # Check highest bit set – supports both individual-bit (1/2/4)
+    # and cumulative encodings (1/3/7) used by some controllers (#152).
+    if relay_speed & 0x04:
         return 3  # High
+    elif relay_speed & 0x02:
+        return 2  # Mid
+    elif relay_speed & 0x01:
+        return 1  # Low
 
     conf_speed = (par_filtration_conf & 0x0070) >> 4
     if conf_speed == 0:
