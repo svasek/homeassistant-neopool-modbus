@@ -81,8 +81,8 @@ async def test_button_async_setup_entry_adds_entities(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
     # Patch BUTTON_DEFINITIONS
     from custom_components.vistapool import button as btn_module
@@ -112,8 +112,8 @@ async def test_button_async_setup_entry_no_data(monkeypatch, caplog):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
@@ -198,8 +198,8 @@ async def test_button_setup_entry_creates_backwash_with_gpio_only():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -223,8 +223,8 @@ async def test_button_setup_entry_skips_backwash_without_valve():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]

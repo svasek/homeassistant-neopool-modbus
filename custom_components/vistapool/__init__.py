@@ -31,6 +31,8 @@ from .coordinator import VistaPoolCoordinator
 from .migration import async_migrate_entry  # noqa: F401
 from .modbus import VistaPoolModbusClient
 
+type VistaPoolConfigEntry = ConfigEntry[VistaPoolCoordinator]
+
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,7 +58,7 @@ def _cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
             registry.async_remove(entity_entry.entity_id)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: VistaPoolConfigEntry) -> bool:
     """Set up the VistaPool integration."""
 
     # --- MIGRATE CONFIG FLOW DATA TO OPTIONS IF NEEDED ---
@@ -80,8 +82,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Wait for the first update from the coordinator
     await coordinator.async_config_entry_first_refresh()
 
-    # Store the coordinator and client in hass.data for easy access
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    # Store the coordinator as runtime_data for easy access
+    entry.runtime_data = coordinator
 
     # Remove orphaned entity-registry entries for sensors that no longer exist
     _cleanup_removed_entities(hass, entry)
@@ -95,18 +97,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: VistaPoolConfigEntry) -> bool:
     """Unload a VistaPool config entry."""
-    coordinator = hass.data[DOMAIN].get(entry.entry_id)
-    if coordinator:
-        coordinator.cancel_follow_up_refresh()
-        if getattr(coordinator, "client", None):
-            await coordinator.client.close()
+    coordinator = entry.runtime_data
+    coordinator.cancel_follow_up_refresh()
+    if getattr(coordinator, "client", None):
+        await coordinator.client.close()
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id, None)
         # Cleanup services when last entry is removed
-        if not hass.data[DOMAIN]:
+        remaining = [
+            e
+            for e in hass.config_entries.async_entries(DOMAIN)
+            if e.entry_id != entry.entry_id
+        ]
+        if not remaining:
             if hass.services.has_service(DOMAIN, "set_timer"):
                 hass.services.async_remove(DOMAIN, "set_timer")
             if hass.services.has_service(DOMAIN, "write_register"):
@@ -120,16 +125,18 @@ def _register_services(hass: HomeAssistant) -> None:
 
     def _get_coordinator(call):
         """Resolve coordinator from service call data."""
-        entries = hass.data.get(DOMAIN, {})
+        entries = hass.config_entries.async_entries(DOMAIN)
         entry_id = call.data.get("entry_id")
-        if not entry_id:
-            entry_id = next(iter(entries), None)
-        if not entry_id:
+        if entry_id:
+            entry = next((e for e in entries if e.entry_id == entry_id), None)
+        else:
+            entry = entries[0] if entries else None
+        if not entry:
             raise ServiceValidationError("No entry_id found for VistaPool service call")
-        coordinator = entries.get(entry_id)
+        coordinator: VistaPoolCoordinator = entry.runtime_data
         if not coordinator:
             raise ServiceValidationError(
-                f"No VistaPool coordinator found for entry_id '{entry_id}'"
+                f"No VistaPool coordinator found for entry_id '{entry.entry_id}'"
             )
         return coordinator
 

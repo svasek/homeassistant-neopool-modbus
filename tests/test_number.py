@@ -330,8 +330,8 @@ async def test_number_async_setup_entry_adds_entities(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     # Patch NUMBER_DEFINITIONS for this test
@@ -387,8 +387,8 @@ async def test_number_setup_skips_smart_when_no_temp(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import number as num_module
@@ -429,8 +429,8 @@ async def test_number_async_setup_entry_skips_unassigned(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import number as num_module
@@ -480,8 +480,8 @@ async def test_number_setup_skips_cover_without_cover_sensor(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import number as num_module
@@ -522,8 +522,8 @@ async def test_number_setup_creates_cover_with_cover_sensor(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import number as num_module
@@ -561,8 +561,8 @@ async def test_number_setup_skips_cover_without_hydro_module(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import number as num_module
@@ -600,8 +600,8 @@ async def test_number_setup_skips_temp_shutdown_without_temp_sensor(monkeypatch)
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import number as num_module
@@ -772,8 +772,8 @@ async def test_async_setup_entry_no_data(caplog):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
@@ -801,8 +801,8 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(caplog):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]

@@ -32,8 +32,11 @@ async def test_async_handle_set_timer_happy(monkeypatch):
     """Test async_handle_set_timer sets timer correctly with all parameters."""
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
-    coordinator = hass.data["vistapool"]["entry1"]
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    coordinator = MagicMock()
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
     coordinator.client.write_timer = AsyncMock(return_value=True)
     coordinator.async_request_refresh = AsyncMock()
     coordinator.request_refresh_with_followup = MagicMock()
@@ -74,8 +77,11 @@ async def test_async_handle_set_timer_entry_id_fallback(monkeypatch):
     """Test async_handle_set_timer uses fallback entry_id if not provided."""
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"fallback": MagicMock()}}
-    coordinator = hass.data["vistapool"]["fallback"]
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "fallback"
+    coordinator = MagicMock()
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
     coordinator.client.write_timer = AsyncMock(return_value=True)
     coordinator.async_request_refresh = AsyncMock()
     coordinator.request_refresh_with_followup = MagicMock()
@@ -109,7 +115,7 @@ async def test_async_handle_set_timer_missing_entry(monkeypatch):
     """Test async_handle_set_timer raises ServiceValidationError if no entry_id found."""
 
     hass = MagicMock()
-    hass.data = {"vistapool": {}}
+    hass.config_entries.async_entries = MagicMock(return_value=[])
     call = MagicMock()
     call.data = {
         "timer": "relay_aux2",
@@ -134,8 +140,11 @@ async def test_async_handle_set_timer_write_timer_exception(monkeypatch):
     """Test async_handle_set_timer raises ServiceValidationError on write_timer exception."""
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"entryX": MagicMock()}}
-    coordinator = hass.data["vistapool"]["entryX"]
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entryX"
+    coordinator = MagicMock()
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
     coordinator.client.write_timer = AsyncMock(side_effect=Exception("fail!"))
     coordinator.async_request_refresh = AsyncMock()
     coordinator.request_refresh_with_followup = MagicMock()
@@ -164,7 +173,10 @@ async def test_async_handle_set_timer_invalid_timer_name(monkeypatch):
     """Test async_handle_set_timer rejects invalid timer names."""
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     call = MagicMock()
     call.data = {
@@ -190,7 +202,10 @@ async def test_async_handle_set_timer_missing_timer_key(monkeypatch):
     """Test async_handle_set_timer raises ServiceValidationError when 'timer' key is missing."""
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     call = MagicMock()
     call.data = {"start": "08:00", "stop": "09:00", "entry_id": "entry1"}
@@ -240,10 +255,15 @@ async def test_async_unload_entry_success():
     hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
     config_entry = MagicMock()
     config_entry.entry_id = "entry1"
-    # Simulate coordinator with client in hass.data
     coordinator = MagicMock()
     coordinator.client = AsyncMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    config_entry.runtime_data = coordinator
+    # Simulate another entry still loaded — services should NOT be removed
+    other_entry = MagicMock()
+    other_entry.entry_id = "entry2"
+    hass.config_entries.async_entries = MagicMock(
+        return_value=[config_entry, other_entry]
+    )
     hass.services.has_service = MagicMock(return_value=True)
     hass.services.async_remove = MagicMock()
     result = await async_unload_entry(hass, config_entry)
@@ -251,21 +271,29 @@ async def test_async_unload_entry_success():
     # Check that follow-up refresh was cancelled and client closed
     coordinator.cancel_follow_up_refresh.assert_called_once()
     assert coordinator.client.close.await_count == 1
+    # Services should NOT be removed (other entry still loaded)
+    hass.services.async_remove.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_async_unload_entry_no_coordinator():
-    """Test async_unload_entry when coordinator is missing."""
+async def test_async_unload_entry_last_entry():
+    """Test async_unload_entry removes services when last entry is unloaded."""
     hass = MagicMock()
     hass.config_entries = MagicMock()
     hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
     config_entry = MagicMock()
-    config_entry.entry_id = "entryX"
-    hass.data = {"vistapool": {}}
+    config_entry.entry_id = "entry1"
+    coordinator = MagicMock()
+    coordinator.client = AsyncMock()
+    config_entry.runtime_data = coordinator
+    # Only this entry — after unload, no remaining entries
+    hass.config_entries.async_entries = MagicMock(return_value=[config_entry])
     hass.services.has_service = MagicMock(return_value=True)
     hass.services.async_remove = MagicMock()
     result = await async_unload_entry(hass, config_entry)
     assert result is True
+    # Services should be removed (last entry)
+    assert hass.services.async_remove.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -278,7 +306,8 @@ async def test_async_unload_entry_no_client():
     config_entry.entry_id = "entry2"
     coordinator = MagicMock()
     coordinator.client = None
-    hass.data = {"vistapool": {"entry2": coordinator}}
+    config_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[config_entry])
     hass.services.has_service = MagicMock(return_value=True)
     hass.services.async_remove = MagicMock()
     result = await async_unload_entry(hass, config_entry)
@@ -332,7 +361,10 @@ async def test_write_register_decimal():
         return_value={"value": 5, "confirmed": 5}
     )
     coordinator.request_refresh_with_followup = MagicMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -352,7 +384,10 @@ async def test_write_register_hex():
         return_value={"value": 0, "confirmed": 0}
     )
     coordinator.request_refresh_with_followup = MagicMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -372,7 +407,10 @@ async def test_write_register_int_passthrough():
         return_value={"value": 2, "confirmed": 2}
     )
     coordinator.request_refresh_with_followup = MagicMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -387,7 +425,10 @@ async def test_write_register_int_passthrough():
 async def test_write_register_invalid_hex():
     """Test write_register raises on invalid hex string."""
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -400,7 +441,10 @@ async def test_write_register_invalid_hex():
 async def test_write_register_out_of_range():
     """Test write_register raises when value > 65535."""
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -418,7 +462,10 @@ async def test_write_register_apply_false():
         return_value={"value": 5, "confirmed": 5}
     )
     coordinator.request_refresh_with_followup = MagicMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -438,7 +485,10 @@ async def test_write_register_apply_false():
 async def test_write_register_apply_invalid_type():
     """Test write_register raises when apply is not a boolean."""
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -456,7 +506,10 @@ async def test_write_register_apply_invalid_type():
 async def test_write_register_rejects_bool():
     """Test write_register raises when address or value is a boolean."""
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -469,7 +522,10 @@ async def test_write_register_rejects_bool():
 async def test_write_register_rejects_float():
     """Test write_register raises when address or value is a float."""
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -482,7 +538,10 @@ async def test_write_register_rejects_float():
 async def test_write_register_missing_param():
     """Test write_register raises when required parameter is missing."""
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -497,7 +556,10 @@ async def test_write_register_returns_none():
     hass = MagicMock()
     coordinator = MagicMock()
     coordinator.client.async_write_register = AsyncMock(return_value=None)
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -514,7 +576,10 @@ async def test_write_register_verification_mismatch():
     coordinator.client.async_write_register = AsyncMock(
         return_value={"value": 1, "confirmed": 99}
     )
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -531,7 +596,10 @@ async def test_write_register_generic_exception():
     coordinator.client.async_write_register = AsyncMock(
         side_effect=RuntimeError("connection lost")
     )
-    hass.data = {"vistapool": {"entry1": coordinator}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = coordinator
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
@@ -544,11 +612,30 @@ async def test_write_register_generic_exception():
 async def test_get_coordinator_not_found():
     """Test _get_coordinator raises when entry_id has no coordinator."""
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": MagicMock()}}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "value": "1", "entry_id": "nonexistent"}
+    with pytest.raises(ServiceValidationError, match="No entry_id found"):
+        await handler(call)
+
+
+@pytest.mark.asyncio
+async def test_get_coordinator_runtime_data_none():
+    """Test _get_coordinator raises when runtime_data is None."""
+    hass = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "entry1"
+    mock_entry.runtime_data = None
+    hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
+
+    handler = _get_write_register_handler(hass)
+    call = MagicMock()
+    call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
     with pytest.raises(ServiceValidationError, match="No VistaPool coordinator"):
         await handler(call)
 
@@ -557,7 +644,7 @@ async def test_get_coordinator_not_found():
 async def test_async_setup_entry_registers_services():
     """Test async_setup_entry calls _register_services when no services exist."""
     hass = MagicMock()
-    hass.data = {}
+
     hass.config_entries = MagicMock()
     hass.config_entries.async_forward_entry_setups = AsyncMock()
     hass.services.has_service = MagicMock(return_value=False)

@@ -651,8 +651,8 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     # Patch SELECT_DEFINITIONS to make the test predictable
@@ -691,8 +691,8 @@ async def test_select_async_setup_entry_option_disabled(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
     from custom_components.vistapool import select as select_module
 
@@ -724,8 +724,8 @@ async def test_select_async_setup_entry_no_data(caplog):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -871,8 +871,8 @@ async def test_select_filtvalve_period_minutes_skipped_without_besgo(mock_coordi
     from unittest.mock import MagicMock
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -900,8 +900,8 @@ async def test_select_filtvalve_period_minutes_created_with_besgo(mock_coordinat
     from unittest.mock import MagicMock
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -933,8 +933,8 @@ async def test_select_filtvalve_period_minutes_created_with_gpio_only(mock_coord
     from unittest.mock import MagicMock
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -1052,8 +1052,8 @@ async def test_select_filtvalve_mode_skipped_without_besgo(mock_coordinator):
     from unittest.mock import MagicMock
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -1081,8 +1081,8 @@ async def test_select_filtvalve_mode_created_with_besgo(mock_coordinator):
     from unittest.mock import MagicMock
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -1114,8 +1114,8 @@ async def test_select_filtvalve_mode_created_with_gpio_only(mock_coordinator):
     from unittest.mock import MagicMock
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -1214,8 +1214,8 @@ async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]

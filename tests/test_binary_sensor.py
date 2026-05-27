@@ -66,8 +66,8 @@ async def test_async_setup_entry_adds_entities(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -113,8 +113,8 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -144,8 +144,8 @@ async def test_async_setup_entry_skips_ph_acid_pump_without_relay(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -175,8 +175,8 @@ async def test_async_setup_entry_skips_cl_module_sensor_without_chlorine(monkeyp
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -207,8 +207,8 @@ async def test_async_setup_entry_skips_rx_module_sensor_without_redox(monkeypatc
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -235,8 +235,8 @@ async def test_async_setup_entry_no_data(monkeypatch, caplog):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     with caplog.at_level("WARNING"):
@@ -263,8 +263,8 @@ async def test_async_setup_entry_option_disables_sensor(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     # Patch BINARY_SENSOR_DEFINITIONS for this test
@@ -300,8 +300,8 @@ async def test_async_setup_entry_skips_pool_cover_when_not_enabled(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -328,8 +328,8 @@ async def test_async_setup_entry_includes_pool_cover_when_enabled(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -494,8 +494,8 @@ async def test_async_setup_entry_includes_uv_lamp_when_relay_assigned():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -522,8 +522,8 @@ async def test_async_setup_entry_skips_uv_lamp_when_no_relay():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -549,8 +549,8 @@ async def test_async_setup_entry_creates_uv_lamp_when_key_missing():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -577,8 +577,8 @@ async def test_async_setup_entry_skips_uv_lamp_when_gpio_out_of_range():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -617,8 +617,8 @@ async def test_async_setup_entry_skips_pool_light_without_relay():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -647,8 +647,8 @@ async def test_async_setup_entry_skips_filtration_pump_without_relay():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -688,8 +688,8 @@ async def test_async_setup_entry_skips_pump_sensors_without_relay():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -736,8 +736,8 @@ async def test_async_setup_entry_pump_sensors_with_capability_snapshot():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -775,8 +775,8 @@ async def test_enabled_default_for_pump_and_problem_sensors():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]

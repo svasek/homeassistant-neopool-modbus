@@ -56,8 +56,8 @@ async def test_diagnostics_redacts_sensitive_config_data():
     coordinator.model = "Vistapool"
     coordinator.client = client
 
+    entry.runtime_data = coordinator
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
 
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
 
@@ -85,23 +85,6 @@ async def test_diagnostics_redacts_sensitive_config_data():
 
 
 @pytest.mark.asyncio
-async def test_diagnostics_without_coordinator():
-    entry = MagicMock()
-    entry.data = {"host": "1.2.3.4"}
-    entry.options = {}
-    entry.entry_id = "entry42"
-    entry.unique_id = None
-    entry.version = 1
-    entry.title = "Pool"
-    hass = MagicMock()
-    hass.data = {"vistapool": {}}
-
-    diagnostics = await async_get_config_entry_diagnostics(hass, entry)
-    assert diagnostics["config_entry"]["entry_id"] == "entry42"
-    assert "coordinator" not in diagnostics
-
-
-@pytest.mark.asyncio
 async def test_diagnostics_no_client():
     entry = MagicMock()
     entry.data = {}
@@ -123,8 +106,8 @@ async def test_diagnostics_no_client():
         ]
     )
     coordinator.client = None
+    entry.runtime_data = coordinator
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
 
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
     assert diagnostics["config_entry"]["entry_id"] == "entry1"
@@ -144,8 +127,8 @@ async def test_diagnostics_no_duplicate_data():
     coordinator = MagicMock()
     coordinator.data = {"key": "value"}
     coordinator.client = None
+    entry.runtime_data = coordinator
     hass = MagicMock()
-    hass.data = {"vistapool": {"entry1": coordinator}}
 
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
     assert diagnostics["coordinator"]["data"] == {"key": "value"}

@@ -18,10 +18,11 @@ import logging
 
 from homeassistant.components.light import LightEntity
 from homeassistant.components.light.const import ColorMode
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, EXEC_REGISTER, LIGHT_DEFINITIONS, is_valid_relay_gpio
+from . import VistaPoolConfigEntry
+from .const import EXEC_REGISTER, LIGHT_DEFINITIONS, is_valid_relay_gpio
 from .entity import VistaPoolEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,11 +30,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities,
+    entry: VistaPoolConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up VistaPool lights from a config entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
     entities = []

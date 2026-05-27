@@ -19,11 +19,11 @@ from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import VistaPoolConfigEntry
 from .const import (
-    DOMAIN,
     EXEC_REGISTER,
     MANUAL_FILTRATION_REGISTER,
     SWITCH_DEFINITIONS,
@@ -75,11 +75,11 @@ def _should_skip_switch(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities,
+    entry: VistaPoolConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up VistaPool switches from a config entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
     entities = []

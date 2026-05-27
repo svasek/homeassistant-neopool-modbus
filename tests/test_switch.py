@@ -339,8 +339,8 @@ async def test_switch_async_setup_entry_adds_entities(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import switch as switch_module
@@ -372,8 +372,8 @@ async def test_switch_setup_skips_smart_antifreeze_when_no_temp(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import switch as switch_module
@@ -407,8 +407,8 @@ async def test_switch_async_setup_entry_no_data(caplog):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
     with caplog.at_level("WARNING"):
         await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -430,8 +430,8 @@ async def test_switch_async_setup_entry_option_disabled(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import switch as switch_module
@@ -493,8 +493,8 @@ async def test_switch_setup_skips_hidro_cover_without_hydro_module():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -522,8 +522,8 @@ async def test_switch_setup_creates_hidro_cover_with_hydro_module():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -551,8 +551,8 @@ async def test_switch_setup_skips_hidro_temp_shutdown_without_temp_sensor():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -582,8 +582,8 @@ async def test_switch_setup_skips_hidro_cover_without_cover_sensor():
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -856,8 +856,8 @@ async def test_switch_setup_includes_uv_mode_when_relay_assigned(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import switch as switch_module
@@ -891,8 +891,8 @@ async def test_switch_setup_skips_uv_mode_when_no_relay(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import switch as switch_module
@@ -926,8 +926,8 @@ async def test_switch_setup_skips_uv_mode_when_key_missing(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import switch as switch_module
@@ -961,8 +961,8 @@ async def test_switch_setup_skips_uv_mode_when_gpio_out_of_range(monkeypatch):
         device_slug = "vistapool"
 
     hass = MagicMock()
-    hass.data = {"vistapool": {"test_entry": DummyCoordinator()}}
     entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
     from custom_components.vistapool import switch as switch_module

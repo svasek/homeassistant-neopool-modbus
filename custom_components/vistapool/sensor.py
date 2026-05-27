@@ -18,12 +18,11 @@ import logging
 from datetime import datetime
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, SENSOR_DEFINITIONS
-from .coordinator import VistaPoolCoordinator
+from . import VistaPoolConfigEntry
+from .const import SENSOR_DEFINITIONS
 from .entity import VistaPoolEntity
 from .helpers import (
     calculate_next_interval_time,
@@ -121,11 +120,11 @@ def _should_skip_sensor(key: str, data: dict) -> bool:
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: VistaPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up VistaPool sensors from a config entry."""
-    coordinator: VistaPoolCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entities = []
 
     if coordinator.data is None:

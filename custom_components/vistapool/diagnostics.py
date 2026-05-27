@@ -19,16 +19,15 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from . import VistaPoolConfigEntry
 
 TO_REDACT = {"password", "token", "host", "port"}
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: ConfigEntry
+    hass: HomeAssistant, entry: VistaPoolConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a VistaPool config entry."""
 
@@ -44,9 +43,7 @@ async def async_get_config_entry_diagnostics(
     }
 
     # Coordinator state (contains data, errors, etc.)
-    coordinator = hass.data.get(DOMAIN, {}).get(entry.entry_id)
-    if coordinator is None:
-        return diagnostics
+    coordinator = entry.runtime_data
 
     diagnostics["coordinator"] = {
         "last_update_success": getattr(coordinator, "last_update_success", None),

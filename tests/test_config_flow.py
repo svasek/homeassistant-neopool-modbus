@@ -43,7 +43,6 @@ def make_test_flow_with_modbus_mock(serial_string: str | None = DEFAULT_SERIAL_S
     """
     flow = config_flow.VistaPoolConfigFlow()
     flow.hass = MagicMock()
-    flow.hass.data = {DOMAIN: {}}
     flow.context = {}
     # Mock config_entries to return empty list for in-progress check (sync function)
     flow.hass.config_entries.flow.async_progress_by_handler = MagicMock(return_value=[])
@@ -992,7 +991,6 @@ async def test_create_entry_aborts_when_already_configured():
 
     flow = config_flow.VistaPoolConfigFlow()
     flow.hass = MagicMock()
-    flow.hass.data = {DOMAIN: {}}
     flow.context = {}
     flow.hass.config_entries.flow.async_progress_by_handler = MagicMock(return_value=[])
 

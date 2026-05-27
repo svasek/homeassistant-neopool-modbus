@@ -20,18 +20,16 @@ from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.number import NumberEntity, NumberMode
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import VistaPoolConfigEntry
 from .const import (
-    DOMAIN,
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     NUMBER_DEFINITIONS,
     is_valid_relay_gpio,
 )
-from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 from .helpers import is_hydrolysis_in_percent
 
@@ -103,10 +101,12 @@ def _should_skip_number(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: VistaPoolConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up VistaPool number entities from a config entry."""
-    coordinator: VistaPoolCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
     entities = []

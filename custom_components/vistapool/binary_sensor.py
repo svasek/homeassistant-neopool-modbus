@@ -19,12 +19,11 @@ from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import BINARY_SENSOR_DEFINITIONS, DOMAIN, is_valid_relay_gpio
-from .coordinator import VistaPoolCoordinator
+from . import VistaPoolConfigEntry
+from .const import BINARY_SENSOR_DEFINITIONS, is_valid_relay_gpio
 from .entity import VistaPoolEntity
 from .helpers import is_device_time_out_of_sync
 
@@ -142,11 +141,11 @@ def _should_skip_binary_sensor(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: VistaPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up VistaPool binary sensors from a config entry."""
-    coordinator: VistaPoolCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entities = []
 
     if coordinator.data is None:

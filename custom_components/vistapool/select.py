@@ -20,7 +20,10 @@ from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.select import SelectEntity
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import VistaPoolConfigEntry
 from .const import (
     DEFAULT_TIMER_RESOLUTION,
     DOMAIN,
@@ -90,9 +93,13 @@ def _should_skip_select(
     return False
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: VistaPoolConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up VistaPool select entities from a config entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entry_id = entry.entry_id
     entities = []
 

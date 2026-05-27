@@ -17,12 +17,11 @@
 import logging
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import BUTTON_DEFINITIONS, DOMAIN
-from .coordinator import VistaPoolCoordinator
+from . import VistaPoolConfigEntry
+from .const import BUTTON_DEFINITIONS
 from .entity import VistaPoolEntity
 from .helpers import has_filtvalve, prepare_device_time
 
@@ -31,11 +30,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: VistaPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up VistaPool button entities from a config entry."""
-    coordinator: VistaPoolCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
     entities = []
