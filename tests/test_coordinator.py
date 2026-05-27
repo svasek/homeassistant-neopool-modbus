@@ -18,7 +18,7 @@ import pytest
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from custom_components.vistapool.const import FOLLOW_UP_REFRESH_DELAY
+from custom_components.vistapool.const import DOMAIN, FOLLOW_UP_REFRESH_DELAY
 from custom_components.vistapool.coordinator import VistaPoolCoordinator
 
 
@@ -773,10 +773,9 @@ async def test_cancel_follow_up_refresh_noop_when_none(mock_entry):
 class TestGpioSanityCheck:
     """Tests for _check_gpio_registers."""
 
-    PATCH_TARGET = (
-        "custom_components.vistapool.coordinator.persistent_notification.async_create"
-    )
-    PATCH_DISMISS = (
+    PATCH_CREATE = "custom_components.vistapool.coordinator.ir.async_create_issue"
+    PATCH_DELETE = "custom_components.vistapool.coordinator.ir.async_delete_issue"
+    PATCH_LEGACY_DISMISS = (
         "custom_components.vistapool.coordinator.persistent_notification.async_dismiss"
     )
 
@@ -788,8 +787,8 @@ class TestGpioSanityCheck:
         )
         return coordinator, hass
 
-    def test_valid_gpio_values_no_notification(self, mock_entry):
-        """No notification when all GPIO registers are within valid range."""
+    def test_valid_gpio_values_no_issue(self, mock_entry):
+        """No issue when all GPIO registers are within valid range."""
         coordinator, hass = self._make_coordinator(mock_entry)
         data = {
             "MBF_PAR_FILT_GPIO": 2,
@@ -799,68 +798,69 @@ class TestGpioSanityCheck:
             "MBF_PAR_UV_RELAY_GPIO": 0,
         }
         with (
-            patch(self.PATCH_TARGET) as mock_notify,
-            patch(self.PATCH_DISMISS) as mock_dismiss,
+            patch(self.PATCH_CREATE) as mock_create,
+            patch(self.PATCH_DELETE) as mock_delete,
         ):
             coordinator._check_gpio_registers(data)
-            mock_notify.assert_not_called()
-            mock_dismiss.assert_called_once_with(hass, "vistapool_corrupted_gpio")
+            mock_create.assert_not_called()
+            mock_delete.assert_called_once_with(hass, DOMAIN, "corrupted_gpio")
 
-    def test_corrupted_gpio_triggers_notification(self, mock_entry):
-        """Notification is created when a GPIO register has an invalid value."""
+    def test_corrupted_gpio_triggers_issue(self, mock_entry):
+        """Repair issue is created when a GPIO register has an invalid value."""
         coordinator, hass = self._make_coordinator(mock_entry)
         data = {
             "MBF_PAR_FILT_GPIO": 22846,  # corrupted
             "MBF_PAR_LIGHTING_GPIO": 3,
         }
-        with patch(self.PATCH_TARGET) as mock_notify:
+        with patch(self.PATCH_CREATE) as mock_create:
             coordinator._check_gpio_registers(data)
-            mock_notify.assert_called_once()
-            # hass must be passed as first positional arg, not as keyword
-            assert mock_notify.call_args.args[0] is hass
-            assert "hass" not in mock_notify.call_args.kwargs
-            call_kwargs = mock_notify.call_args.kwargs
-            assert "Corrupted GPIO" in call_kwargs["title"]
-            assert "22846" in call_kwargs["message"]
-            assert "MBF_PAR_FILT_GPIO" in call_kwargs["message"]
-            assert call_kwargs["notification_id"] == "vistapool_corrupted_gpio"
+            mock_create.assert_called_once()
+            call_kwargs = mock_create.call_args.kwargs
+            assert call_kwargs["translation_key"] == "corrupted_gpio"
+            assert "22846" in call_kwargs["translation_placeholders"]["details"]
+            assert (
+                "MBF_PAR_FILT_GPIO"
+                in call_kwargs["translation_placeholders"]["details"]
+            )
 
-    def test_multiple_corrupted_gpio_in_single_notification(self, mock_entry):
-        """Multiple corrupted GPIO registers appear in a single notification."""
+    def test_multiple_corrupted_gpio_in_single_issue(self, mock_entry):
+        """Multiple corrupted GPIO registers appear in a single repair issue."""
         coordinator, _ = self._make_coordinator(mock_entry)
         data = {
             "MBF_PAR_FILT_GPIO": 22846,
             "MBF_PAR_HEATING_GPIO": 65535,
         }
-        with patch(self.PATCH_TARGET) as mock_notify:
+        with patch(self.PATCH_CREATE) as mock_create:
             coordinator._check_gpio_registers(data)
-            mock_notify.assert_called_once()
-            msg = mock_notify.call_args.kwargs["message"]
-            assert "MBF_PAR_FILT_GPIO" in msg
-            assert "MBF_PAR_HEATING_GPIO" in msg
+            mock_create.assert_called_once()
+            details = mock_create.call_args.kwargs["translation_placeholders"][
+                "details"
+            ]
+            assert "MBF_PAR_FILT_GPIO" in details
+            assert "MBF_PAR_HEATING_GPIO" in details
 
-    def test_missing_gpio_keys_no_notification(self, mock_entry):
-        """No notification when GPIO keys are absent from data."""
+    def test_missing_gpio_keys_no_issue(self, mock_entry):
+        """No issue when GPIO keys are absent from data."""
         coordinator, _ = self._make_coordinator(mock_entry)
-        with patch(self.PATCH_TARGET) as mock_notify:
+        with patch(self.PATCH_CREATE) as mock_create:
             coordinator._check_gpio_registers({})
-            mock_notify.assert_not_called()
+            mock_create.assert_not_called()
 
     def test_zero_gpio_is_valid(self, mock_entry):
-        """GPIO value 0 (unassigned) is within valid range and should not trigger notification."""
+        """GPIO value 0 (unassigned) is within valid range and should not trigger issue."""
         coordinator, _ = self._make_coordinator(mock_entry)
         data = {"MBF_PAR_FILT_GPIO": 0}
-        with patch(self.PATCH_TARGET) as mock_notify:
+        with patch(self.PATCH_CREATE) as mock_create:
             coordinator._check_gpio_registers(data)
-            mock_notify.assert_not_called()
+            mock_create.assert_not_called()
 
-    def test_negative_gpio_triggers_notification(self, mock_entry):
-        """Negative GPIO value is out of range and triggers notification."""
+    def test_negative_gpio_triggers_issue(self, mock_entry):
+        """Negative GPIO value is out of range and triggers issue."""
         coordinator, _ = self._make_coordinator(mock_entry)
         data = {"MBF_PAR_FILT_GPIO": -1}
-        with patch(self.PATCH_TARGET) as mock_notify:
+        with patch(self.PATCH_CREATE) as mock_create:
             coordinator._check_gpio_registers(data)
-            mock_notify.assert_called_once()
+            mock_create.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_gpio_check_runs_only_once(self, mock_entry):
@@ -874,12 +874,20 @@ class TestGpioSanityCheck:
         )
         coordinator.client.read_all_timers = AsyncMock(return_value={})
 
-        with patch(self.PATCH_TARGET) as mock_notify:
+        with patch(self.PATCH_CREATE) as mock_create:
             await coordinator._async_update_data()
             assert coordinator._gpio_checked is True
-            assert mock_notify.call_count == 1
+            assert mock_create.call_count == 1
 
             # Second call should NOT trigger check again
-            mock_notify.reset_mock()
+            mock_create.reset_mock()
             await coordinator._async_update_data()
-            mock_notify.assert_not_called()
+            mock_create.assert_not_called()
+
+    def test_legacy_persistent_notification_dismissed(self, mock_entry):
+        """Legacy persistent notification is always dismissed during GPIO check."""
+        coordinator, hass = self._make_coordinator(mock_entry)
+        data = {"MBF_PAR_FILT_GPIO": 2}
+        with patch(self.PATCH_LEGACY_DISMISS) as mock_dismiss:
+            coordinator._check_gpio_registers(data)
+            mock_dismiss.assert_called_once_with(hass, f"{DOMAIN}_corrupted_gpio")

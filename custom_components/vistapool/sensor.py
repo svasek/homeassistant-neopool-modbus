@@ -33,6 +33,8 @@ from .helpers import (
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 0
+
 # Add mapping for MBF_PAR_FILT_MODE values
 # fmt: off
 FILTRATION_MODE_MAP = {

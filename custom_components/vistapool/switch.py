@@ -33,6 +33,8 @@ from .entity import VistaPoolEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 1
+
 
 def _should_skip_switch(
     key: str,

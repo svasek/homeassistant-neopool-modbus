@@ -22,6 +22,7 @@ from homeassistant.components import persistent_notification
 from homeassistant.const import CONF_NAME
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import slugify
@@ -136,28 +137,26 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
                     MAX_RELAY_GPIO,
                 )
 
+        # Dismiss legacy persistent notification from versions before repair-issues migration
+        persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_corrupted_gpio")
+
         if corrupted:
             details = "\n".join(
                 f"- **{label}** (`{key}`): value **{value}** (expected 0–{MAX_RELAY_GPIO})"
                 for key, label, value in corrupted
             )
-            persistent_notification.async_create(
+            ir.async_create_issue(
                 self.hass,
-                title="VistaPool: Corrupted GPIO register(s) detected",
-                message=(
-                    f"The following GPIO register(s) on your pool controller contain "
-                    f"invalid values:\n\n{details}\n\n"
-                    f"This typically happens when the Modbus gateway framing mode "
-                    f"does not match the integration's framer setting. "
-                    f"The affected function(s) will not work correctly until the "
-                    f"register(s) are restored to valid values.\n\n"
-                    f"See the integration documentation for repair instructions."
-                ),
-                notification_id=f"{DOMAIN}_corrupted_gpio",
+                DOMAIN,
+                "corrupted_gpio",
+                is_fixable=False,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="corrupted_gpio",
+                translation_placeholders={"details": details},
             )
         else:
-            # Clear any previous notification if registers are now valid
-            persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_corrupted_gpio")
+            # Clear any previous issue if registers are now valid
+            ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
             _LOGGER.info("GPIO registers passed sanity check: all values are valid")
 
     async def _async_update_data(self):

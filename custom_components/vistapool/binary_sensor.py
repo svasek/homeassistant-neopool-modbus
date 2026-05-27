@@ -29,6 +29,8 @@ from .helpers import is_device_time_out_of_sync
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 0
+
 DISABLED_SUFFIXES = [
     " control module",
     " module regulated",

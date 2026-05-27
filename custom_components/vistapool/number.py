@@ -35,6 +35,8 @@ from .helpers import is_hydrolysis_in_percent
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 1
+
 
 def _should_skip_number(
     key: str,

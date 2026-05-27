@@ -559,5 +559,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "corrupted_gpio": {
+      "title": "Registri GPIO corrotti rilevati",
+      "description": "I seguenti registri GPIO del controller della piscina contengono valori non validi:\n\n{details}\n\nQuesto accade tipicamente quando la modalità di framing del gateway Modbus non corrisponde all'impostazione del framer dell'integrazione. Le funzioni interessate non funzioneranno correttamente finché i registri non verranno ripristinati a valori validi.\n\nConsultare la documentazione dell'integrazione per le istruzioni di riparazione."
+    }
   }
 }

@@ -559,5 +559,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "corrupted_gpio": {
+      "title": "Beschädigte GPIO-Register erkannt",
+      "description": "Die folgenden GPIO-Register Ihres Pool-Controllers enthalten ungültige Werte:\n\n{details}\n\nDies passiert typischerweise, wenn der Framing-Modus des Modbus-Gateways nicht mit der Framer-Einstellung der Integration übereinstimmt. Die betroffenen Funktionen funktionieren nicht korrekt, bis die Register auf gültige Werte zurückgesetzt werden.\n\nSiehe die Integrationsdokumentation für Reparaturanweisungen."
+    }
   }
 }

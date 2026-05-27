@@ -559,5 +559,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "corrupted_gpio": {
+      "title": "Registros GPIO corruptos detectados",
+      "description": "Los siguientes registros GPIO de su controlador de piscina contienen valores no válidos:\n\n{details}\n\nEsto suele ocurrir cuando el modo de encuadre de la pasarela Modbus no coincide con la configuración del encuadre de la integración. Las funciones afectadas no funcionarán correctamente hasta que los registros se restauren a valores válidos.\n\nConsulte la documentación de la integración para instrucciones de reparación."
+    }
   }
 }

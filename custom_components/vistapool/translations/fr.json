@@ -560,5 +560,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "corrupted_gpio": {
+      "title": "Registres GPIO corrompus détectés",
+      "description": "Les registres GPIO suivants de votre contrôleur de piscine contiennent des valeurs invalides :\n\n{details}\n\nCela se produit généralement lorsque le mode de trame de la passerelle Modbus ne correspond pas au paramètre de trame de l'intégration. Les fonctions concernées ne fonctionneront pas correctement tant que les registres ne seront pas restaurés à des valeurs valides.\n\nConsultez la documentation de l'intégration pour les instructions de réparation."
+    }
   }
 }

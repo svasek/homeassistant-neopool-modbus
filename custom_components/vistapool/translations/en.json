@@ -559,5 +559,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "corrupted_gpio": {
+      "title": "Corrupted GPIO register(s) detected",
+      "description": "The following GPIO register(s) on your pool controller contain invalid values:\n\n{details}\n\nThis typically happens when the Modbus gateway framing mode does not match the integration's framer setting. The affected function(s) will not work correctly until the register(s) are restored to valid values.\n\nSee the integration documentation for repair instructions."
+    }
   }
 }

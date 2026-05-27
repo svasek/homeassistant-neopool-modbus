@@ -43,6 +43,8 @@ from .helpers import (
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 1
+
 _FILTRATION_SPEED_KEYS = (
     "MBF_PAR_FILTRATION_SPEED",
     "filtration1_speed",

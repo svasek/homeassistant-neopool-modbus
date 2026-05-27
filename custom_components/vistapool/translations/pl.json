@@ -559,5 +559,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "corrupted_gpio": {
+      "title": "Wykryto uszkodzone rejestry GPIO",
+      "description": "Następujące rejestry GPIO kontrolera basenu zawierają nieprawidłowe wartości:\n\n{details}\n\nZwykle dzieje się tak, gdy tryb ramkowania bramy Modbus nie odpowiada ustawieniu ramkowania w integracji. Dotknięte funkcje nie będą działać poprawnie, dopóki rejestry nie zostaną przywrócone do prawidłowych wartości.\n\nZapoznaj się z dokumentacją integracji, aby uzyskać instrukcje naprawy."
+    }
   }
 }

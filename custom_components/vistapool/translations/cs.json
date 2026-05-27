@@ -559,5 +559,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "corrupted_gpio": {
+      "title": "Detekovány poškozené GPIO registry",
+      "description": "Následující GPIO registry na vašem ovladači bazénu obsahují neplatné hodnoty:\n\n{details}\n\nK tomu obvykle dochází, když režim rámování Modbus brány neodpovídá nastavení rámování v integraci. Postižené funkce nebudou správně fungovat, dokud nebudou registry obnoveny na platné hodnoty.\n\nViz dokumentaci integrace pro pokyny k opravě."
+    }
   }
 }
