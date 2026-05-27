@@ -53,17 +53,13 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     new_unique_id = f"neopool_{serial}"
 
     # Check if this serial is already registered (duplicate after migration)
-    if serial:
-        for entry in hass.config_entries.async_entries(DOMAIN):
-            if (
-                entry.entry_id != config_entry.entry_id
-                and entry.unique_id == new_unique_id
-            ):
-                _LOGGER.error(
-                    "Migration failed: Device %s is already configured",
-                    new_unique_id,
-                )
-                return False
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.entry_id != config_entry.entry_id and entry.unique_id == new_unique_id:
+            _LOGGER.error(
+                "Migration failed: Device %s is already configured",
+                new_unique_id,
+            )
+            return False
 
     # Migrate entity unique_ids in registry before bumping version.
     # Use all-or-nothing: collect planned changes, then apply. If any
