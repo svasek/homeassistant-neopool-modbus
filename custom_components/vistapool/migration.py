@@ -124,12 +124,15 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         config_entry, unique_id=new_unique_id, version=2
     )
 
-    # Remove old device registered with entry_id identifier (now replaced by serial)
+    # Update old device identifier to serial-based one (preserves area, labels, etc.)
     device_registry = dr.async_get(hass)
     old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_entry_id)})
     if old_device:
-        device_registry.async_remove_device(old_device.id)
-        _LOGGER.debug("Removed old device with identifier %s", old_entry_id)
+        device_registry.async_update_device(
+            old_device.id,
+            new_identifiers={(DOMAIN, new_unique_id)},
+        )
+        _LOGGER.debug("Updated device identifier %s → %s", old_entry_id, new_unique_id)
 
     _LOGGER.info(
         "Migration completed for %s: %d entities migrated, unique_id=%s",

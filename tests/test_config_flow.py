@@ -1058,6 +1058,41 @@ async def test_create_entry_rejects_duplicate_name():
 
 
 @pytest.mark.asyncio
+async def test_create_entry_rejects_duplicate_name_from_title():
+    """Test that duplicate name check falls back to entry.title when data has no name."""
+    flow, serial_string = make_test_flow_with_modbus_mock()
+
+    # Simulate an existing entry without CONF_NAME in data — only title
+    existing_entry = MagicMock()
+    existing_entry.data = {}
+    existing_entry.title = "Test Pool"
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[existing_entry])
+
+    user_input = {
+        "host": "192.168.1.200",
+        "port": DEFAULT_PORT,
+        "slave_id": DEFAULT_SLAVE_ID,
+        "modbus_framer": DEFAULT_MODBUS_FRAMER,
+        "name": "Test Pool",
+    }
+
+    with (
+        patch(
+            "custom_components.vistapool.config_flow.is_host_port_open",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.vistapool.config_flow.async_get_device_serial",
+            new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
+        ),
+    ):
+        result = await flow.async_step_user(user_input)
+
+    assert result["type"] == "form"
+    assert result["errors"].get("name") == "name_already_used"
+
+
+@pytest.mark.asyncio
 async def test_trial_modbus_read_general_exception():
     """Test that trial Modbus read handles non-timeout exceptions gracefully."""
     from custom_components.vistapool.helpers import async_get_device_serial

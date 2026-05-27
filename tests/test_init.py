@@ -780,11 +780,14 @@ async def test_async_migrate_entry_v1_to_v2_success():
         "sensor.pool_temperature",
         new_unique_id=f"{expected_unique_id}_mbf_temperature",
     )
-    # Old device with entry_id identifier should be removed
+    # Old device with entry_id identifier should be updated to serial-based
     mock_device_registry.async_get_device.assert_called_once_with(
         identifiers={("vistapool", "old_entry_id_123")}
     )
-    mock_device_registry.async_remove_device.assert_called_once_with("old_device_id")
+    mock_device_registry.async_update_device.assert_called_once_with(
+        "old_device_id",
+        new_identifiers={("vistapool", expected_unique_id)},
+    )
 
 
 @pytest.mark.asyncio

@@ -158,7 +158,8 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
 
             # Validation 4: Unique device name (compare slugified to catch case/spacing variants)
             for entry in self.hass.config_entries.async_entries(DOMAIN):
-                if slugify(entry.data.get(CONF_NAME, "")) == slugify(device_name):
+                existing_name = entry.data.get(CONF_NAME) or entry.title
+                if slugify(existing_name) == slugify(device_name):
                     errors[CONF_NAME] = "name_already_used"
                     return self.async_show_form(
                         step_id="user",

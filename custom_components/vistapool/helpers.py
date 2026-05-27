@@ -405,6 +405,7 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
         or None on failure.
     """
     import asyncio
+    import inspect
 
     from homeassistant.const import CONF_HOST, CONF_PORT
     from pymodbus.client import AsyncModbusTcpClient
@@ -451,7 +452,7 @@ async def async_get_device_serial(config: dict, timeout: float = 5.0) -> str | N
     finally:
         try:
             result: object = client.close()
-            if asyncio.iscoroutine(result):
+            if inspect.isawaitable(result):
                 await result
         except asyncio.CancelledError:
             raise
