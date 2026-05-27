@@ -551,7 +551,7 @@
         },
         "value": {
           "name": "Valore",
-          "description": "Valore da scrivere (0–65535, decimale o esadecimale)."
+          "description": "Valore da scrivere (0-65535, decimale o esadecimale)."
         },
         "apply": {
           "name": "Applica",
@@ -559,6 +559,23 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "entry_not_found": { "message": "Nessuna voce di configurazione VistaPool trovata per entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "Nessuna voce di configurazione VistaPool caricata disponibile" },
+    "no_coordinator": { "message": "Nessun coordinatore VistaPool trovato per entry_id {entry_id}" },
+    "missing_parameter": { "message": "Parametro obbligatorio {parameter} mancante" },
+    "invalid_timer": { "message": "Nome timer non valido {timer_name}. Timer validi: {valid_timers}" },
+    "timer_failed": { "message": "Impostazione timer fallita: {error}" },
+    "invalid_apply": { "message": "Valore apply non valido {apply}: deve essere un booleano (true/false)" },
+    "write_failed": { "message": "Scrittura nel registro {address} fallita" },
+    "write_verification_failed": {
+      "message": "Verifica scrittura fallita a {address}: scritto {value}, riletto {confirmed}"
+    },
+    "register_write_failed": { "message": "Scrittura registro fallita a {address}: {error}" },
+    "invalid_register_type": { "message": "Valore {name} non valido {value}: usare un numero decimale o hex (0x…)" },
+    "invalid_register_float": { "message": "Valore {name} non valido {value}: usare un intero, non un decimale" },
+    "register_out_of_range": { "message": "{name} {value} fuori intervallo (0-65535)" }
   },
   "issues": {
     "corrupted_gpio": {

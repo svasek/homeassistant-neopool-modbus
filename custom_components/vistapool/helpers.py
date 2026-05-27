@@ -371,22 +371,34 @@ def has_filtvalve(data: dict) -> bool:
 
 def parse_register_int(raw, name: str) -> int:
     """Parse an integer from decimal or hex string (e.g. '1539' or '0x0603')."""
+    from .const import DOMAIN
+
     if isinstance(raw, bool):
         raise ServiceValidationError(
-            f"Invalid {name} '{raw}': use a decimal number or hex (0x\u2026)"
+            translation_domain=DOMAIN,
+            translation_key="invalid_register_type",
+            translation_placeholders={"name": name, "value": str(raw)},
         )
     if isinstance(raw, float):
         raise ServiceValidationError(
-            f"Invalid {name} '{raw}': use an integer, not a float"
+            translation_domain=DOMAIN,
+            translation_key="invalid_register_float",
+            translation_placeholders={"name": name, "value": str(raw)},
         )
     try:
         val = int(raw, 0) if isinstance(raw, str) else int(raw)
     except (ValueError, TypeError):
         raise ServiceValidationError(
-            f"Invalid {name} '{raw}': use a decimal number or hex (0x\u2026)"
+            translation_domain=DOMAIN,
+            translation_key="invalid_register_type",
+            translation_placeholders={"name": name, "value": str(raw)},
         )
     if not 0 <= val <= 65535:
-        raise ServiceValidationError(f"{name} {val} out of range (0\u201365535)")
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="register_out_of_range",
+            translation_placeholders={"name": name, "value": str(val)},
+        )
     return val
 
 

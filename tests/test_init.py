@@ -195,8 +195,9 @@ async def test_async_handle_set_timer_invalid_timer_name(monkeypatch):
         for c in hass.services.async_register.call_args_list
         if c.args[1] == "set_timer"
     )
-    with pytest.raises(ServiceValidationError, match="Invalid timer name"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await service_func(call)
+    assert exc_info.value.translation_key == "invalid_timer"
 
 
 @pytest.mark.asyncio
@@ -219,8 +220,9 @@ async def test_async_handle_set_timer_missing_timer_key(monkeypatch):
         for c in hass.services.async_register.call_args_list
         if c.args[1] == "set_timer"
     )
-    with pytest.raises(ServiceValidationError, match="Missing required parameter"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await service_func(call)
+    assert exc_info.value.translation_key == "missing_parameter"
 
 
 @pytest.mark.asyncio
@@ -438,8 +440,9 @@ async def test_write_register_invalid_hex():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0xZZZZ", "value": "5", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="Invalid address"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "invalid_register_type"
 
 
 @pytest.mark.asyncio
@@ -454,8 +457,9 @@ async def test_write_register_out_of_range():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "value": "70000", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="out of range"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "register_out_of_range"
 
 
 @pytest.mark.asyncio
@@ -503,8 +507,9 @@ async def test_write_register_apply_invalid_type():
         "apply": "false",
         "entry_id": "entry1",
     }
-    with pytest.raises(ServiceValidationError, match="Invalid apply"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "invalid_apply"
 
 
 @pytest.mark.asyncio
@@ -519,8 +524,9 @@ async def test_write_register_rejects_bool():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": True, "value": "5", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="Invalid address"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "invalid_register_type"
 
 
 @pytest.mark.asyncio
@@ -535,8 +541,9 @@ async def test_write_register_rejects_float():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": 1.5, "value": "5", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="not a float"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "invalid_register_float"
 
 
 @pytest.mark.asyncio
@@ -551,8 +558,9 @@ async def test_write_register_missing_param():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="Missing required parameter"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "missing_parameter"
 
 
 @pytest.mark.asyncio
@@ -569,8 +577,9 @@ async def test_write_register_returns_none():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="failed"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "write_failed"
 
 
 @pytest.mark.asyncio
@@ -589,8 +598,9 @@ async def test_write_register_verification_mismatch():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="Write verification failed"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "write_verification_failed"
 
 
 @pytest.mark.asyncio
@@ -609,8 +619,9 @@ async def test_write_register_generic_exception():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="Register write failed"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "register_write_failed"
 
 
 @pytest.mark.asyncio
@@ -625,8 +636,9 @@ async def test_get_coordinator_not_found():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "value": "1", "entry_id": "nonexistent"}
-    with pytest.raises(ServiceValidationError, match="No VistaPool config entry found"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "entry_not_found"
 
 
 @pytest.mark.asyncio
@@ -641,8 +653,9 @@ async def test_get_coordinator_runtime_data_none():
     handler = _get_write_register_handler(hass)
     call = MagicMock()
     call.data = {"address": "0x0001", "value": "1", "entry_id": "entry1"}
-    with pytest.raises(ServiceValidationError, match="No VistaPool coordinator"):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await handler(call)
+    assert exc_info.value.translation_key == "no_coordinator"
 
 
 @pytest.mark.asyncio

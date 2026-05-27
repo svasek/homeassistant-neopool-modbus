@@ -122,9 +122,6 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             self._winter_mode_active = False
 
         self._attr_entity_category = props.get("entity_category") or None
-        self._icon_on = props.get("icon_on")
-        self._icon_off = props.get("icon_off")
-        self._attr_icon = props.get("icon") or None
 
         # Initialize properties for relay timer switches
         self.timer_block_addr: int | None = props.get("timer_block_addr")
@@ -379,12 +376,3 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             # 3 = on, 4 = off → available; 0 (disabled) or 1 (auto) → not available
             return mode_val in (3, 4)
         return True
-
-    @property
-    def icon(self) -> str | None:  # type: ignore[override]
-        """Return the icon to use in the frontend, depending on the state."""
-        if self._icon_on and self._icon_off:
-            return self._icon_on if self.is_on else self._icon_off
-        if self._attr_icon:
-            return self._attr_icon
-        return None

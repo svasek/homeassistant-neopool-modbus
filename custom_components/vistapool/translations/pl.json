@@ -551,7 +551,7 @@
         },
         "value": {
           "name": "Wartość",
-          "description": "Wartość do zapisu (0–65535, dziesiętnie lub szesnastkowo)."
+          "description": "Wartość do zapisu (0-65535, dziesiętnie lub szesnastkowo)."
         },
         "apply": {
           "name": "Zastosuj",
@@ -559,6 +559,27 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "entry_not_found": { "message": "Nie znaleziono wpisu konfiguracji VistaPool dla entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "Brak załadowanego wpisu konfiguracji VistaPool" },
+    "no_coordinator": { "message": "Nie znaleziono koordynatora VistaPool dla entry_id {entry_id}" },
+    "missing_parameter": { "message": "Brak wymaganego parametru {parameter}" },
+    "invalid_timer": { "message": "Nieprawidłowa nazwa timera {timer_name}. Prawidłowe timery: {valid_timers}" },
+    "timer_failed": { "message": "Ustawienie timera nie powiodło się: {error}" },
+    "invalid_apply": { "message": "Nieprawidłowa wartość apply {apply}: musi być wartością logiczną (true/false)" },
+    "write_failed": { "message": "Zapis do rejestru {address} nie powiódł się" },
+    "write_verification_failed": {
+      "message": "Weryfikacja zapisu pod adresem {address} nie powiodła się: zapisano {value}, odczytano {confirmed}"
+    },
+    "register_write_failed": { "message": "Zapis rejestru pod adresem {address} nie powiódł się: {error}" },
+    "invalid_register_type": {
+      "message": "Nieprawidłowa wartość {name} {value}: użyj liczby dziesiętnej lub hex (0x…)"
+    },
+    "invalid_register_float": {
+      "message": "Nieprawidłowa wartość {name} {value}: użyj liczby całkowitej, nie zmiennoprzecinkowej"
+    },
+    "register_out_of_range": { "message": "{name} {value} poza zakresem (0-65535)" }
   },
   "issues": {
     "corrupted_gpio": {

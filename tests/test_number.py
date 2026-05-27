@@ -153,13 +153,6 @@ def test_native_step_dynamic(mock_coordinator):
     )
     assert ent_ph.native_step == 0.1
 
-    props = make_props(icon="mdi:beaker")
-    ent = VistaPoolNumber(mock_coordinator, "test_entry", "MBF_PAR_PH1", props)
-    assert ent.icon == "mdi:beaker"
-    props2 = make_props()
-    ent2 = VistaPoolNumber(mock_coordinator, "test_entry", "MBF_PAR_PH1", props2)
-    assert ent2.icon is None
-
 
 @pytest.mark.asyncio
 async def test_async_set_native_value_and_debounce(mock_coordinator):

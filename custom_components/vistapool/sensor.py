@@ -170,7 +170,6 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportInco
         self._attr_device_class = props.get("device_class") or None
         self._attr_state_class = props.get("state_class") or None
         self._attr_entity_category = props.get("entity_category") or None
-        self._attr_icon = props.get("icon") or None
         self._attr_suggested_display_precision = props.get("display_precision")
 
         # Disable some entities by default.
@@ -193,42 +192,6 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportInco
             getattr(self, "has_entity_name", None),
         )
         await super().async_added_to_hass()
-
-    @property
-    def icon(self) -> str | None:  # type: ignore[override]
-        raw: int | None = self.coordinator.data.get(self._key)
-        if raw is None:
-            return self._attr_icon or None
-        # Filtration mode icons
-        if self._key == "MBF_PAR_FILT_MODE":
-            mode = FILTRATION_MODE_MAP.get(raw)
-            if mode == "auto":
-                return "mdi:water-boiler-auto"
-            elif mode == "manual":
-                return "mdi:water-boiler-alert"
-            elif mode == "heating":
-                return "mdi:water-boiler-alert"
-            elif mode == "smart":
-                return "mdi:water-boiler-auto"
-            elif mode == "intelligent":
-                return "mdi:water-boiler-auto"
-            elif mode == "backwash":
-                return "mdi:water-boiler-off"
-        # PH alarm icons
-        if self._key == "MBF_PH_STATUS_ALARM":
-            status = PH_STATUS_ALARM_MAP.get(raw)
-            if status == "ok":
-                return "mdi:check-circle-outline"
-            if status is not None:
-                return "mdi:alert"
-            return self._attr_icon or None
-        if self._key == "MBF_HIDRO_CURRENT":
-            return (
-                "mdi:air-humidifier"
-                if bool(self.coordinator.data.get(self._key))
-                else "mdi:air-humidifier-off"
-            )
-        return self._attr_icon or None
 
     @property
     def suggested_display_precision(self) -> int | None:  # type: ignore[override]

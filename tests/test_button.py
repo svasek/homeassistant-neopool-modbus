@@ -36,13 +36,12 @@ def mock_coordinator():
 
 @pytest.fixture
 def button_props():
-    return {"icon": "mdi:button-pointer"}
+    return {}
 
 
 def test_button_attrs(mock_coordinator, button_props):
     ent = VistaPoolButton(mock_coordinator, "test_entry", "SYNC_TIME", button_props)
     assert ent._key == "SYNC_TIME"
-    assert ent.icon == "mdi:button-pointer"
 
 
 @pytest.mark.asyncio
@@ -87,9 +86,7 @@ async def test_button_async_setup_entry_adds_entities(monkeypatch):
     # Patch BUTTON_DEFINITIONS
     from custom_components.vistapool import button as btn_module
 
-    monkeypatch.setitem(
-        btn_module.BUTTON_DEFINITIONS, "TEST_BUTTON", {"icon": "mdi:test"}
-    )
+    monkeypatch.setitem(btn_module.BUTTON_DEFINITIONS, "TEST_BUTTON", {})
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
     # Should add entity for each key in BUTTON_DEFINITIONS
     entities = async_add_entities.call_args[0][0]
@@ -126,7 +123,7 @@ async def test_button_async_setup_entry_no_data(monkeypatch, caplog):
 async def test_press_blocked_during_winter_mode(mock_coordinator, caplog):
     """async_press is ignored when winter mode is active."""
     mock_coordinator.winter_mode = True
-    props = {"name": "Sync Time", "icon": "mdi:clock"}
+    props = {"name": "Sync Time"}
     ent = VistaPoolButton(mock_coordinator, "test_entry", "SYNC_TIME", props)
     with caplog.at_level("WARNING"):
         await ent.async_press()
@@ -137,7 +134,7 @@ async def test_press_blocked_during_winter_mode(mock_coordinator, caplog):
 def test_available_false_during_winter_mode(mock_coordinator):
     """VistaPoolButton is unavailable when winter mode is active."""
     mock_coordinator.winter_mode = True
-    props = {"name": "Sync Time", "icon": "mdi:clock"}
+    props = {"name": "Sync Time"}
     ent = VistaPoolButton(mock_coordinator, "test_entry", "SYNC_TIME", props)
     assert ent.available is False
 
@@ -147,7 +144,7 @@ async def test_button_press_backwash_with_valve(mock_coordinator, caplog):
     """async_press for BACKWASH writes mode 13 when filtvalve is configured."""
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 1}
     mock_coordinator.device_name = "Test Pool"
-    props = {"name": "Start Backwash", "icon": "mdi:waves-arrow-left"}
+    props = {"name": "Start Backwash"}
     ent = VistaPoolButton(mock_coordinator, "test_entry", "BACKWASH", props)
     ent.hass = MagicMock()
     await ent.async_press()
@@ -160,7 +157,7 @@ async def test_button_press_backwash_no_valve(mock_coordinator, caplog):
     """async_press for BACKWASH logs warning and does nothing when valve not configured."""
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
     mock_coordinator.device_name = "Test Pool"
-    props = {"name": "Start Backwash", "icon": "mdi:waves-arrow-left"}
+    props = {"name": "Start Backwash"}
     ent = VistaPoolButton(mock_coordinator, "test_entry", "BACKWASH", props)
     ent.hass = MagicMock()
     with caplog.at_level("WARNING"):
@@ -175,7 +172,7 @@ async def test_button_press_backwash_gpio_only(mock_coordinator, caplog):
     """async_press for BACKWASH works when only GPIO is set (ENABLE=0, GPIO!=0)."""
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 5}
     mock_coordinator.device_name = "Test Pool"
-    props = {"name": "Start Backwash", "icon": "mdi:waves-arrow-left"}
+    props = {"name": "Start Backwash"}
     ent = VistaPoolButton(mock_coordinator, "test_entry", "BACKWASH", props)
     ent.hass = MagicMock()
     await ent.async_press()

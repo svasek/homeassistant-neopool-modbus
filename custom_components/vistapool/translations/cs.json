@@ -551,7 +551,7 @@
         },
         "value": {
           "name": "Hodnota",
-          "description": "Hodnota k zápisu (0–65535, dekadicky nebo hexadecimálně)."
+          "description": "Hodnota k zápisu (0-65535, dekadicky nebo hexadecimálně)."
         },
         "apply": {
           "name": "Použít",
@@ -559,6 +559,23 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "entry_not_found": { "message": "Nebyla nalezena konfigurace VistaPool pro entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "Není k dispozici žádná načtená konfigurace VistaPool" },
+    "no_coordinator": { "message": "Nebyl nalezen koordinátor VistaPool pro entry_id {entry_id}" },
+    "missing_parameter": { "message": "Chybí povinný parametr {parameter}" },
+    "invalid_timer": { "message": "Neplatný název časovače {timer_name}. Platné časovače: {valid_timers}" },
+    "timer_failed": { "message": "Nastavení časovače selhalo: {error}" },
+    "invalid_apply": { "message": "Neplatná hodnota apply {apply}: musí být boolean (true/false)" },
+    "write_failed": { "message": "Zápis do registru {address} selhal" },
+    "write_verification_failed": {
+      "message": "Ověření zápisu na adrese {address} selhalo: zapsáno {value}, přečteno {confirmed}"
+    },
+    "register_write_failed": { "message": "Zápis do registru na adrese {address} selhal: {error}" },
+    "invalid_register_type": { "message": "Neplatná hodnota {name} {value}: použijte desítkové číslo nebo hex (0x…)" },
+    "invalid_register_float": { "message": "Neplatná hodnota {name} {value}: použijte celé číslo, ne desetinné" },
+    "register_out_of_range": { "message": "{name} {value} mimo rozsah (0-65535)" }
   },
   "issues": {
     "corrupted_gpio": {

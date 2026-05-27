@@ -551,7 +551,7 @@
         },
         "value": {
           "name": "Value",
-          "description": "Value to write (0–65535, decimal or hex)."
+          "description": "Value to write (0-65535, decimal or hex)."
         },
         "apply": {
           "name": "Apply",
@@ -559,6 +559,23 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "entry_not_found": { "message": "No VistaPool config entry found for entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "No loaded VistaPool config entry available" },
+    "no_coordinator": { "message": "No VistaPool coordinator found for entry_id {entry_id}" },
+    "missing_parameter": { "message": "Missing required parameter {parameter}" },
+    "invalid_timer": { "message": "Invalid timer name {timer_name}. Valid timers: {valid_timers}" },
+    "timer_failed": { "message": "Timer setting failed: {error}" },
+    "invalid_apply": { "message": "Invalid apply {apply}: must be a boolean (true/false)" },
+    "write_failed": { "message": "Write to register {address} failed" },
+    "write_verification_failed": {
+      "message": "Write verification failed at {address}: wrote {value}, read back {confirmed}"
+    },
+    "register_write_failed": { "message": "Register write failed at {address}: {error}" },
+    "invalid_register_type": { "message": "Invalid {name} {value}: use a decimal number or hex (0x…)" },
+    "invalid_register_float": { "message": "Invalid {name} {value}: use an integer, not a float" },
+    "register_out_of_range": { "message": "{name} {value} out of range (0-65535)" }
   },
   "issues": {
     "corrupted_gpio": {

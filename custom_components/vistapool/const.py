@@ -177,7 +177,6 @@ SENSOR_DEFINITIONS = {
         "unit": "%",
         "device_class": SensorDeviceClass.POWER_FACTOR,
         "state_class": SensorStateClass.MEASUREMENT,
-        "icon": "mdi:atom",
     },
     "MBF_HIDRO_CURRENT": {
         "name": "Hydrolysis Intensity",
@@ -190,21 +189,18 @@ SENSOR_DEFINITIONS = {
         "name": "pH Level",
         "device_class": SensorDeviceClass.PH,
         "state_class": SensorStateClass.MEASUREMENT,
-        "icon": "mdi:ph",
     },
     "MBF_MEASURE_RX": {
         "name": "Redox Potential",
         "unit": "mV",
         "device_class": SensorDeviceClass.VOLTAGE,
         "state_class": SensorStateClass.MEASUREMENT,
-        "icon": "mdi:gradient-vertical",
     },
     "MBF_MEASURE_CL": {
         "name": "Salt Level",
         "unit": "ppm",
         "device_class": None,
         "state_class": SensorStateClass.MEASUREMENT,
-        "icon": "mdi:shaker-outline",
     },
     "MBF_MEASURE_CONDUCTIVITY": {
         "name": "Conductivity Level",
@@ -232,7 +228,6 @@ SENSOR_DEFINITIONS = {
         "unit": None,
         "device_class": SensorDeviceClass.ENUM,
         "state_class": None,
-        "icon": "mdi:water-sync",
     },
     "MBF_PH_STATUS_ALARM": {
         "name": "pH Alarm",
@@ -240,21 +235,18 @@ SENSOR_DEFINITIONS = {
         "device_class": SensorDeviceClass.ENUM,
         "state_class": None,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon": "mdi:ph",
     },
     "HIDRO_POLARITY": {
         "name": "Hydrolysis Polarity",
         "unit": None,
         "device_class": SensorDeviceClass.ENUM,
         "state_class": None,
-        "icon": "mdi:plus-minus-variant",
     },
     "ION_POLARITY": {
         "name": "Ionizer Polarity",
         "unit": None,
         "device_class": SensorDeviceClass.ENUM,
         "state_class": None,
-        "icon": "mdi:plus-minus-variant",
     },
     "PH_PUMP_STATUS": {
         "name": "pH Pump Status",
@@ -262,21 +254,18 @@ SENSOR_DEFINITIONS = {
         "device_class": SensorDeviceClass.ENUM,
         "state_class": None,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon": "mdi:pump",
     },
     "FILTRATION_SPEED": {
         "name": "Filtration Current Speed",
         "unit": None,
         "device_class": SensorDeviceClass.ENUM,
         "state_class": None,
-        "icon": "mdi:fan",
     },
     "MBF_PAR_INTELLIGENT_INTERVALS": {
         "name": "Intelligent Mode Intervals",
         "unit": None,
         "device_class": None,
         "state_class": SensorStateClass.MEASUREMENT,
-        "icon": "mdi:counter",
         "entity_category": EntityCategory.DIAGNOSTIC,
     },
     "MBF_PAR_INTELLIGENT_TT_NEXT_INTERVAL": {
@@ -284,7 +273,6 @@ SENSOR_DEFINITIONS = {
         "unit": None,
         "device_class": SensorDeviceClass.TIMESTAMP,
         "state_class": None,
-        "icon": "mdi:timeline-clock-outline",
         "entity_category": EntityCategory.DIAGNOSTIC,
     },
     "MBF_PAR_FILTVALVE_REMAINING": {
@@ -292,7 +280,6 @@ SENSOR_DEFINITIONS = {
         "unit": "s",
         "device_class": SensorDeviceClass.DURATION,
         "state_class": SensorStateClass.MEASUREMENT,
-        "icon": "mdi:timer-sand",
         "display_precision": 0,
     },
     "FILTRATION_REMAINING": {
@@ -300,7 +287,6 @@ SENSOR_DEFINITIONS = {
         "unit": "s",
         "device_class": SensorDeviceClass.DURATION,
         "state_class": None,
-        "icon": "mdi:timer-sand",
         "display_precision": 0,
     },
 }
@@ -310,56 +296,40 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Device Time Out Of Sync",
         "device_class": BinarySensorDeviceClass.PROBLEM,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:clock-alert",
-        "icon_off": "mdi:clock-check-outline",
     },
     # Relay states
     "pH Acid Pump": {
         "name": "pH Regulating",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:pump",
-        "icon_off": "mdi:pump-off",
     },
     "Filtration Pump": {
         "name": "Filtration Running",
         "device_class": BinarySensorDeviceClass.RUNNING,
-        "icon_on": "mdi:pump",
-        "icon_off": "mdi:pump-off",
     },
     "Pool Light": {
         "name": "Pool Light",
         "device_class": BinarySensorDeviceClass.LIGHT,
-        "icon_on": "mdi:lightbulb-on",
-        "icon_off": "mdi:lightbulb-outline",
         "option": "use_light",
     },
     "AUX1": {
         "name": "Auxiliary Relay 1",
         "device_class": BinarySensorDeviceClass.POWER,
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "option": "use_aux1",
     },
     "AUX2": {
         "name": "Auxiliary Relay 2",
         "device_class": BinarySensorDeviceClass.POWER,
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "option": "use_aux2",
     },
     "AUX3": {
         "name": "Auxiliary Relay 3",
         "device_class": BinarySensorDeviceClass.POWER,
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "option": "use_aux3",
     },
     "AUX4": {
         "name": "Auxiliary Relay 4",
         "device_class": BinarySensorDeviceClass.POWER,
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "option": "use_aux4",
     },
     # pH/Redox/CL/CD status bits from decode_ph_rx_cl_cd_status_bits
@@ -380,8 +350,6 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "pH Measurement",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:scale",
-        "icon_off": "mdi:scale-off",
     },
     "pH measurement module detected": {
         "name": "pH Measurement Module Detected",
@@ -393,8 +361,6 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Redox Pump Active",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:pump",
-        "icon_off": "mdi:pump-off",
     },
     "Redox control module": {
         "name": "Redox Regulation Active",
@@ -405,8 +371,6 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Redox Measurement",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:scale",
-        "icon_off": "mdi:scale-off",
     },
     "Redox measurement module detected": {
         "name": "Redox Measurement Module Detected",
@@ -423,8 +387,6 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Chlorine Pump Active",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:pump",
-        "icon_off": "mdi:pump-off",
     },
     "Chlorine control module": {
         "name": "Chlorine Regulation Active",
@@ -435,8 +397,6 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Chlorine Measurement",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:scale",
-        "icon_off": "mdi:scale-off",
     },
     "Chlorine measurement module detected": {
         "name": "Chlorine Measurement Module Detected",
@@ -448,8 +408,6 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Conductivity Pump Active",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:pump",
-        "icon_off": "mdi:pump-off",
     },
     "Conductivity control module": {
         "name": "Conductivity Regulation Active",
@@ -460,8 +418,6 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Conductivity Measurement",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:scale",
-        "icon_off": "mdi:scale-off",
     },
     "Conductivity measurement module detected": {
         "name": "Conductivity Measurement Module Detected",
@@ -542,15 +498,11 @@ BINARY_SENSOR_DEFINITIONS = {
         "name": "Heating",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:radiator",
-        "icon_off": "mdi:radiator-off",
     },
     "UV Lamp": {
         "name": "UV Lamp",
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon_on": "mdi:lightbulb-fluorescent-tube",
-        "icon_off": "mdi:lightbulb-fluorescent-tube-outline",
     },
     # Note: "HIDRO in dead time", "HIDRO in Pol1" and "HIDRO in Pol2" are merged
     # into the HIDRO_POLARITY enum sensor.
@@ -569,7 +521,6 @@ NUMBER_DEFINITIONS = {
         "scale": 10.0,
         "device_class": None,
         "entity_category": EntityCategory.CONFIG,
-        "icon": "mdi:air-humidifier",
     },
     "MBF_PAR_PH1": {
         "name": "pH Max Limit",
@@ -601,7 +552,6 @@ NUMBER_DEFINITIONS = {
         "scale": 1.0,
         "device_class": NumberDeviceClass.VOLTAGE,
         "entity_category": EntityCategory.CONFIG,
-        "icon": "mdi:gradient-vertical",
     },
     "MBF_PAR_CL1": {
         "name": "Chlorine Setpoint",
@@ -613,7 +563,6 @@ NUMBER_DEFINITIONS = {
         "scale": 100.0,
         "device_class": None,
         "entity_category": EntityCategory.CONFIG,
-        "icon": "mdi:test-tube",
     },
     "MBF_PAR_HEATING_TEMP": {
         "name": "Temperature Setpoint",
@@ -636,7 +585,6 @@ NUMBER_DEFINITIONS = {
         "scale": 1.0,
         "device_class": NumberDeviceClass.TEMPERATURE,
         "entity_category": EntityCategory.CONFIG,
-        "icon": "mdi:thermometer-chevron-up",
     },
     "MBF_PAR_SMART_TEMP_LOW": {
         "name": "Smart Lower Temperature",
@@ -648,7 +596,6 @@ NUMBER_DEFINITIONS = {
         "scale": 1.0,
         "device_class": NumberDeviceClass.TEMPERATURE,
         "entity_category": EntityCategory.CONFIG,
-        "icon": "mdi:thermometer-chevron-down",
     },
     "MBF_PAR_HIDRO_COVER_REDUCTION": {
         "name": "Hydrolysis Cover Reduction Percentage",
@@ -663,7 +610,6 @@ NUMBER_DEFINITIONS = {
         "scale": 1.0,
         "device_class": None,
         "entity_category": EntityCategory.CONFIG,
-        "icon": "mdi:pool",
         "option": "use_cover_sensor",
     },
     "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE": {
@@ -679,7 +625,6 @@ NUMBER_DEFINITIONS = {
         "scale": 1.0,
         "device_class": NumberDeviceClass.TEMPERATURE,
         "entity_category": EntityCategory.CONFIG,
-        "icon": "mdi:thermometer-alert",
         "option": "use_cover_sensor",
     },
 }
@@ -687,24 +632,20 @@ NUMBER_DEFINITIONS = {
 BUTTON_DEFINITIONS = {
     "SYNC_TIME": {
         "name": "Synchronize Device Time",
-        "icon": "mdi:clock-check-outline",
         "entity_category": EntityCategory.CONFIG,
     },
     "MBF_ESCAPE": {
         "name": "Clear Errors",
-        "icon": "mdi:reload-alert",
         "entity_category": EntityCategory.CONFIG,
     },
     "BACKWASH": {
         "name": "Start Backwash",
-        "icon": "mdi:waves-arrow-left",
     },
 }
 
 SELECT_DEFINITIONS = {
     "MBF_PAR_FILT_MODE": {
         "name": "Filtration Mode",
-        "icon": "mdi:water-sync",
         "options_map": {
             0: "manual",
             1: "auto",
@@ -717,7 +658,6 @@ SELECT_DEFINITIONS = {
     },
     "MBF_PAR_FILTRATION_SPEED": {
         "name": "Filtration Speed",
-        "icon": "mdi:fan-speed-3",
         "options_map": {0: "low", 1: "mid", 2: "high"},
         "register": 0x050F,
         "mask": 0x0070,
@@ -725,7 +665,6 @@ SELECT_DEFINITIONS = {
     },
     "MBF_CELL_BOOST": {
         "name": "Boost Mode",
-        "icon": "mdi:flash-outline",
         "options_map": {
             0: "inactive",
             1: "active",
@@ -735,7 +674,6 @@ SELECT_DEFINITIONS = {
     },
     "MBF_PAR_FILTVALVE_MODE": {
         "name": "Backwash Valve Mode",
-        "icon": "mdi:valve",
         "entity_category": EntityCategory.CONFIG,
         "options_map": {
             # 0: "disabled",     # valve disabled – hidden (covered by MBF_PAR_FILTVALVE_ENABLE)
@@ -748,7 +686,6 @@ SELECT_DEFINITIONS = {
     },
     "MBF_PAR_FILTVALVE_PERIOD_MINUTES": {
         "name": "Backwash Repeat Interval",
-        "icon": "mdi:timer-refresh-outline",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "mapped_register",
         "fallback_suffix": "m",
@@ -767,7 +704,6 @@ SELECT_DEFINITIONS = {
     },
     "MBF_PAR_INTELLIGENT_FILT_MIN_TIME": {
         "name": "Intelligent Min Filtration Time",
-        "icon": "mdi:timer-lock-outline",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "mapped_register",
         "fallback_suffix": "m",
@@ -787,7 +723,6 @@ SELECT_DEFINITIONS = {
         "register": 0x041D,
     },
     "MBF_PAR_RELAY_ACTIVATION_DELAY": {
-        "icon": "mdi:timer-plus-outline",
         "register": 0x0433,
         "entity_category": EntityCategory.CONFIG,
         "select_type": "mapped_register",
@@ -810,7 +745,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration1_start": {
         "name": "Filtration Timer 1 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -818,7 +752,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration1_stop": {
         "name": "Filtration Timer 1 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -826,7 +759,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration2_start": {
         "name": "Filtration Timer 2 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -834,7 +766,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration2_stop": {
         "name": "Filtration Timer 2 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -842,7 +773,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration3_start": {
         "name": "Filtration Timer 3 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -850,7 +780,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration3_stop": {
         "name": "Filtration Timer 3 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -858,7 +787,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration1_speed": {
         "name": "Timer 1 - Filtration Speed",
-        "icon": "mdi:fan-speed-3",
         "entity_category": EntityCategory.CONFIG,
         "options_map": {0: "low", 1: "mid", 2: "high"},
         "register": 0x050F,
@@ -868,7 +796,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration2_speed": {
         "name": "Timer 2 - Filtration Speed",
-        "icon": "mdi:fan-speed-3",
         "entity_category": EntityCategory.CONFIG,
         "options_map": {0: "low", 1: "mid", 2: "high"},
         "register": 0x050F,
@@ -878,7 +805,6 @@ SELECT_DEFINITIONS = {
     },
     "filtration3_speed": {
         "name": "Timer 3 - Filtration Speed",
-        "icon": "mdi:fan-speed-3",
         "entity_category": EntityCategory.CONFIG,
         "options_map": {0: "low", 1: "mid", 2: "high"},
         "register": 0x050F,
@@ -888,7 +814,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux1_start": {
         "name": "Relay AUX1 Timer 1 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -896,7 +821,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux1_stop": {
         "name": "Relay AUX1 Timer 1 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -904,7 +828,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux1_period": {
         "name": "Relay AUX1 Timer 1 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -912,7 +835,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux1b_start": {
         "name": "Relay AUX1 Timer 2 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -920,7 +842,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux1b_stop": {
         "name": "Relay AUX1 Timer 2 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -928,7 +849,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux1b_period": {
         "name": "Relay AUX1 Timer 2 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -936,7 +856,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux2_start": {
         "name": "Relay AUX2 Timer 1 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -944,7 +863,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux2_stop": {
         "name": "Relay AUX2 Timer 1 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -952,7 +870,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux2_period": {
         "name": "Relay AUX2 Timer 1 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -960,7 +877,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux2b_start": {
         "name": "Relay AUX2 Timer 2 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -968,7 +884,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux2b_stop": {
         "name": "Relay AUX2 Timer 2 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -976,7 +891,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux2b_period": {
         "name": "Relay AUX2 Timer 2 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -984,7 +898,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux3_start": {
         "name": "Relay AUX3 Timer 1 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -992,7 +905,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux3_stop": {
         "name": "Relay AUX3 Timer 1 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1000,7 +912,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux3_period": {
         "name": "Relay AUX3 Timer 1 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -1008,7 +919,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux3b_start": {
         "name": "Relay AUX3 Timer 2 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1016,7 +926,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux3b_stop": {
         "name": "Relay AUX3 Timer 2 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1024,7 +933,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux3b_period": {
         "name": "Relay AUX3 Timer 2 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -1032,7 +940,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux4_start": {
         "name": "Relay AUX4 Timer 1 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1040,7 +947,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux4_stop": {
         "name": "Relay AUX4 Timer 1 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1048,7 +954,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux4_period": {
         "name": "Relay AUX4 Timer 1 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -1056,7 +961,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux4b_start": {
         "name": "Relay AUX4 Timer 2 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1064,7 +968,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux4b_stop": {
         "name": "Relay AUX4 Timer 2 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1072,7 +975,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux4b_period": {
         "name": "Relay AUX4 Timer 2 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -1080,7 +982,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_light_start": {
         "name": "Relay Light Timer 1 Start",
-        "icon": "mdi:clock-start",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1088,7 +989,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_light_stop": {
         "name": "Relay Light Timer 1 Stop",
-        "icon": "mdi:clock-end",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_time",
         "register": None,
@@ -1096,7 +996,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_light_period": {
         "name": "Relay Light Timer 1 Repeat",
-        "icon": "mdi:repeat-variant",
         "entity_category": EntityCategory.CONFIG,
         "select_type": "timer_period",
         "register": None,
@@ -1104,7 +1003,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux1_mode": {
         "name": "AUX1 Mode",
-        "icon": "mdi:speedometer-medium",
         "options_map": {
             # 0: "disabled",
             1: "auto",
@@ -1119,7 +1017,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux2_mode": {
         "name": "AUX2 Mode",
-        "icon": "mdi:speedometer-medium",
         "options_map": {
             # 0: "disabled",
             1: "auto",
@@ -1134,7 +1031,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux3_mode": {
         "name": "AUX3 Mode",
-        "icon": "mdi:speedometer-medium",
         "options_map": {
             # 0: "disabled",
             1: "auto",
@@ -1149,7 +1045,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_aux4_mode": {
         "name": "AUX4 Mode",
-        "icon": "mdi:speedometer-medium",
         "options_map": {
             # 0: "disabled",
             1: "auto",
@@ -1164,7 +1059,6 @@ SELECT_DEFINITIONS = {
     },
     "relay_light_mode": {
         "name": "Light Mode",
-        "icon": "mdi:speedometer-medium",
         "options_map": {
             # 0: "disabled",
             1: "auto",
@@ -1182,50 +1076,39 @@ SELECT_DEFINITIONS = {
 SWITCH_DEFINITIONS = {
     "WINTER_MODE": {
         "name": "Winter Mode",
-        "icon_on": "mdi:snowflake",
-        "icon_off": "mdi:weather-sunny",
         "entity_category": EntityCategory.CONFIG,
         "switch_type": "winter_mode",
     },
     "TIME_AUTO_SYNC": {
         "name": "Automatic Time Sync",
-        "icon": "mdi:home-clock-outline",
         "entity_category": EntityCategory.CONFIG,
         "switch_type": "auto_time_sync",
     },
     "MBF_PAR_FILT_MANUAL_STATE": {
         "name": "Manual Filtration",
-        "icon": "mdi:pump",
         "entity_category": None,
         "switch_type": "manual_filtration",
     },
     "MBF_PAR_CLIMA_ONOFF": {
         "name": "Climate mode",
-        "icon_on": "mdi:hvac",
-        "icon_off": "mdi:hvac-off",
         "function_addr": 0x0417,
         "entity_category": EntityCategory.CONFIG,
         "switch_type": "climate_mode",
     },
     "MBF_PAR_SMART_ANTI_FREEZE": {
         "name": "Smart antifreeze",
-        "icon_on": "mdi:snowflake-melt",
-        "icon_off": "mdi:snowflake-alert",
         "function_addr": 0x041A,
         "entity_category": EntityCategory.CONFIG,
         "switch_type": "smart_anti_freeze",
     },
     "MBF_PAR_UV_MODE": {
         "name": "UV Mode",
-        "icon_on": "mdi:lightbulb-fluorescent-tube",
-        "icon_off": "mdi:lightbulb-fluorescent-tube-outline",
         "function_addr": 0x0427,
         "entity_category": EntityCategory.CONFIG,
         "switch_type": "uv_mode",
     },
     # "MBF_PAR_UV_HIDE_WARN_CLEAN": {
     #     "name": "Suppress UV Clean Warning",
-    #     "icon": "mdi:alert-minus-outline",
     #     "function_addr": 0x0428,
     #     "mask_bit": 0x0001,
     #     "data_key": "MBF_PAR_UV_HIDE_WARN",
@@ -1234,7 +1117,6 @@ SWITCH_DEFINITIONS = {
     # },
     # "MBF_PAR_UV_HIDE_WARN_REPLACE": {
     #     "name": "Suppress UV Replace Warning",
-    #     "icon": "mdi:alert-minus-outline",
     #     "function_addr": 0x0428,
     #     "mask_bit": 0x0002,
     #     "data_key": "MBF_PAR_UV_HIDE_WARN",
@@ -1243,8 +1125,6 @@ SWITCH_DEFINITIONS = {
     # },
     "MBF_PAR_HIDRO_COVER_ENABLE": {
         "name": "Hydrolysis Cover Reduction",
-        "icon_on": "mdi:pool",
-        "icon_off": "mdi:pool-thermometer",
         "function_addr": 0x042C,
         "mask_bit": 0x0001,
         "data_key": "MBF_PAR_HIDRO_COVER_ENABLE",
@@ -1254,8 +1134,6 @@ SWITCH_DEFINITIONS = {
     },
     "MBF_PAR_HIDRO_TEMP_SHUTDOWN": {
         "name": "Hydrolysis Temperature Shutdown",
-        "icon_on": "mdi:thermometer-alert",
-        "icon_off": "mdi:thermometer-off",
         "function_addr": 0x042C,
         "mask_bit": 0x0002,
         "data_key": "MBF_PAR_HIDRO_COVER_ENABLE",
@@ -1265,8 +1143,6 @@ SWITCH_DEFINITIONS = {
     },
     "aux1": {
         "name": "Auxiliary Relay 1",
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "switch_type": "relay_timer",
         "timer_block_addr": 0x04AC,
         "function_addr": 0x04B7,
@@ -1275,8 +1151,6 @@ SWITCH_DEFINITIONS = {
     },
     "aux2": {
         "name": "Auxiliary Relay 2",
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "switch_type": "relay_timer",
         "timer_block_addr": 0x04BB,
         "function_addr": 0x04C6,
@@ -1285,8 +1159,6 @@ SWITCH_DEFINITIONS = {
     },
     "aux3": {
         "name": "Auxiliary Relay 3",
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "switch_type": "relay_timer",
         "timer_block_addr": 0x04CA,
         "function_addr": 0x04D5,
@@ -1295,8 +1167,6 @@ SWITCH_DEFINITIONS = {
     },
     "aux4": {
         "name": "Auxiliary Relay 4",
-        "icon_on": "mdi:electric-switch-closed",
-        "icon_off": "mdi:electric-switch",
         "switch_type": "relay_timer",
         "timer_block_addr": 0x04D9,
         "function_addr": 0x04E4,
@@ -1308,8 +1178,6 @@ SWITCH_DEFINITIONS = {
 LIGHT_DEFINITIONS = {
     "light": {
         "name": "Pool Light",
-        "icon_on": "mdi:lightbulb-on",
-        "icon_off": "mdi:lightbulb-off",
         "switch_type": "relay_timer",
         "timer_block_addr": 0x0470,
         "function_addr": 0x047B,

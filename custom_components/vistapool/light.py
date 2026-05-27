@@ -79,9 +79,6 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._switch_type = props.get("switch_type") or None
-        self._attr_icon = props.get("icon") or None
-        self._icon_on = props.get("icon_on")
-        self._icon_off = props.get("icon_off")
 
         # Initialize properties for relay timer switches
         self.timer_block_addr: int | None = props.get("timer_block_addr")
@@ -196,15 +193,6 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
             mode_val = self.coordinator.data.get("relay_light_enable", None)
             return mode_val in (0, 3, 4)
         return True
-
-    @property
-    def icon(self) -> str | None:  # type: ignore[override]
-        """Return custom icon depending on state."""
-        if self._icon_on and self._icon_off:
-            return self._icon_on if self.is_on else self._icon_off
-        if self._attr_icon:
-            return self._attr_icon
-        return None
 
     @property
     def supported_color_modes(self) -> set[str]:  # type: ignore[override]

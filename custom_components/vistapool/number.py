@@ -156,7 +156,6 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):  # type: ignore[reportInco
 
         self._attr_device_class = props.get("device_class") or None
         self._attr_entity_category = props.get("entity_category") or None
-        self._attr_icon = props.get("icon")
         self._pending_write_task = None
         self._pending_value = None
         self._debounce_delay = 2.0
@@ -257,11 +256,6 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):  # type: ignore[reportInco
         if self._key == "MBF_PAR_HEATING_TEMP":
             return 0
         return None
-
-    @property
-    def icon(self) -> str | None:  # type: ignore[override]
-        """Return custom icon depending on state."""
-        return self._attr_icon or None
 
     @property
     def native_value(self) -> float | int | str | None:  # type: ignore[override]

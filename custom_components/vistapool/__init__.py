@@ -138,13 +138,20 @@ def _register_services(hass: HomeAssistant) -> None:
         if not entry:
             if entry_id:
                 raise ServiceValidationError(
-                    f"No VistaPool config entry found for entry_id '{entry_id}'"
+                    translation_domain=DOMAIN,
+                    translation_key="entry_not_found",
+                    translation_placeholders={"entry_id": entry_id},
                 )
-            raise ServiceValidationError("No loaded VistaPool config entry available")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="no_loaded_entry",
+            )
         coordinator: VistaPoolCoordinator = entry.runtime_data
         if not coordinator:
             raise ServiceValidationError(
-                f"No VistaPool coordinator found for entry_id '{entry.entry_id}'"
+                translation_domain=DOMAIN,
+                translation_key="no_coordinator",
+                translation_placeholders={"entry_id": entry.entry_id},
             )
         return coordinator
 
@@ -153,12 +160,20 @@ def _register_services(hass: HomeAssistant) -> None:
         try:
             timer_name = call.data["timer"]
         except KeyError:
-            raise ServiceValidationError("Missing required parameter 'timer'")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="missing_parameter",
+                translation_placeholders={"parameter": "timer"},
+            )
 
         if timer_name not in TIMER_BLOCKS:
             raise ServiceValidationError(
-                f"Invalid timer name '{timer_name}'. "
-                f"Valid timers: {', '.join(sorted(TIMER_BLOCKS))}"
+                translation_domain=DOMAIN,
+                translation_key="invalid_timer",
+                translation_placeholders={
+                    "timer_name": timer_name,
+                    "valid_timers": ", ".join(sorted(TIMER_BLOCKS)),
+                },
             )
 
         try:
@@ -194,7 +209,11 @@ def _register_services(hass: HomeAssistant) -> None:
             _LOGGER.error(
                 "Failed to set timer %s: %s", call.data.get("timer", "unknown"), e
             )
-            raise ServiceValidationError(f"Timer setting failed: {e}") from e
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="timer_failed",
+                translation_placeholders={"error": str(e)},
+            ) from e
 
     async def async_handle_write_register(call) -> None:
         """Handle the write_register service call."""
@@ -202,14 +221,19 @@ def _register_services(hass: HomeAssistant) -> None:
             raw_address = call.data["address"]
             raw_value = call.data["value"]
         except KeyError as exc:
-            raise ServiceValidationError(f"Missing required parameter '{exc.args[0]}'")
-
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="missing_parameter",
+                translation_placeholders={"parameter": exc.args[0]},
+            )
         address = parse_register_int(raw_address, "address")
         value = parse_register_int(raw_value, "value")
         apply = call.data.get("apply", True)
         if not isinstance(apply, bool):
             raise ServiceValidationError(
-                f"Invalid apply '{apply}': must be a boolean (true/false)"
+                translation_domain=DOMAIN,
+                translation_key="invalid_apply",
+                translation_placeholders={"apply": str(apply)},
             )
         coordinator = _get_coordinator(call)
 
@@ -219,7 +243,9 @@ def _register_services(hass: HomeAssistant) -> None:
             )
             if result is None:
                 raise ServiceValidationError(
-                    f"Write to register 0x{address:04X} failed"
+                    translation_domain=DOMAIN,
+                    translation_key="write_failed",
+                    translation_placeholders={"address": f"0x{address:04X}"},
                 )
             confirmed = result.get("confirmed")
             _LOGGER.info(
@@ -231,8 +257,13 @@ def _register_services(hass: HomeAssistant) -> None:
             )
             if confirmed != value:
                 raise ServiceValidationError(
-                    f"Write verification failed at 0x{address:04X}: "
-                    f"wrote {value}, read back {confirmed}"
+                    translation_domain=DOMAIN,
+                    translation_key="write_verification_failed",
+                    translation_placeholders={
+                        "address": f"0x{address:04X}",
+                        "value": str(value),
+                        "confirmed": str(confirmed),
+                    },
                 )
             coordinator.request_refresh_with_followup()
         except ServiceValidationError:
@@ -240,7 +271,12 @@ def _register_services(hass: HomeAssistant) -> None:
         except Exception as e:
             _LOGGER.error("Failed to write register 0x%04X: %s", address, e)
             raise ServiceValidationError(
-                f"Register write failed at 0x{address:04X}: {e}"
+                translation_domain=DOMAIN,
+                translation_key="register_write_failed",
+                translation_placeholders={
+                    "address": f"0x{address:04X}",
+                    "error": str(e),
+                },
             ) from e
 
     if not hass.services.has_service(DOMAIN, "set_timer"):

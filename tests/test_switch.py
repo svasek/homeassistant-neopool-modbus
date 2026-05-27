@@ -314,17 +314,6 @@ def test_available_unknown_type(mock_coordinator):
     assert ent.available is True
 
 
-def test_icon_on_off(mock_coordinator):
-    props = make_props(
-        switch_type="aux", icon_on="mdi:lightbulb-on", icon_off="mdi:lightbulb-off"
-    )
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
-    mock_coordinator.data = {"aux1": True}
-    assert ent.icon == "mdi:lightbulb-on"
-    mock_coordinator.data = {"aux1": False}
-    assert ent.icon == "mdi:lightbulb-off"
-
-
 @pytest.mark.asyncio
 async def test_switch_async_setup_entry_adds_entities(monkeypatch):
     class DummyEntry:
@@ -463,18 +452,6 @@ def test_available_relay_timer(mock_coordinator):
     # relay_*_enable missing → unavailable
     mock_coordinator.data = {}
     assert ent.available is False
-
-
-def test_icon_fallback_none(mock_coordinator):
-    props = make_props()
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "foo", props)
-    assert ent.icon is None
-
-
-def test_icon_fallback_attr_icon(mock_coordinator):
-    props = make_props(icon="mdi:test")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "foo", props)
-    assert ent.icon == "mdi:test"
 
 
 @pytest.mark.asyncio

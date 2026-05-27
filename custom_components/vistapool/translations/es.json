@@ -551,7 +551,7 @@
         },
         "value": {
           "name": "Valor",
-          "description": "Valor a escribir (0–65535, decimal o hexadecimal)."
+          "description": "Valor a escribir (0-65535, decimal o hexadecimal)."
         },
         "apply": {
           "name": "Aplicar",
@@ -559,6 +559,25 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "entry_not_found": { "message": "No se encontró la entrada de configuración VistaPool para entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "No hay ninguna entrada de configuración VistaPool cargada disponible" },
+    "no_coordinator": { "message": "No se encontró el coordinador VistaPool para entry_id {entry_id}" },
+    "missing_parameter": { "message": "Falta el parámetro obligatorio {parameter}" },
+    "invalid_timer": {
+      "message": "Nombre de temporizador no válido {timer_name}. Temporizadores válidos: {valid_timers}"
+    },
+    "timer_failed": { "message": "Error al configurar el temporizador: {error}" },
+    "invalid_apply": { "message": "Valor de apply no válido {apply}: debe ser un booleano (true/false)" },
+    "write_failed": { "message": "Error al escribir en el registro {address}" },
+    "write_verification_failed": {
+      "message": "Verificación de escritura fallida en {address}: se escribió {value}, se leyó {confirmed}"
+    },
+    "register_write_failed": { "message": "Error de escritura en registro en {address}: {error}" },
+    "invalid_register_type": { "message": "Valor no válido {name} {value}: use un número decimal o hex (0x…)" },
+    "invalid_register_float": { "message": "Valor no válido {name} {value}: use un entero, no un decimal" },
+    "register_out_of_range": { "message": "{name} {value} fuera de rango (0-65535)" }
   },
   "issues": {
     "corrupted_gpio": {

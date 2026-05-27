@@ -205,8 +205,6 @@ class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):  # type: ignor
 
         self._attr_device_class = props.get("device_class") or None
         self._attr_entity_category = props.get("entity_category") or None
-        self._icon_on = props.get("icon_on") or None
-        self._icon_off = props.get("icon_off") or None
 
         self._attr_entity_registry_enabled_default = props.get("enabled_default", True)
 
@@ -262,11 +260,6 @@ class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):  # type: ignor
         else:
             value = self.coordinator.data.get(self._key)
             return None if value is None else bool(value)
-
-    @property
-    def icon(self) -> str | None:  # type: ignore[override]
-        """Return custom icon depending on state."""
-        return self._icon_on if self.is_on else self._icon_off or None
 
     @property
     def native_value(self) -> bool | None:  # type: ignore[override]

@@ -46,8 +46,6 @@ def mock_coordinator():
 def light_props():
     return {
         "switch_type": "relay_timer",
-        "icon_on": "mdi:lightbulb-on",
-        "icon_off": "mdi:lightbulb-off",
     }
 
 
@@ -55,7 +53,6 @@ def test_light_attrs(mock_coordinator, light_props):
     ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
     assert ent._key == "light"
     assert ent._switch_type == "relay_timer"
-    assert ent.icon == "mdi:lightbulb-off"
 
 
 def test_light_is_on(mock_coordinator, light_props):
@@ -88,29 +85,6 @@ async def test_light_async_turn_off(mock_coordinator, light_props):
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
     assert mock_coordinator.client.async_write_register.called
-
-
-def test_light_icon_on_off(mock_coordinator):
-    props = {"switch_type": "relay_timer", "icon_on": "mdi:on", "icon_off": "mdi:off"}
-    ent = VistaPoolLight(mock_coordinator, "test_entry", "light", props)
-    mock_coordinator.data["relay_light_enable"] = 3  # is_on True
-    assert ent.icon == "mdi:on"
-    mock_coordinator.data["relay_light_enable"] = 4  # is_on False
-    assert ent.icon == "mdi:off"
-
-
-def test_light_icon_attr_only(mock_coordinator):
-    props = {"switch_type": "relay_timer", "icon": "mdi:custom"}
-    ent = VistaPoolLight(mock_coordinator, "test_entry", "light", props)
-    # No _icon_on/_icon_off, fallback to _attr_icon
-    assert ent.icon == "mdi:custom"
-
-
-def test_light_icon_none(mock_coordinator):
-    props = {"switch_type": "relay_timer"}
-    ent = VistaPoolLight(mock_coordinator, "test_entry", "light", props)
-    # No icons at all
-    assert ent.icon is None
 
 
 def test_light_available_relay_timer(mock_coordinator, light_props):
@@ -162,8 +136,6 @@ async def test_light_async_setup_entry_adds_entities(monkeypatch):
         "Test Light",
         {
             "switch_type": "relay_timer",
-            "icon_on": "mdi:lightbulb-on",
-            "icon_off": "mdi:lightbulb-off",
         },
     )
 
@@ -229,8 +201,6 @@ async def test_light_async_setup_entry_skips_without_lighting_gpio(monkeypatch):
         "Test Light",
         {
             "switch_type": "relay_timer",
-            "icon_on": "mdi:lightbulb-on",
-            "icon_off": "mdi:lightbulb-off",
         },
     )
 

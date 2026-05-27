@@ -425,17 +425,6 @@ def test_is_on_status_dict(mock_coordinator):
     assert ent.is_on is None
 
 
-def test_icon_on_off(mock_coordinator):
-    props = make_props(icon_on="mdi:pump", icon_off="mdi:pump-off")
-    ent = VistaPoolBinarySensor(
-        mock_coordinator, "test_entry", "pH acid pump active", props
-    )
-    mock_coordinator.data = {"pH acid pump active": True}
-    assert ent.icon == "mdi:pump"
-    mock_coordinator.data = {"pH acid pump active": False}
-    assert ent.icon == "mdi:pump-off"
-
-
 def test_native_value(mock_coordinator):
     props = make_props()
     ent = VistaPoolBinarySensor(

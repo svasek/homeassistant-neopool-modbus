@@ -551,7 +551,7 @@
         },
         "value": {
           "name": "Wert",
-          "description": "Zu schreibender Wert (0–65535, dezimal oder hexadezimal)."
+          "description": "Zu schreibender Wert (0-65535, dezimal oder hexadezimal)."
         },
         "apply": {
           "name": "Anwenden",
@@ -559,6 +559,27 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "entry_not_found": { "message": "Kein VistaPool-Konfigurationseintrag für entry_id {entry_id} gefunden" },
+    "no_loaded_entry": { "message": "Kein geladener VistaPool-Konfigurationseintrag verfügbar" },
+    "no_coordinator": { "message": "Kein VistaPool-Koordinator für entry_id {entry_id} gefunden" },
+    "missing_parameter": { "message": "Erforderlicher Parameter {parameter} fehlt" },
+    "invalid_timer": { "message": "Ungültiger Timer-Name {timer_name}. Gültige Timer: {valid_timers}" },
+    "timer_failed": { "message": "Timer-Einstellung fehlgeschlagen: {error}" },
+    "invalid_apply": { "message": "Ungültiger Wert für apply {apply}: muss ein Boolean sein (true/false)" },
+    "write_failed": { "message": "Schreiben in Register {address} fehlgeschlagen" },
+    "write_verification_failed": {
+      "message": "Schreibverifizierung bei {address} fehlgeschlagen: geschrieben {value}, zurückgelesen {confirmed}"
+    },
+    "register_write_failed": { "message": "Registerschreiben bei {address} fehlgeschlagen: {error}" },
+    "invalid_register_type": {
+      "message": "Ungültiger Wert {name} {value}: verwenden Sie eine Dezimalzahl oder Hex (0x…)"
+    },
+    "invalid_register_float": {
+      "message": "Ungültiger Wert {name} {value}: verwenden Sie eine Ganzzahl, keine Gleitkommazahl"
+    },
+    "register_out_of_range": { "message": "{name} {value} außerhalb des Bereichs (0-65535)" }
   },
   "issues": {
     "corrupted_gpio": {

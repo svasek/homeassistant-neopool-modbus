@@ -552,7 +552,7 @@
         },
         "value": {
           "name": "Valeur",
-          "description": "Valeur à écrire (0–65535, décimal ou hexadécimal)."
+          "description": "Valeur à écrire (0-65535, décimal ou hexadécimal)."
         },
         "apply": {
           "name": "Appliquer",
@@ -560,6 +560,25 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "entry_not_found": { "message": "Aucune entrée de configuration VistaPool trouvée pour entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "Aucune entrée de configuration VistaPool chargée disponible" },
+    "no_coordinator": { "message": "Aucun coordinateur VistaPool trouvé pour entry_id {entry_id}" },
+    "missing_parameter": { "message": "Paramètre obligatoire {parameter} manquant" },
+    "invalid_timer": { "message": "Nom de minuteur non valide {timer_name}. Minuteurs valides : {valid_timers}" },
+    "timer_failed": { "message": "Échec du réglage du minuteur : {error}" },
+    "invalid_apply": { "message": "Valeur apply non valide {apply} : doit être un booléen (true/false)" },
+    "write_failed": { "message": "Échec de l'écriture dans le registre {address}" },
+    "write_verification_failed": {
+      "message": "Vérification d'écriture échouée à {address} : écrit {value}, relu {confirmed}"
+    },
+    "register_write_failed": { "message": "Échec d'écriture du registre à {address} : {error}" },
+    "invalid_register_type": {
+      "message": "Valeur {name} non valide {value} : utilisez un nombre décimal ou hex (0x…)"
+    },
+    "invalid_register_float": { "message": "Valeur {name} non valide {value} : utilisez un entier, pas un décimal" },
+    "register_out_of_range": { "message": "{name} {value} hors limites (0-65535)" }
   },
   "issues": {
     "corrupted_gpio": {

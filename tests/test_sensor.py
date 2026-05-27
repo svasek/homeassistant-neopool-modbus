@@ -42,21 +42,6 @@ def make_props(**kwargs):
     return d
 
 
-def test_icon_filtration_modes(mock_coordinator):
-    props = make_props(icon="mdi:water-sync")
-    ent = VistaPoolSensor(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
-    for raw, name in FILTRATION_MODE_MAP.items():
-        mock_coordinator.data = {"MBF_PAR_FILT_MODE": raw}
-        result = ent.icon
-        assert isinstance(result, str)
-
-
-def test_icon_default(mock_coordinator):
-    props = make_props(icon="mdi:ph")
-    ent = VistaPoolSensor(mock_coordinator, "test_entry", "MBF_MEASURE_PH", props)
-    assert ent.icon == "mdi:ph"
-
-
 def test_suggested_display_precision(mock_coordinator):
     from custom_components.vistapool.const import SENSOR_DEFINITIONS
 
@@ -556,74 +541,6 @@ def make_sensor(props, key, data):
     mock_coord.config_entry.options = {}
     mock_coord.entry = mock_coord.config_entry
     return VistaPoolSensor(mock_coord, "test_entry", key, props)
-
-
-@pytest.mark.parametrize(
-    "raw,expected_icon",
-    [
-        (1, "mdi:water-boiler-auto"),  # auto
-        (0, "mdi:water-boiler-alert"),  # manual
-        (2, "mdi:water-boiler-alert"),  # heating
-        (3, "mdi:water-boiler-auto"),  # smart
-        (4, "mdi:water-boiler-auto"),  # intelligent
-        (13, "mdi:water-boiler-off"),  # backwash
-    ],
-)
-def test_icon_filtration_mode(mock_coordinator, raw, expected_icon):
-    props = make_props(device_class="filtration_mode")
-    ent = VistaPoolSensor(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
-    mock_coordinator.data = {"MBF_PAR_FILT_MODE": raw}
-    assert ent.icon == expected_icon
-
-
-def test_icon_ph_alarm(mock_coordinator):
-    props = make_props(icon="mdi:alert")
-    ent = VistaPoolSensor(mock_coordinator, "test_entry", "MBF_PH_STATUS_ALARM", props)
-    # No alarm
-    mock_coordinator.data = {"MBF_PH_STATUS_ALARM": 0}
-    assert ent.icon == "mdi:check-circle-outline"
-    # Alarm
-    mock_coordinator.data = {"MBF_PH_STATUS_ALARM": 3}
-    assert ent.icon == "mdi:alert"
-
-
-def test_icon_ph_status_alarm_default_icon(mock_coordinator):
-    props = make_props(icon="mdi:ph")
-    ent = VistaPoolSensor(mock_coordinator, "test_entry", "MBF_PH_STATUS_ALARM", props)
-    mock_coordinator.data = {"MBF_PH_STATUS_ALARM": 0}
-    assert ent.icon == "mdi:check-circle-outline"
-    mock_coordinator.data = {"MBF_PH_STATUS_ALARM": 1}
-    assert ent.icon == "mdi:alert"
-    mock_coordinator.data = {"MBF_PH_STATUS_ALARM": None}
-    assert ent.icon == "mdi:ph"
-
-
-def test_icon_hidro_current(mock_coordinator):
-    props = make_props(icon="mdi:air-humidifier")
-    ent = VistaPoolSensor(mock_coordinator, "test_entry", "MBF_HIDRO_CURRENT", props)
-    mock_coordinator.data = {"MBF_HIDRO_CURRENT": True}
-    assert ent.icon == "mdi:air-humidifier"
-    mock_coordinator.data = {"MBF_HIDRO_CURRENT": False}
-    assert ent.icon == "mdi:air-humidifier-off"
-
-
-def test_icon_default_icon():
-    ent = make_sensor({"icon": "mdi:test"}, "MBF_MEASURE_PH", {})
-    assert ent.icon == "mdi:test"
-
-
-def test_icon_ph_alarm_unknown_status_code():
-    """PH_STATUS_ALARM with a raw value not in the map falls back to _attr_icon."""
-    ent = make_sensor(
-        {"icon": "mdi:ph-fallback"}, "MBF_PH_STATUS_ALARM", {"MBF_PH_STATUS_ALARM": 99}
-    )
-    assert ent.icon == "mdi:ph-fallback"
-
-
-def test_icon_fallback_for_non_special_key():
-    """A key with a non-None raw value that has no special icon logic returns _attr_icon."""
-    ent = make_sensor({"icon": "mdi:gauge"}, "MBF_MEASURE_RX", {"MBF_MEASURE_RX": 500})
-    assert ent.icon == "mdi:gauge"
 
 
 def test_native_value_returns_none_when_filtration_off():

@@ -81,7 +81,6 @@ def boost_props():
             1: "active (redox disabled)",
             2: "active (redox enabled)",
         },
-        "icon": "mdi:lightning-bolt",
     }
 
 

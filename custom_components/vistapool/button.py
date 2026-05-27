@@ -69,7 +69,6 @@ class VistaPoolButton(VistaPoolEntity, ButtonEntity):  # type: ignore[reportInco
         self._attr_translation_key = VistaPoolEntity.slugify(self._key)
 
         self._attr_entity_category = props.get("entity_category") or None
-        self._attr_icon = props.get("icon") or "mdi:button-pointer"
 
         _LOGGER.debug(
             "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
@@ -124,8 +123,3 @@ class VistaPoolButton(VistaPoolEntity, ButtonEntity):  # type: ignore[reportInco
             getattr(self, "has_entity_name", None),
         )
         await super().async_added_to_hass()
-
-    @property
-    def icon(self) -> str | None:  # type: ignore[override]
-        """Return the icon for the button."""
-        return self._attr_icon
