@@ -115,6 +115,24 @@ def test_get_filtration_speed_relay_speed_1():
     assert get_filtration_speed(d) == 1
 
 
+@pytest.mark.parametrize(
+    ("relay_state", "expected"),
+    [
+        (0x0302, 2),  # cumulative mid: bits 8+9 → relay_speed 0x03
+        (0x0702, 3),  # cumulative high: bits 8+9+10 → relay_speed 0x07
+    ],
+    ids=["cumulative-mid", "cumulative-high"],
+)
+def test_get_filtration_speed_cumulative_encoding(relay_state, expected):
+    """Controllers using cumulative (thermometer) speed bits (#152)."""
+    d = {
+        "MBF_RELAY_STATE": relay_state,
+        "MBF_PAR_FILTRATION_CONF": 0x0020,  # conf says high – must be ignored
+        "Filtration Pump": True,
+    }
+    assert get_filtration_speed(d) == expected
+
+
 @pytest.mark.parametrize("aux_bit", [0x0010, 0x0020, 0x0040])
 def test_get_filtration_speed_aux_bits_do_not_affect_speed(aux_bit):
     # filtration ON (0x0002), speed MID (0x0200), plus AUX relay bit set
