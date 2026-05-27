@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.0.0](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v1.26.2...v2.0.0) (2026-05-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* Device and entity unique_ids now use hardware serial number instead of config entry_id. Existing installations will be migrated automatically, but entity IDs may change.
+
+### ✨ Features
+
+* 💥 stable device identity based on hardware serial number ([#146](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/146)) ([ba16e92](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/ba16e9241fcfb3c2b2fba0ec0b6c2c7c16d7f7da))
+
+
+### 🐛 Bug Fixes
+
+* **diagnostics:** 🔒️ use HA async_redact_data and remove data duplica… ([#147](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/147)) ([9fe5aef](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/9fe5aefc34261e80d3464dd60e1539928912b907))
+* **helpers:** 🐛 handle cumulative relay speed bits for filtration ([#153](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/153)) ([3b9b747](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/3b9b7478583be08051eff4b6926a2388e0a30ecf)), closes [#152](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/152)
+
+
+### ♻️ Refactoring
+
+* ♻️ migrate from hass.data to runtime_data pattern ([#149](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/149)) ([bca8d0e](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/bca8d0ed3cac72b429c6e3e116b1a45e6a551ada))
+* ♻️ migrate to repair issues and add parallel update limits ([#150](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/150)) ([ee140a2](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/ee140a21b2837eb5d21a58abad5dd1adf87ee6d0))
+* ♻️ move entity icons and error messages to translation files ([#151](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/151)) ([fe28020](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/fe2802077b057f49f73ed76c180f15c75718d4a7))
+
 ## [1.26.2](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v1.26.1...v1.26.2) (2026-05-19)
 
 
