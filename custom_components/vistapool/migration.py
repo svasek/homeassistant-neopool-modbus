@@ -135,9 +135,9 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         _LOGGER.debug("Updated device identifier %s → %s", old_entry_id, new_unique_id)
 
     _LOGGER.info(
-        "Migration completed for %s: %d entities migrated, unique_id=%s",
+        "Migration completed for %s: %d entities migrated, unique_id=…%s",
         config_entry.title,
         len(applied),
-        new_unique_id,
+        new_unique_id[-6:],
     )
     return True

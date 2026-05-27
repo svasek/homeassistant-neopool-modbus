@@ -172,9 +172,9 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
                 user_input["scan_interval"] = int(user_input["scan_interval"])
 
             _LOGGER.info(
-                "Creating new VistaPool config entry: %s (serial: %s)",
+                "Creating new VistaPool config entry: %s (serial: …%s)",
                 device_name,
-                serial_number,
+                serial_number[-6:],
             )
 
             return self.async_create_entry(title=device_name, data=user_input)
