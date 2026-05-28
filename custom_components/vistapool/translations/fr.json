@@ -9,6 +9,12 @@
           "port": "Port TCP pour Modbus (défaut : 502).",
           "slave_id": "Adresse de l’appareil Modbus (défaut : 1).",
           "modbus_framer": "Tramage du protocole : 'tcp' = Modbus TCP (en-tête MBAP, pour les passerelles avec conversion), 'rtu' = RTU sur TCP (pour les passerelles TCP transparentes)"
+        },
+        "data_description": {
+          "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
+          "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard.",
+          "slave_id": "L'adresse Modbus esclave du contrôleur de piscine. La plupart des configurations utilisent 1.",
+          "modbus_framer": "Sélectionnez 'tcp' pour les passerelles qui convertissent entre TCP et RTU. Sélectionnez 'rtu' pour les passerelles transparentes qui transmettent les trames RTU brutes via TCP."
         }
       },
       "user": {
@@ -27,6 +33,19 @@
           "use_filtration3": "Activer le 3ème minuteur de filtration pour le mode automatique",
           "use_light": "Activer le relais Lumière",
           "use_cover_sensor": "Activer le capteur de couverture de piscine"
+        },
+        "data_description": {
+          "name": "Utilisé comme préfixe pour tous les IDs d'entités. Les espaces deviennent des tirets bas, ex. 'Piscine Ouest' → sensor.piscine_ouest_measure_ph.",
+          "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
+          "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard.",
+          "scan_interval": "À quelle fréquence l'intégration lit les données du contrôleur de piscine.",
+          "slave_id": "L'adresse Modbus esclave du contrôleur de piscine. La plupart des configurations utilisent 1.",
+          "modbus_framer": "Sélectionnez 'tcp' pour les passerelles qui convertissent entre TCP et RTU. Sélectionnez 'rtu' pour les passerelles transparentes qui transmettent les trames RTU brutes via TCP.",
+          "use_filtration1": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
+          "use_filtration2": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
+          "use_filtration3": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
+          "use_light": "Crée des entités pour contrôler et surveiller le relais lumière de la piscine.",
+          "use_cover_sensor": "Crée un capteur binaire indiquant si la couverture de la piscine est ouverte ou fermée."
         }
       }
     },
@@ -62,6 +81,22 @@
           "use_aux4": "Activer le relais Aux4",
           "unlock_advanced": "Débloquer les options avancées",
           "enable_backwash_option": "Activer le mode 'Backwash'"
+        },
+        "data_description": {
+          "scan_interval": "Des valeurs plus basses augmentent la réactivité mais génèrent plus de trafic Modbus.",
+          "timer_resolution": "Détermine la granularité des sélections de temps dans les entités de minuterie.",
+          "measure_when_filtration_off": "Lorsque désactivé, les mesures chimiques (pH, ORP, etc.) ne sont effectuées que lorsque la pompe de filtration fonctionne.",
+          "use_filtration1": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
+          "use_filtration2": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
+          "use_filtration3": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
+          "use_light": "Crée des entités pour contrôler et surveiller le relais lumière de la piscine.",
+          "use_cover_sensor": "Crée un capteur binaire et active les entités liées à la couverture (réduction d'hydrolyse, température d'arrêt).",
+          "use_aux1": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
+          "use_aux2": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
+          "use_aux3": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
+          "use_aux4": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
+          "unlock_advanced": "Entrez le code de déverrouillage pour accéder aux paramètres avancés (format : préfixe_appareil + année en cours).",
+          "enable_backwash_option": "Ajoute 'Backwash' à la sélection du mode de filtration. Uniquement pour les systèmes avec vanne multivoies manuelle."
         }
       },
       "advanced": {
@@ -71,6 +106,11 @@
           "enable_backwash_option": "Activer le mode ‘Backwash’",
           "dev_overrides_enabled": "Activer les substitutions développeur",
           "dev_overrides": "Substitutions développeur (objet JSON \"clé\":valeur)"
+        },
+        "data_description": {
+          "enable_backwash_option": "Ajoute 'Backwash' à la sélection du mode de filtration. À utiliser avec précaution — une mauvaise utilisation peut endommager votre système de filtration.",
+          "dev_overrides_enabled": "Lorsqu'activé, les valeurs du JSON de substitution sont injectées dans les données du coordinateur pour les tests.",
+          "dev_overrides": "Un objet JSON où chaque clé est un nom de registre Modbus et chaque valeur remplace la lecture réelle."
         }
       }
     },

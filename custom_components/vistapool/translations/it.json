@@ -9,6 +9,12 @@
           "port": "Porta TCP per Modbus (predefinito: 502).",
           "slave_id": "Indirizzo dispositivo Modbus (predefinito: 1).",
           "modbus_framer": "Framing del protocollo: 'tcp' = Modbus TCP (intestazione MBAP, per gateway con conversione), 'rtu' = RTU su TCP (per gateway TCP trasparenti)"
+        },
+        "data_description": {
+          "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
+          "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard.",
+          "slave_id": "L'indirizzo Modbus slave del controller della piscina. La maggior parte delle configurazioni usa 1.",
+          "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP."
         }
       },
       "user": {
@@ -27,6 +33,19 @@
           "use_filtration3": "Abilita il 3° timer di filtrazione per la modalità automatica",
           "use_light": "Abilita relè luce",
           "use_cover_sensor": "Abilita sensore copertura piscina"
+        },
+        "data_description": {
+          "name": "Usato come prefisso per tutti gli ID entità. Gli spazi diventano trattini bassi, es. 'Piscina Ovest' → sensor.piscina_ovest_measure_ph.",
+          "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
+          "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard.",
+          "scan_interval": "Quanto spesso l'integrazione legge i dati dal controller della piscina.",
+          "slave_id": "L'indirizzo Modbus slave del controller della piscina. La maggior parte delle configurazioni usa 1.",
+          "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
+          "use_filtration1": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
+          "use_filtration2": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
+          "use_filtration3": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
+          "use_light": "Crea entità per controllare e monitorare il relè luce della piscina.",
+          "use_cover_sensor": "Crea un sensore binario che indica se la copertura della piscina è aperta o chiusa."
         }
       }
     },
@@ -62,6 +81,22 @@
           "use_aux4": "Abilita relè Aux4",
           "unlock_advanced": "Sblocca opzioni avanzate",
           "enable_backwash_option": "Abilita modalità 'Backwash'"
+        },
+        "data_description": {
+          "scan_interval": "Valori più bassi aumentano la reattività ma generano più traffico Modbus.",
+          "timer_resolution": "Determina la granularità delle selezioni temporali nelle entità timer.",
+          "measure_when_filtration_off": "Quando disabilitato, le misurazioni chimiche (pH, ORP, ecc.) vengono effettuate solo quando la pompa di filtrazione è in funzione.",
+          "use_filtration1": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
+          "use_filtration2": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
+          "use_filtration3": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
+          "use_light": "Crea entità per controllare e monitorare il relè luce della piscina.",
+          "use_cover_sensor": "Crea un sensore binario e abilita le entità relative alla copertura (riduzione idrolisi, temperatura di spegnimento).",
+          "use_aux1": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
+          "use_aux2": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
+          "use_aux3": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
+          "use_aux4": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
+          "unlock_advanced": "Inserire il codice di sblocco per accedere alle impostazioni avanzate (formato: prefisso_dispositivo + anno corrente).",
+          "enable_backwash_option": "Aggiunge 'Backwash' alla selezione della modalità di filtrazione. Solo per sistemi con valvola multivia manuale."
         }
       },
       "advanced": {
@@ -71,6 +106,11 @@
           "enable_backwash_option": "Abilita modalità ‘Backwash’",
           "dev_overrides_enabled": "Abilita override sviluppatore",
           "dev_overrides": "Override sviluppatore (oggetto JSON \"chiave\":valore)"
+        },
+        "data_description": {
+          "enable_backwash_option": "Aggiunge 'Backwash' alla selezione della modalità di filtrazione. Usare con cautela — un uso improprio può danneggiare il sistema di filtrazione.",
+          "dev_overrides_enabled": "Quando abilitato, i valori dal JSON di override vengono iniettati nei dati del coordinatore per i test.",
+          "dev_overrides": "Un oggetto JSON dove ogni chiave è un nome di registro Modbus e ogni valore sostituisce la lettura reale."
         }
       }
     },

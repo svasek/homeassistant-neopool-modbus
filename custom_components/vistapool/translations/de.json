@@ -9,6 +9,12 @@
           "port": "TCP-Port für Modbus (Standard: 502).",
           "slave_id": "Modbus-Geräteadresse (Standard: 1).",
           "modbus_framer": "Protokoll-Framing: 'tcp' = Modbus TCP (MBAP-Header, für Gateways mit Konvertierung), 'rtu' = RTU über TCP (für transparente TCP-Gateways)"
+        },
+        "data_description": {
+          "host": "Geben Sie die IP-Adresse des Modbus-TCP-Gateways ein, das mit Ihrem Pool-Controller verbunden ist.",
+          "port": "Standard-Modbus-TCP-Port. Ändern Sie ihn nur, wenn Ihr Gateway einen nicht standardmäßigen Port verwendet.",
+          "slave_id": "Die Modbus-Slave-Adresse des Pool-Controllers. Die meisten Setups verwenden 1.",
+          "modbus_framer": "Wählen Sie 'tcp' für Gateways, die zwischen TCP und RTU konvertieren. Wählen Sie 'rtu' für transparente Gateways, die rohe RTU-Frames über TCP weiterleiten."
         }
       },
       "user": {
@@ -27,6 +33,19 @@
           "use_filtration3": "3. Filter-Timer für Automatikbetrieb aktivieren",
           "use_light": "Licht-Relais aktivieren",
           "use_cover_sensor": "Abdeckungssensor aktivieren"
+        },
+        "data_description": {
+          "name": "Wird als Präfix für alle Entitäten-IDs verwendet. Leerzeichen werden zu Unterstrichen, z.B. 'Pool West' → sensor.pool_west_measure_ph.",
+          "host": "Geben Sie die IP-Adresse des Modbus-TCP-Gateways ein, das mit Ihrem Pool-Controller verbunden ist.",
+          "port": "Standard-Modbus-TCP-Port. Ändern Sie ihn nur, wenn Ihr Gateway einen nicht standardmäßigen Port verwendet.",
+          "scan_interval": "Wie oft die Integration Daten vom Pool-Controller liest.",
+          "slave_id": "Die Modbus-Slave-Adresse des Pool-Controllers. Die meisten Setups verwenden 1.",
+          "modbus_framer": "Wählen Sie 'tcp' für Gateways, die zwischen TCP und RTU konvertieren. Wählen Sie 'rtu' für transparente Gateways, die rohe RTU-Frames über TCP weiterleiten.",
+          "use_filtration1": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
+          "use_filtration2": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
+          "use_filtration3": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
+          "use_light": "Erstellt Entitäten zur Steuerung und Überwachung des Licht-Relais.",
+          "use_cover_sensor": "Erstellt einen Binärsensor, der anzeigt, ob die Poolabdeckung geöffnet oder geschlossen ist."
         }
       }
     },
@@ -62,6 +81,22 @@
           "use_aux4": "Aux4-Relais aktivieren",
           "unlock_advanced": "Erweiterte Optionen freischalten",
           "enable_backwash_option": "'Backwash'-Modus aktivieren"
+        },
+        "data_description": {
+          "scan_interval": "Niedrigere Werte erhöhen die Reaktionsfähigkeit, erzeugen aber mehr Modbus-Verkehr.",
+          "timer_resolution": "Bestimmt die Granularität der Zeitauswahl in Timer-Entitäten.",
+          "measure_when_filtration_off": "Wenn deaktiviert, werden chemische Messungen (pH, ORP usw.) nur bei laufender Filterpumpe durchgeführt.",
+          "use_filtration1": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
+          "use_filtration2": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
+          "use_filtration3": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
+          "use_light": "Erstellt Entitäten zur Steuerung und Überwachung des Licht-Relais.",
+          "use_cover_sensor": "Erstellt einen Binärsensor und aktiviert abdeckungsbezogene Entitäten (Hydrolyse-Reduzierung, Abschalttemperatur).",
+          "use_aux1": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
+          "use_aux2": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
+          "use_aux3": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
+          "use_aux4": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
+          "unlock_advanced": "Geben Sie den Freischaltcode ein, um auf erweiterte Einstellungen zuzugreifen (Format: Gerätepräfix + aktuelles Jahr).",
+          "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Nur für Systeme mit manuellem Mehrwegeventil."
         }
       },
       "advanced": {
@@ -71,6 +106,11 @@
           "enable_backwash_option": "‘Backwash’-Modus aktivieren",
           "dev_overrides_enabled": "Entwickler-Overrides aktivieren",
           "dev_overrides": "Entwickler-Overrides (JSON Objekt \"Schlüssel\":Wert)"
+        },
+        "data_description": {
+          "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Vorsichtig verwenden — unsachgemäße Nutzung kann Ihr Filtersystem beschädigen.",
+          "dev_overrides_enabled": "Wenn aktiviert, werden Werte aus dem Override-JSON zu Testzwecken in die Koordinator-Daten eingefügt.",
+          "dev_overrides": "Ein JSON-Objekt, bei dem jeder Schlüssel ein Modbus-Registername ist und jeder Wert den tatsächlichen Messwert überschreibt."
         }
       }
     },

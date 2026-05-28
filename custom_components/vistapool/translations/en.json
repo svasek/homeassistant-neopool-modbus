@@ -9,6 +9,12 @@
           "port": "TCP port for Modbus (default: 502).",
           "slave_id": "Modbus device address (default: 1).",
           "modbus_framer": "Protocol framing: 'tcp' = Modbus TCP (MBAP header, for gateways with conversion), 'rtu' = RTU over TCP (for transparent TCP gateways)"
+        },
+        "data_description": {
+          "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
+          "port": "Standard Modbus TCP port. Change only if your gateway uses a non-standard port.",
+          "slave_id": "The Modbus slave address of the pool controller. Most setups use 1.",
+          "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP."
         }
       },
       "user": {
@@ -27,6 +33,19 @@
           "use_filtration3": "Enable 3rd filtration timer for automatic mode",
           "use_light": "Enable Light Relay",
           "use_cover_sensor": "Enable Pool Cover Sensor"
+        },
+        "data_description": {
+          "name": "Used as a prefix for all entity IDs. Spaces become underscores, e.g. 'Pool West' → sensor.pool_west_measure_ph.",
+          "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
+          "port": "Standard Modbus TCP port. Change only if your gateway uses a non-standard port.",
+          "scan_interval": "How often the integration reads data from the pool controller.",
+          "slave_id": "The Modbus slave address of the pool controller. Most setups use 1.",
+          "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
+          "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
+          "use_filtration2": "Creates timer entities for configuring automatic filtration schedule.",
+          "use_filtration3": "Creates timer entities for configuring automatic filtration schedule.",
+          "use_light": "Creates entities to control and monitor the pool light relay.",
+          "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed."
         }
       }
     },
@@ -62,6 +81,22 @@
           "use_aux4": "Enable Aux4 Relay",
           "unlock_advanced": "Unlock advanced options",
           "enable_backwash_option": "Enable 'Backwash' mode"
+        },
+        "data_description": {
+          "scan_interval": "Lower values increase responsiveness but generate more Modbus traffic.",
+          "timer_resolution": "Determines the granularity of time selections in timer entities.",
+          "measure_when_filtration_off": "When disabled, chemical measurements (pH, ORP, etc.) are only taken while the filtration pump is running.",
+          "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
+          "use_filtration2": "Creates timer entities for configuring automatic filtration schedule.",
+          "use_filtration3": "Creates timer entities for configuring automatic filtration schedule.",
+          "use_light": "Creates entities to control and monitor the pool light relay.",
+          "use_cover_sensor": "Creates a binary sensor and enables cover-related entities (hydrolysis cover reduction, shutdown temperature).",
+          "use_aux1": "Creates switch and timer entities for this auxiliary relay output.",
+          "use_aux2": "Creates switch and timer entities for this auxiliary relay output.",
+          "use_aux3": "Creates switch and timer entities for this auxiliary relay output.",
+          "use_aux4": "Creates switch and timer entities for this auxiliary relay output.",
+          "unlock_advanced": "Enter the unlock code to access advanced settings (format: device_prefix + current year).",
+          "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Only for systems with manual multi-way valves."
         }
       },
       "advanced": {
@@ -71,6 +106,11 @@
           "enable_backwash_option": "Enable ‘Backwash’ mode",
           "dev_overrides_enabled": "Enable developer overrides",
           "dev_overrides": "Developer overrides (JSON object of \"key\":value)"
+        },
+        "data_description": {
+          "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Use with caution — improper use may damage your filtration system.",
+          "dev_overrides_enabled": "When enabled, values from the override JSON are injected into coordinator data for testing.",
+          "dev_overrides": "A JSON object where each key is a Modbus register name and each value overrides the actual reading."
         }
       }
     },
