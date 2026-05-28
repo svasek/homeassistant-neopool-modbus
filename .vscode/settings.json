@@ -1,12 +1,15 @@
 {
-  "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff"
-  },
   "editor.formatOnSave": true,
-  "python.testing.pytestEnabled": true,
-  "python.testing.pytestArgs": ["tests", "--cov=custom_components/vistapool"],
   "editor.codeActionsOnSave": {
     "source.organizeImports.ruff": "always"
   },
-  "python-envs.defaultEnvManager": "ms-python.python:system"
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["tests", "--cov=custom_components/vistapool"],
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[json]": {
+    "editor.formatOnSave": false
+  }
 }
