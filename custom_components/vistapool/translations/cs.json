@@ -9,6 +9,12 @@
           "port": "TCP port pro Modbus (výchozí: 502).",
           "slave_id": "Modbus Adresa zařízení (výchozí: 1).",
           "modbus_framer": "Rámování protokolu: 'tcp' = Modbus TCP (MBAP header, pro TCP brány s konverzí), 'rtu' = RTU přes TCP (pro transparentní TCP brány)"
+        },
+        "data_description": {
+          "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
+          "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port.",
+          "slave_id": "Modbus slave adresa řadiče bazénu. Většina zařízení používá 1.",
+          "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP."
         }
       },
       "user": {
@@ -27,6 +33,19 @@
           "use_filtration3": "Povolit 3. časovač filtrace pro automatický režim",
           "use_light": "Povolit relé Osvětlení",
           "use_cover_sensor": "Povolit senzor zakrytí bazénu"
+        },
+        "data_description": {
+          "name": "Používá se jako prefix pro všechna ID entit. Mezery se nahradí podtržítky, např. 'Bazén Západ' → sensor.bazen_zapad_measure_ph.",
+          "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
+          "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port.",
+          "scan_interval": "Jak často integrace čte data z řadiče bazénu.",
+          "slave_id": "Modbus slave adresa řadiče bazénu. Většina zařízení používá 1.",
+          "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
+          "use_filtration1": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
+          "use_filtration2": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
+          "use_filtration3": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
+          "use_light": "Vytvoří entity pro ovládání a sledování relé osvětlení bazénu.",
+          "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý."
         }
       }
     },
@@ -62,6 +81,22 @@
           "use_aux4": "Povolit relé Aux4",
           "unlock_advanced": "Odemknout pokročilé možnosti",
           "enable_backwash_option": "Povolit režim 'Backwash'"
+        },
+        "data_description": {
+          "scan_interval": "Nižší hodnoty zvyšují rychlost odezvy, ale generují více Modbus komunikace.",
+          "timer_resolution": "Určuje přesnost výběru času v entitách časovačů.",
+          "measure_when_filtration_off": "Pokud je vypnuto, chemická měření (pH, ORP atd.) probíhají pouze při běžícím filtračním čerpadle.",
+          "use_filtration1": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
+          "use_filtration2": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
+          "use_filtration3": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
+          "use_light": "Vytvoří entity pro ovládání a sledování relé osvětlení bazénu.",
+          "use_cover_sensor": "Vytvoří binární senzor a povolí entity související se zakrytím (redukce hydrolýzy, teplotní limit).",
+          "use_aux1": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
+          "use_aux2": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
+          "use_aux3": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
+          "use_aux4": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
+          "unlock_advanced": "Zadejte odemykací kód pro přístup k pokročilým nastavením (formát: prefix_zařízení + aktuální rok).",
+          "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Pouze pro systémy s manuálním vícecestným ventilem."
         }
       },
       "advanced": {
@@ -71,6 +106,11 @@
           "enable_backwash_option": "Povolit režim ‘Backwash’",
           "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot",
           "dev_overrides": "Vývojářské přepisy (JSON objekt \"klíč\":hodnota)"
+        },
+        "data_description": {
+          "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Používejte opatrně — nesprávné použití může poškodit filtrační systém.",
+          "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování.",
+          "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení."
         }
       }
     },

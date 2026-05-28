@@ -9,6 +9,12 @@
           "port": "Port TCP dla Modbus (domyślnie: 502).",
           "slave_id": "Adres urządzenia Modbus (domyślnie: 1).",
           "modbus_framer": "Ramkowanie protokołu: 'tcp' = Modbus TCP (nagłówek MBAP, dla bramek z konwersją), 'rtu' = RTU przez TCP (dla transparentnych bramek TCP)"
+        },
+        "data_description": {
+          "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
+          "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu.",
+          "slave_id": "Adres Modbus slave kontrolera basenu. Większość konfiguracji używa 1.",
+          "modbus_framer": "Wybierz 'tcp' dla bramek konwertujących między TCP a RTU. Wybierz 'rtu' dla transparentnych bramek przesyłających surowe ramki RTU przez TCP."
         }
       },
       "user": {
@@ -27,6 +33,19 @@
           "use_filtration3": "Włącz 3. timer filtracji w trybie automatycznym",
           "use_light": "Włącz przekaźnik oświetlenia",
           "use_cover_sensor": "Włącz czujnik przykrycia basenu"
+        },
+        "data_description": {
+          "name": "Używana jako prefiks dla wszystkich ID encji. Spacje zamieniane są na podkreślenia, np. 'Basen Zachodni' → sensor.basen_zachodni_measure_ph.",
+          "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
+          "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu.",
+          "scan_interval": "Jak często integracja odczytuje dane z kontrolera basenu.",
+          "slave_id": "Adres Modbus slave kontrolera basenu. Większość konfiguracji używa 1.",
+          "modbus_framer": "Wybierz 'tcp' dla bramek konwertujących między TCP a RTU. Wybierz 'rtu' dla transparentnych bramek przesyłających surowe ramki RTU przez TCP.",
+          "use_filtration1": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
+          "use_filtration2": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
+          "use_filtration3": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
+          "use_light": "Tworzy encje do sterowania i monitorowania przekaźnika oświetlenia basenu.",
+          "use_cover_sensor": "Tworzy czujnik binarny wskazujący, czy przykrycie basenu jest otwarte czy zamknięte."
         }
       }
     },
@@ -62,6 +81,22 @@
           "use_aux4": "Włącz przekaźnik Aux4",
           "unlock_advanced": "Odblokuj opcje zaawansowane",
           "enable_backwash_option": "Włącz tryb 'Backwash'"
+        },
+        "data_description": {
+          "scan_interval": "Niższe wartości zwiększają responsywność, ale generują więcej ruchu Modbus.",
+          "timer_resolution": "Określa dokładność wyboru czasu w encjach timerów.",
+          "measure_when_filtration_off": "Gdy wyłączone, pomiary chemiczne (pH, ORP itp.) są wykonywane tylko podczas pracy pompy filtracyjnej.",
+          "use_filtration1": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
+          "use_filtration2": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
+          "use_filtration3": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
+          "use_light": "Tworzy encje do sterowania i monitorowania przekaźnika oświetlenia basenu.",
+          "use_cover_sensor": "Tworzy czujnik binarny i umożliwia encje związane z przykryciem (redukcja hydrolizy, temperatura wyłączenia).",
+          "use_aux1": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
+          "use_aux2": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
+          "use_aux3": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
+          "use_aux4": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
+          "unlock_advanced": "Wprowadź kod odblokowujący, aby uzyskać dostęp do ustawień zaawansowanych (format: prefiks_urządzenia + bieżący rok).",
+          "enable_backwash_option": "Dodaje 'Backwash' do wyboru trybu filtracji. Tylko dla systemów z ręcznym zaworem wielodrożnym."
         }
       },
       "advanced": {
@@ -71,6 +106,11 @@
           "enable_backwash_option": "Włącz tryb ‘Backwash’",
           "dev_overrides_enabled": "Włącz nadpisania deweloperskie",
           "dev_overrides": "Nadpisania deweloperskie (obiekt JSON \"klucz\":wartość)"
+        },
+        "data_description": {
+          "enable_backwash_option": "Dodaje 'Backwash' do wyboru trybu filtracji. Używaj ostrożnie — niewłaściwe użycie może uszkodzić system filtracji.",
+          "dev_overrides_enabled": "Gdy włączone, wartości z JSON nadpisań są wstrzykiwane do danych koordynatora w celach testowych.",
+          "dev_overrides": "Obiekt JSON, gdzie każdy klucz to nazwa rejestru Modbus, a wartość zastępuje rzeczywisty odczyt."
         }
       }
     },
