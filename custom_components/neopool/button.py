@@ -18,16 +18,35 @@ import logging
 from typing import Any
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_call_later
 
 from . import NeoPoolConfigEntry
-from .const import BUTTON_DEFINITIONS
+from .const import BUTTON_DEFINITIONS, FOLLOW_UP_REFRESH_DELAY
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
 from .helpers import has_filtvalve, prepare_device_time
 
 _LOGGER = logging.getLogger(__name__)
+
+_BACKWASH_DIAG_KEYS = (
+    "MBF_PAR_FILT_MODE",
+    "MBF_PAR_FILT_MANUAL_STATE",
+    "MBF_PAR_FILTRATION_STATE",
+    "MBF_PAR_FILTVALVE_ENABLE",
+    "MBF_PAR_FILTVALVE_MODE",
+    "MBF_PAR_FILTVALVE_GPIO",
+    "MBF_PAR_FILTVALVE_INTERVAL",
+    "MBF_PAR_FILTVALVE_REMAINING",
+)
+
+
+def _log_backwash_state(label: str, data: dict) -> None:
+    """Log backwash-related register values for diagnostics."""
+    parts = ", ".join(f"{k}={data.get(k)!r}" for k in _BACKWASH_DIAG_KEYS)
+    _LOGGER.info("Backwash %s: %s", label, parts)
+
 
 PARALLEL_UPDATES = 1
 
@@ -116,11 +135,28 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):  # type: ignore[reportIncompat
             _LOGGER.info(
                 "Starting backwash on device '%s'", self.coordinator.device_name
             )
-            # Set filtration mode to backwash (13 = MBV_PAR_FILT_BACKWASH).
-            # The device opens the configured Besgo valve and runs the filter
-            # cleaning cycle for the duration stored in MBF_PAR_FILTVALVE_INTERVAL.
+            # Log current state of all relevant registers for diagnostics
+            _log_backwash_state("pre-write state", self.coordinator.data or {})
+            # Set MBF_PAR_FILT_MODE = 13 (backwash).
+            # The device manages the Besgo valve cleaning cycle internally
+            # for the duration stored in MBF_PAR_FILTVALVE_INTERVAL.
             await client.async_write_register(0x0411, 13)
             await self.coordinator.async_request_refresh()
+            self.coordinator.request_refresh_with_followup()
+
+            # Schedule a diagnostic log after the follow-up refresh completes
+            # to capture whether the device accepted or reverted the mode change.
+            coordinator = self.coordinator
+            log_delay = FOLLOW_UP_REFRESH_DELAY + 3.0
+
+            @callback
+            def _log_post_backwash_state(_now: Any) -> None:
+                _log_backwash_state(
+                    f"post-write state (after ~{log_delay:.0f}s)",
+                    coordinator.data or {},
+                )
+
+            async_call_later(self.hass, log_delay, _log_post_backwash_state)
 
     async def async_added_to_hass(self) -> None:  # pragma: no cover
         """Run when the entity is added to hass."""

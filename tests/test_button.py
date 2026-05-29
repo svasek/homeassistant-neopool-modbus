@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from custom_components.neopool.button import NeoPoolButton, async_setup_entry
+from custom_components.neopool.const import FOLLOW_UP_REFRESH_DELAY
 
 
 @pytest.fixture
@@ -147,9 +148,40 @@ async def test_button_press_backwash_with_valve(mock_coordinator, caplog):
     props = {"name": "Start Backwash"}
     ent = NeoPoolButton(mock_coordinator, "test_entry", "BACKWASH", props)
     ent.hass = MagicMock()
-    await ent.async_press()
+    with caplog.at_level("INFO"):
+        await ent.async_press()
     mock_coordinator.client.async_write_register.assert_awaited_once_with(0x0411, 13)
     mock_coordinator.async_request_refresh.assert_awaited_once()
+    mock_coordinator.request_refresh_with_followup.assert_called_once()
+    assert "Backwash pre-write state:" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_button_press_backwash_post_write_log(mock_coordinator, caplog):
+    """async_press for BACKWASH schedules a delayed diagnostic log."""
+    mock_coordinator.data = {
+        "MBF_PAR_FILTVALVE_ENABLE": 1,
+        "MBF_PAR_FILT_MODE": 0,
+        "MBF_PAR_FILTVALVE_REMAINING": 0,
+    }
+    mock_coordinator.device_name = "Test Pool"
+    props = {"name": "Start Backwash", "icon": "mdi:waves-arrow-left"}
+    ent = NeoPoolButton(mock_coordinator, "test_entry", "BACKWASH", props)
+    ent.hass = MagicMock()
+    with patch("custom_components.neopool.button.async_call_later") as mock_call_later:
+        with caplog.at_level("INFO"):
+            await ent.async_press()
+            # Verify async_call_later was called with FOLLOW_UP_REFRESH_DELAY + 3
+            mock_call_later.assert_called_once()
+            args = mock_call_later.call_args
+            assert args[0][1] == FOLLOW_UP_REFRESH_DELAY + 3.0
+            # Invoke the callback to test the post-write log
+            delayed_callback = args[0][2]
+            mock_coordinator.data["MBF_PAR_FILT_MODE"] = 13
+            mock_coordinator.data["MBF_PAR_FILTVALVE_REMAINING"] = 30
+            delayed_callback(None)
+    assert "Backwash post-write state" in caplog.text
+    assert "MBF_PAR_FILT_MODE=13" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -175,9 +207,12 @@ async def test_button_press_backwash_gpio_only(mock_coordinator, caplog):
     props = {"name": "Start Backwash"}
     ent = NeoPoolButton(mock_coordinator, "test_entry", "BACKWASH", props)
     ent.hass = MagicMock()
-    await ent.async_press()
+    with caplog.at_level("INFO"):
+        await ent.async_press()
     mock_coordinator.client.async_write_register.assert_awaited_once_with(0x0411, 13)
     mock_coordinator.async_request_refresh.assert_awaited_once()
+    mock_coordinator.request_refresh_with_followup.assert_called_once()
+    assert "Backwash pre-write state:" in caplog.text
 
 
 @pytest.mark.asyncio
