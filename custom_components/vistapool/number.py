@@ -30,6 +30,7 @@ from .const import (
     NUMBER_DEFINITIONS,
     is_valid_relay_gpio,
 )
+from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 from .helpers import is_hydrolysis_in_percent
 
@@ -129,7 +130,13 @@ async def async_setup_entry(
 class VistaPoolNumber(VistaPoolEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool number entity."""
 
-    def __init__(self, coordinator, entry_id, key, props) -> None:
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        key: str,
+        props: dict[str, Any],
+    ) -> None:
         """Initialize the VistaPool number entity."""
         super().__init__(coordinator, entry_id)
         self._key = key

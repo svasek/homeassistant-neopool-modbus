@@ -18,7 +18,7 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
@@ -28,7 +28,7 @@ from .coordinator import VistaPoolCoordinator
 
 # Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
 # from the integration's __init__ module when config entry version changes.
-from .migration import async_migrate_entry  # noqa: F401
+from .migration import async_migrate_entry as async_migrate_entry  # noqa: F401
 from .modbus import VistaPoolModbusClient
 
 type VistaPoolConfigEntry = ConfigEntry[VistaPoolCoordinator]
@@ -124,7 +124,7 @@ def _register_services(hass: HomeAssistant) -> None:
     """Register VistaPool services."""
     from .helpers import get_timer_interval, hhmm_to_seconds, parse_register_int
 
-    def _get_coordinator(call):
+    def _get_coordinator(call: ServiceCall) -> VistaPoolCoordinator:
         """Resolve coordinator from service call data."""
         entries = hass.config_entries.async_entries(DOMAIN)
         entry_id = call.data.get("entry_id")
@@ -155,7 +155,7 @@ def _register_services(hass: HomeAssistant) -> None:
             )
         return coordinator
 
-    async def async_handle_set_timer(call) -> None:
+    async def async_handle_set_timer(call: ServiceCall) -> None:
         """Handle the set_timer service call."""
         try:
             timer_name = call.data["timer"]
@@ -215,7 +215,7 @@ def _register_services(hass: HomeAssistant) -> None:
                 translation_placeholders={"error": str(e)},
             ) from e
 
-    async def async_handle_write_register(call) -> None:
+    async def async_handle_write_register(call: ServiceCall) -> None:
         """Handle the write_register service call."""
         try:
             raw_address = call.data["address"]

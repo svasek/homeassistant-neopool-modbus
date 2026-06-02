@@ -16,6 +16,7 @@
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import HomeAssistant
@@ -23,6 +24,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import VistaPoolConfigEntry
 from .const import SENSOR_DEFINITIONS
+from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 from .helpers import (
     calculate_next_interval_time,
@@ -154,7 +156,13 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportInco
 
     _winter_mode_active = False  # sensors stay available during winter mode
 
-    def __init__(self, coordinator, entry_id, key, props) -> None:
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        key: str,
+        props: dict[str, Any],
+    ) -> None:
         """Initialize the VistaPool sensor entity."""
         super().__init__(coordinator, entry_id)  # Pass entry_id to the parent class
         self._key = key

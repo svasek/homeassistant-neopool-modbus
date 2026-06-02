@@ -19,6 +19,8 @@ This module defines the base entity class for the VistaPool integration.
 It provides common functionality for all entities, including device information,
 """
 
+from typing import Any
+
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify as ha_slugify
 
@@ -33,7 +35,7 @@ class VistaPoolEntity(CoordinatorEntity[VistaPoolCoordinator]):
     _attr_has_entity_name = True
     _winter_mode_active: bool = True
 
-    def __init__(self, coordinator, entry_id) -> None:
+    def __init__(self, coordinator: VistaPoolCoordinator, entry_id: str) -> None:
         super().__init__(coordinator)
         self._entry_id = entry_id
 
@@ -50,7 +52,7 @@ class VistaPoolEntity(CoordinatorEntity[VistaPoolCoordinator]):
         return getattr(self, "_attr_translation_key", None)  # pragma: no cover
 
     @property
-    def device_info(self) -> dict:  # type: ignore[override]  # pragma: no cover
+    def device_info(self) -> dict[str, Any]:  # type: ignore[override]  # pragma: no cover
         """Return device information for the entity."""
         data = self.coordinator.data or {}
         serial_number = modbus_regs_to_hex_string(data.get("MBF_POWER_MODULE_NODEID"))
@@ -77,14 +79,14 @@ class VistaPoolEntity(CoordinatorEntity[VistaPoolCoordinator]):
     # Generate a unique object ID for the entity to use in Home Assistant
     # This remove the prefix "mbf_" and "par_" from the key and replaces spaces, dashes, and dots with underscores
     @staticmethod
-    def slugify(name) -> str:
+    def slugify(name: str) -> str:
         """Convert a name to a slug suitable for use as an object ID."""
         if not name:
             return ""
         return ha_slugify(name.lower().replace("mbf_", "", 1).replace("par_", "", 1))
 
     @staticmethod
-    def decode_modules(model_bitmask) -> str:
+    def decode_modules(model_bitmask: int | None) -> str:
         """Decode MBF_PAR_MODEL bitmask into a human-readable string."""
         if model_bitmask is None:
             return "Unknown"

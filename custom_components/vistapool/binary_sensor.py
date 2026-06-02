@@ -24,6 +24,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import VistaPoolConfigEntry
 from .const import BINARY_SENSOR_DEFINITIONS, is_valid_relay_gpio
+from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 from .helpers import is_device_time_out_of_sync
 
@@ -183,12 +184,18 @@ class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):  # type: ignor
 
     _winter_mode_active = False  # binary sensors stay available during winter mode
 
-    def __init__(self, coordinator, entry_id, key, props) -> None:
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        key: str,
+        props: dict[str, Any],
+    ) -> None:
         """Initialize the binary sensor."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        self._bit = None
-        self._base = None
+        self._bit: str | None = None
+        self._base: str | None = None
 
         # Parse key if it is a status flag (e.g., "PH_STATUS_regulating")
         if "_STATUS_" in key:

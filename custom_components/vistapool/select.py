@@ -32,6 +32,7 @@ from .const import (
     PERIOD_SECONDS_TO_KEY,
     SELECT_DEFINITIONS,
 )
+from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 from .helpers import (
     generate_time_options,
@@ -120,7 +121,13 @@ async def async_setup_entry(
 class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool select entity."""
 
-    def __init__(self, coordinator, entry_id, key, props) -> None:
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        key: str,
+        props: dict[str, Any],
+    ) -> None:
         """Initialize the VistaPool select entity."""
         super().__init__(coordinator, entry_id)
         self._key = key

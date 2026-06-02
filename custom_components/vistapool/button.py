@@ -15,6 +15,7 @@
 """VistaPool Integration for Home Assistant - Button Module"""
 
 import logging
+from typing import Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
@@ -22,6 +23,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import VistaPoolConfigEntry
 from .const import BUTTON_DEFINITIONS
+from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 from .helpers import has_filtvalve, prepare_device_time
 
@@ -56,7 +58,13 @@ async def async_setup_entry(
 class VistaPoolButton(VistaPoolEntity, ButtonEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool button entity."""
 
-    def __init__(self, coordinator, entry_id, key, props) -> None:
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        key: str,
+        props: dict[str, Any],
+    ) -> None:
         """Initialize the VistaPool button entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
