@@ -11,3 +11,6 @@ pytest-asyncio
 
 # Linting & formatting
 ruff
+
+# Type checking
+basedpyright

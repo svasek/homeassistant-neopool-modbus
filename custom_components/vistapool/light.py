@@ -15,6 +15,7 @@
 """VistaPool Integration for Home Assistant - Light Module"""
 
 import logging
+from typing import Any
 
 from homeassistant.components.light import LightEntity
 from homeassistant.components.light.const import ColorMode
@@ -23,6 +24,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import VistaPoolConfigEntry
 from .const import EXEC_REGISTER, LIGHT_DEFINITIONS, is_valid_relay_gpio
+from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -66,7 +68,13 @@ async def async_setup_entry(
 class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool light entity."""
 
-    def __init__(self, coordinator, entry_id, key, props) -> None:
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        key: str,
+        props: dict[str, Any],
+    ) -> None:
         """Initialize the VistaPool light entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
@@ -92,7 +100,7 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
             getattr(self, "has_entity_name", None),
         )
 
-    async def async_turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light ON."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
@@ -129,7 +137,7 @@ class VistaPoolLight(VistaPoolEntity, LightEntity):  # type: ignore[reportIncomp
             self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
-    async def async_turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light OFF."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(

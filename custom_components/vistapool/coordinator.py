@@ -17,8 +17,10 @@
 import json
 import logging
 from datetime import timedelta
+from typing import Any
 
 from homeassistant.components import persistent_notification
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -39,6 +41,7 @@ from .const import (
     TIMER_BLOCKS,
 )
 from .helpers import is_device_time_out_of_sync, parse_version, prepare_device_time
+from .modbus import VistaPoolModbusClient
 
 MAX_SCAN_INTERVAL = timedelta(seconds=180)  # Maximum allowed scan interval (3 minutes)
 
@@ -47,10 +50,18 @@ _FILT_TIMERS = ("filtration1", "filtration2", "filtration3")
 _LOGGER = logging.getLogger(__name__)
 
 
-class VistaPoolCoordinator(DataUpdateCoordinator):
+class VistaPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator for VistaPool platform."""
 
-    def __init__(self, hass: HomeAssistant, client, entry, entry_id: str):
+    client: VistaPoolModbusClient
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        client: VistaPoolModbusClient,
+        entry: ConfigEntry,
+        entry_id: str,
+    ) -> None:
         # Store normal and maximal intervals
         self.normal_update_interval = timedelta(
             seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
@@ -75,7 +86,9 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
         self.winter_mode = self.entry.options.get("winter_mode", False)
         # Capability snapshot: persisted in options so platform setup survives restarts
         # in winter mode (where no real Modbus read occurs to populate coordinator.data).
-        self._capability_snapshot: dict = dict(entry.options.get("_capabilities", {}))
+        self._capability_snapshot: dict[str, Any] = dict(
+            entry.options.get("_capabilities", {})
+        )
         self._firmware = "?"
         self._model = "Unknown"
         self._follow_up_unsub: CALLBACK_TYPE | None = None
@@ -108,7 +121,7 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
             self._follow_up_unsub = None
 
         @callback
-        def _do_refresh(_now) -> None:
+        def _do_refresh(_now: Any) -> None:
             self._follow_up_unsub = None
             self.hass.async_create_task(self.async_request_refresh())
 
@@ -159,7 +172,7 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
             _LOGGER.info("GPIO registers passed sanity check: all values are valid")
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> dict[str, Any]:
         # Winter mode: skip all Modbus communication; entities remain but show unknown values
         if self.winter_mode:
             _LOGGER.debug("Winter mode active – skipping Modbus communication")
@@ -412,5 +425,5 @@ class VistaPoolCoordinator(DataUpdateCoordinator):
         return self._model
 
     @property
-    def device_slug(self):  # pragma: no cover
+    def device_slug(self) -> str:  # pragma: no cover
         return slugify(self.device_name)

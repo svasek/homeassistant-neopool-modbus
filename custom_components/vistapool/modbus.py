@@ -18,9 +18,9 @@ import asyncio
 import logging
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import datetime, timedelta
-from typing import overload
+from typing import Any, overload
 
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ConnectionException, ModbusException
@@ -73,8 +73,8 @@ _FULL_READ_INTERVAL = 60
 
 
 class VistaPoolModbusClient:
-    def __init__(self, config):
-        self._host = config["host"]
+    def __init__(self, config: Mapping[str, Any]) -> None:
+        self._host: str = config["host"]
         self._port = config.get("port", 502)
         self._unit = config.get("slave_id", 1)
         _framer_str = config.get("modbus_framer", DEFAULT_MODBUS_FRAMER).strip().lower()
@@ -115,7 +115,7 @@ class VistaPoolModbusClient:
         self._successful_write_ops = 0
 
         # Notification-based polling optimization
-        self._cached_result: dict = {}  # Last known values for all registers
+        self._cached_result: dict[str, Any] = {}  # Last known values for all registers
         self._polls_since_full_read: int = (
             _FULL_READ_INTERVAL  # Force full read on first poll
         )
@@ -125,7 +125,7 @@ class VistaPoolModbusClient:
         self._last_was_full_read: bool = (
             True  # Whether last _perform_read_all was a full read
         )
-        self._cached_timers: dict = {}  # Last known timer values
+        self._cached_timers: dict[str, Any] = {}  # Last known timer values
 
     async def get_client(self) -> AsyncModbusTcpClient:
         """Get or create a Modbus client with retry logic."""
@@ -362,7 +362,7 @@ class VistaPoolModbusClient:
             _LOGGER.debug("Connection health check failed: %s", e)
             return False
 
-    async def _safe_close_client(self):
+    async def _safe_close_client(self) -> None:
         """Safely close the Modbus client connection."""
         if self._client is not None:
             try:
@@ -392,7 +392,7 @@ class VistaPoolModbusClient:
             self._last_was_full_read = True
             self._cached_timers = {}
 
-    async def async_read_all(self) -> dict:
+    async def async_read_all(self) -> dict[str, Any]:
         """Read all data with retry logic."""
         self._total_operations += 1
         max_retries = 2
@@ -432,9 +432,9 @@ class VistaPoolModbusClient:
 
     async def _read_register_ranges(
         self,
-        client,
+        client: AsyncModbusTcpClient,
         ranges: list[tuple[int, int]],
-        read_func=None,
+        read_func: Callable[..., Any] | None = None,
         label: str = "",
     ) -> list[int]:
         """Read one or more register ranges and return a flat list of values.
@@ -482,7 +482,7 @@ class VistaPoolModbusClient:
                 )
         return registers
 
-    async def _perform_read_all(self) -> dict:
+    async def _perform_read_all(self) -> dict[str, Any]:
         result = {}
 
         @overload
@@ -985,8 +985,8 @@ class VistaPoolModbusClient:
         return result
 
     async def async_write_register(
-        self, address: int, value, apply: bool = False
-    ) -> dict | None:
+        self, address: int, value: int | list[int], apply: bool = False
+    ) -> dict[str, Any] | None:
         """Write register with retry."""
         try:
             result = await self._perform_write_register(address, value, apply)
@@ -999,14 +999,14 @@ class VistaPoolModbusClient:
                 self._client = None
             raise
 
-    def _calculate_avg_response_time(self):
+    def _calculate_avg_response_time(self) -> float | None:
         if not self._response_times:
             return None
         return sum(self._response_times) / len(self._response_times)  # pragma: no cover
 
     async def _perform_write_register(
-        self, address: int, value, apply: bool = False
-    ) -> dict | None:
+        self, address: int, value: int | list[int], apply: bool = False
+    ) -> dict[str, Any] | None:
         """
         Write one or more Modbus registers using function 0x10 (Write Multiple Registers).
 
@@ -1128,7 +1128,9 @@ class VistaPoolModbusClient:
 
     """ Manual controller for AUX relays (1-4) """
 
-    async def async_write_aux_relay(self, relay_index, on) -> dict | None:
+    async def async_write_aux_relay(
+        self, relay_index: int, on: bool
+    ) -> dict[str, Any] | None:
         """Write state of an AUX relay (1-4) using function 0x10 (Write Multiple Registers)."""
         if relay_index not in AUX_BITMASKS:  # pragma: no cover
             _LOGGER.error("Invalid AUX relay index: %s (expected 1–4)", relay_index)
@@ -1190,7 +1192,11 @@ class VistaPoolModbusClient:
             end = time.monotonic()
             self._write_response_times.append(end - start)
 
-    async def read_all_timers(self, enabled_timers=None, force_read=None) -> dict:
+    async def read_all_timers(
+        self,
+        enabled_timers: list[str] | None = None,
+        force_read: tuple[str, ...] | None = None,
+    ) -> dict[str, Any]:
         """Read timers with retry."""
         try:
             result = await self._perform_read_all_timers(enabled_timers, force_read)
@@ -1204,8 +1210,10 @@ class VistaPoolModbusClient:
             raise
 
     async def _perform_read_all_timers(
-        self, enabled_timers=None, force_read=None
-    ) -> dict:
+        self,
+        enabled_timers: list[str] | None = None,
+        force_read: tuple[str, ...] | None = None,
+    ) -> dict[str, Any]:
         """Reads all timer blocks from the device.
         If enabled_timers is provided, only those timers will be read.
         If enabled_timers is None, all timers will be read.
@@ -1272,7 +1280,7 @@ class VistaPoolModbusClient:
         self._cached_timers.update(timers)
         return timers
 
-    async def write_timer(self, block_name, timer_data) -> bool:
+    async def write_timer(self, block_name: str, timer_data: dict[str, Any]) -> bool:
         """Write register with retry."""
         try:
             result = await self._perform_write_timer(block_name, timer_data)
@@ -1285,7 +1293,9 @@ class VistaPoolModbusClient:
                 self._client = None
             raise
 
-    async def _perform_write_timer(self, block_name, timer_data) -> bool:
+    async def _perform_write_timer(
+        self, block_name: str, timer_data: dict[str, Any]
+    ) -> bool:
         """
         Writes only requested fields to a timer block. Preserves all other fields.
         Only update 'on' and 'interval' (and optionally other editable fields).
@@ -1381,7 +1391,7 @@ class VistaPoolModbusClient:
             end = time.monotonic()
             self._write_response_times.append(end - start)
 
-    def _calculate_avg_write_response_time(self):
+    def _calculate_avg_write_response_time(self) -> float | None:
         if not self._write_response_times:
             return None
         return sum(self._write_response_times) / len(
@@ -1389,7 +1399,7 @@ class VistaPoolModbusClient:
         )  # pragma: no cover
 
     @property
-    def connection_stats(self) -> dict:
+    def connection_stats(self) -> dict[str, Any]:
         """Return connection statistics for diagnostics."""
         return {
             "host": self._host,

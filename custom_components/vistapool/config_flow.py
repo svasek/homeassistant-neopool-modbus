@@ -16,10 +16,14 @@
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
+
+if TYPE_CHECKING:
+    from .options_flow import VistaPoolOptionsFlowHandler
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers import translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
@@ -38,11 +42,9 @@ from .helpers import async_get_device_serial
 _LOGGER = logging.getLogger(__name__)
 
 
-async def is_host_port_open(host, port, timeout=3):
+async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
     try:
-        reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(host, port), timeout
-        )
+        _, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout)
         writer.close()
         await writer.wait_closed()
         return True
@@ -75,7 +77,9 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
         except Exception:  # noqa: BLE001
             return DEFAULT_NAME
 
-    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Handle the initial step of the configuration flow."""
         default_name = await self._async_get_default_name()
         data_schema = vol.Schema(
@@ -197,7 +201,9 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
             data_schema=data_schema,
         )
 
-    async def async_step_reconfigure(self, user_input=None) -> ConfigFlowResult:
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Handle reconfiguration of an existing entry."""
         entry_id = self.context.get("entry_id")
         if entry_id is None:
@@ -250,7 +256,9 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
         )
 
     @staticmethod
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(
+        config_entry: ConfigEntry,
+    ) -> "VistaPoolOptionsFlowHandler":
         from .options_flow import VistaPoolOptionsFlowHandler
 
         return VistaPoolOptionsFlowHandler()

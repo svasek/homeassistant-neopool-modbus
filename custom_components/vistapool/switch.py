@@ -29,6 +29,7 @@ from .const import (
     SWITCH_DEFINITIONS,
     is_valid_relay_gpio,
 )
+from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -102,7 +103,13 @@ async def async_setup_entry(
 class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Representation of a VistaPool switch entity."""
 
-    def __init__(self, coordinator, entry_id, key, props) -> None:
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        key: str,
+        props: dict[str, Any],
+    ) -> None:
         """Initialize the VistaPool switch entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
@@ -139,7 +146,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             getattr(self, "has_entity_name", None),
         )
 
-    async def async_turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch ON."""
         if (
             self._switch_type not in ("winter_mode", "auto_time_sync")
@@ -219,7 +226,7 @@ class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportInco
             await self.coordinator.async_request_refresh()
             self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch OFF."""
         if (
             self._switch_type not in ("winter_mode", "auto_time_sync")
