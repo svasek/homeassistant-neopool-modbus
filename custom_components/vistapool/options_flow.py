@@ -25,7 +25,11 @@ from homeassistant.const import CONF_NAME
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from homeassistant.util import slugify
 
-from .const import DEFAULT_SCAN_INTERVAL, DEFAULT_TIMER_RESOLUTION
+from .const import (
+    CONF_FILTRATION_PUMP_POWER,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TIMER_RESOLUTION,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,6 +78,10 @@ class VistaPoolOptionsFlowHandler(config_entries.OptionsFlow):
                 "measure_when_filtration_off",
                 default=options.get("measure_when_filtration_off", False),
             ): bool,
+            vol.Optional(
+                CONF_FILTRATION_PUMP_POWER,
+                default=options.get(CONF_FILTRATION_PUMP_POWER, 0),
+            ): int,
             vol.Optional(
                 "use_filtration1",
                 default=options.get("use_filtration1", True),

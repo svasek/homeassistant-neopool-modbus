@@ -80,7 +80,8 @@
           "use_aux3": "Activer le relais Aux3",
           "use_aux4": "Activer le relais Aux4",
           "unlock_advanced": "Débloquer les options avancées",
-          "enable_backwash_option": "Activer le mode 'Backwash'"
+          "enable_backwash_option": "Activer le mode 'Backwash'",
+          "filtration_pump_power": "Puissance de la pompe de filtration (W, 0 = désactivé)"
         },
         "data_description": {
           "scan_interval": "Des valeurs plus basses augmentent la réactivité mais génèrent plus de trafic Modbus.",
@@ -96,7 +97,8 @@
           "use_aux3": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
           "use_aux4": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
           "unlock_advanced": "Entrez le code de déverrouillage pour accéder aux paramètres avancés (format : préfixe_appareil + année en cours).",
-          "enable_backwash_option": "Ajoute 'Backwash' à la sélection du mode de filtration. Uniquement pour les systèmes avec vanne multivoies manuelle."
+          "enable_backwash_option": "Ajoute 'Backwash' à la sélection du mode de filtration. Uniquement pour les systèmes avec vanne multivoies manuelle.",
+          "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique."
         }
       },
       "advanced": {

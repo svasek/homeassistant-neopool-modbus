@@ -57,6 +57,8 @@ DEFAULT_PORT = 502
 DEFAULT_SLAVE_ID = 1
 DEFAULT_MODBUS_FRAMER = "tcp"  # "tcp" = standard Modbus TCP (MBAP header), "rtu" = RTU over TCP (no MBAP, CRC)
 
+CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
+
 MANUAL_FILTRATION_REGISTER = 0x0413
 EEPROM_SAVE_REGISTER = 0x02F0
 EXEC_REGISTER = 0x02F5
@@ -290,6 +292,13 @@ SENSOR_DEFINITIONS = {
         "state_class": None,
         "display_precision": 0,
         "entity_registry_enabled_default": False,
+    },
+    CONF_FILTRATION_PUMP_POWER: {
+        "name": "Filtration Pump Power",
+        "unit": "W",
+        "device_class": SensorDeviceClass.POWER,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "display_precision": 0,
     },
 }
 

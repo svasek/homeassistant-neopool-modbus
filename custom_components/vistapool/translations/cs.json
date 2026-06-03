@@ -45,7 +45,8 @@
           "use_filtration2": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
           "use_filtration3": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
           "use_light": "Vytvoří entity pro ovládání a sledování relé osvětlení bazénu.",
-          "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý."
+          "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý.",
+          "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie."
         }
       }
     },
@@ -80,7 +81,8 @@
           "use_aux3": "Povolit relé Aux3",
           "use_aux4": "Povolit relé Aux4",
           "unlock_advanced": "Odemknout pokročilé možnosti",
-          "enable_backwash_option": "Povolit režim 'Backwash'"
+          "enable_backwash_option": "Povolit režim 'Backwash'",
+          "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)"
         },
         "data_description": {
           "scan_interval": "Nižší hodnoty zvyšují rychlost odezvy, ale generují více Modbus komunikace.",
@@ -96,7 +98,8 @@
           "use_aux3": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
           "use_aux4": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
           "unlock_advanced": "Zadejte odemykací kód pro přístup k pokročilým nastavením (formát: prefix_zařízení + aktuální rok).",
-          "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Pouze pro systémy s manuálním vícecestným ventilem."
+          "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Pouze pro systémy s manuálním vícecestným ventilem.",
+          "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie."
         }
       },
       "advanced": {
@@ -201,6 +204,12 @@
       },
       "filtration_remaining": {
         "name": "Zbývající čas filtrace"
+      },
+      "filtration_pump_power": {
+        "name": "Příkon filtračního čerpadla"
+      },
+      "filtration_pump_energy": {
+        "name": "Spotřeba energie filtrace"
       }
     },
     "binary_sensor": {

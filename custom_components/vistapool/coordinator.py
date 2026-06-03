@@ -31,6 +31,7 @@ from homeassistant.util import slugify
 
 from .const import (
     CAPABILITY_KEYS,
+    CONF_FILTRATION_PUMP_POWER,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     FOLLOW_UP_REFRESH_DELAY,
@@ -253,6 +254,11 @@ class VistaPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if cd is not None and cd > 0:
                     filt_remaining = max(filt_remaining or 0, cd)
             data["FILTRATION_REMAINING"] = filt_remaining
+
+            pump_power = int(self.entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
+            data[CONF_FILTRATION_PUMP_POWER] = (
+                pump_power if data.get("Filtration Pump") else 0
+            )
 
             if self.auto_time_sync:
                 if is_device_time_out_of_sync(data, self.hass):

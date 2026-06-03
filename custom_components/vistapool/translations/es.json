@@ -80,7 +80,8 @@
           "use_aux3": "Activar relé Aux3",
           "use_aux4": "Activar relé Aux4",
           "unlock_advanced": "Desbloquear opciones avanzadas",
-          "enable_backwash_option": "Activar modo 'Backwash'"
+          "enable_backwash_option": "Activar modo 'Backwash'",
+          "filtration_pump_power": "Potencia de la bomba de filtración (W, 0 = desactivado)"
         },
         "data_description": {
           "scan_interval": "Valores más bajos aumentan la capacidad de respuesta pero generan más tráfico Modbus.",
@@ -96,7 +97,8 @@
           "use_aux3": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
           "use_aux4": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
           "unlock_advanced": "Introduzca el código de desbloqueo para acceder a configuraciones avanzadas (formato: prefijo_dispositivo + año actual).",
-          "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Solo para sistemas con válvula multivía manual."
+          "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Solo para sistemas con válvula multivía manual.",
+          "filtration_pump_power": "Indique la potencia nominal de la bomba de filtración. Con un valor distinto de cero se crean dos sensores: potencia instantánea (W) y energía acumulada (Wh), ambos utilizables en el panel de energía."
         }
       },
       "advanced": {

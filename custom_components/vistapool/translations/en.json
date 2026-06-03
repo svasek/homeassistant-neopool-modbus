@@ -32,7 +32,8 @@
           "use_filtration2": "Enable 2nd filtration timer for automatic mode",
           "use_filtration3": "Enable 3rd filtration timer for automatic mode",
           "use_light": "Enable Light Relay",
-          "use_cover_sensor": "Enable Pool Cover Sensor"
+          "use_cover_sensor": "Enable Pool Cover Sensor",
+          "filtration_pump_power": "Filtration pump power (W, 0 = disabled)"
         },
         "data_description": {
           "name": "Used as a prefix for all entity IDs. Spaces become underscores, e.g. 'Pool West' → sensor.pool_west_measure_ph.",
@@ -45,7 +46,8 @@
           "use_filtration2": "Creates timer entities for configuring automatic filtration schedule.",
           "use_filtration3": "Creates timer entities for configuring automatic filtration schedule.",
           "use_light": "Creates entities to control and monitor the pool light relay.",
-          "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed."
+          "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed.",
+          "filtration_pump_power": "Set the rated wattage of the filtration pump. When non-zero, two sensors are created: instantaneous power (W) and cumulative energy (Wh), both usable in the Energy dashboard."
         }
       }
     },
@@ -80,7 +82,8 @@
           "use_aux3": "Enable Aux3 Relay",
           "use_aux4": "Enable Aux4 Relay",
           "unlock_advanced": "Unlock advanced options",
-          "enable_backwash_option": "Enable 'Backwash' mode"
+          "enable_backwash_option": "Enable 'Backwash' mode",
+          "filtration_pump_power": "Filtration pump power (W, 0 = disabled)"
         },
         "data_description": {
           "scan_interval": "Lower values increase responsiveness but generate more Modbus traffic.",
@@ -96,7 +99,8 @@
           "use_aux3": "Creates switch and timer entities for this auxiliary relay output.",
           "use_aux4": "Creates switch and timer entities for this auxiliary relay output.",
           "unlock_advanced": "Enter the unlock code to access advanced settings (format: device_prefix + current year).",
-          "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Only for systems with manual multi-way valves."
+          "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Only for systems with manual multi-way valves.",
+          "filtration_pump_power": "Set the rated wattage of the filtration pump. When non-zero, two sensors are created: instantaneous power (W) and cumulative energy (Wh), both usable in the Energy dashboard."
         }
       },
       "advanced": {
@@ -201,6 +205,12 @@
       },
       "filtration_remaining": {
         "name": "Filtration Time Remaining"
+      },
+      "filtration_pump_power": {
+        "name": "Filtration Pump Power"
+      },
+      "filtration_pump_energy": {
+        "name": "Filtration Pump Energy"
       }
     },
     "binary_sensor": {

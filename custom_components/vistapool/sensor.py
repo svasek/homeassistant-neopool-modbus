@@ -18,12 +18,19 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import dt as dt_util
 
 from . import VistaPoolConfigEntry
-from .const import SENSOR_DEFINITIONS
+from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
 from .coordinator import VistaPoolCoordinator
 from .entity import VistaPoolEntity
 from .helpers import (
@@ -67,8 +74,10 @@ PH_STATUS_ALARM_MAP = {
 }
 
 
-def _should_skip_sensor(key: str, data: dict) -> bool:
+def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bool:
     """Return True if a sensor entity should not be created."""
+    if key == CONF_FILTRATION_PUMP_POWER:
+        return not int((options or {}).get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
     if key == "MBF_MEASURE_TEMPERATURE" and not bool(
         data.get("MBF_PAR_TEMPERATURE_ACTIVE")
     ):
@@ -137,7 +146,7 @@ async def async_setup_entry(
 
     # Loop through the defined sensors and create SensorEntity instances
     for key, props in SENSOR_DEFINITIONS.items():
-        if _should_skip_sensor(key, coordinator.data):
+        if _should_skip_sensor(key, coordinator.data, dict(entry.options)):
             continue
 
         entities.append(
@@ -148,6 +157,13 @@ async def async_setup_entry(
                 props,
             )
         )
+
+    pump_power = int(entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
+    if pump_power > 0:
+        entities.append(
+            VistaPoolFiltrationEnergySensor(coordinator, entry.entry_id, pump_power)
+        )
+
     async_add_entities(entities)
 
 
@@ -347,3 +363,64 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportInco
                 return ["off", "idle", "base"]
             return ["off", "idle", "acid", "base", "both"]
         return None  # pragma: no cover
+
+
+class VistaPoolFiltrationEnergySensor(VistaPoolEntity, SensorEntity, RestoreEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Cumulative energy consumed by the filtration pump (Wh).
+
+    Integrates instantaneous power over time using coordinator update timestamps.
+    Suitable for the Energy dashboard "Individual devices" energy tracking.
+    """
+
+    _winter_mode_active = False
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_translation_key = "filtration_pump_energy"
+
+    def __init__(
+        self,
+        coordinator: VistaPoolCoordinator,
+        entry_id: str,
+        pump_power_w: int,
+    ) -> None:
+        super().__init__(coordinator, entry_id)
+        self._pump_power_w = pump_power_w
+        self._attr_suggested_object_id = (
+            f"{coordinator.device_slug}_filtration_pump_energy"
+        )
+        device_id = coordinator.entry.unique_id or entry_id
+        self._attr_unique_id = f"{device_id}_filtration_pump_energy"
+        self._total_wh: float = 0.0
+        self._last_update: datetime | None = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last known energy value from entity state after restart."""
+        await super().async_added_to_hass()
+        if (
+            last_state := await self.async_get_last_state()
+        ) and last_state.state not in (
+            None,
+            "unavailable",
+            "unknown",
+        ):
+            try:
+                self._total_wh = float(last_state.state)
+            except ValueError:
+                pass
+
+    def _handle_coordinator_update(self) -> None:
+        """Accumulate energy on each coordinator update."""
+        now = dt_util.utcnow()
+        if self._last_update is not None and self.coordinator.data.get(
+            "Filtration Pump"
+        ):
+            elapsed_h = (now - self._last_update).total_seconds() / 3600.0
+            self._total_wh += self._pump_power_w * elapsed_h
+        self._last_update = now
+        super()._handle_coordinator_update()
+
+    @property
+    def native_value(self) -> float:  # type: ignore[override]
+        """Return accumulated energy in Wh."""
+        return round(self._total_wh, 3)

@@ -80,7 +80,8 @@
           "use_aux3": "Aux3-Relais aktivieren",
           "use_aux4": "Aux4-Relais aktivieren",
           "unlock_advanced": "Erweiterte Optionen freischalten",
-          "enable_backwash_option": "'Backwash'-Modus aktivieren"
+          "enable_backwash_option": "'Backwash'-Modus aktivieren",
+          "filtration_pump_power": "Leistung der Filtrationspumpe (W, 0 = deaktiviert)"
         },
         "data_description": {
           "scan_interval": "Niedrigere Werte erhöhen die Reaktionsfähigkeit, erzeugen aber mehr Modbus-Verkehr.",
@@ -96,7 +97,8 @@
           "use_aux3": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
           "use_aux4": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
           "unlock_advanced": "Geben Sie den Freischaltcode ein, um auf erweiterte Einstellungen zuzugreifen (Format: Gerätepräfix + aktuelles Jahr).",
-          "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Nur für Systeme mit manuellem Mehrwegeventil."
+          "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Nur für Systeme mit manuellem Mehrwegeventil.",
+          "filtration_pump_power": "Geben Sie die Nennleistung der Filtrationspumpe an. Bei einem Wert ungleich null werden zwei Sensoren erstellt: momentane Leistung (W) und kumulierter Energieverbrauch (Wh), beide nutzbar im Energie-Dashboard."
         }
       },
       "advanced": {

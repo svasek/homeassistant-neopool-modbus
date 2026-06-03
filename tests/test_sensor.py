@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,6 +21,7 @@ from custom_components.vistapool.sensor import (
     FILTRATION_MODE_MAP,
     FILTRATION_SPEED_MAP,
     PH_STATUS_ALARM_MAP,
+    VistaPoolFiltrationEnergySensor,
     VistaPoolSensor,
     async_setup_entry,
 )
@@ -945,3 +947,258 @@ def test_sensor_filtration_remaining_none_when_idle():
 
     ent = VistaPoolSensor(mock_coordinator, "test_entry", "FILTRATION_REMAINING", {})
     assert ent.native_value is None
+
+
+@pytest.mark.asyncio
+async def test_filtration_power_sensor_created_when_nonzero():
+    """Power sensor is created as a VistaPoolSensor when filtration_pump_power > 0."""
+    from custom_components.vistapool.const import (
+        CONF_FILTRATION_PUMP_POWER,
+    )
+
+    class DummyEntry:
+        unique_id = None
+        entry_id = "test_entry"
+        options = {CONF_FILTRATION_PUMP_POWER: 570}
+
+    class DummyCoordinator:
+        data = {CONF_FILTRATION_PUMP_POWER: 570, "Filtration Pump": True}
+        config_entry = DummyEntry()
+        entry = config_entry
+        device_slug = "vistapool"
+
+    hass = MagicMock()
+    entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
+    async_add_entities = MagicMock()
+    await async_setup_entry(hass, entry, async_add_entities)
+    entities = async_add_entities.call_args[0][0]
+    keys = [getattr(e, "_key", None) for e in entities]
+    assert CONF_FILTRATION_PUMP_POWER in keys
+
+
+@pytest.mark.asyncio
+async def test_filtration_power_sensor_skipped_when_zero():
+    """Power sensor is not created when filtration_pump_power is 0."""
+    from custom_components.vistapool.const import CONF_FILTRATION_PUMP_POWER
+
+    class DummyEntry:
+        unique_id = None
+        entry_id = "test_entry"
+        options = {CONF_FILTRATION_PUMP_POWER: 0}
+
+    class DummyCoordinator:
+        data = {CONF_FILTRATION_PUMP_POWER: 0}
+        config_entry = DummyEntry()
+        entry = config_entry
+        device_slug = "vistapool"
+
+    hass = MagicMock()
+    entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
+    async_add_entities = MagicMock()
+    await async_setup_entry(hass, entry, async_add_entities)
+    entities = async_add_entities.call_args[0][0]
+    keys = [getattr(e, "_key", None) for e in entities]
+    assert CONF_FILTRATION_PUMP_POWER not in keys
+
+
+def test_filtration_power_sensor_native_value():
+    """Power sensor returns coordinator data value (set by coordinator based on pump state)."""
+    from custom_components.vistapool.const import (
+        CONF_FILTRATION_PUMP_POWER,
+        SENSOR_DEFINITIONS,
+    )
+
+    mock_coordinator = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.config_entry.options = {CONF_FILTRATION_PUMP_POWER: 570}
+    mock_coordinator.entry = mock_coordinator.config_entry
+    mock_coordinator.device_slug = "vistapool"
+
+    ent = VistaPoolSensor(
+        mock_coordinator,
+        "test_entry",
+        CONF_FILTRATION_PUMP_POWER,
+        SENSOR_DEFINITIONS[CONF_FILTRATION_PUMP_POWER],
+    )
+    mock_coordinator.data = {CONF_FILTRATION_PUMP_POWER: 570}
+    assert ent.native_value == 570
+
+    mock_coordinator.data = {CONF_FILTRATION_PUMP_POWER: 0}
+    assert ent.native_value == 0
+
+
+@pytest.mark.asyncio
+async def test_filtration_energy_sensor_created_when_nonzero():
+    """Energy sensor (VistaPoolFiltrationEnergySensor) is created when pump_power > 0."""
+    from custom_components.vistapool.const import CONF_FILTRATION_PUMP_POWER
+
+    class DummyEntry:
+        unique_id = None
+        entry_id = "test_entry"
+        options = {CONF_FILTRATION_PUMP_POWER: 570}
+
+    class DummyCoordinator:
+        data = {CONF_FILTRATION_PUMP_POWER: 570}
+        config_entry = DummyEntry()
+        entry = config_entry
+        device_slug = "vistapool"
+
+    hass = MagicMock()
+    entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
+    async_add_entities = MagicMock()
+    await async_setup_entry(hass, entry, async_add_entities)
+    entities = async_add_entities.call_args[0][0]
+    energy_entities = [
+        e for e in entities if isinstance(e, VistaPoolFiltrationEnergySensor)
+    ]
+    assert len(energy_entities) == 1
+
+
+@pytest.mark.asyncio
+async def test_filtration_energy_sensor_not_created_when_zero():
+    """Energy sensor is not created when pump_power is 0."""
+    from custom_components.vistapool.const import CONF_FILTRATION_PUMP_POWER
+
+    class DummyEntry:
+        unique_id = None
+        entry_id = "test_entry"
+        options = {CONF_FILTRATION_PUMP_POWER: 0}
+
+    class DummyCoordinator:
+        data = {}
+        config_entry = DummyEntry()
+        entry = config_entry
+        device_slug = "vistapool"
+
+    hass = MagicMock()
+    entry = DummyEntry()
+    entry.runtime_data = DummyCoordinator()
+    async_add_entities = MagicMock()
+    await async_setup_entry(hass, entry, async_add_entities)
+    entities = async_add_entities.call_args[0][0]
+    assert not any(isinstance(e, VistaPoolFiltrationEnergySensor) for e in entities)
+
+
+def test_filtration_energy_sensor_accumulates():
+    """Energy sensor accumulates Wh when pump runs between updates."""
+    from datetime import timezone
+
+    mock_coordinator = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.entry = mock_coordinator.config_entry
+    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.data = {"Filtration Pump": True}
+
+    ent = VistaPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
+    ent.async_write_ha_state = MagicMock()
+
+    t0 = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    t1 = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)  # 1 hour later
+
+    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t0):
+        ent._handle_coordinator_update()
+
+    assert ent.native_value == 0.0  # first call: no elapsed time
+
+    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t1):
+        ent._handle_coordinator_update()
+
+    assert ent.native_value == pytest.approx(570.0)  # 570W * 1h = 570 Wh
+
+
+def test_filtration_energy_sensor_no_accumulation_when_off():
+    """Energy sensor does not accumulate when pump is off."""
+    from datetime import timezone
+
+    mock_coordinator = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.entry = mock_coordinator.config_entry
+    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.data = {"Filtration Pump": False}
+
+    ent = VistaPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
+    ent.async_write_ha_state = MagicMock()
+
+    t0 = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    t1 = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+
+    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t0):
+        ent._handle_coordinator_update()
+    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t1):
+        ent._handle_coordinator_update()
+
+    assert ent.native_value == 0.0
+
+
+@pytest.mark.asyncio
+async def test_filtration_energy_sensor_restores_state():
+    """Energy sensor restores _total_wh from last HA state on async_added_to_hass."""
+    mock_coordinator = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.entry = mock_coordinator.config_entry
+    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.data = {}
+
+    ent = VistaPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
+
+    mock_state = MagicMock()
+    mock_state.state = "123.456"
+
+    with patch(
+        "homeassistant.helpers.restore_state.RestoreEntity.async_added_to_hass",
+        return_value=None,
+    ):
+        with patch.object(ent, "async_get_last_state", return_value=mock_state):
+            await ent.async_added_to_hass()
+
+    assert ent._total_wh == pytest.approx(123.456)
+
+
+@pytest.mark.asyncio
+async def test_filtration_energy_sensor_restore_ignores_unavailable():
+    """Energy sensor does not restore from 'unavailable' or 'unknown' states."""
+    mock_coordinator = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.entry = mock_coordinator.config_entry
+    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.data = {}
+
+    for bad_state in ("unavailable", "unknown", None):
+        ent = VistaPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
+        mock_state = MagicMock()
+        mock_state.state = bad_state
+
+        with patch(
+            "homeassistant.helpers.restore_state.RestoreEntity.async_added_to_hass",
+            return_value=None,
+        ):
+            with patch.object(ent, "async_get_last_state", return_value=mock_state):
+                await ent.async_added_to_hass()
+
+        assert ent._total_wh == 0.0
+
+
+@pytest.mark.asyncio
+async def test_filtration_energy_sensor_restore_ignores_invalid_float():
+    """Energy sensor handles ValueError gracefully when last state is not a float."""
+    mock_coordinator = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.entry = mock_coordinator.config_entry
+    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.data = {}
+
+    ent = VistaPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
+    mock_state = MagicMock()
+    mock_state.state = "not_a_number"
+
+    with patch(
+        "homeassistant.helpers.restore_state.RestoreEntity.async_added_to_hass",
+        return_value=None,
+    ):
+        with patch.object(ent, "async_get_last_state", return_value=mock_state):
+            await ent.async_added_to_hass()
+
+    assert ent._total_wh == 0.0

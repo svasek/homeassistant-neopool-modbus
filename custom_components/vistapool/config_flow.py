@@ -30,6 +30,7 @@ from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from homeassistant.util import slugify
 
 from .const import (
+    CONF_FILTRATION_PUMP_POWER,
     DEFAULT_MODBUS_FRAMER,
     DEFAULT_NAME,
     DEFAULT_PORT,
@@ -102,6 +103,10 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
                         ]
                     )
                 ),
+                vol.Optional(
+                    CONF_FILTRATION_PUMP_POWER,
+                    default=0,
+                ): int,
                 vol.Optional(
                     "use_filtration1",
                     default=True,
