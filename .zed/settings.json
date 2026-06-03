@@ -1,0 +1,6 @@
+{
+  "format_on_save": "on",
+  "languages": {
+    "JSON": { "format_on_save": "off" },
+  },
+}
