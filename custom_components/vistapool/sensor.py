@@ -15,6 +15,7 @@
 """VistaPool Integration for Home Assistant - Sensor Module"""
 
 import logging
+import math
 from datetime import datetime
 from typing import Any
 
@@ -405,7 +406,9 @@ class VistaPoolFiltrationEnergySensor(VistaPoolEntity, SensorEntity, RestoreEnti
             "unknown",
         ):
             try:
-                self._total_wh = float(last_state.state)
+                restored = float(last_state.state)
+                if math.isfinite(restored) and restored >= 0:
+                    self._total_wh = restored
             except ValueError:
                 pass
 

@@ -1228,3 +1228,27 @@ async def test_filtration_energy_sensor_restore_ignores_invalid_float():
             await ent.async_added_to_hass()
 
     assert ent._total_wh == 0.0
+
+
+@pytest.mark.asyncio
+async def test_filtration_energy_sensor_restore_ignores_non_finite():
+    """Energy sensor ignores nan/inf/-inf and negative restored values."""
+    mock_coordinator = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry"
+    mock_coordinator.entry = mock_coordinator.config_entry
+    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.data = {}
+
+    for bad_value in ("nan", "inf", "-inf", "-1.0"):
+        ent = VistaPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
+        mock_state = MagicMock()
+        mock_state.state = bad_value
+
+        with patch(
+            "homeassistant.helpers.restore_state.RestoreEntity.async_added_to_hass",
+            return_value=None,
+        ):
+            with patch.object(ent, "async_get_last_state", return_value=mock_state):
+                await ent.async_added_to_hass()
+
+        assert ent._total_wh == 0.0, f"Expected 0.0 for state={bad_value!r}"
