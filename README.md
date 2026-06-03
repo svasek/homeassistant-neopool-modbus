@@ -94,7 +94,7 @@ If you find this integration useful, consider supporting its development:
 - **Reliable single Modbus TCP connection per device/hub** (improves stability, avoids connection issues).
 - **Multi-hub support**: Add multiple VistaPool devices, each with a custom prefix (used in entity IDs).
 - **Sensors**:
-  pH, Redox (ORP), Salt, Conductivity, Water Temperature, Ionization, Hydrolysis Intensity/Voltage, Device Time, Status/Alarm bits, Filtration speed _(if supported)_, Backwash remaining time _(if Besgo automatic filter valve is configured)_.
+  pH, Redox (ORP), Salt, Conductivity, Water Temperature, Ionization, Hydrolysis Intensity/Voltage, Device Time, Status/Alarm bits, Filtration speed _(if supported)_, Backwash remaining time _(if Besgo automatic filter valve is configured)_, **Filtration pump power & energy** _(if pump wattage is configured in Options)_.
 - **Numbers**:
   Setpoints for pH, Redox, Chlorine, Temperature, Hydrolysis production, Hydrolysis cover reduction % _(if hydrolysis module present + cover sensor enabled)_, Hydrolysis shutdown temperature threshold _(if hydrolysis module + temperature sensor + cover sensor enabled)_.
 - **Switches**:
@@ -158,6 +158,7 @@ After initial setup, you can fine-tune the integration:
 - **Enable/disable relays** (Light and AUX1–AUX4 are default: disabled)
 - **Enable/disable cover sensor** (pool cover input — enables cover-related entities; default: disabled)
 - **Enable/disable filtration timers** (filtration1, filtration2, filtration3)
+- **Filtration pump power** (rated wattage in W; when non-zero, creates instantaneous power and cumulative energy sensors usable in the Energy dashboard)
 - **Unlock advanced features** (see [below](#advanced-options-unlocking-backwash-mode))
 
 Go to **Settings → Devices & Services → VistaPool Modbus Integration → Configure**  
@@ -229,7 +230,8 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
 - **Sensors**:
   `sensor.<name>_measure_ph`, `sensor.<name>_measure_temperature`, `sensor.<name>_filt_mode`,
   `sensor.<name>_filtration_speed` _(if supported)_,
-  `sensor.<name>_filtvalve_remaining` _(if Besgo valve configured)_
+  `sensor.<name>_filtvalve_remaining` _(if Besgo valve configured)_,
+  `sensor.<name>_filtration_pump_power`, `sensor.<name>_filtration_pump_energy` _(if pump wattage configured in Options)_
 - **Numbers**:
   `number.<name>_hidro`, `number.<name>_ph1`,
   `number.<name>_heating_temp` _(if supported)_,
@@ -262,6 +264,7 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
 - **Besgo valve entities** (`sensor filtvalve_remaining`, `select filtvalve_period_minutes`, `select filtvalve_mode`): Only created when Besgo valve is detected (`MBF_PAR_FILTVALVE_ENABLE = 1`).
 - **Reload on options change:** Integration is reloaded automatically on option changes.
 - **Filtration speed sensor/control:** Only available for variable-speed pump models.
+- **Filtration pump power & energy sensors:** Created only when a non-zero pump wattage is set in Options. `sensor.<name>_filtration_pump_power` (W) shows instantaneous consumption; `sensor.<name>_filtration_pump_energy` (Wh) accumulates total energy — both can be added to the **Energy dashboard** under _Individual devices_.
 - **Boost control (select):** Only if Hydro/Electrolysis module is present.
 - **Reset Alarm button:** Allows clearing of error and alarm states from HA.
 
