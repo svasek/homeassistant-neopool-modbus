@@ -22,12 +22,17 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS, TIMER_BLOCKS
 from .coordinator import VistaPoolCoordinator
 
 # Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
 # from the integration's __init__ module when config entry version changes.
+from .migration import (
+    async_cleanup_old_folder,
+    async_migrate_from_vistapool,
+)
 from .migration import async_migrate_entry as async_migrate_entry  # noqa: F401
 from .modbus import VistaPoolModbusClient
 
@@ -36,6 +41,62 @@ type VistaPoolConfigEntry = ConfigEntry[VistaPoolCoordinator]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the NeoPool integration on HA boot.
+
+    Cross-domain migration (vistapool → neopool, v3.0.0 release) runs here
+    BEFORE any neopool config entry is loaded. Idempotent: if no vistapool
+    entries exist (fresh install or already-migrated state), this is a no-op
+    and returns immediately.
+    """
+    summary = await async_migrate_from_vistapool(hass)
+
+    if summary["entries_found"] == 0:
+        return True  # Fresh install or already migrated — nothing to do
+
+    _LOGGER.info(
+        "Cross-domain migration: %d/%d vistapool entries migrated, %d entities",
+        summary["entries_migrated"],
+        summary["entries_found"],
+        summary["entities_migrated"],
+    )
+
+    # Try to clean up the leftover custom_components/vistapool/ folder. We
+    # do this whether or not all entries succeeded — leaving the folder in
+    # place won't hurt the migrated entries, and a partial-failure case is
+    # already loud enough via the issue below.
+    cleanup_ok = await async_cleanup_old_folder(hass)
+
+    if summary["entries_failed"] == 0:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "domain_renamed",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="domain_renamed",
+            translation_placeholders={
+                "entries": str(summary["entries_migrated"]),
+                "entities": str(summary["entities_migrated"]),
+                "folder_cleaned": "yes" if cleanup_ok else "no",
+            },
+        )
+    else:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "domain_rename_partial_failure",
+            is_fixable=False,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key="domain_rename_partial_failure",
+            translation_placeholders={
+                "errors": "\n".join(summary["errors"]) or "(see logs)",
+            },
+        )
+
+    return True
 
 
 def _cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
