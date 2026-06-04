@@ -21,6 +21,12 @@ from custom_components.vistapool.options_flow import VistaPoolOptionsFlowHandler
 
 def make_flow(mock_config_entry):
     """Create a VistaPoolOptionsFlowHandler with a properly mocked config_entry."""
+    # Provide sensible string defaults so slugify() (used for password derivation)
+    # never receives a MagicMock. Tests can override data/title before calling.
+    if not isinstance(mock_config_entry.data, dict):
+        mock_config_entry.data = {"name": "Pool"}
+    if not isinstance(mock_config_entry.title, str):
+        mock_config_entry.title = "Pool"
     flow = VistaPoolOptionsFlowHandler()
     flow.hass = MagicMock()
     flow.hass.async_create_task = MagicMock()
@@ -57,13 +63,15 @@ async def test_options_unlock_advanced_correct(monkeypatch):
     """Test entering correct unlock_advanced advances to advanced step."""
     mock_config_entry = MagicMock()
     mock_config_entry.options = {}
-    mock_config_entry.unique_id = "pool"
+    mock_config_entry.unique_id = "neopool_ABC123"
+    mock_config_entry.data = {"name": "Pool"}
     flow = make_flow(mock_config_entry)
 
     with patch("custom_components.vistapool.options_flow.date") as mock_date:
         mock_today = MagicMock()
         mock_today.year = 2025
         mock_date.today.return_value = mock_today
+        # Password is derived from slugified name, NOT from unique_id
         user_input = {"unlock_advanced": "pool2025"}
         flow.async_step_advanced = AsyncMock(return_value="advanced_step_called")
         result = await flow.async_step_init(user_input=user_input)
@@ -76,7 +84,8 @@ async def test_options_unlock_advanced_wrong(monkeypatch, caplog):
     """Test entering incorrect unlock_advanced shows error and logs warning."""
     mock_config_entry = MagicMock()
     mock_config_entry.options = {}
-    mock_config_entry.unique_id = "pool"
+    mock_config_entry.unique_id = "neopool_ABC123"
+    mock_config_entry.data = {"name": "Pool"}
     flow = make_flow(mock_config_entry)
 
     with patch("custom_components.vistapool.options_flow.date") as mock_date:
@@ -92,7 +101,7 @@ async def test_options_unlock_advanced_wrong(monkeypatch, caplog):
 
 @pytest.mark.asyncio
 async def test_options_unlock_advanced_correct_slug_fallback(monkeypatch):
-    """Test unlock_advanced with unique_id=None falls back to slugified name for password."""
+    """Test unlock_advanced uses slugified name for password regardless of unique_id."""
     mock_config_entry = MagicMock()
     mock_config_entry.options = {}
     mock_config_entry.unique_id = None
@@ -113,7 +122,7 @@ async def test_options_unlock_advanced_correct_slug_fallback(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_options_unlock_advanced_wrong_slug_fallback(monkeypatch, caplog):
-    """Test unlock_advanced with unique_id=None shows error when password doesn't match slug."""
+    """Test unlock_advanced shows error when password doesn't match slugified name."""
     mock_config_entry = MagicMock()
     mock_config_entry.options = {}
     mock_config_entry.unique_id = None
@@ -131,7 +140,7 @@ async def test_options_unlock_advanced_wrong_slug_fallback(monkeypatch, caplog):
 
 @pytest.mark.asyncio
 async def test_options_unlock_advanced_title_fallback(monkeypatch):
-    """Test unlock_advanced falls back to config_entry.title when unique_id and CONF_NAME are missing."""
+    """Test unlock_advanced falls back to config_entry.title when CONF_NAME is missing."""
     mock_config_entry = MagicMock()
     mock_config_entry.options = {}
     mock_config_entry.unique_id = None
