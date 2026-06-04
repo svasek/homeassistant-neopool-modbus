@@ -1,5 +1,5 @@
 {
-  "domain": "vistapool",
+  "domain": "neopool",
   "name": "VistaPool Modbus",
   "after_dependencies": [
     "modbus"

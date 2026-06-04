@@ -40,7 +40,7 @@ INTEGRATION_VERSION = MANIFEST.get("version")
 
 DOMAIN = (
     MANIFEST.get("domain").lower().replace("-", "_").replace(" ", "_").replace(".", "_")
-    or "vistapool"
+    or "neopool"
 )
 NAME = MANIFEST.get("name") or "VistaPool Modbus"
 DEFAULT_NAME = "VistaPool"
