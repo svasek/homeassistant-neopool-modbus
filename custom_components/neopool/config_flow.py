@@ -56,7 +56,12 @@ async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
 class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for NeoPool."""
 
-    VERSION = 2
+    # Mirrors `migration.CURRENT_VERSION` so that fresh entries created via
+    # this flow are born at the current schema version and don't trigger
+    # `async_migrate_entry` on first load. Cross-domain migration of legacy
+    # vistapool entries also targets this same version, keeping a single
+    # source of truth.
+    VERSION = 3
 
     async def _async_validate_connection(self, user_input: dict) -> dict:
         """Validate host/port connectivity and return an errors dict."""
