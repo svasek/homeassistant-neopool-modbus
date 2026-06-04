@@ -14,7 +14,10 @@
 
 """VistaPool Integration for Home Assistant - Config Entry Migration"""
 
+import json
 import logging
+import shutil
+from pathlib import Path
 from types import MappingProxyType
 
 from homeassistant.config_entries import (
@@ -39,6 +42,12 @@ OLD_DOMAIN = "vistapool"
 # old vistapool entry's version (which goes through the v1→v2 prelude
 # below first if it was still at v1).
 CURRENT_VERSION = 3
+
+# Marker used to validate that the orphaned `custom_components/vistapool/`
+# directory we're about to delete actually belonged to OUR integration
+# (and not, say, an unrelated user-installed fork). Matched against the
+# documentation/issue_tracker fields of the old manifest.json.
+LEGACY_REPO_URL = "github.com/svasek/homeassistant-vistapool-modbus"
 
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -411,3 +420,78 @@ async def _migrate_single_entry_cross_domain(
         new_entry.entry_id,
     )
     return len(applied)
+
+
+async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
+    """Remove the legacy `custom_components/vistapool/` directory if present.
+
+    HACS installs the new release into `custom_components/neopool/` (per the
+    new manifest domain), but does not touch the previous `vistapool/`
+    directory left over from the v2.x release. With no vistapool config
+    entries remaining (cross-domain migration moved them all to neopool),
+    that directory is dead weight; on HA 2026.6+ it would also keep tripping
+    the "custom integration shadows core integration" warning.
+
+    Safety:
+      * Refuse if `custom_components/vistapool/` does not exist (nothing to do).
+      * Refuse if the directory has no `manifest.json` (looks foreign).
+      * Refuse if the manifest's documentation/issue_tracker URL doesn't
+        match our repo (an unrelated `vistapool` fork — leave it alone).
+
+    Returns True if the directory was deleted or was already absent. Returns
+    False on safety refusal or filesystem error; callers should surface that
+    in the repair issue so the user can clean up manually.
+    """
+    config_dir = Path(hass.config.path("custom_components/vistapool"))
+    if not config_dir.exists():
+        return True  # Nothing to clean up — fresh install or already removed
+
+    manifest_path = config_dir / "manifest.json"
+    if not manifest_path.is_file():
+        _LOGGER.warning(
+            "Legacy folder %s exists but has no manifest.json — refusing to delete",
+            config_dir,
+        )
+        return False
+
+    try:
+        manifest = await hass.async_add_executor_job(
+            _read_manifest_json, manifest_path
+        )
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.warning(
+            "Cannot read legacy manifest %s: %s — refusing to delete",
+            manifest_path,
+            err,
+        )
+        return False
+
+    documentation = str(manifest.get("documentation", ""))
+    issue_tracker = str(manifest.get("issue_tracker", ""))
+    if LEGACY_REPO_URL not in documentation and LEGACY_REPO_URL not in issue_tracker:
+        _LOGGER.warning(
+            "Legacy folder %s does not match our integration "
+            "(documentation=%r, issue_tracker=%r) — refusing to delete",
+            config_dir,
+            documentation,
+            issue_tracker,
+        )
+        return False
+
+    try:
+        await hass.async_add_executor_job(shutil.rmtree, str(config_dir))
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.error(
+            "Failed to delete legacy folder %s: %s — please remove it manually",
+            config_dir,
+            err,
+        )
+        return False
+
+    _LOGGER.info("Removed legacy folder %s", config_dir)
+    return True
+
+
+def _read_manifest_json(path: Path) -> dict:
+    """Read a manifest.json file (executor-safe — runs blocking I/O)."""
+    return json.loads(path.read_text(encoding="utf-8"))
