@@ -23,6 +23,7 @@ from types import MappingProxyType
 
 from homeassistant.config_entries import (
     ConfigEntry,
+    ConfigEntryChange,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -336,11 +337,27 @@ async def migrate_single_entry_cross_domain(
     # changes that move entity removal to a separate task.
     await asyncio.sleep(0)
 
-    # ── Step 2: Construct (don't add yet!) new ConfigEntry ───────────────
-    # We need new_entry.entry_id to retarget entities; we MUST NOT call
-    # hass.config_entries.async_add() yet — that synchronously triggers
-    # setup_entry and creates duplicate entity_registry rows because the
-    # existing rows are still under platform="vistapool".
+    # ── Step 2: Construct + register new ConfigEntry (without setup) ─────
+    # We need new_entry.entry_id to retarget entities. We CANNOT call
+    # `hass.config_entries.async_add()` yet — that synchronously triggers
+    # `async_setup_entry` → forward to platforms → `async_add_entities`,
+    # which would create duplicate entity_registry rows (the existing rows
+    # are still under platform="vistapool", so HA's dedup key
+    # `(entity_domain, platform, unique_id)` doesn't see the collision).
+    #
+    # But we ALSO can't leave the entry unregistered: HA core entity_registry
+    # `_validate_item` (L1044-1048) refuses `async_update_entity_platform`
+    # if `hass.config_entries.async_get_entry(new_config_entry_id)` returns
+    # None.
+    #
+    # Resolve the paradox by splitting `async_add` into its two halves:
+    #   1. Register the entry in `_entries` so the validator finds it.
+    #   2. Call `async_setup` ourselves AFTER the retarget completes
+    #      (Step 5 below).
+    # This mirrors what `async_add` does internally (HA core
+    # config_entries.py L2180-2191) minus the `async_setup` call. Safe
+    # because between Step 2 and Step 5 nothing else triggers a setup
+    # for this entry (no discovery, no user action).
     new_entry = ConfigEntry(
         version=CURRENT_VERSION,
         minor_version=1,
@@ -356,6 +373,11 @@ async def migrate_single_entry_cross_domain(
         discovery_keys=MappingProxyType({}),
         subentries_data=(),
     )
+    # Private API: register the entry without invoking async_setup. Mirrors
+    # the first three lines of `ConfigEntries.async_add` (HA core
+    # config_entries.py L2187-2189). Wrapped in a helper so tests can mock
+    # it without touching `_entries` directly.
+    _register_entry_without_setup(hass, new_entry)
 
     # ── Step 3: Retarget entity_registry rows ────────────────────────────
     # Change platform from "vistapool" to "neopool". entity_id and
@@ -444,12 +466,14 @@ async def migrate_single_entry_cross_domain(
             remove_config_entry_id=old_entry.entry_id,
         )
 
-    # ── Step 5: NOW add the new entry ────────────────────────────────────
-    # This synchronously calls async_setup_entry → forward to platforms →
-    # async_add_entities. The lookup at entity_platform.py finds the
-    # already-retargeted (sensor, neopool, X) rows and reuses them.
-    # No duplicates are created.
-    await hass.config_entries.async_add(new_entry)
+    # ── Step 5: Set up the new entry ─────────────────────────────────────
+    # The entry was registered in `_entries` in Step 2 (without setup) so
+    # that the entity_registry validator would accept the retarget. Now that
+    # the retarget is done, run setup. This synchronously calls
+    # `async_setup_entry` → forward to platforms → `async_add_entities`. The
+    # platform lookup finds the already-retargeted (sensor, neopool, X) rows
+    # and reuses them — no duplicates are created.
+    await _setup_registered_entry(hass, new_entry)
 
     # ── Step 6: Remove old vistapool entry ───────────────────────────────
     await hass.config_entries.async_remove(old_entry.entry_id)
@@ -461,6 +485,39 @@ async def migrate_single_entry_cross_domain(
         new_entry.entry_id,
     )
     return len(applied)
+
+
+def _register_entry_without_setup(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Register a ConfigEntry in `_entries` without invoking async_setup.
+
+    Mirrors the first three lines of `ConfigEntries.async_add` (HA core
+    config_entries.py L2187-2189) but skips the `await async_setup` and
+    `_async_schedule_save` calls. Used during cross-domain migration to
+    make the entry visible to `entity_registry._validate_item` (which
+    refuses to retarget entities to an unknown config entry) before any
+    platforms have been set up.
+
+    Persisting to disk is deferred until `_setup_registered_entry` runs,
+    so an aborted migration leaves no stale row in
+    `.storage/core.config_entries`.
+    """
+    hass.config_entries._entries[entry.entry_id] = entry  # noqa: SLF001
+    hass.config_entries.async_update_issues()
+    hass.config_entries._async_dispatch(  # noqa: SLF001
+        ConfigEntryChange.ADDED, entry
+    )
+
+
+async def _setup_registered_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Run setup for an entry registered via `_register_entry_without_setup`.
+
+    Mirrors the second half of `ConfigEntries.async_add` (HA core
+    config_entries.py L2190-2191): invoke `async_setup` and schedule the
+    entries store save. Calling this on an entry that wasn't registered
+    first will fail inside `async_setup`.
+    """
+    await hass.config_entries.async_setup(entry.entry_id)
+    hass.config_entries._async_schedule_save()  # noqa: SLF001
 
 
 async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
