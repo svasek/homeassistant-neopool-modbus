@@ -21,6 +21,7 @@ from custom_components.neopool import (
     _cleanup_removed_entities,
     _register_services,
     async_migrate_entry,
+    async_setup,
     async_setup_entry,
     async_unload_entry,
 )
@@ -1067,3 +1068,129 @@ async def test_async_migrate_entry_rollback_also_fails():
     # 3 calls: migrate entity1 (ok), migrate entity2 (fail), rollback entity1 (fail)
     assert mock_registry.async_update_entity.call_count == 3
     hass.config_entries.async_update_entry.assert_not_called()
+
+
+# --- Cross-domain migration: async_setup hook ---
+
+
+@pytest.mark.asyncio
+async def test_async_setup_no_legacy_entries_is_noop():
+    """async_setup returns True without side-effects when no vistapool entries exist."""
+    hass = MagicMock()
+    with (
+        patch(
+            "custom_components.neopool.async_migrate_from_vistapool",
+            new=AsyncMock(
+                return_value={
+                    "entries_found": 0,
+                    "entries_migrated": 0,
+                    "entries_failed": 0,
+                    "entities_migrated": 0,
+                    "errors": [],
+                }
+            ),
+        ),
+        patch("custom_components.neopool.async_cleanup_old_folder") as cleanup,
+        patch("custom_components.neopool.ir.async_create_issue") as create_issue,
+    ):
+        result = await async_setup(hass, {})
+
+    assert result is True
+    cleanup.assert_not_called()
+    create_issue.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_setup_success_creates_repair_issue():
+    """Successful migration triggers cleanup and a domain_renamed repair issue."""
+    hass = MagicMock()
+    with (
+        patch(
+            "custom_components.neopool.async_migrate_from_vistapool",
+            new=AsyncMock(
+                return_value={
+                    "entries_found": 1,
+                    "entries_migrated": 1,
+                    "entries_failed": 0,
+                    "entities_migrated": 42,
+                    "errors": [],
+                }
+            ),
+        ),
+        patch(
+            "custom_components.neopool.async_cleanup_old_folder",
+            new=AsyncMock(return_value=True),
+        ),
+        patch("custom_components.neopool.ir.async_create_issue") as create_issue,
+    ):
+        result = await async_setup(hass, {})
+
+    assert result is True
+    create_issue.assert_called_once()
+    # Issue id is the third positional arg (hass, domain, issue_id, ...)
+    assert create_issue.call_args.args[2] == "domain_renamed"
+    placeholders = create_issue.call_args.kwargs["translation_placeholders"]
+    assert placeholders["entries"] == "1"
+    assert placeholders["entities"] == "42"
+    assert placeholders["folder_cleaned"] == "yes"
+
+
+@pytest.mark.asyncio
+async def test_async_setup_partial_failure_creates_error_issue():
+    """A partial failure triggers the louder domain_rename_partial_failure issue."""
+    hass = MagicMock()
+    with (
+        patch(
+            "custom_components.neopool.async_migrate_from_vistapool",
+            new=AsyncMock(
+                return_value={
+                    "entries_found": 2,
+                    "entries_migrated": 1,
+                    "entries_failed": 1,
+                    "entities_migrated": 5,
+                    "errors": ["Pool B: simulated failure"],
+                }
+            ),
+        ),
+        patch(
+            "custom_components.neopool.async_cleanup_old_folder",
+            new=AsyncMock(return_value=False),
+        ),
+        patch("custom_components.neopool.ir.async_create_issue") as create_issue,
+    ):
+        result = await async_setup(hass, {})
+
+    assert result is True
+    create_issue.assert_called_once()
+    assert create_issue.call_args.args[2] == "domain_rename_partial_failure"
+    errors_text = create_issue.call_args.kwargs["translation_placeholders"]["errors"]
+    assert "Pool B" in errors_text
+
+
+@pytest.mark.asyncio
+async def test_async_setup_folder_cleanup_failure_marked_in_issue():
+    """When cleanup_old_folder fails, the success issue notes folder_cleaned: no."""
+    hass = MagicMock()
+    with (
+        patch(
+            "custom_components.neopool.async_migrate_from_vistapool",
+            new=AsyncMock(
+                return_value={
+                    "entries_found": 1,
+                    "entries_migrated": 1,
+                    "entries_failed": 0,
+                    "entities_migrated": 3,
+                    "errors": [],
+                }
+            ),
+        ),
+        patch(
+            "custom_components.neopool.async_cleanup_old_folder",
+            new=AsyncMock(return_value=False),
+        ),
+        patch("custom_components.neopool.ir.async_create_issue") as create_issue,
+    ):
+        await async_setup(hass, {})
+
+    placeholders = create_issue.call_args.kwargs["translation_placeholders"]
+    assert placeholders["folder_cleaned"] == "no"
