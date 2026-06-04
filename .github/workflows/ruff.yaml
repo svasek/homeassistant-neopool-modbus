@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
       - "tests/**"
       - "pyproject.toml"
       - "requirements-dev.txt"
       - ".github/workflows/ruff.yml"
   pull_request:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
       - "tests/**"
       - "pyproject.toml"
       - "requirements-dev.txt"
@@ -38,7 +38,7 @@ jobs:
           pip install --upgrade ruff
 
       - name: Run Ruff format check
-        run: ruff format --check custom_components/vistapool tests
+        run: ruff format --check custom_components/neopool tests
 
       - name: Run Ruff lint check
-        run: ruff check custom_components/vistapool tests
+        run: ruff check custom_components/neopool tests

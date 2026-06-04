@@ -23,5 +23,5 @@ asyncio_mode = "auto"
 pythonpath = ["."]
 
 [tool.coverage.run]
-source = ["custom_components/vistapool"]
+source = ["custom_components/neopool"]
 omit = ["tests/*"]

@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
   pull_request:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
 
 jobs:
   validate:

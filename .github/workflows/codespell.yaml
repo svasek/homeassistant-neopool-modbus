@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
       - "tests/**"
       - "docs/**"
       - "*.md"
@@ -14,7 +14,7 @@ on:
       - ".github/workflows/codespell.yaml"
   pull_request:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
       - "tests/**"
       - "docs/**"
       - "*.md"
@@ -43,5 +43,5 @@ jobs:
 
       - name: Run CodeSpell
         run: |
-          git ls-files | grep -Ev '^custom_components/vistapool/translations/' \
+          git ls-files | grep -Ev '^custom_components/neopool/translations/' \
             | xargs codespell --toml pyproject.toml
