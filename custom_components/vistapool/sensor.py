@@ -377,6 +377,8 @@ class VistaPoolFiltrationEnergySensor(VistaPoolEntity, SensorEntity, RestoreEnti
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 0
     _attr_translation_key = "filtration_pump_energy"
 
     def __init__(
