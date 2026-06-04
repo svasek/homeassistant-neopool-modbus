@@ -15,8 +15,13 @@
 """VistaPool Integration for Home Assistant - Config Entry Migration"""
 
 import logging
+from types import MappingProxyType
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import (
+    SOURCE_IMPORT,
+    ConfigEntry,
+    ConfigEntryState,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -25,6 +30,15 @@ from .const import DOMAIN
 from .helpers import async_get_device_serial
 
 _LOGGER = logging.getLogger(__name__)
+
+# The legacy domain we migrate FROM during the v3 cross-domain rename.
+OLD_DOMAIN = "vistapool"
+
+# Target ConfigEntry version for the v3 release. Cross-domain migration
+# bumps the new neopool entry straight to this version regardless of the
+# old vistapool entry's version (which goes through the v1→v2 prelude
+# below first if it was still at v1).
+CURRENT_VERSION = 3
 
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -182,3 +196,218 @@ async def _migrate_v1_to_v2(
         new_unique_id[-6:],
     )
     return True
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Cross-domain migration (vistapool → neopool) — invoked from async_setup
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+async def async_migrate_from_vistapool(hass: HomeAssistant) -> dict:
+    """Migrate any legacy vistapool config entries to neopool.
+
+    Called from `async_setup` BEFORE any neopool entry is loaded. This is the
+    one-shot rename triggered by the v3.0.0 release; it is a no-op on later
+    boots (no vistapool entries → empty summary, no work done).
+
+    Per-entry pipeline:
+      1. If `entry.version == 1`, run the parametrized v1→v2 prelude on the
+         vistapool entry in-place. If the controller is offline, the prelude
+         defers (returns True without bumping version) and we skip the
+         cross-domain step for this entry — both run on the next boot.
+      2. Cross-domain step: build a `ConfigEntry(domain="neopool", version=3)`
+         with the same data/options/unique_id, retarget entity_registry rows,
+         retarget device_registry rows, then `async_add` (which triggers
+         setup_entry on the new entry), then `async_remove` the old vistapool
+         entry.
+
+    Returns a summary dict suitable for repair issue placeholders.
+    """
+    summary = {
+        "entries_found": 0,
+        "entries_migrated": 0,
+        "entries_failed": 0,
+        "entities_migrated": 0,
+        "errors": [],
+    }
+    vistapool_entries = hass.config_entries.async_entries(OLD_DOMAIN)
+    if not vistapool_entries:
+        return summary
+    summary["entries_found"] = len(vistapool_entries)
+
+    for old_entry in vistapool_entries:
+        try:
+            entities_count = await _migrate_single_entry_cross_domain(
+                hass, old_entry
+            )
+            summary["entries_migrated"] += 1
+            summary["entities_migrated"] += entities_count
+        except _DeferredMigration as exc:
+            # v1→v2 prelude deferred (controller offline); leave the vistapool
+            # entry in place and try again on the next HA restart. Don't count
+            # as failure — it's an expected, recoverable state.
+            _LOGGER.info(
+                "Migration deferred for %s: %s — will retry on next restart",
+                old_entry.title,
+                exc,
+            )
+            summary["errors"].append(
+                f"{old_entry.title}: deferred (controller offline)"
+            )
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.exception(
+                "Cross-domain migration failed for vistapool entry %s",
+                old_entry.entry_id,
+            )
+            summary["entries_failed"] += 1
+            summary["errors"].append(f"{old_entry.title}: {err}")
+
+    return summary
+
+
+class _DeferredMigration(Exception):
+    """Raised when v1→v2 prelude defers because the controller is offline."""
+
+
+async def _migrate_single_entry_cross_domain(
+    hass: HomeAssistant, old_entry: ConfigEntry
+) -> int:
+    """Migrate one vistapool entry to neopool. Returns migrated entity count.
+
+    CRITICAL ORDERING: entity_registry retarget MUST happen BEFORE
+    `hass.config_entries.async_add(new_entry)`. async_add synchronously runs
+    `async_setup_entry` → forward to platforms → `async_add_entities`, and
+    that lookup uses (entity_domain, platform, unique_id). If platform is
+    still "vistapool" when the new neopool entry is set up, HA creates
+    DUPLICATE entity_registry rows under platform="neopool".
+    """
+    # ── Step 0: v1→v2 prelude (only if entry is still at v1) ─────────────
+    # Reuses the existing serial-based unique_id migration with
+    # source_domain="vistapool" so device_registry lookup finds the
+    # legacy device tuple.
+    if old_entry.version < 2:
+        v2_ok = await _migrate_v1_to_v2(
+            hass, old_entry, source_domain=OLD_DOMAIN
+        )
+        if not v2_ok:
+            # _migrate_v1_to_v2 returned False → unrecoverable error
+            # (e.g., duplicate serial detected). Surface as a regular failure.
+            raise RuntimeError(
+                "v1→v2 prelude failed (see previous log entries)"
+            )
+        if old_entry.version < 2:
+            # Prelude returned True but didn't bump version → controller
+            # was offline. Defer the whole cross-domain step.
+            raise _DeferredMigration(
+                "controller offline; v1→v2 prelude deferred"
+            )
+
+    # ── Step 1: Unload old vistapool entry ───────────────────────────────
+    # async_update_entity_platform requires entities NOT to be in
+    # entity_sources(). Unloading the entry removes them.
+    if old_entry.state == ConfigEntryState.LOADED:
+        await hass.config_entries.async_unload(old_entry.entry_id)
+
+    # ── Step 2: Construct (don't add yet!) new ConfigEntry ───────────────
+    # We need new_entry.entry_id to retarget entities; we MUST NOT call
+    # hass.config_entries.async_add() yet — that synchronously triggers
+    # setup_entry and creates duplicate entity_registry rows because the
+    # existing rows are still under platform="vistapool".
+    new_entry = ConfigEntry(
+        version=CURRENT_VERSION,
+        minor_version=1,
+        domain=DOMAIN,
+        title=old_entry.title,
+        data=dict(old_entry.data),
+        source=SOURCE_IMPORT,
+        unique_id=old_entry.unique_id,
+        options=dict(old_entry.options),
+        discovery_keys=MappingProxyType({}),
+        subentries_data=(),
+    )
+
+    # ── Step 3: Retarget entity_registry rows ────────────────────────────
+    # Change platform from "vistapool" to "neopool". entity_id and
+    # unique_id are preserved → recorder history (states + statistics)
+    # follows automatically because those tables key on entity_id strings,
+    # not on platform/domain.
+    entity_registry = er.async_get(hass)
+    candidates = [
+        e
+        for e in entity_registry.entities.values()
+        if e.platform == OLD_DOMAIN and e.config_entry_id == old_entry.entry_id
+    ]
+    applied: list[tuple[str, str | None]] = []
+    for re_entry in candidates:
+        try:
+            entity_registry.async_update_entity_platform(
+                re_entry.entity_id,
+                new_platform=DOMAIN,
+                new_config_entry_id=new_entry.entry_id,
+                # No new_unique_id → keeps old unique_id intact.
+            )
+            applied.append((re_entry.entity_id, re_entry.unique_id))
+        except ValueError as exc:
+            _LOGGER.error(
+                "Failed to retarget %s: %s — rolling back",
+                re_entry.entity_id,
+                exc,
+            )
+            for ent_id, _uid in applied:
+                try:
+                    entity_registry.async_update_entity_platform(
+                        ent_id,
+                        OLD_DOMAIN,
+                        new_config_entry_id=old_entry.entry_id,
+                    )
+                except Exception:  # noqa: BLE001
+                    _LOGGER.exception("Rollback failed for %s", ent_id)
+            raise
+
+    # ── Step 4: Retarget device_registry ─────────────────────────────────
+    # Order matters: ADD new_entry_id BEFORE REMOVE old_entry_id, otherwise
+    # the device may be auto-deleted (HA core checks if the device's
+    # config_entries set becomes empty during remove).
+    device_registry = dr.async_get(hass)
+    devices = list(
+        dr.async_entries_for_config_entry(device_registry, old_entry.entry_id)
+    )
+    for device in devices:
+        # 4a: Add new entry_id (so the device.config_entries set has both)
+        device_registry.async_update_device(
+            device.id,
+            add_config_entry_id=new_entry.entry_id,
+        )
+        # 4b: Update identifiers (vistapool, X) → (neopool, X)
+        new_identifiers = {
+            (DOMAIN if d == OLD_DOMAIN else d, ident)
+            for d, ident in device.identifiers
+        }
+        if new_identifiers != device.identifiers:
+            device_registry.async_update_device(
+                device.id,
+                new_identifiers=new_identifiers,
+            )
+        # 4c: Remove old entry_id (safe — device has new entry_id too)
+        device_registry.async_update_device(
+            device.id,
+            remove_config_entry_id=old_entry.entry_id,
+        )
+
+    # ── Step 5: NOW add the new entry ────────────────────────────────────
+    # This synchronously calls async_setup_entry → forward to platforms →
+    # async_add_entities. The lookup at entity_platform.py finds the
+    # already-retargeted (sensor, neopool, X) rows and reuses them.
+    # No duplicates are created.
+    await hass.config_entries.async_add(new_entry)
+
+    # ── Step 6: Remove old vistapool entry ───────────────────────────────
+    await hass.config_entries.async_remove(old_entry.entry_id)
+
+    _LOGGER.info(
+        "Migrated vistapool entry %r (%d entities) to neopool entry %s",
+        old_entry.title,
+        len(applied),
+        new_entry.entry_id,
+    )
+    return len(applied)
