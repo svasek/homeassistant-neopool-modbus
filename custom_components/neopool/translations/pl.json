@@ -49,6 +49,10 @@
           "use_cover_sensor": "Tworzy czujnik binarny wskazujący, czy przykrycie basenu jest otwarte czy zamknięte.",
           "filtration_pump_power": "Podaj nominalną moc pompy filtracyjnej. Przy wartości różnej od zera tworzone są dwa czujniki: chwilowa moc (W) i skumulowana energia (Wh), oba możliwe do użycia na panelu energetycznym."
         }
+      },
+      "import_from_vistapool": {
+        "title": "Import from existing VistaPool integration",
+        "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually."
       }
     },
     "error": {
@@ -60,7 +64,9 @@
     "abort": {
       "already_configured": "To urządzenie jest już skonfigurowane.",
       "entry_not_found": "Nie znaleziono wpisu integracji.",
-      "reconfigure_successful": "Ustawienia połączenia zostały pomyślnie zaktualizowane."
+      "reconfigure_successful": "Connection settings updated successfully.",
+      "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
+      "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work."
     }
   },
   "options": {
