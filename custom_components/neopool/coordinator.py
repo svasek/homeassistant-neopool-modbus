@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Coordinator Module"""
+"""NeoPool Integration for Home Assistant - Coordinator Module"""
 
 import json
 import logging
@@ -52,7 +52,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Coordinator for VistaPool platform."""
+    """Coordinator for NeoPool platform."""
 
     client: NeoPoolModbusClient
 
@@ -192,7 +192,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.update_interval = self.normal_update_interval
 
             self._firmware = parse_version(data.get("MBF_POWER_MODULE_VERSION"))
-            self._model = "VistaPool"
+            self._model = "NeoPool"
 
             # One-time GPIO sanity check after first successful read
             if not self._gpio_checked:

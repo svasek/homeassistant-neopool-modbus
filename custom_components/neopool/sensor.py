@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Sensor Module"""
+"""NeoPool Integration for Home Assistant - Sensor Module"""
 
 import logging
 import math
@@ -137,7 +137,7 @@ async def async_setup_entry(
     entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool sensors from a config entry."""
+    """Set up NeoPool sensors from a config entry."""
     coordinator = entry.runtime_data
     entities = []
 
@@ -169,7 +169,7 @@ async def async_setup_entry(
 
 
 class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool sensor."""
+    """Representation of a NeoPool sensor."""
 
     _winter_mode_active = False  # sensors stay available during winter mode
 
@@ -180,7 +180,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompat
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool sensor entity."""
+        """Initialize the NeoPool sensor entity."""
         super().__init__(coordinator, entry_id)  # Pass entry_id to the parent class
         self._key = key
         self._attr_suggested_object_id = (

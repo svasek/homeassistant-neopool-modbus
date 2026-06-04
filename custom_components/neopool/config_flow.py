@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Config Flow"""
+"""NeoPool Integration for Home Assistant - Config Flow"""
 
 import asyncio
 import logging
@@ -54,7 +54,7 @@ async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
 
 
 class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
-    """Handle a config flow for VistaPool."""
+    """Handle a config flow for NeoPool."""
 
     VERSION = 2
 
@@ -211,7 +211,7 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
                 user_input["scan_interval"] = int(user_input["scan_interval"])
 
             _LOGGER.info(
-                "Creating new VistaPool config entry: %s (serial: …%s)",
+                "Creating new NeoPool config entry: %s (serial: …%s)",
                 device_name,
                 serial_number[-6:],
             )

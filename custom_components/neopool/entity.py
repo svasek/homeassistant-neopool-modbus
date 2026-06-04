@@ -13,9 +13,9 @@
 # limitations under the License.
 
 """
-VistaPool Integration for Home Assistant - Entity Module
+NeoPool Integration for Home Assistant - Entity Module
 
-This module defines the base entity class for the VistaPool integration.
+This module defines the base entity class for the NeoPool integration.
 It provides common functionality for all entities, including device information,
 """
 
@@ -30,7 +30,7 @@ from .helpers import get_machine_name, modbus_regs_to_hex_string, parse_version
 
 
 class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
-    """Base class for VistaPool entities."""
+    """Base class for NeoPool entities."""
 
     _attr_has_entity_name = True
     _winter_mode_active: bool = True

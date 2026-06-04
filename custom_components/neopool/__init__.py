@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant"""
+"""NeoPool Integration for Home Assistant"""
 
 import logging
 
@@ -59,7 +59,7 @@ def _cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
-    """Set up the VistaPool integration."""
+    """Set up the NeoPool integration."""
 
     # --- MIGRATE CONFIG FLOW DATA TO OPTIONS IF NEEDED ---
     # Copy all keys except connection settings from data to options
@@ -69,7 +69,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
         new_options = {k: entry.data[k] for k in candidate_keys}
         if new_options:  # pragma: no cover
             _LOGGER.debug(
-                "VistaPool: Migrating ALL config entry data (except connection params) to options: %s",
+                "NeoPool: Migrating ALL config entry data (except connection params) to options: %s",
                 new_options,
             )
             hass.config_entries.async_update_entry(entry, options=new_options)
@@ -98,7 +98,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
-    """Unload a VistaPool config entry."""
+    """Unload a NeoPool config entry."""
     coordinator = getattr(entry, "runtime_data", None)
     if coordinator is not None:
         coordinator.cancel_follow_up_refresh()
@@ -121,7 +121,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> 
 
 
 def _register_services(hass: HomeAssistant) -> None:
-    """Register VistaPool services."""
+    """Register NeoPool services."""
     from .helpers import get_timer_interval, hhmm_to_seconds, parse_register_int
 
     def _get_coordinator(call: ServiceCall) -> NeoPoolCoordinator:

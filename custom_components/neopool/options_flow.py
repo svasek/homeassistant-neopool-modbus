@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Options Flow Module"""
+"""NeoPool Integration for Home Assistant - Options Flow Module"""
 
 import logging
 from datetime import date
@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options flow for VistaPool integration."""
+    """Handle options flow for NeoPool integration."""
 
     def __init__(self) -> None:
         """Initialize the options flow handler.

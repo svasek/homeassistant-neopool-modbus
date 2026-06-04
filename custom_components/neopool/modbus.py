@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Modbus Client"""
+"""NeoPool Integration for Home Assistant - Modbus Client"""
 
 import asyncio
 import logging

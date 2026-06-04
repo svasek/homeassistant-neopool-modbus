@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Number Module"""
+"""NeoPool Integration for Home Assistant - Number Module"""
 
 import asyncio
 import logging
@@ -108,7 +108,7 @@ async def async_setup_entry(
     entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool number entities from a config entry."""
+    """Set up NeoPool number entities from a config entry."""
     coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
@@ -128,7 +128,7 @@ async def async_setup_entry(
 
 
 class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool number entity."""
+    """Representation of a NeoPool number entity."""
 
     def __init__(
         self,
@@ -137,7 +137,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool number entity."""
+        """Initialize the NeoPool number entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
         self._register = props.get("register", None)

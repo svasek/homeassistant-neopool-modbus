@@ -44,7 +44,7 @@ async def test_async_update_data_success(mock_entry):
     data = await coordinator._async_update_data()
     assert "MBF_POWER_MODULE_VERSION" in data
     assert coordinator.firmware == "18.52"  # 0x1234 == 18.52
-    assert coordinator.model == "VistaPool"
+    assert coordinator.model == "NeoPool"
 
 
 @pytest.mark.asyncio

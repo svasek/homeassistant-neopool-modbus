@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Binary Sensor Module"""
+"""NeoPool Integration for Home Assistant - Binary Sensor Module"""
 
 import logging
 from collections.abc import Mapping
@@ -147,7 +147,7 @@ async def async_setup_entry(
     entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool binary sensors from a config entry."""
+    """Set up NeoPool binary sensors from a config entry."""
     coordinator = entry.runtime_data
     entities = []
 
@@ -180,7 +180,7 @@ async def async_setup_entry(
 
 
 class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool binary sensor."""
+    """Representation of a NeoPool binary sensor."""
 
     _winter_mode_active = False  # binary sensors stay available during winter mode
 

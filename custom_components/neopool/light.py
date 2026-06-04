@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Light Module"""
+"""NeoPool Integration for Home Assistant - Light Module"""
 
 import logging
 from typing import Any
@@ -37,7 +37,7 @@ async def async_setup_entry(
     entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool lights from a config entry."""
+    """Set up NeoPool lights from a config entry."""
     coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
@@ -66,7 +66,7 @@ async def async_setup_entry(
 
 
 class NeoPoolLight(NeoPoolEntity, LightEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool light entity."""
+    """Representation of a NeoPool light entity."""
 
     def __init__(
         self,
@@ -75,7 +75,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):  # type: ignore[reportIncompatib
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool light entity."""
+        """Initialize the NeoPool light entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
         self._attr_suggested_object_id = (

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Button Module"""
+"""NeoPool Integration for Home Assistant - Button Module"""
 
 import logging
 from typing import Any
@@ -37,7 +37,7 @@ async def async_setup_entry(
     entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool button entities from a config entry."""
+    """Set up NeoPool button entities from a config entry."""
     coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
@@ -56,7 +56,7 @@ async def async_setup_entry(
 
 
 class NeoPoolButton(NeoPoolEntity, ButtonEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool button entity."""
+    """Representation of a NeoPool button entity."""
 
     def __init__(
         self,
@@ -65,7 +65,7 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):  # type: ignore[reportIncompat
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool button entity."""
+        """Initialize the NeoPool button entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
         self._attr_suggested_object_id = (

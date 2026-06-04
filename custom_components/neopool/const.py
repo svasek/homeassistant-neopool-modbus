@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-VistaPool Integration for Home Assistant - Constants
+NeoPool Integration for Home Assistant - Constants
 
 This file contains metadata about the integration such as name, version, domain, etc.
 The manifest file is loaded to get the integration name and version
@@ -42,8 +42,8 @@ DOMAIN = (
     MANIFEST.get("domain").lower().replace("-", "_").replace(" ", "_").replace(".", "_")
     or "neopool"
 )
-NAME = MANIFEST.get("name") or "VistaPool Modbus"
-DEFAULT_NAME = "VistaPool"
+NAME = MANIFEST.get("name") or "NeoPool Modbus"
+DEFAULT_NAME = "NeoPool"
 VERSION = MANIFEST.get("version") or None
 
 LOGGER = logging.getLogger(__name__)
