@@ -14,6 +14,7 @@
 
 """VistaPool Integration for Home Assistant - Config Entry Migration"""
 
+import asyncio
 import json
 import logging
 import shutil
@@ -22,7 +23,6 @@ from types import MappingProxyType
 
 from homeassistant.config_entries import (
     ConfigEntry,
-    ConfigEntryState,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -307,9 +307,33 @@ async def migrate_single_entry_cross_domain(
 
     # ── Step 1: Unload old vistapool entry ───────────────────────────────
     # async_update_entity_platform requires entities NOT to be in
-    # entity_sources(). Unloading the entry removes them.
-    if old_entry.state == ConfigEntryState.LOADED:
-        await hass.config_entries.async_unload(old_entry.entry_id)
+    # entity_sources(). Unloading the entry removes them via each entity's
+    # async_internal_will_remove_from_hass hook (HA core entity.py L1457).
+    #
+    # We unconditionally call async_unload (not gated on state == LOADED)
+    # because:
+    #   * a SETUP_ERROR entry can still have stale entity_registry rows
+    #     loaded from a previous successful boot
+    #   * a NOT_LOADED entry returns immediately so the call is cheap
+    #
+    # If unload returns False (the integration's async_unload_entry refused
+    # or raised), abort the migration loudly — running the retarget against
+    # still-loaded entities would produce the cryptic "Only entities that
+    # haven't been loaded can be migrated" error.
+    unloaded = await hass.config_entries.async_unload(old_entry.entry_id)
+    if not unloaded:
+        raise RuntimeError(
+            f"Failed to unload legacy entry {old_entry.entry_id!r} — "
+            "cannot proceed with migration. Restart Home Assistant and "
+            "try again."
+        )
+
+    # Yield once so any pending entity-removal callbacks scheduled by the
+    # unload above get a chance to run before we read entity_sources().
+    # In practice async_unload already awaits all platform unloads, but a
+    # single async sleep(0) is cheap insurance against future HA core
+    # changes that move entity removal to a separate task.
+    await asyncio.sleep(0)
 
     # ── Step 2: Construct (don't add yet!) new ConfigEntry ───────────────
     # We need new_entry.entry_id to retarget entities; we MUST NOT call

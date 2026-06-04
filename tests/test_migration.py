@@ -158,9 +158,10 @@ async def test_single_v2_entry_success():
 
 
 @pytest.mark.asyncio
-async def test_already_unloaded_entry_skips_unload():
-    """An entry in NOT_LOADED state must not be unloaded again."""
+async def test_unload_called_unconditionally():
+    """Unload runs even for a NOT_LOADED entry — defensive against stale state."""
     hass = MagicMock()
+    # async_unload returns True for any entry state, including NOT_LOADED
     hass.config_entries.async_unload = AsyncMock(return_value=True)
     hass.config_entries.async_add = AsyncMock()
     hass.config_entries.async_remove = AsyncMock()
@@ -188,9 +189,34 @@ async def test_already_unloaded_entry_skips_unload():
     ):
         await async_migrate_from_vistapool(hass)
 
-    hass.config_entries.async_unload.assert_not_awaited()
+    # Unload runs even for NOT_LOADED — guards against entity_registry rows
+    # left over from a previous boot that haven't been cleared yet.
+    hass.config_entries.async_unload.assert_awaited_once_with(old.entry_id)
     hass.config_entries.async_add.assert_awaited_once()
     hass.config_entries.async_remove.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_unload_failure_aborts_migration():
+    """When async_unload returns False, migration aborts before retargeting."""
+    hass = MagicMock()
+    # Simulate unload refusal: integration's async_unload_entry returned False
+    hass.config_entries.async_unload = AsyncMock(return_value=False)
+    hass.config_entries.async_add = AsyncMock()
+    hass.config_entries.async_remove = AsyncMock()
+
+    old = _make_old_entry()
+    hass.config_entries.async_entries.return_value = [old]
+
+    summary = await async_migrate_from_vistapool(hass)
+
+    # The per-entry try/except records the unload failure as a hard failure
+    assert summary["entries_failed"] == 1
+    assert summary["entries_migrated"] == 0
+    assert any("Failed to unload" in err for err in summary["errors"])
+    # async_add and async_remove must NOT have been called — we never reached them
+    hass.config_entries.async_add.assert_not_awaited()
+    hass.config_entries.async_remove.assert_not_awaited()
 
 
 @pytest.mark.asyncio
