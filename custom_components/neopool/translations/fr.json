@@ -628,6 +628,14 @@
     "corrupted_gpio": {
       "title": "Registres GPIO corrompus détectés",
       "description": "Les registres GPIO suivants de votre contrôleur de piscine contiennent des valeurs invalides :\n\n{details}\n\nCela se produit généralement lorsque le mode de trame de la passerelle Modbus ne correspond pas au paramètre de trame de l'intégration. Les fonctions concernées ne fonctionneront pas correctement tant que les registres ne seront pas restaurés à des valeurs valides.\n\nConsultez la documentation de l'intégration pour les instructions de réparation."
+    },
+    "domain_renamed": {
+      "title": "Integration domain migrated to neopool",
+      "description": "The integration domain has been renamed from `vistapool` to `neopool` to avoid a clash with the new core `vistapool` integration introduced in Home Assistant 2026.6.\n\n**{entries} config entr(ies)** and **{entities} entit(ies)** were migrated automatically. Your `entity_id`s, history, automations and dashboards continue to work without changes.\n\n**Old folder cleanup:** `{folder_cleaned}` (if `no`, please remove `custom_components/vistapool/` manually).\n\n**Please restart Home Assistant** to complete the migration."
+    },
+    "domain_rename_partial_failure": {
+      "title": "Migration to neopool partially failed",
+      "description": "Some VistaPool config entries could not be migrated to the new `neopool` domain:\n\n```\n{errors}\n```\n\nIf your pool controller is offline, deferred entries will retry on the next Home Assistant restart. Other failures should be investigated in the logs and reported on GitHub."
     }
   }
 }
