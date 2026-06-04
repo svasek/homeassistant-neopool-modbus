@@ -25,9 +25,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from pymodbus.framer import FramerType
 
-import custom_components.neopool.modbus as vistapool_modbus
+import custom_components.neopool.modbus as neopool_modbus
 
-ModbusException = vistapool_modbus.ModbusException
+ModbusException = neopool_modbus.ModbusException
 
 
 @pytest.fixture
@@ -44,13 +44,13 @@ def _fast_sleep(monkeypatch):
 @pytest.mark.asyncio
 async def test_safe_close_client_with_none(config):
     """Test that _safe_close_client does not raise if _client is None."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     await client._safe_close_client()  # Should not raise
 
 
 @pytest.mark.asyncio
 async def test_close_resets_state_and_closes_client(config):
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     mock_client = AsyncMock()
     mock_client.connected = True
     mock_client.close = AsyncMock(return_value=None)
@@ -70,13 +70,13 @@ async def test_close_resets_state_and_closes_client(config):
 
 def test_framer_defaults_to_socket(config):
     """Test that missing modbus_framer defaults to FramerType.SOCKET (Modbus TCP)."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     assert client._framer == FramerType.SOCKET
 
 
 def test_framer_tcp_maps_to_socket():
     """Test that modbus_framer='tcp' maps to FramerType.SOCKET."""
-    client = vistapool_modbus.NeoPoolModbusClient(
+    client = neopool_modbus.NeoPoolModbusClient(
         {"host": "127.0.0.1", "port": 502, "slave_id": 1, "modbus_framer": "tcp"}
     )
     assert client._framer == FramerType.SOCKET
@@ -84,7 +84,7 @@ def test_framer_tcp_maps_to_socket():
 
 def test_framer_rtu_maps_to_rtu():
     """Test that modbus_framer='rtu' maps to FramerType.RTU."""
-    client = vistapool_modbus.NeoPoolModbusClient(
+    client = neopool_modbus.NeoPoolModbusClient(
         {"host": "127.0.0.1", "port": 502, "slave_id": 1, "modbus_framer": "rtu"}
     )
     assert client._framer == FramerType.RTU
@@ -98,7 +98,7 @@ def test_framer_normalizes_case_and_whitespace():
         ("TCP", FramerType.SOCKET),
         ("RTU", FramerType.RTU),
     ]:
-        client = vistapool_modbus.NeoPoolModbusClient(
+        client = neopool_modbus.NeoPoolModbusClient(
             {"host": "127.0.0.1", "port": 502, "slave_id": 1, "modbus_framer": value}
         )
         assert client._framer == expected, f"Expected {expected} for input {value!r}"
@@ -109,7 +109,7 @@ def test_framer_unknown_value_falls_back_to_socket_with_warning(caplog):
     import logging
 
     with caplog.at_level(logging.WARNING, logger="custom_components.neopool.modbus"):
-        client = vistapool_modbus.NeoPoolModbusClient(
+        client = neopool_modbus.NeoPoolModbusClient(
             {
                 "host": "127.0.0.1",
                 "port": 502,
@@ -128,7 +128,7 @@ async def test_establish_connection_passes_framer_to_client():
         ("tcp", FramerType.SOCKET),
         ("rtu", FramerType.RTU),
     ]:
-        client = vistapool_modbus.NeoPoolModbusClient(
+        client = neopool_modbus.NeoPoolModbusClient(
             {
                 "host": "127.0.0.1",
                 "port": 502,
@@ -136,7 +136,7 @@ async def test_establish_connection_passes_framer_to_client():
                 "modbus_framer": framer_str,
             }
         )
-        with patch.object(vistapool_modbus, "AsyncModbusTcpClient") as MockClient:
+        with patch.object(neopool_modbus, "AsyncModbusTcpClient") as MockClient:
             mock_instance = MockClient.return_value
             mock_instance.connect = AsyncMock(return_value=True)
             mock_instance.connected = True
@@ -154,8 +154,8 @@ async def test_establish_connection_passes_framer_to_client():
 @pytest.mark.asyncio
 async def test_establish_connection_with_retry_success(config):
     """Test successful connection establishment with retry."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
-    with patch.object(vistapool_modbus, "AsyncModbusTcpClient") as MockClient:
+    client = neopool_modbus.NeoPoolModbusClient(config)
+    with patch.object(neopool_modbus, "AsyncModbusTcpClient") as MockClient:
         mock_instance = MockClient.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.connected = True
@@ -168,13 +168,13 @@ async def test_establish_connection_with_retry_success(config):
 @pytest.mark.asyncio
 async def test_establish_connection_with_retry_failure(config):
     """Test failed connection with retries and backoff set."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
-    with patch.object(vistapool_modbus, "AsyncModbusTcpClient") as MockClient:
+    client = neopool_modbus.NeoPoolModbusClient(config)
+    with patch.object(neopool_modbus, "AsyncModbusTcpClient") as MockClient:
         mock_instance = MockClient.return_value
         mock_instance.connect = AsyncMock(side_effect=Exception("fail"))
         mock_instance.connected = False
 
-        with pytest.raises(vistapool_modbus.ConnectionException):
+        with pytest.raises(neopool_modbus.ConnectionException):
             await client._establish_connection_with_retry()
         assert client._backoff_until is not None
 
@@ -182,7 +182,7 @@ async def test_establish_connection_with_retry_failure(config):
 @pytest.mark.asyncio
 async def test_is_connection_healthy_recent_success(config):
     """Test connection health check with recent successful operation."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._client = AsyncMock()
     client._client.connected = True
     client._last_successful_operation = datetime.now()
@@ -192,7 +192,7 @@ async def test_is_connection_healthy_recent_success(config):
 @pytest.mark.asyncio
 async def test_is_connection_healthy_healthcheck(config):
     """Test connection health check logic."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._client = AsyncMock()
     client._client.connected = True
     client._last_successful_operation = None
@@ -214,7 +214,7 @@ async def test_is_connection_healthy_healthcheck(config):
 @pytest.mark.asyncio
 async def test_async_read_all_success(config):
     """Test async_read_all returns dict from _perform_read_all."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_read_all = AsyncMock(return_value={"data": 123})
     result = await client.async_read_all()
     assert result == {"data": 123}
@@ -223,7 +223,7 @@ async def test_async_read_all_success(config):
 @pytest.mark.asyncio
 async def test_async_read_all_failure(config):
     """Test async_read_all raises if _perform_read_all fails both retries."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_read_all = AsyncMock(side_effect=Exception("read fail"))
     with pytest.raises(Exception, match="read fail"):
         await client.async_read_all()
@@ -232,7 +232,7 @@ async def test_async_read_all_failure(config):
 @pytest.mark.asyncio
 async def test_async_write_register_success(config):
     """Test async_write_register returns value from _perform_write_register."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_write_register = AsyncMock(return_value={"result": True})
     result = await client.async_write_register(0x0100, 123)
     assert result == {"result": True}
@@ -241,7 +241,7 @@ async def test_async_write_register_success(config):
 @pytest.mark.asyncio
 async def test_async_write_register_failure(config):
     """Test async_write_register raises if _perform_write_register raises Exception."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_write_register = AsyncMock(side_effect=Exception("write fail"))
     with pytest.raises(Exception, match="write fail"):
         await client.async_write_register(0x0100, 123)
@@ -250,7 +250,7 @@ async def test_async_write_register_failure(config):
 @pytest.mark.asyncio
 async def test_write_timer_success(config):
     """Test write_timer returns True if _perform_write_timer succeeds."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_write_timer = AsyncMock(return_value=True)
     result = await client.write_timer("filtration1", {"on": 1, "interval": 100})
     assert result is True
@@ -259,7 +259,7 @@ async def test_write_timer_success(config):
 @pytest.mark.asyncio
 async def test_write_timer_failure(config):
     """Test write_timer raises if _perform_write_timer raises Exception."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_write_timer = AsyncMock(side_effect=Exception("timer fail"))
     with pytest.raises(Exception, match="timer fail"):
         await client.write_timer("filtration1", {"on": 0})
@@ -268,7 +268,7 @@ async def test_write_timer_failure(config):
 @pytest.mark.asyncio
 async def test_async_write_aux_relay_success(config):
     """Test async_write_aux_relay returns None (success) or {} (connection error)."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_write_aux_relay = AsyncMock(return_value=None)  # type: ignore[attr-defined]
     with pytest.raises(ModbusException):
         await client.async_write_aux_relay(1, True)
@@ -277,7 +277,7 @@ async def test_async_write_aux_relay_success(config):
 @pytest.mark.asyncio
 async def test_async_write_aux_relay_failure(config):
     """Test async_write_aux_relay returns {} if _perform_write_aux_relay raises Exception."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_write_aux_relay = AsyncMock(side_effect=Exception("aux fail"))  # type: ignore[attr-defined]
     with pytest.raises(ModbusException):
         await client.async_write_aux_relay(1, True)
@@ -285,19 +285,19 @@ async def test_async_write_aux_relay_failure(config):
 
 @pytest.mark.asyncio
 async def test_write_register_connection_lost(config):
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     # Simulate a ConnectionException during write
     client._perform_write_register = AsyncMock(
-        side_effect=vistapool_modbus.ConnectionException("connection lost")
+        side_effect=neopool_modbus.ConnectionException("connection lost")
     )
-    with pytest.raises(vistapool_modbus.ConnectionException):
+    with pytest.raises(neopool_modbus.ConnectionException):
         await client.async_write_register(0x0100, 456)
     assert client._consecutive_errors == 1
 
 
 def test_connection_stats_content(config):
     """Test connection_stats property structure."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     stats = client.connection_stats
     assert stats["host"] == "127.0.0.1"
     assert isinstance(stats["total_operations"], int)
@@ -321,7 +321,7 @@ def test_connection_stats_content(config):
 async def test_perform_read_all_happy_path(config, monkeypatch):
     """Test _perform_read_all returns correct dict when all Modbus reads succeed."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
 
     # Helper class for simulating Modbus response object
     class DummyResp:
@@ -641,7 +641,7 @@ async def test_perform_read_all_block_exception(
 @pytest.mark.asyncio
 async def test_read_all_timers_success(config):
     """Test read_all_timers returns dict with timers when _perform_read_all_timers succeeds."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     timers_result = {
         "filtration1": {"enable": 1, "on": 100, "interval": 3600},
         "relay_aux1": {"enable": 0, "on": 0, "interval": 0},
@@ -654,7 +654,7 @@ async def test_read_all_timers_success(config):
 @pytest.mark.asyncio
 async def test_read_all_timers_exception(config):
     """Test read_all_timers raises if _perform_read_all_timers throws Exception."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_read_all_timers = AsyncMock(side_effect=Exception("timers fail"))
     with pytest.raises(Exception, match="timers fail"):
         await client.read_all_timers()
@@ -664,7 +664,7 @@ async def test_read_all_timers_exception(config):
 @pytest.mark.asyncio
 async def test_read_all_timers_not_connected(config):
     """Test read_all_timers returns {} if client is not connected."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._perform_read_all_timers = AsyncMock(return_value={})
     result = await client.read_all_timers()
     assert result == {}
@@ -674,7 +674,7 @@ async def test_read_all_timers_not_connected(config):
 async def test_perform_read_all_timers_all_enabled(config, monkeypatch):
     """Test _perform_read_all_timers reads all timer blocks when enabled_timers is None."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -713,7 +713,7 @@ async def test_perform_read_all_timers_all_enabled(config, monkeypatch):
 async def test_perform_read_all_timers_only_selected(config, monkeypatch):
     """Test _perform_read_all_timers reads only selected timer blocks."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -737,7 +737,7 @@ async def test_perform_read_all_timers_only_selected(config, monkeypatch):
 async def test_perform_read_all_timers_modbus_error(config, monkeypatch):
     """Test _perform_read_all_timers skips block if isError is True."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -760,7 +760,7 @@ async def test_perform_read_all_timers_modbus_error(config, monkeypatch):
 async def test_perform_read_all_timers_exception(config, monkeypatch):
     """Test _perform_read_all_timers skips block on exception."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -776,7 +776,7 @@ async def test_perform_read_all_timers_exception(config, monkeypatch):
 async def test_perform_read_all_timers_not_connected(config, monkeypatch):
     """Test _perform_read_all_timers if client is not connected."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = False
 
@@ -789,7 +789,7 @@ async def test_perform_read_all_timers_not_connected(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_write_register_happy_path(config, monkeypatch):
     """Test _perform_write_register returns dict with confirmation on success."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -812,7 +812,7 @@ async def test_perform_write_register_happy_path(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_write_register_mismatch_warning(config, monkeypatch, caplog):
     """Test _perform_write_register logs warning when read-back differs from written value."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -842,7 +842,7 @@ async def test_perform_write_command_register_no_mismatch_warning(
     config, monkeypatch, caplog
 ):
     """Command registers (e.g. EXEC) auto-clear; no mismatch warning expected."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -869,7 +869,7 @@ async def test_perform_write_command_register_no_mismatch_warning(
 @pytest.mark.asyncio
 async def test_perform_write_register_write_isError(config, monkeypatch):
     """Test _perform_write_register returns None if write_registers returns error."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -889,7 +889,7 @@ async def test_perform_write_register_write_isError(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_write_register_confirm_isError(config, monkeypatch):
     """Test _perform_write_register returns None if confirm read returns error."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -909,7 +909,7 @@ async def test_perform_write_register_confirm_isError(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_write_register_not_connected(config, monkeypatch):
     """Test _perform_write_register raises ModbusException if client is not connected."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = False
     monkeypatch.setattr(client, "get_client", AsyncMock(return_value=fake_modbus))
@@ -920,7 +920,7 @@ async def test_perform_write_register_not_connected(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_write_register_exception(config, monkeypatch):
     """Test _perform_write_register raises ModbusException on write exception."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
     fake_modbus.write_registers = AsyncMock(side_effect=Exception("modbus write fail"))
@@ -933,7 +933,7 @@ async def test_perform_write_register_exception(config, monkeypatch):
 async def test_perform_write_register_apply(config, monkeypatch):
     """Test _perform_write_register triggers EEPROM/EXEC writes when apply=True."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -966,7 +966,7 @@ async def test_perform_write_register_apply(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_write_register_logs_exception(config, monkeypatch, caplog):
     """Test that _perform_write_register logs and raises ModbusException on get_client exception."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     # Simulate get_client raising
     monkeypatch.setattr(
         client, "get_client", AsyncMock(side_effect=Exception("simulated error"))
@@ -981,7 +981,7 @@ async def test_perform_write_register_logs_exception(config, monkeypatch, caplog
 async def test_perform_write_timer_happy_path(config, monkeypatch):
     """Test _perform_write_timer updates timer block and triggers EEPROM/EXEC."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -1014,7 +1014,7 @@ async def test_perform_write_timer_happy_path(config, monkeypatch):
 async def test_perform_write_timer_not_connected(config, monkeypatch):
     """Test _perform_write_timer returns False if client is not connected."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = False
     monkeypatch.setattr(client, "get_client", AsyncMock(return_value=fake_modbus))
@@ -1027,7 +1027,7 @@ async def test_perform_write_timer_not_connected(config, monkeypatch):
 async def test_perform_write_timer_read_block_error(config, monkeypatch):
     """Test _perform_write_timer returns False if reading timer block fails."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -1048,7 +1048,7 @@ async def test_perform_write_timer_read_block_error(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_write_timer_write_raises(config, monkeypatch):
     """Test _perform_write_timer raises if write_registers raises exception."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -1069,7 +1069,7 @@ async def test_perform_write_timer_write_raises(config, monkeypatch):
 async def test_perform_write_timer_write_isError(config, monkeypatch):
     """Test _perform_write_timer returns False if write_registers returns error."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -1100,7 +1100,7 @@ async def test_perform_write_timer_write_isError(config, monkeypatch):
 async def test_async_write_aux_relay_on_and_off(config, monkeypatch):
     """Test async_write_aux_relay turns AUX relay ON and OFF successfully."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -1140,7 +1140,7 @@ async def test_async_write_aux_relay_on_and_off(config, monkeypatch):
 async def test_async_write_aux_relay_not_connected(config, monkeypatch):
     """Test async_write_aux_relay raises ModbusException if client is not connected."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = False
 
@@ -1154,7 +1154,7 @@ async def test_async_write_aux_relay_not_connected(config, monkeypatch):
 async def test_async_write_aux_relay_read_error(config, monkeypatch):
     """Test async_write_aux_relay handles Modbus error during read_input_registers."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -1174,7 +1174,7 @@ async def test_async_write_aux_relay_read_error(config, monkeypatch):
 async def test_async_write_aux_relay_write_exception(config, monkeypatch):
     """Test async_write_aux_relay raises ModbusException if write_registers throws exception."""
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
 
@@ -1195,9 +1195,9 @@ async def test_async_write_aux_relay_write_exception(config, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_client_respects_backoff(config):
-    c = vistapool_modbus.NeoPoolModbusClient(config)
+    c = neopool_modbus.NeoPoolModbusClient(config)
     c._backoff_until = datetime.now() + timedelta(seconds=5)
-    with pytest.raises(vistapool_modbus.ConnectionException):
+    with pytest.raises(neopool_modbus.ConnectionException):
         await c.get_client()
 
 
@@ -1209,9 +1209,9 @@ TCP_CONFIG = {"host": "127.0.0.1", "port": 502, "slave_id": 1, "modbus_framer": 
 
 def _client_with_ctx(
     cfg: dict,
-) -> tuple[vistapool_modbus.NeoPoolModbusClient, Any, Any, list]:
+) -> tuple[neopool_modbus.NeoPoolModbusClient, Any, Any, list]:
     """Return a (NeoPoolModbusClient, mock_ctx, mock_client, received) tuple."""
-    client = vistapool_modbus.NeoPoolModbusClient(cfg)
+    client = neopool_modbus.NeoPoolModbusClient(cfg)
     received = []
     mock_ctx = type(
         "Ctx", (), {"data_received": lambda self, data: received.append(data)}
@@ -1455,14 +1455,14 @@ def test_install_fc20_filter_socket_buffers_3_byte_prefix_then_drops():
 
 def test_install_fc20_filter_no_ctx_is_safe():
     """If client has no ctx attribute, the method must not raise."""
-    client = vistapool_modbus.NeoPoolModbusClient(RTU_CONFIG)
+    client = neopool_modbus.NeoPoolModbusClient(RTU_CONFIG)
     mock_client = type("MC", (), {})()
     client._install_fc20_filter(mock_client)  # type: ignore[arg-type]
 
 
 def test_install_fc20_filter_exception_is_safe():
     """If an unexpected exception occurs when patching, the method must not raise."""
-    client = vistapool_modbus.NeoPoolModbusClient(RTU_CONFIG)
+    client = neopool_modbus.NeoPoolModbusClient(RTU_CONFIG)
 
     class BadCtx:
         @property
@@ -1480,8 +1480,8 @@ def test_install_fc20_filter_exception_is_safe():
 @pytest.mark.asyncio
 async def test_establish_connection_installs_fc20_filter(config):
     """After a successful connection, _install_fc20_filter is called."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
-    with patch.object(vistapool_modbus, "AsyncModbusTcpClient") as MockClient:
+    client = neopool_modbus.NeoPoolModbusClient(config)
+    with patch.object(neopool_modbus, "AsyncModbusTcpClient") as MockClient:
         mock_instance = MockClient.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.connected = True
@@ -1516,7 +1516,7 @@ async def test_perform_read_all_skips_config_pages_when_no_notification(
     config, monkeypatch
 ):
     """When notification=0 and not at full-read interval, all config page reads are skipped."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0  # not at interval → partial read allowed
 
     fake_modbus = AsyncMock()
@@ -1541,14 +1541,14 @@ async def test_perform_read_all_reads_only_factory_when_factory_notified(
     config, monkeypatch
 ):
     """When only FACTORY notification bit is set, only FACTORY holding regs are read (2 calls)."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0
 
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
     fake_modbus.read_input_registers = AsyncMock(
         return_value=_DummyResp(
-            _measure_regs(notification=vistapool_modbus._NOTIF_FACTORY)
+            _measure_regs(notification=neopool_modbus._NOTIF_FACTORY)
         )
     )
     # FACTORY: 2 calls — (0x0300, 13) and (0x0322, 4)
@@ -1570,9 +1570,9 @@ async def test_perform_read_all_reads_only_factory_when_factory_notified(
 @pytest.mark.asyncio
 async def test_perform_read_all_force_full_after_interval(config, monkeypatch):
     """When _polls_since_full_read reaches _FULL_READ_INTERVAL, all pages are read."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = (
-        vistapool_modbus._FULL_READ_INTERVAL
+        neopool_modbus._FULL_READ_INTERVAL
     )  # force_full=True
 
     fake_modbus = AsyncMock()
@@ -1610,14 +1610,14 @@ async def test_perform_read_all_force_full_after_interval(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_read_all_clears_notification_register(config, monkeypatch):
     """When notification != 0, write_registers is called to clear MBF_NOTIFICATION (0x0110)."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0
 
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
     fake_modbus.read_input_registers = AsyncMock(
         return_value=_DummyResp(
-            _measure_regs(notification=vistapool_modbus._NOTIF_GLOBAL)
+            _measure_regs(notification=neopool_modbus._NOTIF_GLOBAL)
         )
     )
     # GLOBAL: rr02 (0x0206, 20) + rr02_hidro (0x0280, 2)
@@ -1644,7 +1644,7 @@ async def test_perform_read_all_does_not_clear_when_notification_zero(
     config, monkeypatch
 ):
     """When notification == 0, write_registers is NOT called."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0
 
     fake_modbus = AsyncMock()
@@ -1664,7 +1664,7 @@ async def test_perform_read_all_does_not_clear_when_notification_zero(
 @pytest.mark.asyncio
 async def test_perform_read_all_cache_serves_unread_pages(config, monkeypatch):
     """Cached values for pages not re-read are carried forward in the result."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0
     # Pre-populate cache with a known FACTORY value
     client._cached_result = {"MBF_PAR_VERSION": 2055, "MBF_PAR_MODEL": 10}
@@ -1689,9 +1689,9 @@ async def test_perform_read_all_cache_serves_unread_pages(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_perform_read_all_poll_counter_resets_on_full_read(config, monkeypatch):
     """After a forced full read, _polls_since_full_read is reset to 0."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     # A new client starts at _FULL_READ_INTERVAL → first poll is always a full read
-    assert client._polls_since_full_read == vistapool_modbus._FULL_READ_INTERVAL
+    assert client._polls_since_full_read == neopool_modbus._FULL_READ_INTERVAL
 
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
@@ -1723,10 +1723,10 @@ async def test_perform_read_all_poll_counter_resets_on_full_read(config, monkeyp
 @pytest.mark.asyncio
 async def test_perform_read_all_cached_result_updated_after_read(config, monkeypatch):
     """After each _perform_read_all call, _cached_result is updated with the latest data."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0
 
-    measure_regs = _measure_regs(notification=vistapool_modbus._NOTIF_FACTORY)
+    measure_regs = _measure_regs(notification=neopool_modbus._NOTIF_FACTORY)
     # Set MBF_MEASURE_PH (index 2) to a known value → 820 = 8.20 pH
     measure_regs[2] = 820
 
@@ -1755,14 +1755,14 @@ async def test_perform_read_all_notification_clear_failure_is_silently_ignored(
     """When write_registers raises while clearing MBF_NOTIFICATION, the error is swallowed and logged at DEBUG."""
     import logging
 
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0
 
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
     fake_modbus.read_input_registers = AsyncMock(
         return_value=_DummyResp(
-            _measure_regs(notification=vistapool_modbus._NOTIF_GLOBAL)
+            _measure_regs(notification=neopool_modbus._NOTIF_GLOBAL)
         )
     )
     # GLOBAL: rr02 + rr02_hidro
@@ -1790,10 +1790,10 @@ async def test_perform_read_all_reads_installer_and_user_when_both_notified(
     config, monkeypatch
 ):
     """When both INSTALLER and USER notification bits are set, both page blocks are read."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._polls_since_full_read = 0
 
-    notification = vistapool_modbus._NOTIF_INSTALLER | vistapool_modbus._NOTIF_USER
+    notification = neopool_modbus._NOTIF_INSTALLER | neopool_modbus._NOTIF_USER
 
     fake_modbus = AsyncMock()
     fake_modbus.connected = True
@@ -1825,7 +1825,7 @@ async def test_perform_read_all_timers_skips_when_no_installer_notification(
     """_perform_read_all_timers returns cached data without any Modbus reads when
     INSTALLER notification bit is not set and it is not a full-read poll.
     When enabled_timers is provided, only the requested subset is returned."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     # Simulate state after a previous partial read with no INSTALLER notification
     client._last_was_full_read = False
     client._last_notification = 0
@@ -1863,7 +1863,7 @@ async def test_perform_read_all_timers_skips_returns_all_cached_when_enabled_tim
     config, monkeypatch
 ):
     """When enabled_timers=None and the read is skipped, the full cache is returned."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._last_was_full_read = False
     client._last_notification = 0
     client._cached_timers = {
@@ -1896,7 +1896,7 @@ async def test_perform_read_all_timers_skips_returns_all_cached_when_enabled_tim
 @pytest.mark.asyncio
 async def test_perform_read_all_timers_force_read_bypasses_cache(config, monkeypatch):
     """force_read timers are re-read from Modbus even when the cache would be used."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._last_was_full_read = False
     client._last_notification = 0  # no notification — cache would normally be used
     client._cached_timers = {
@@ -1941,9 +1941,9 @@ async def test_perform_read_all_timers_reads_when_installer_notified(
     config, monkeypatch
 ):
     """_perform_read_all_timers reads Modbus when INSTALLER notification bit is set."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._last_was_full_read = False
-    client._last_notification = vistapool_modbus._NOTIF_INSTALLER
+    client._last_notification = neopool_modbus._NOTIF_INSTALLER
     client._cached_timers = {}
 
     fake_modbus = AsyncMock()
@@ -1964,7 +1964,7 @@ async def test_perform_read_all_timers_reads_on_full_read_even_without_notificat
     config, monkeypatch
 ):
     """_perform_read_all_timers reads Modbus when _last_was_full_read=True regardless of notification."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
     client._last_was_full_read = True  # forced full read
     client._last_notification = 0  # no notification bits
     client._cached_timers = {
@@ -1991,7 +1991,7 @@ async def test_filtration_fixup_skipped_on_partial_read(config, monkeypatch):
     stale (0=off) while the fresh MBF_RELAY_STATE correctly shows the pump ON.
     The fixup must NOT fire in this case — the relay bit should be trusted.
     """
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
 
     class DummyResp:
         def __init__(self, regs, is_error=False):
@@ -2060,7 +2060,7 @@ async def test_filtration_state_fixup_v8_07_firmware(config, monkeypatch):
     On firmware v8.07 (HIDRO-only, e.g. Oxilife), MBF_RELAY_STATE = 0x0700 with bit 1
     not set even when the pump runs. MBF_PAR_FILTRATION_STATE (0x0421) is authoritative.
     """
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
 
     class DummyResp:
         def __init__(self, regs, is_error=False):
@@ -2114,7 +2114,7 @@ async def test_filtration_state_fixup_v8_07_firmware(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_filtration_state_fixup_pump_off_agrees(config, monkeypatch):
     """Test that when MBF_RELAY_STATE and MBF_PAR_FILTRATION_STATE agree (both off), no fixup fires."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
 
     class DummyResp:
         def __init__(self, regs, is_error=False):
@@ -2162,7 +2162,7 @@ async def test_filtration_state_fixup_relay_on_but_state_off(config, monkeypatch
     Edge case: relay state claims pump is running but authoritative register says it's off.
     Fixup must clear bit 1 from MBF_RELAY_STATE and set Filtration Pump to False.
     """
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
 
     class DummyResp:
         def __init__(self, regs, is_error=False):
@@ -2210,7 +2210,7 @@ async def test_filtration_state_fixup_relay_on_but_state_off(config, monkeypatch
 @pytest.mark.asyncio
 async def test_hydrolysis_detected_via_model_bit(config, monkeypatch):
     """Hydrolysis module detected is True when MBF_PAR_MODEL bit 1 (MBMSK_MODEL_HIDRO) is set."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
 
     class DummyResp:
         def __init__(self, regs, is_error=False):
@@ -2250,7 +2250,7 @@ async def test_hydrolysis_detected_via_model_bit(config, monkeypatch):
 @pytest.mark.asyncio
 async def test_hydrolysis_detected_via_status_ctrl_active(config, monkeypatch):
     """Hydrolysis module detected is True when MBF_HIDRO_STATUS bit 6 (CTRL_ACTIVE) is set."""
-    client = vistapool_modbus.NeoPoolModbusClient(config)
+    client = neopool_modbus.NeoPoolModbusClient(config)
 
     class DummyResp:
         def __init__(self, regs, is_error=False):

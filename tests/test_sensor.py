@@ -34,7 +34,7 @@ def mock_coordinator():
     mock.config_entry.options = {}
     mock.config_entry.entry_id = "test_entry"
     mock.entry = mock.config_entry
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     return mock
 
 
@@ -414,7 +414,7 @@ async def test_sensor_async_setup_entry_adds_entities(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -459,7 +459,7 @@ async def test_sensor_async_setup_entry_detected_flags(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -493,7 +493,7 @@ async def test_sensor_async_setup_entry_model_mask(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -521,7 +521,7 @@ async def test_sensor_hidro_skipped_without_hydrolysis(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -538,7 +538,7 @@ async def test_sensor_hidro_skipped_without_hydrolysis(monkeypatch):
 def make_sensor(props, key, data):
     mock_coord = MagicMock()
     mock_coord.data = data
-    mock_coord.device_slug = "vistapool"
+    mock_coord.device_slug = "neopool"
     mock_coord.config_entry.entry_id = "test_entry"
     mock_coord.config_entry.options = {}
     mock_coord.entry = mock_coord.config_entry
@@ -574,7 +574,7 @@ async def test_sensor_temperature_skip_when_inactive():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -604,7 +604,7 @@ async def test_sensor_temperature_created_when_active():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -638,7 +638,7 @@ async def test_sensor_intelligent_key_skip_without_heating(sensor_key, value):
         data: dict = {}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     DummyCoordinator.data = {
         sensor_key: value,
@@ -677,7 +677,7 @@ async def test_sensor_intelligent_key_created_with_heating(sensor_key, value):
         data: dict = {}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     DummyCoordinator.data = {
         sensor_key: value,
@@ -705,7 +705,7 @@ def test_sensor_intelligent_tt_next_interval_calls_helper():
     mock_coordinator.config_entry.options = {}
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     props = {"device_class": "timestamp"}
     ent = NeoPoolSensor(
@@ -737,7 +737,7 @@ async def test_async_setup_entry_no_data(caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -780,7 +780,7 @@ async def test_sensor_setup_with_capability_snapshot_only():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -826,7 +826,7 @@ async def test_sensor_filtvalve_remaining_skipped_without_besgo():
         data: dict = {}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     DummyCoordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
 
@@ -854,7 +854,7 @@ async def test_sensor_filtvalve_remaining_created_with_besgo():
         data: dict = {}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     DummyCoordinator.data = {
         "MBF_PAR_FILTVALVE_ENABLE": 1,
@@ -885,7 +885,7 @@ async def test_sensor_filtvalve_remaining_created_with_gpio_only():
         data: dict = {}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     DummyCoordinator.data = {
         "MBF_PAR_FILTVALVE_ENABLE": 0,
@@ -909,7 +909,7 @@ def test_sensor_filtvalve_remaining_native_value():
     mock_coordinator = MagicMock()
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_REMAINING": 90}
     mock_coordinator.config_entry.entry_id = "test_entry"
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     from custom_components.neopool.sensor import NeoPoolSensor
 
@@ -926,7 +926,7 @@ def test_sensor_filtration_remaining_native_value():
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.config_entry.options = {}
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     from custom_components.neopool.sensor import NeoPoolSensor
 
@@ -941,7 +941,7 @@ def test_sensor_filtration_remaining_none_when_idle():
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.config_entry.options = {}
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     from custom_components.neopool.sensor import NeoPoolSensor
 
@@ -965,7 +965,7 @@ async def test_filtration_power_sensor_created_when_nonzero():
         data = {CONF_FILTRATION_PUMP_POWER: 570, "Filtration Pump": True}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -991,7 +991,7 @@ async def test_filtration_power_sensor_skipped_when_zero():
         data = {CONF_FILTRATION_PUMP_POWER: 0}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -1017,7 +1017,7 @@ async def test_filtration_power_sensor_skipped_when_negative():
         data = {}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -1040,7 +1040,7 @@ def test_filtration_power_sensor_native_value():
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.config_entry.options = {CONF_FILTRATION_PUMP_POWER: 570}
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     ent = NeoPoolSensor(
         mock_coordinator,
@@ -1069,7 +1069,7 @@ async def test_filtration_energy_sensor_created_when_nonzero():
         data = {CONF_FILTRATION_PUMP_POWER: 570}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -1097,7 +1097,7 @@ async def test_filtration_energy_sensor_not_created_when_zero():
         data = {}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -1115,7 +1115,7 @@ def test_filtration_energy_sensor_accumulates():
     mock_coordinator = MagicMock()
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     ent = NeoPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
     ent.async_write_ha_state = MagicMock()
@@ -1144,7 +1144,7 @@ def test_filtration_energy_sensor_no_accumulation_when_off():
     mock_coordinator = MagicMock()
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     ent = NeoPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
     ent.async_write_ha_state = MagicMock()
@@ -1172,7 +1172,7 @@ def test_filtration_energy_sensor_stops_on_pump_off():
     mock_coordinator = MagicMock()
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
 
     ent = NeoPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
     ent.async_write_ha_state = MagicMock()
@@ -1206,7 +1206,7 @@ async def test_filtration_energy_sensor_restores_state():
     mock_coordinator = MagicMock()
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
     mock_coordinator.data = {}
 
     ent = NeoPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
@@ -1230,7 +1230,7 @@ async def test_filtration_energy_sensor_restore_ignores_unavailable():
     mock_coordinator = MagicMock()
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
     mock_coordinator.data = {}
 
     for bad_state in ("unavailable", "unknown", None):
@@ -1254,7 +1254,7 @@ async def test_filtration_energy_sensor_restore_ignores_invalid_float():
     mock_coordinator = MagicMock()
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
     mock_coordinator.data = {}
 
     ent = NeoPoolFiltrationEnergySensor(mock_coordinator, "test_entry", 570)
@@ -1277,7 +1277,7 @@ async def test_filtration_energy_sensor_restore_ignores_non_finite():
     mock_coordinator = MagicMock()
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.entry = mock_coordinator.config_entry
-    mock_coordinator.device_slug = "vistapool"
+    mock_coordinator.device_slug = "neopool"
     mock_coordinator.data = {}
 
     for bad_value in ("nan", "inf", "-inf", "-1.0"):

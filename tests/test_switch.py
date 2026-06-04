@@ -31,7 +31,7 @@ def _fast_sleep(monkeypatch):
 def mock_coordinator():
     mock = MagicMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.config_entry.entry_id = "test_entry"
     mock.winter_mode = False
     mock.request_refresh_with_followup = MagicMock()
@@ -325,7 +325,7 @@ async def test_switch_async_setup_entry_adds_entities(monkeypatch):
         data = {"MBF_PAR_FILT_MODE": 0, "relay_aux1_enable": 3}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -358,7 +358,7 @@ async def test_switch_setup_skips_smart_antifreeze_when_no_temp(monkeypatch):
         data = {"MBF_PAR_TEMPERATURE_ACTIVE": 0}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -393,7 +393,7 @@ async def test_switch_async_setup_entry_no_data(caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -416,7 +416,7 @@ async def test_switch_async_setup_entry_option_disabled(monkeypatch):
         data = {"MBF_PAR_FILT_MODE": 0, "relay_aux1_enable": 3}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -467,7 +467,7 @@ async def test_switch_setup_skips_hidro_cover_without_hydro_module():
         data = {"Hydrolysis module detected": False}  # hydro module absent
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -496,7 +496,7 @@ async def test_switch_setup_creates_hidro_cover_with_hydro_module():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -525,7 +525,7 @@ async def test_switch_setup_skips_hidro_temp_shutdown_without_temp_sensor():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -556,7 +556,7 @@ async def test_switch_setup_skips_hidro_cover_without_cover_sensor():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -830,7 +830,7 @@ async def test_switch_setup_includes_uv_mode_when_relay_assigned(monkeypatch):
         data = {"MBF_PAR_UV_RELAY_GPIO": 3}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -865,7 +865,7 @@ async def test_switch_setup_skips_uv_mode_when_no_relay(monkeypatch):
         data = {"MBF_PAR_UV_RELAY_GPIO": 0}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -900,7 +900,7 @@ async def test_switch_setup_skips_uv_mode_when_key_missing(monkeypatch):
         data = {}  # no MBF_PAR_UV_RELAY_GPIO at all
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -935,7 +935,7 @@ async def test_switch_setup_skips_uv_mode_when_gpio_out_of_range(monkeypatch):
         data = {"MBF_PAR_UV_RELAY_GPIO": 255}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()

@@ -23,7 +23,7 @@ from custom_components.neopool.button import NeoPoolButton, async_setup_entry
 def mock_coordinator():
     mock = MagicMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.winter_mode = False
     mock.client = AsyncMock()
     mock.async_request_refresh = AsyncMock()
@@ -77,7 +77,7 @@ async def test_button_async_setup_entry_adds_entities(monkeypatch):
         data = {"something": True}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -106,7 +106,7 @@ async def test_button_async_setup_entry_no_data(monkeypatch, caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -192,7 +192,7 @@ async def test_button_setup_entry_creates_backwash_with_gpio_only():
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 5}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -217,7 +217,7 @@ async def test_button_setup_entry_skips_backwash_without_valve():
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()

@@ -30,7 +30,7 @@ def _fast_sleep(monkeypatch):
 def mock_coordinator():
     mock = MagicMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.winter_mode = False
     mock.client = AsyncMock()
     mock.async_request_refresh = AsyncMock()
@@ -121,7 +121,7 @@ async def test_light_async_setup_entry_adds_entities(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -158,7 +158,7 @@ async def test_light_async_setup_entry_no_data(caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -187,7 +187,7 @@ async def test_light_async_setup_entry_skips_without_lighting_gpio(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -222,7 +222,7 @@ async def test_light_async_setup_entry_option_disabled(monkeypatch):
         data = {"relay_light_enable": 3}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()

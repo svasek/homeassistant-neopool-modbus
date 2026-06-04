@@ -26,7 +26,7 @@ from custom_components.neopool.binary_sensor import (
 def mock_coordinator():
     mock = MagicMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.config_entry.entry_id = "test_entry"
     return mock
 
@@ -63,7 +63,7 @@ async def test_async_setup_entry_adds_entities(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -110,7 +110,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -141,7 +141,7 @@ async def test_async_setup_entry_skips_ph_acid_pump_without_relay(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -172,7 +172,7 @@ async def test_async_setup_entry_skips_cl_module_sensor_without_chlorine(monkeyp
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -204,7 +204,7 @@ async def test_async_setup_entry_skips_rx_module_sensor_without_redox(monkeypatc
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -232,7 +232,7 @@ async def test_async_setup_entry_no_data(monkeypatch, caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -260,7 +260,7 @@ async def test_async_setup_entry_option_disables_sensor(monkeypatch):
         data = {"MBF_PAR_MODEL": 0x0001}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -297,7 +297,7 @@ async def test_async_setup_entry_skips_pool_cover_when_not_enabled(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -325,7 +325,7 @@ async def test_async_setup_entry_includes_pool_cover_when_enabled(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -480,7 +480,7 @@ async def test_async_setup_entry_includes_uv_lamp_when_relay_assigned():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -508,7 +508,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_no_relay():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -535,7 +535,7 @@ async def test_async_setup_entry_creates_uv_lamp_when_key_missing():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -563,7 +563,7 @@ async def test_async_setup_entry_skips_uv_lamp_when_gpio_out_of_range():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -603,7 +603,7 @@ async def test_async_setup_entry_skips_pool_light_without_relay():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -633,7 +633,7 @@ async def test_async_setup_entry_skips_filtration_pump_without_relay():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -674,7 +674,7 @@ async def test_async_setup_entry_skips_pump_sensors_without_relay():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -722,7 +722,7 @@ async def test_async_setup_entry_pump_sensors_with_capability_snapshot():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -761,7 +761,7 @@ async def test_enabled_default_for_pump_and_problem_sensors():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()

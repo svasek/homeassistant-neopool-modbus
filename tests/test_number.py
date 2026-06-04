@@ -27,7 +27,7 @@ from custom_components.neopool.number import NeoPoolNumber, async_setup_entry
 def mock_coordinator():
     mock = MagicMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.winter_mode = False
     mock.config_entry.entry_id = "test_entry"
     return mock
@@ -320,7 +320,7 @@ async def test_number_async_setup_entry_adds_entities(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -377,7 +377,7 @@ async def test_number_setup_skips_smart_when_no_temp(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -419,7 +419,7 @@ async def test_number_async_setup_entry_skips_unassigned(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -470,7 +470,7 @@ async def test_number_setup_skips_cover_without_cover_sensor(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -512,7 +512,7 @@ async def test_number_setup_creates_cover_with_cover_sensor(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -551,7 +551,7 @@ async def test_number_setup_skips_cover_without_hydro_module(monkeypatch):
         data = {"MBF_PAR_TEMPERATURE_ACTIVE": 1}  # Hydrolysis module not detected
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -590,7 +590,7 @@ async def test_number_setup_skips_temp_shutdown_without_temp_sensor(monkeypatch)
         data = {"Hydrolysis module detected": True}  # hydro present, but no temp sensor
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -762,7 +762,7 @@ async def test_async_setup_entry_no_data(caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -791,7 +791,7 @@ async def test_async_setup_entry_skips_hidro_without_hydrolysis(caplog):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()

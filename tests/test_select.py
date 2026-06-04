@@ -37,7 +37,7 @@ def _fast_sleep(monkeypatch):
 def mock_coordinator():
     mock = AsyncMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.winter_mode = False
     mock.async_set_updated_data = MagicMock()
     mock.request_refresh_with_followup = MagicMock()
@@ -352,7 +352,7 @@ async def test_async_select_option_backwash(mock_coordinator):
         "MBF_PAR_HEATING_GPIO": 0,
         "MBF_PAR_TEMPERATURE_ACTIVE": 0,
     }
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -378,7 +378,7 @@ async def test_async_select_option_backwash_from_manual(mock_coordinator):
         "MBF_PAR_FILTVALVE_ENABLE": 0,
         "MBF_PAR_FILTVALVE_GPIO": 0,  # no valve => manual
     }
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -406,7 +406,7 @@ async def test_async_select_option_backwash_from_manual_auto_valve(mock_coordina
         "MBF_PAR_FILTVALVE_ENABLE": 1,  # Besgo auto valve present
         "MBF_PAR_FILTVALVE_GPIO": 5,
     }
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -447,7 +447,7 @@ async def test_async_select_option_filtration_speed(mock_coordinator):
     )
     ent.hass = MagicMock()
     ent.coordinator.client = AsyncMock()
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     # Start with current=0 (should be "low"). Set to "mid" (1).
     mock_coordinator.data = {"MBF_PAR_FILTRATION_CONF": 0}
     await ent.async_select_option("mid")
@@ -647,7 +647,7 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -687,7 +687,7 @@ async def test_select_async_setup_entry_option_disabled(monkeypatch):
         data = {"MBF_PAR_FILTRATION_CONF": 1, "MBF_PAR_MODEL": 0x0002}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -720,7 +720,7 @@ async def test_select_async_setup_entry_no_data(caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -864,7 +864,7 @@ async def test_select_filtvalve_period_minutes_skipped_without_besgo(mock_coordi
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
 
     from unittest.mock import MagicMock
@@ -893,7 +893,7 @@ async def test_select_filtvalve_period_minutes_created_with_besgo(mock_coordinat
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 1, "MBF_PAR_FILTVALVE_PERIOD_MINUTES": 1440}
 
     from unittest.mock import MagicMock
@@ -922,7 +922,7 @@ async def test_select_filtvalve_period_minutes_created_with_gpio_only(mock_coord
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {
             "MBF_PAR_FILTVALVE_ENABLE": 0,
             "MBF_PAR_FILTVALVE_GPIO": 5,
@@ -1045,7 +1045,7 @@ async def test_select_filtvalve_mode_skipped_without_besgo(mock_coordinator):
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
 
     from unittest.mock import MagicMock
@@ -1074,7 +1074,7 @@ async def test_select_filtvalve_mode_created_with_besgo(mock_coordinator):
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 1, "MBF_PAR_FILTVALVE_MODE": 1}
 
     from unittest.mock import MagicMock
@@ -1103,7 +1103,7 @@ async def test_select_filtvalve_mode_created_with_gpio_only(mock_coordinator):
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {
             "MBF_PAR_FILTVALVE_ENABLE": 0,
             "MBF_PAR_FILTVALVE_GPIO": 5,
@@ -1206,7 +1206,7 @@ async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()

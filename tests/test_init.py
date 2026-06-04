@@ -729,15 +729,15 @@ def test_cleanup_removes_ph_pump_entities():
     # unique_ids are built with key.lower() — REMOVED_ENTITY_KEYS must be lowercase
     ph_acid = MagicMock()
     ph_acid.unique_id = "test_entry_ph acid pump active"
-    ph_acid.entity_id = "binary_sensor.vistapool_ph_acid_pump_active"
+    ph_acid.entity_id = "binary_sensor.neopool_ph_acid_pump_active"
 
     ph_base = MagicMock()
     ph_base.unique_id = "test_entry_ph pump active"
-    ph_base.entity_id = "binary_sensor.vistapool_ph_pump_active"
+    ph_base.entity_id = "binary_sensor.neopool_ph_pump_active"
 
     unrelated = MagicMock()
     unrelated.unique_id = "test_entry_ph control module"
-    unrelated.entity_id = "binary_sensor.vistapool_ph_control_module"
+    unrelated.entity_id = "binary_sensor.neopool_ph_control_module"
 
     mock_registry = MagicMock()
 
@@ -750,8 +750,8 @@ def test_cleanup_removes_ph_pump_entities():
 
     assert mock_registry.async_remove.call_count == 2
     removed_ids = [c.args[0] for c in mock_registry.async_remove.call_args_list]
-    assert "binary_sensor.vistapool_ph_acid_pump_active" in removed_ids
-    assert "binary_sensor.vistapool_ph_pump_active" in removed_ids
+    assert "binary_sensor.neopool_ph_acid_pump_active" in removed_ids
+    assert "binary_sensor.neopool_ph_pump_active" in removed_ids
 
 
 def test_cleanup_no_orphans():
