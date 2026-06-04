@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.1.0](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v2.0.0...v2.1.0) (2026-06-04)
+
+
+### ✨ Features
+
+* **sensor:** ✨ add filtration pump power and energy sensors ([#157](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/157)) ([db9e05f](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/db9e05fcc2821269c56496890a0134aa648393f0))
+
+
+### 🐛 Bug Fixes
+
+* **config:** 🐛 advanced options unlock password not matching device name ([#158](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/158)) ([59426a2](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/59426a27f29f0cb795092561813eee907fcaf82c))
+* **translations:** 📝 add data_description to all config and options flow steps ([#154](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/154)) ([7d481f5](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/7d481f51200f21e5da124d08a0bcf19826b1e700))
+
+
+### ♻️ Refactoring
+
+* 🏷️ add strict type annotations across all modules ([#155](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/155)) ([1ec3ec2](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/1ec3ec2e9ef9fe5c4acb41a05f299792aeeb7c27))
+
 ## [2.0.0](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v1.26.2...v2.0.0) (2026-05-27)
 
 
