@@ -1,4 +1,4 @@
-# VistaPool Modbus Integration for Home Assistant
+# NeoPool Modbus Integration for Home Assistant
 
 - Easily connect your **NeoPool**-based pool controller to Home Assistant via Modbus TCP.
 - NeoPool is a control system originally developed by **Sugar Valley** (acquired by **Hayward** in 2016), available under many brand names and in multiple device variants.
@@ -92,7 +92,7 @@ If you find this integration useful, consider supporting its development:
 ## Features
 
 - **Reliable single Modbus TCP connection per device/hub** (improves stability, avoids connection issues).
-- **Multi-hub support**: Add multiple VistaPool devices, each with a custom prefix (used in entity IDs).
+- **Multi-hub support**: Add multiple NeoPool devices, each with a custom prefix (used in entity IDs).
 - **Sensors**:
   pH, Redox (ORP), Salt, Conductivity, Water Temperature, Ionization, Hydrolysis Intensity/Voltage, Device Time, Status/Alarm bits, Filtration speed _(if supported)_, Backwash remaining time _(if Besgo automatic filter valve is configured)_, **Filtration pump power & energy** _(if pump wattage is configured in Options)_.
 - **Numbers**:
@@ -113,14 +113,14 @@ If you find this integration useful, consider supporting its development:
 ### [HACS](https://hacs.xyz/) (recommended)
 
 1. Open **HACS** in Home Assistant.
-2. Go to **Integrations** and search for **VistaPool Modbus Integration** (no need to add a custom repository, this integration is included in the HACS default list).
-3. Install **VistaPool Modbus Integration**.
+2. Go to **Integrations** and search for **NeoPool Modbus Integration** (no need to add a custom repository, this integration is included in the HACS default list).
+3. Install **NeoPool Modbus Integration**.
 4. Restart Home Assistant.
 
 ### Manual
 
 1. Download or clone this repository.
-2. Copy the `custom_components/vistapool` folder to your `/config/custom_components` directory.
+2. Copy the `custom_components/neopool` folder to your `/config/custom_components` directory.
 3. Restart Home Assistant.
 
 ## Setup and Configuration
@@ -131,13 +131,13 @@ After installing the integration via HACS and restarting Home Assistant:
 
 You can use the button below to start configuration:
 
-[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=vistapool)
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=neopool)
 
 Or add manually:
 
 - Go to **Settings → Devices & Services**.
 - Click **Add Integration**.
-- Search for and select **VistaPool Modbus Integration**.
+- Search for and select **NeoPool Modbus Integration**.
 
 ### 2. Enter Connection Details
 
@@ -161,7 +161,7 @@ After initial setup, you can fine-tune the integration:
 - **Filtration pump power** (rated wattage in W; when non-zero, creates instantaneous power and cumulative energy sensors usable in the Energy dashboard)
 - **Unlock advanced features** (see [below](#advanced-options-unlocking-backwash-mode))
 
-Go to **Settings → Devices & Services → VistaPool Modbus Integration → Configure**  
+Go to **Settings → Devices & Services → NeoPool Modbus Integration → Configure**  
 to adjust options at any time.
 
 ---
@@ -187,12 +187,12 @@ The "Backwash" option in the **filtration mode select** is hidden by default, as
 
 To enable it:
 
-1. Go to **Settings → Devices & Services → VistaPool Modbus Integration → Configure**.
+1. Go to **Settings → Devices & Services → NeoPool Modbus Integration → Configure**.
 2. In the options dialog, find the field **Unlock advanced options**.
 3. Enter the code: `<device_prefix><current_year>`
 
-- Example: If your pool's prefix is `vistapool` and the year is 2025, enter `vistapool2025`.
-- The prefix is the same as in your entity IDs (e.g., `switch.vistapool_light`).
+- Example: If your pool's prefix is `neopool` and the year is 2025, enter `neopool2025`.
+- The prefix is the same as in your entity IDs (e.g., `switch.neopool_light`).
 
 4. Submit the form. The advanced settings page will open, allowing you to enable "Backwash" mode.
 
