@@ -16,7 +16,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.vistapool.entity import VistaPoolEntity
+from custom_components.neopool.entity import VistaPoolEntity
 
 
 @pytest.mark.parametrize(

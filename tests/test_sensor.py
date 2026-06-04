@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.vistapool.sensor import (
+from custom_components.neopool.sensor import (
     FILTRATION_MODE_MAP,
     FILTRATION_SPEED_MAP,
     PH_STATUS_ALARM_MAP,
@@ -45,7 +45,7 @@ def make_props(**kwargs):
 
 
 def test_suggested_display_precision(mock_coordinator):
-    from custom_components.vistapool.const import SENSOR_DEFINITIONS
+    from custom_components.neopool.const import SENSOR_DEFINITIONS
 
     # Test for MBF_HIDRO_CURRENT with percent mode
     ent = VistaPoolSensor(
@@ -83,7 +83,7 @@ def test_suggested_display_precision(mock_coordinator):
 
 def test_native_unit_of_measurement_hidro_current(mock_coordinator):
     """Test native_unit_of_measurement for MBF_HIDRO_CURRENT with different configurations."""
-    from custom_components.vistapool.const import SENSOR_DEFINITIONS
+    from custom_components.neopool.const import SENSOR_DEFINITIONS
 
     ent = VistaPoolSensor(
         mock_coordinator,
@@ -717,7 +717,7 @@ def test_sensor_intelligent_tt_next_interval_calls_helper():
 
     # Patch the helper function to verify it's called correctly
     with patch(
-        "custom_components.vistapool.sensor.calculate_next_interval_time"
+        "custom_components.neopool.sensor.calculate_next_interval_time"
     ) as mock_calc:
         _ = ent.native_value
         # Verify the helper was called with correct arguments
@@ -911,7 +911,7 @@ def test_sensor_filtvalve_remaining_native_value():
     mock_coordinator.config_entry.entry_id = "test_entry"
     mock_coordinator.device_slug = "vistapool"
 
-    from custom_components.vistapool.sensor import VistaPoolSensor
+    from custom_components.neopool.sensor import VistaPoolSensor
 
     ent = VistaPoolSensor(
         mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_REMAINING", {}
@@ -928,7 +928,7 @@ def test_sensor_filtration_remaining_native_value():
     mock_coordinator.entry = mock_coordinator.config_entry
     mock_coordinator.device_slug = "vistapool"
 
-    from custom_components.vistapool.sensor import VistaPoolSensor
+    from custom_components.neopool.sensor import VistaPoolSensor
 
     ent = VistaPoolSensor(mock_coordinator, "test_entry", "FILTRATION_REMAINING", {})
     assert ent.native_value == 1800
@@ -943,7 +943,7 @@ def test_sensor_filtration_remaining_none_when_idle():
     mock_coordinator.entry = mock_coordinator.config_entry
     mock_coordinator.device_slug = "vistapool"
 
-    from custom_components.vistapool.sensor import VistaPoolSensor
+    from custom_components.neopool.sensor import VistaPoolSensor
 
     ent = VistaPoolSensor(mock_coordinator, "test_entry", "FILTRATION_REMAINING", {})
     assert ent.native_value is None
@@ -952,7 +952,7 @@ def test_sensor_filtration_remaining_none_when_idle():
 @pytest.mark.asyncio
 async def test_filtration_power_sensor_created_when_nonzero():
     """Power sensor is created as a VistaPoolSensor when filtration_pump_power > 0."""
-    from custom_components.vistapool.const import (
+    from custom_components.neopool.const import (
         CONF_FILTRATION_PUMP_POWER,
     )
 
@@ -980,7 +980,7 @@ async def test_filtration_power_sensor_created_when_nonzero():
 @pytest.mark.asyncio
 async def test_filtration_power_sensor_skipped_when_zero():
     """Power sensor is not created when filtration_pump_power is 0."""
-    from custom_components.vistapool.const import CONF_FILTRATION_PUMP_POWER
+    from custom_components.neopool.const import CONF_FILTRATION_PUMP_POWER
 
     class DummyEntry:
         unique_id = None
@@ -1006,7 +1006,7 @@ async def test_filtration_power_sensor_skipped_when_zero():
 @pytest.mark.asyncio
 async def test_filtration_power_sensor_skipped_when_negative():
     """Power sensor is not created when filtration_pump_power is negative."""
-    from custom_components.vistapool.const import CONF_FILTRATION_PUMP_POWER
+    from custom_components.neopool.const import CONF_FILTRATION_PUMP_POWER
 
     class DummyEntry:
         unique_id = None
@@ -1031,7 +1031,7 @@ async def test_filtration_power_sensor_skipped_when_negative():
 
 def test_filtration_power_sensor_native_value():
     """Power sensor returns coordinator data value (set by coordinator based on pump state)."""
-    from custom_components.vistapool.const import (
+    from custom_components.neopool.const import (
         CONF_FILTRATION_PUMP_POWER,
         SENSOR_DEFINITIONS,
     )
@@ -1058,7 +1058,7 @@ def test_filtration_power_sensor_native_value():
 @pytest.mark.asyncio
 async def test_filtration_energy_sensor_created_when_nonzero():
     """Energy sensor (VistaPoolFiltrationEnergySensor) is created when pump_power > 0."""
-    from custom_components.vistapool.const import CONF_FILTRATION_PUMP_POWER
+    from custom_components.neopool.const import CONF_FILTRATION_PUMP_POWER
 
     class DummyEntry:
         unique_id = None
@@ -1086,7 +1086,7 @@ async def test_filtration_energy_sensor_created_when_nonzero():
 @pytest.mark.asyncio
 async def test_filtration_energy_sensor_not_created_when_zero():
     """Energy sensor is not created when pump_power is 0."""
-    from custom_components.vistapool.const import CONF_FILTRATION_PUMP_POWER
+    from custom_components.neopool.const import CONF_FILTRATION_PUMP_POWER
 
     class DummyEntry:
         unique_id = None
@@ -1125,13 +1125,13 @@ def test_filtration_energy_sensor_accumulates():
 
     # t0: pump on — records state, no elapsed time yet
     mock_coordinator.data = {"Filtration Pump": True}
-    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t0):
+    with patch("custom_components.neopool.sensor.dt_util.utcnow", return_value=t0):
         ent._handle_coordinator_update()
 
     assert ent.native_value == 0.0  # first call: no elapsed time
 
     # t1: pump still on — accumulates based on previous state (on)
-    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t1):
+    with patch("custom_components.neopool.sensor.dt_util.utcnow", return_value=t1):
         ent._handle_coordinator_update()
 
     assert ent.native_value == pytest.approx(570.0)  # 570W * 1h = 570 Wh
@@ -1154,12 +1154,12 @@ def test_filtration_energy_sensor_no_accumulation_when_off():
 
     # t0: pump off — records state
     mock_coordinator.data = {"Filtration Pump": False}
-    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t0):
+    with patch("custom_components.neopool.sensor.dt_util.utcnow", return_value=t0):
         ent._handle_coordinator_update()
 
     # t1: pump on now, but previous state was off — no accumulation
     mock_coordinator.data = {"Filtration Pump": True}
-    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t1):
+    with patch("custom_components.neopool.sensor.dt_util.utcnow", return_value=t1):
         ent._handle_coordinator_update()
 
     assert ent.native_value == 0.0
@@ -1183,18 +1183,18 @@ def test_filtration_energy_sensor_stops_on_pump_off():
 
     # t0: pump on
     mock_coordinator.data = {"Filtration Pump": True}
-    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t0):
+    with patch("custom_components.neopool.sensor.dt_util.utcnow", return_value=t0):
         ent._handle_coordinator_update()
 
     # t1: pump turns off — interval [t0,t1] was on → 570 Wh accumulated
     mock_coordinator.data = {"Filtration Pump": False}
-    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t1):
+    with patch("custom_components.neopool.sensor.dt_util.utcnow", return_value=t1):
         ent._handle_coordinator_update()
 
     assert ent.native_value == pytest.approx(570.0)
 
     # t2: pump still off — interval [t1,t2] was off → no accumulation
-    with patch("custom_components.vistapool.sensor.dt_util.utcnow", return_value=t2):
+    with patch("custom_components.neopool.sensor.dt_util.utcnow", return_value=t2):
         ent._handle_coordinator_update()
 
     assert ent.native_value == pytest.approx(570.0)

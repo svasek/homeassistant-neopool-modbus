@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.vistapool.button import VistaPoolButton, async_setup_entry
+from custom_components.neopool.button import VistaPoolButton, async_setup_entry
 
 
 @pytest.fixture
@@ -84,7 +84,7 @@ async def test_button_async_setup_entry_adds_entities(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
     # Patch BUTTON_DEFINITIONS
-    from custom_components.vistapool import button as btn_module
+    from custom_components.neopool import button as btn_module
 
     monkeypatch.setitem(btn_module.BUTTON_DEFINITIONS, "TEST_BUTTON", {})
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]

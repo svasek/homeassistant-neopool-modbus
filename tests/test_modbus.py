@@ -25,7 +25,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from pymodbus.framer import FramerType
 
-import custom_components.vistapool.modbus as vistapool_modbus
+import custom_components.neopool.modbus as vistapool_modbus
 
 ModbusException = vistapool_modbus.ModbusException
 
@@ -108,7 +108,7 @@ def test_framer_unknown_value_falls_back_to_socket_with_warning(caplog):
     """Test that an unknown modbus_framer value falls back to FramerType.SOCKET and logs a warning."""
     import logging
 
-    with caplog.at_level(logging.WARNING, logger="custom_components.vistapool.modbus"):
+    with caplog.at_level(logging.WARNING, logger="custom_components.neopool.modbus"):
         client = vistapool_modbus.VistaPoolModbusClient(
             {
                 "host": "127.0.0.1",
@@ -467,7 +467,7 @@ async def test_perform_read_all_raises_on_block(
 ):
     """Parametrized test: _perform_read_all exception and isError branches for all main blocks."""
 
-    from custom_components.vistapool.modbus import VistaPoolModbusClient
+    from custom_components.neopool.modbus import VistaPoolModbusClient
 
     client = VistaPoolModbusClient(config)
     fake_modbus = AsyncMock()
@@ -574,7 +574,7 @@ async def test_perform_read_all_block_exception(
     Covers all 'except Exception as e' branches in _perform_read_all for each Modbus read block.
     If any block fails with exception, the whole function returns {} and logs failed_reads.
     """
-    from custom_components.vistapool.modbus import VistaPoolModbusClient
+    from custom_components.neopool.modbus import VistaPoolModbusClient
 
     client = VistaPoolModbusClient(config)
     fake_modbus = AsyncMock()
@@ -696,7 +696,7 @@ async def test_perform_read_all_timers_all_enabled(config, monkeypatch):
     result = await client._perform_read_all_timers(enabled_timers=None)
 
     # Check that all blocks from TIMER_BLOCKS were read and returned
-    from custom_components.vistapool.const import TIMER_BLOCKS
+    from custom_components.neopool.const import TIMER_BLOCKS
 
     assert set(result.keys()) == set(TIMER_BLOCKS.keys())
     for timer, data in result.items():
@@ -858,7 +858,7 @@ async def test_perform_write_command_register_no_mismatch_warning(
 
     import logging
 
-    from custom_components.vistapool.const import EXEC_REGISTER
+    from custom_components.neopool.const import EXEC_REGISTER
 
     with caplog.at_level(logging.WARNING):
         result = await client._perform_write_register(EXEC_REGISTER, 1)
@@ -955,7 +955,7 @@ async def test_perform_write_register_apply(config, monkeypatch):
     addrs = [
         call.kwargs["address"] for call in fake_modbus.write_registers.await_args_list
     ]
-    from custom_components.vistapool.const import EEPROM_SAVE_REGISTER, EXEC_REGISTER
+    from custom_components.neopool.const import EEPROM_SAVE_REGISTER, EXEC_REGISTER
 
     assert EEPROM_SAVE_REGISTER in addrs and EXEC_REGISTER in addrs
 
@@ -1241,7 +1241,7 @@ def test_install_fc20_filter_rtu_filters_fc20_frames_with_debug_logging(caplog):
     client._install_fc20_filter(mock_client)
 
     fc20_frame = bytes([1, 0x20, 0x02, 0x01, 0x5A, 0xBB, 0x39])
-    with caplog.at_level(logging.DEBUG, logger="custom_components.vistapool.modbus"):
+    with caplog.at_level(logging.DEBUG, logger="custom_components.neopool.modbus"):
         mock_ctx.data_received(fc20_frame)
 
     assert received == [], "FC20 frame should have been filtered out"
@@ -1777,7 +1777,7 @@ async def test_perform_read_all_notification_clear_failure_is_silently_ignored(
 
     monkeypatch.setattr(client, "get_client", AsyncMock(return_value=fake_modbus))
 
-    with caplog.at_level(logging.DEBUG, logger="custom_components.vistapool.modbus"):
+    with caplog.at_level(logging.DEBUG, logger="custom_components.neopool.modbus"):
         result = await client._perform_read_all()
 
     # Must not raise, must return a valid dict

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from custom_components.vistapool.const import is_valid_relay_gpio
-from custom_components.vistapool.status_mask import (
+from custom_components.neopool.const import is_valid_relay_gpio
+from custom_components.neopool.status_mask import (
     decode_hidro_status_bits,
     decode_ion_status_bits,
     decode_named_relay_states,

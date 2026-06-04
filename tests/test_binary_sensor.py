@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.vistapool.binary_sensor import (
+from custom_components.neopool.binary_sensor import (
     VistaPoolBinarySensor,
     async_setup_entry,
 )
@@ -78,7 +78,7 @@ async def test_async_setup_entry_adds_entities(monkeypatch):
     entities = async_add_entities.call_args[0][0]
     assert isinstance(entities, list)
     # At least one entity, all must be instances of VistaPoolBinarySensor
-    from custom_components.vistapool.binary_sensor import VistaPoolBinarySensor
+    from custom_components.neopool.binary_sensor import VistaPoolBinarySensor
 
     assert all(isinstance(e, VistaPoolBinarySensor) for e in entities)
     # (Optional) Check that entities have correct keys
@@ -268,7 +268,7 @@ async def test_async_setup_entry_option_disables_sensor(monkeypatch):
     async_add_entities = MagicMock()
 
     # Patch BINARY_SENSOR_DEFINITIONS for this test
-    from custom_components.vistapool import binary_sensor as bs_module
+    from custom_components.neopool import binary_sensor as bs_module
 
     monkeypatch.setitem(
         bs_module.BINARY_SENSOR_DEFINITIONS,
@@ -357,13 +357,13 @@ def test_is_on_device_time_out_of_sync(mock_coordinator):
         mock_coordinator, "test_entry", "Device Time Out Of Sync", props
     )
     with patch(
-        "custom_components.vistapool.binary_sensor.is_device_time_out_of_sync",
+        "custom_components.neopool.binary_sensor.is_device_time_out_of_sync",
         return_value=True,
     ):
         mock_coordinator.data = {"MBF_PAR_TIME_LOW": 1}
         assert ent.is_on is True
     with patch(
-        "custom_components.vistapool.binary_sensor.is_device_time_out_of_sync",
+        "custom_components.neopool.binary_sensor.is_device_time_out_of_sync",
         return_value=False,
     ):
         mock_coordinator.data = {"MBF_PAR_TIME_LOW": 1}
@@ -443,7 +443,7 @@ async def test_async_added_to_hass_calls_super(mock_coordinator):
         mock_coordinator, "test_entry", "pH acid pump active", props
     )
     with patch(
-        "custom_components.vistapool.binary_sensor.VistaPoolEntity.async_added_to_hass",
+        "custom_components.neopool.binary_sensor.VistaPoolEntity.async_added_to_hass",
         return_value=None,
     ) as parent:
         await ent.async_added_to_hass()

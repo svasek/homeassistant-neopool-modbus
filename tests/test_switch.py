@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.vistapool.const import EXEC_REGISTER
-from custom_components.vistapool.switch import VistaPoolSwitch, async_setup_entry
+from custom_components.neopool.const import EXEC_REGISTER
+from custom_components.neopool.switch import VistaPoolSwitch, async_setup_entry
 
 
 @pytest.fixture(autouse=True)
@@ -332,7 +332,7 @@ async def test_switch_async_setup_entry_adds_entities(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS, "manual", {"switch_type": "manual_filtration"}
@@ -365,7 +365,7 @@ async def test_switch_setup_skips_smart_antifreeze_when_no_temp(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -423,7 +423,7 @@ async def test_switch_async_setup_entry_option_disabled(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -837,7 +837,7 @@ async def test_switch_setup_includes_uv_mode_when_relay_assigned(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -872,7 +872,7 @@ async def test_switch_setup_skips_uv_mode_when_no_relay(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -907,7 +907,7 @@ async def test_switch_setup_skips_uv_mode_when_key_missing(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -942,7 +942,7 @@ async def test_switch_setup_skips_uv_mode_when_gpio_out_of_range(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,

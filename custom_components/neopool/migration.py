@@ -246,9 +246,7 @@ async def async_migrate_from_vistapool(hass: HomeAssistant) -> dict:
 
     for old_entry in vistapool_entries:
         try:
-            entities_count = await _migrate_single_entry_cross_domain(
-                hass, old_entry
-            )
+            entities_count = await _migrate_single_entry_cross_domain(hass, old_entry)
             summary["entries_migrated"] += 1
             summary["entities_migrated"] += entities_count
         except _DeferredMigration as exc:
@@ -295,21 +293,15 @@ async def _migrate_single_entry_cross_domain(
     # source_domain="vistapool" so device_registry lookup finds the
     # legacy device tuple.
     if old_entry.version < 2:
-        v2_ok = await _migrate_v1_to_v2(
-            hass, old_entry, source_domain=OLD_DOMAIN
-        )
+        v2_ok = await _migrate_v1_to_v2(hass, old_entry, source_domain=OLD_DOMAIN)
         if not v2_ok:
             # _migrate_v1_to_v2 returned False → unrecoverable error
             # (e.g., duplicate serial detected). Surface as a regular failure.
-            raise RuntimeError(
-                "v1→v2 prelude failed (see previous log entries)"
-            )
+            raise RuntimeError("v1→v2 prelude failed (see previous log entries)")
         if old_entry.version < 2:
             # Prelude returned True but didn't bump version → controller
             # was offline. Defer the whole cross-domain step.
-            raise _DeferredMigration(
-                "controller offline; v1→v2 prelude deferred"
-            )
+            raise _DeferredMigration("controller offline; v1→v2 prelude deferred")
 
     # ── Step 1: Unload old vistapool entry ───────────────────────────────
     # async_update_entity_platform requires entities NOT to be in
@@ -389,8 +381,7 @@ async def _migrate_single_entry_cross_domain(
         )
         # 4b: Update identifiers (vistapool, X) → (neopool, X)
         new_identifiers = {
-            (DOMAIN if d == OLD_DOMAIN else d, ident)
-            for d, ident in device.identifiers
+            (DOMAIN if d == OLD_DOMAIN else d, ident) for d, ident in device.identifiers
         }
         if new_identifiers != device.identifiers:
             device_registry.async_update_device(
@@ -455,9 +446,7 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
         return False
 
     try:
-        manifest = await hass.async_add_executor_job(
-            _read_manifest_json, manifest_path
-        )
+        manifest = await hass.async_add_executor_job(_read_manifest_json, manifest_path)
     except Exception as err:  # noqa: BLE001
         _LOGGER.warning(
             "Cannot read legacy manifest %s: %s — refusing to delete",

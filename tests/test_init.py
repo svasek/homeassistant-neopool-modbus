@@ -17,14 +17,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.vistapool import (
+from custom_components.neopool import (
     _cleanup_removed_entities,
     _register_services,
     async_migrate_entry,
     async_setup_entry,
     async_unload_entry,
 )
-from custom_components.vistapool.const import DEFAULT_PORT
+from custom_components.neopool.const import DEFAULT_PORT
 
 
 @pytest.mark.asyncio
@@ -232,19 +232,19 @@ async def test_async_setup_entry_success():
     hass.config_entries = MagicMock()
     hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=None)
     config_entry = MagicMock()
-    with patch("custom_components.vistapool.VistaPoolModbusClient"):
+    with patch("custom_components.neopool.VistaPoolModbusClient"):
         with patch(
-            "custom_components.vistapool.VistaPoolCoordinator"
+            "custom_components.neopool.VistaPoolCoordinator"
         ) as mock_coordinator:
             mock_coord_instance = mock_coordinator.return_value
             mock_coord_instance.async_config_entry_first_refresh = AsyncMock(
                 return_value=None
             )
-            with patch("custom_components.vistapool.er.async_get") as mock_er_get:
+            with patch("custom_components.neopool.er.async_get") as mock_er_get:
                 mock_registry = MagicMock()
                 mock_er_get.return_value = mock_registry
                 with patch(
-                    "custom_components.vistapool.er.async_entries_for_config_entry",
+                    "custom_components.neopool.er.async_entries_for_config_entry",
                     return_value=[],
                 ):
                     result = await async_setup_entry(hass, config_entry)
@@ -679,9 +679,9 @@ async def test_async_setup_entry_registers_services():
     entry.options = {}
 
     with (
-        patch("custom_components.vistapool.VistaPoolModbusClient"),
-        patch("custom_components.vistapool.VistaPoolCoordinator") as mock_coord_cls,
-        patch("custom_components.vistapool._cleanup_removed_entities"),
+        patch("custom_components.neopool.VistaPoolModbusClient"),
+        patch("custom_components.neopool.VistaPoolCoordinator") as mock_coord_cls,
+        patch("custom_components.neopool._cleanup_removed_entities"),
     ):
         mock_coord = MagicMock()
         mock_coord.async_config_entry_first_refresh = AsyncMock()
@@ -710,9 +710,9 @@ def test_cleanup_removes_orphaned_entities():
 
     mock_registry = MagicMock()
 
-    with patch("custom_components.vistapool.er.async_get", return_value=mock_registry):
+    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
         with patch(
-            "custom_components.vistapool.er.async_entries_for_config_entry",
+            "custom_components.neopool.er.async_entries_for_config_entry",
             return_value=[orphan, valid],
         ):
             _cleanup_removed_entities(hass, entry)
@@ -743,9 +743,9 @@ def test_cleanup_removes_ph_pump_entities():
 
     mock_registry = MagicMock()
 
-    with patch("custom_components.vistapool.er.async_get", return_value=mock_registry):
+    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
         with patch(
-            "custom_components.vistapool.er.async_entries_for_config_entry",
+            "custom_components.neopool.er.async_entries_for_config_entry",
             return_value=[ph_acid, ph_base, unrelated],
         ):
             _cleanup_removed_entities(hass, entry)
@@ -768,9 +768,9 @@ def test_cleanup_no_orphans():
 
     mock_registry = MagicMock()
 
-    with patch("custom_components.vistapool.er.async_get", return_value=mock_registry):
+    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
         with patch(
-            "custom_components.vistapool.er.async_entries_for_config_entry",
+            "custom_components.neopool.er.async_entries_for_config_entry",
             return_value=[valid],
         ):
             _cleanup_removed_entities(hass, entry)
@@ -801,9 +801,9 @@ def test_cleanup_removes_orphans_with_serial_unique_id():
 
     mock_registry = MagicMock()
 
-    with patch("custom_components.vistapool.er.async_get", return_value=mock_registry):
+    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
         with patch(
-            "custom_components.vistapool.er.async_entries_for_config_entry",
+            "custom_components.neopool.er.async_entries_for_config_entry",
             return_value=[orphan_new, orphan_old, valid],
         ):
             _cleanup_removed_entities(hass, entry)
@@ -854,19 +854,19 @@ async def test_async_migrate_entry_v1_to_v2_success():
 
     with (
         patch(
-            "custom_components.vistapool.migration.async_get_device_serial",
+            "custom_components.neopool.migration.async_get_device_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         patch(
-            "custom_components.vistapool.migration.er.async_get",
+            "custom_components.neopool.migration.er.async_get",
             return_value=mock_entity_registry,
         ),
         patch(
-            "custom_components.vistapool.migration.er.async_entries_for_config_entry",
+            "custom_components.neopool.migration.er.async_entries_for_config_entry",
             return_value=[mock_entity1, mock_entity2],
         ),
         patch(
-            "custom_components.vistapool.migration.dr.async_get",
+            "custom_components.neopool.migration.dr.async_get",
             return_value=mock_device_registry,
         ),
     ):
@@ -885,13 +885,16 @@ async def test_async_migrate_entry_v1_to_v2_success():
         "sensor.pool_temperature",
         new_unique_id=f"{expected_unique_id}_mbf_temperature",
     )
-    # Old device with entry_id identifier should be updated to serial-based
+    # Old device identifier is keyed by the current DOMAIN ("neopool")
+    # because async_migrate_entry uses source_domain=DOMAIN by default;
+    # legacy vistapool entries reach this code path via the cross-domain
+    # migration flow which passes source_domain="vistapool" explicitly.
     mock_device_registry.async_get_device.assert_called_once_with(
-        identifiers={("vistapool", "old_entry_id_123")}
+        identifiers={("neopool", "old_entry_id_123")}
     )
     mock_device_registry.async_update_device.assert_called_once_with(
         "old_device_id",
-        new_identifiers={("vistapool", expected_unique_id)},
+        new_identifiers={("neopool", expected_unique_id)},
     )
 
 
@@ -908,7 +911,7 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable():
     config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
 
     with patch(
-        "custom_components.vistapool.migration.async_get_device_serial",
+        "custom_components.neopool.migration.async_get_device_serial",
         new=AsyncMock(return_value=None),
     ):
         result = await async_migrate_entry(hass, config_entry)
@@ -936,7 +939,7 @@ async def test_async_migrate_entry_v1_to_v2_duplicate_detected():
     hass.config_entries.async_entries.return_value = [existing_entry]
 
     with patch(
-        "custom_components.vistapool.migration.async_get_device_serial",
+        "custom_components.neopool.migration.async_get_device_serial",
         new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
     ):
         result = await async_migrate_entry(hass, config_entry)
@@ -984,15 +987,15 @@ async def test_async_migrate_entry_entity_update_error():
 
     with (
         patch(
-            "custom_components.vistapool.migration.async_get_device_serial",
+            "custom_components.neopool.migration.async_get_device_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         patch(
-            "custom_components.vistapool.migration.er.async_get",
+            "custom_components.neopool.migration.er.async_get",
             return_value=mock_registry,
         ),
         patch(
-            "custom_components.vistapool.migration.er.async_entries_for_config_entry",
+            "custom_components.neopool.migration.er.async_entries_for_config_entry",
             return_value=[mock_entity1, mock_entity2],
         ),
     ):
@@ -1046,15 +1049,15 @@ async def test_async_migrate_entry_rollback_also_fails():
 
     with (
         patch(
-            "custom_components.vistapool.migration.async_get_device_serial",
+            "custom_components.neopool.migration.async_get_device_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         patch(
-            "custom_components.vistapool.migration.er.async_get",
+            "custom_components.neopool.migration.er.async_get",
             return_value=mock_registry,
         ),
         patch(
-            "custom_components.vistapool.migration.er.async_entries_for_config_entry",
+            "custom_components.neopool.migration.er.async_entries_for_config_entry",
             return_value=[mock_entity1, mock_entity2],
         ),
     ):

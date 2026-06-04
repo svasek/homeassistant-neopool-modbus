@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.vistapool.light import VistaPoolLight, async_setup_entry
+from custom_components.neopool.light import VistaPoolLight, async_setup_entry
 
 
 @pytest.fixture(autouse=True)
@@ -129,7 +129,7 @@ async def test_light_async_setup_entry_adds_entities(monkeypatch):
     async_add_entities = MagicMock()
 
     # Patch LIGHT_DEFINITIONS for this test
-    from custom_components.vistapool import light as light_module
+    from custom_components.neopool import light as light_module
 
     monkeypatch.setitem(
         light_module.LIGHT_DEFINITIONS,
@@ -194,7 +194,7 @@ async def test_light_async_setup_entry_skips_without_lighting_gpio(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import light as light_module
+    from custom_components.neopool import light as light_module
 
     monkeypatch.setitem(
         light_module.LIGHT_DEFINITIONS,
@@ -229,7 +229,7 @@ async def test_light_async_setup_entry_option_disabled(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import light as light_module
+    from custom_components.neopool import light as light_module
 
     monkeypatch.setitem(
         light_module.LIGHT_DEFINITIONS,
@@ -251,7 +251,7 @@ async def test_light_async_added_to_hass_calls_super(mock_coordinator, light_pro
     """Test async_added_to_hass calls parent implementation."""
     ent = VistaPoolLight(mock_coordinator, "test_entry", "light", light_props)
     with patch(
-        "custom_components.vistapool.light.VistaPoolEntity.async_added_to_hass",
+        "custom_components.neopool.light.VistaPoolEntity.async_added_to_hass",
         return_value=None,
     ) as parent:
         await ent.async_added_to_hass()

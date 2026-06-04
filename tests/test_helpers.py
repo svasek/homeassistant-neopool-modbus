@@ -16,7 +16,7 @@ import datetime
 
 import pytest
 
-from custom_components.vistapool.helpers import (
+from custom_components.neopool.helpers import (
     build_timer_block,
     generate_time_options,
     get_device_time,
@@ -377,7 +377,7 @@ def test_calculate_next_interval_time_with_hass():
     from unittest.mock import MagicMock
     from zoneinfo import ZoneInfo
 
-    from custom_components.vistapool.helpers import calculate_next_interval_time
+    from custom_components.neopool.helpers import calculate_next_interval_time
 
     # Mock hass with Prague timezone
     mock_hass = MagicMock()
@@ -409,7 +409,7 @@ def test_calculate_next_interval_time_without_hass():
     """Test calculate_next_interval_time without hass (UTC fallback)."""
     from datetime import datetime, timedelta, timezone
 
-    from custom_components.vistapool.helpers import calculate_next_interval_time
+    from custom_components.neopool.helpers import calculate_next_interval_time
 
     # Calculate with 7200 seconds (2 hours), no hass
     result = calculate_next_interval_time(7200, None)
@@ -435,7 +435,7 @@ def test_calculate_next_interval_time_without_hass():
 
 def test_calculate_next_interval_time_zero_value():
     """Test calculate_next_interval_time returns None for zero value."""
-    from custom_components.vistapool.helpers import calculate_next_interval_time
+    from custom_components.neopool.helpers import calculate_next_interval_time
 
     result = calculate_next_interval_time(0, None)
     assert result is None
@@ -443,7 +443,7 @@ def test_calculate_next_interval_time_zero_value():
 
 def test_calculate_next_interval_time_negative_value():
     """Test calculate_next_interval_time returns None for negative value."""
-    from custom_components.vistapool.helpers import calculate_next_interval_time
+    from custom_components.neopool.helpers import calculate_next_interval_time
 
     result = calculate_next_interval_time(-100, None)
     assert result is None
@@ -451,7 +451,7 @@ def test_calculate_next_interval_time_negative_value():
 
 def test_calculate_next_interval_time_none_value():
     """Test calculate_next_interval_time returns None for None value."""
-    from custom_components.vistapool.helpers import calculate_next_interval_time
+    from custom_components.neopool.helpers import calculate_next_interval_time
 
     result = calculate_next_interval_time(None, None)
     assert result is None
@@ -459,7 +459,7 @@ def test_calculate_next_interval_time_none_value():
 
 def test_calculate_next_interval_time_invalid_type():
     """Test calculate_next_interval_time returns None for invalid type."""
-    from custom_components.vistapool.helpers import calculate_next_interval_time
+    from custom_components.neopool.helpers import calculate_next_interval_time
 
     result = calculate_next_interval_time("not a number", None)
     assert result is None
@@ -678,13 +678,13 @@ def test_get_machine_name_non_generic_ignores_custom_name():
 
 
 def test_has_filtvalve_enable_only():
-    from custom_components.vistapool.helpers import has_filtvalve
+    from custom_components.neopool.helpers import has_filtvalve
 
     assert has_filtvalve({"MBF_PAR_FILTVALVE_ENABLE": 1}) is True
 
 
 def test_has_filtvalve_gpio_only():
-    from custom_components.vistapool.helpers import has_filtvalve
+    from custom_components.neopool.helpers import has_filtvalve
 
     assert (
         has_filtvalve({"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 5})
@@ -693,7 +693,7 @@ def test_has_filtvalve_gpio_only():
 
 
 def test_has_filtvalve_both():
-    from custom_components.vistapool.helpers import has_filtvalve
+    from custom_components.neopool.helpers import has_filtvalve
 
     assert (
         has_filtvalve({"MBF_PAR_FILTVALVE_ENABLE": 1, "MBF_PAR_FILTVALVE_GPIO": 5})
@@ -702,7 +702,7 @@ def test_has_filtvalve_both():
 
 
 def test_has_filtvalve_neither():
-    from custom_components.vistapool.helpers import has_filtvalve
+    from custom_components.neopool.helpers import has_filtvalve
 
     assert (
         has_filtvalve({"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0})
@@ -711,13 +711,13 @@ def test_has_filtvalve_neither():
 
 
 def test_has_filtvalve_missing_keys():
-    from custom_components.vistapool.helpers import has_filtvalve
+    from custom_components.neopool.helpers import has_filtvalve
 
     assert has_filtvalve({}) is False
 
 
 def test_has_filtvalve_gpio_out_of_range():
-    from custom_components.vistapool.helpers import has_filtvalve
+    from custom_components.neopool.helpers import has_filtvalve
 
     # GPIO=8 is outside the valid hardware range (1-7) and must not trigger detection
     assert (

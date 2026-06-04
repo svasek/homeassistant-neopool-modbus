@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.vistapool import config_flow
-from custom_components.vistapool.const import (
+from custom_components.neopool import config_flow
+from custom_components.neopool.const import (
     DEFAULT_MODBUS_FRAMER,
     DEFAULT_NAME,
     DEFAULT_PORT,
@@ -85,11 +85,11 @@ async def test_create_entry_success():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -116,11 +116,11 @@ async def test_create_entry_with_rtu_framer():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -142,7 +142,7 @@ async def test_create_entry_failure_cannot_connect():
         "name": "Test Pool",
     }
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=False),
     ):
         result = await flow.async_step_user(user_input)
@@ -165,11 +165,11 @@ async def test_create_entry_failure_cannot_read_modbus():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=None),
         ),
     ):
@@ -192,7 +192,7 @@ def test_async_get_options_flow(monkeypatch):
 
     # Patch import ve funkci
     monkeypatch.setattr(
-        "custom_components.vistapool.options_flow.VistaPoolOptionsFlowHandler",
+        "custom_components.neopool.options_flow.VistaPoolOptionsFlowHandler",
         DummyOptionsFlow,
     )
     config_entry = DummyConfigEntry()
@@ -272,7 +272,7 @@ async def test_reconfigure_success():
     }
 
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_reconfigure(user_input)
@@ -318,7 +318,7 @@ async def test_reconfigure_cannot_connect():
     }
 
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=False),
     ):
         result = await flow.async_step_reconfigure(user_input)
@@ -356,11 +356,11 @@ async def test_reconfigure_serial_mismatch():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="FFFFFFFFFFFFFFFFFFFFFFFF"),
         ),
     ):
@@ -398,11 +398,11 @@ async def test_reconfigure_serial_read_fails():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=None),
         ),
     ):
@@ -443,7 +443,7 @@ async def test_reconfigure_no_unique_id_skips_serial_check():
     }
 
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_reconfigure(user_input)
@@ -534,11 +534,11 @@ async def test_create_entry_scan_interval_coerced_to_int():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -572,7 +572,7 @@ async def test_get_default_name_returns_translated_name():
     flow.hass.config.language = "cs"
     key = f"component.{DOMAIN}.config.step.user.data.name_default"
     with patch(
-        "custom_components.vistapool.config_flow.ha_translation.async_get_translations",
+        "custom_components.neopool.config_flow.ha_translation.async_get_translations",
         new=AsyncMock(return_value={key: "Bazén"}),
     ):
         name = await flow._async_get_default_name()
@@ -586,7 +586,7 @@ async def test_get_default_name_falls_back_when_key_missing():
     flow.hass = MagicMock()
     flow.hass.config.language = "en"
     with patch(
-        "custom_components.vistapool.config_flow.ha_translation.async_get_translations",
+        "custom_components.neopool.config_flow.ha_translation.async_get_translations",
         new=AsyncMock(return_value={}),
     ):
         name = await flow._async_get_default_name()
@@ -608,7 +608,7 @@ async def test_get_default_name_falls_back_on_translation_error():
     flow.hass = MagicMock()
     flow.hass.config.language = "en"
     with patch(
-        "custom_components.vistapool.config_flow.ha_translation.async_get_translations",
+        "custom_components.neopool.config_flow.ha_translation.async_get_translations",
         new=AsyncMock(side_effect=RuntimeError("fail")),
     ):
         name = await flow._async_get_default_name()
@@ -633,11 +633,11 @@ async def test_create_entry_empty_name_uses_default():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -662,11 +662,11 @@ async def test_create_entry_no_name_key_uses_default():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -751,11 +751,11 @@ async def test_create_entry_stores_use_light_flag():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -782,11 +782,11 @@ async def test_create_entry_stores_filtration_flags():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -835,7 +835,7 @@ async def test_reconfigure_schema_defaults_to_constants_when_keys_absent():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_success():
     """Test that trial Modbus read extracts device serial correctly."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -859,7 +859,7 @@ async def test_trial_modbus_read_success():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -872,7 +872,7 @@ async def test_trial_modbus_read_success():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_timeout():
     """Test that trial Modbus read handles timeout gracefully."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -897,7 +897,7 @@ async def test_trial_modbus_read_timeout():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_connect_returns_false():
     """Test that trial Modbus read returns None when connect() returns False."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -922,7 +922,7 @@ async def test_trial_modbus_read_connect_returns_false():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_no_serial_in_data():
     """Test that trial Modbus read returns None when registers return error."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -942,7 +942,7 @@ async def test_trial_modbus_read_no_serial_in_data():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -968,11 +968,11 @@ async def test_create_entry_with_duplicate_prevention():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
     ):
@@ -1011,11 +1011,11 @@ async def test_create_entry_aborts_when_already_configured():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         pytest.raises(AbortFlow, match="already_configured"),
@@ -1053,11 +1053,11 @@ async def test_create_entry_aborts_unmigrated_v1_duplicate():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
         ),
     ):
@@ -1087,11 +1087,11 @@ async def test_create_entry_rejects_duplicate_name():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
         ),
     ):
@@ -1122,11 +1122,11 @@ async def test_create_entry_rejects_duplicate_name_from_title():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
         ),
     ):
@@ -1139,7 +1139,7 @@ async def test_create_entry_rejects_duplicate_name_from_title():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_general_exception():
     """Test that trial Modbus read handles non-timeout exceptions gracefully."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1163,7 +1163,7 @@ async def test_trial_modbus_read_general_exception():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_async_close():
     """Test that trial Modbus read awaits close() when it returns a coroutine."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1189,7 +1189,7 @@ async def test_trial_modbus_read_async_close():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -1202,7 +1202,7 @@ async def test_trial_modbus_read_async_close():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_close_raises():
     """Test that trial Modbus read handles close() exception gracefully."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1224,7 +1224,7 @@ async def test_trial_modbus_read_close_raises():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -1237,7 +1237,7 @@ async def test_trial_modbus_read_close_raises():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_cancelled_error():
     """Test that CancelledError is re-raised, not swallowed."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1264,7 +1264,7 @@ async def test_trial_modbus_read_cancelled_error():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_close_cancelled_error():
     """Test that CancelledError in close() is re-raised."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1286,7 +1286,7 @@ async def test_trial_modbus_read_close_cancelled_error():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
         pytest.raises(asyncio.CancelledError),

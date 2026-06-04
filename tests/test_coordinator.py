@@ -18,8 +18,8 @@ import pytest
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from custom_components.vistapool.const import DOMAIN, FOLLOW_UP_REFRESH_DELAY
-from custom_components.vistapool.coordinator import VistaPoolCoordinator
+from custom_components.neopool.const import DOMAIN, FOLLOW_UP_REFRESH_DELAY
+from custom_components.neopool.coordinator import VistaPoolCoordinator
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ async def test_async_update_data_raises_UpdateFailed_on_subsequent_error(mock_en
         MagicMock(), client, mock_entry, mock_entry.entry_id
     )
     coordinator.data = {"cached": "value"}
-    with patch("custom_components.vistapool.coordinator._LOGGER"):
+    with patch("custom_components.neopool.coordinator._LOGGER"):
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
@@ -88,7 +88,7 @@ async def test_async_update_data_raises_UpdateFailed_when_data_is_empty_dict(
     )
     # Simulate a previous successful read that yielded an empty payload
     coordinator.data = {}
-    with patch("custom_components.vistapool.coordinator._LOGGER"):
+    with patch("custom_components.neopool.coordinator._LOGGER"):
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
@@ -108,11 +108,11 @@ async def test_async_update_data_time_sync(mock_entry):
     hass = MagicMock()
     with (
         patch(
-            "custom_components.vistapool.coordinator.is_device_time_out_of_sync",
+            "custom_components.neopool.coordinator.is_device_time_out_of_sync",
             return_value=True,
         ),
         patch(
-            "custom_components.vistapool.coordinator.prepare_device_time",
+            "custom_components.neopool.coordinator.prepare_device_time",
             return_value=1234,
         ),
     ):
@@ -428,7 +428,7 @@ async def test_dev_overrides_invalid_json_ignored(mock_entry):
     client.async_read_all = AsyncMock(return_value={"X": 1})
     client.read_all_timers = AsyncMock(return_value={})
 
-    with patch("custom_components.vistapool.coordinator._LOGGER") as mock_logger:
+    with patch("custom_components.neopool.coordinator._LOGGER") as mock_logger:
         coordinator = VistaPoolCoordinator(MagicMock(), client, entry, entry.entry_id)
         data = await coordinator._async_update_data()
         # Should log a warning about failed overrides but not raise
@@ -459,7 +459,7 @@ async def test_winter_mode_returns_empty_dict_when_no_cached_data(mock_entry):
     )
     coordinator.data = None  # type: ignore[assignment]
 
-    with patch("custom_components.vistapool.coordinator._LOGGER") as mock_logger:
+    with patch("custom_components.neopool.coordinator._LOGGER") as mock_logger:
         data = await coordinator._async_update_data()
 
     client.async_read_all.assert_not_called()
@@ -540,7 +540,7 @@ async def test_set_winter_mode(mock_entry):
 @pytest.mark.asyncio
 async def test_set_winter_mode_snapshots_capability_keys(mock_entry):
     """set_winter_mode(True) extracts only CAPABILITY_KEYS from data and persists them."""
-    from custom_components.vistapool.const import CAPABILITY_KEYS
+    from custom_components.neopool.const import CAPABILITY_KEYS
 
     hass = MagicMock()
     options_saved = {}
@@ -650,7 +650,7 @@ async def test_request_refresh_with_followup(mock_entry, monkeypatch):
         return lambda: None
 
     monkeypatch.setattr(
-        "custom_components.vistapool.coordinator.async_call_later", fake_call_later
+        "custom_components.neopool.coordinator.async_call_later", fake_call_later
     )
 
     coordinator.request_refresh_with_followup()
@@ -674,7 +674,7 @@ async def test_request_refresh_with_followup_custom_delay(mock_entry, monkeypatc
         return lambda: None
 
     monkeypatch.setattr(
-        "custom_components.vistapool.coordinator.async_call_later", fake_call_later
+        "custom_components.neopool.coordinator.async_call_later", fake_call_later
     )
 
     coordinator.request_refresh_with_followup(delay=5.0)
@@ -695,7 +695,7 @@ async def test_follow_up_cancels_previous(mock_entry, monkeypatch):
         return unsub
 
     monkeypatch.setattr(
-        "custom_components.vistapool.coordinator.async_call_later", fake_call_later
+        "custom_components.neopool.coordinator.async_call_later", fake_call_later
     )
 
     coordinator.request_refresh_with_followup()
@@ -721,7 +721,7 @@ async def test_follow_up_callback_triggers_refresh(mock_entry, monkeypatch):
         return MagicMock()
 
     monkeypatch.setattr(
-        "custom_components.vistapool.coordinator.async_call_later", fake_call_later
+        "custom_components.neopool.coordinator.async_call_later", fake_call_later
     )
 
     coordinator.request_refresh_with_followup()
@@ -748,7 +748,7 @@ async def test_cancel_follow_up_refresh(mock_entry, monkeypatch):
         return unsub
 
     monkeypatch.setattr(
-        "custom_components.vistapool.coordinator.async_call_later", fake_call_later
+        "custom_components.neopool.coordinator.async_call_later", fake_call_later
     )
 
     coordinator.request_refresh_with_followup()
@@ -773,10 +773,10 @@ async def test_cancel_follow_up_refresh_noop_when_none(mock_entry):
 class TestGpioSanityCheck:
     """Tests for _check_gpio_registers."""
 
-    PATCH_CREATE = "custom_components.vistapool.coordinator.ir.async_create_issue"
-    PATCH_DELETE = "custom_components.vistapool.coordinator.ir.async_delete_issue"
+    PATCH_CREATE = "custom_components.neopool.coordinator.ir.async_create_issue"
+    PATCH_DELETE = "custom_components.neopool.coordinator.ir.async_delete_issue"
     PATCH_LEGACY_DISMISS = (
-        "custom_components.vistapool.coordinator.persistent_notification.async_dismiss"
+        "custom_components.neopool.coordinator.persistent_notification.async_dismiss"
     )
 
     def _make_coordinator(self, mock_entry):

@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.vistapool.options_flow import VistaPoolOptionsFlowHandler
+from custom_components.neopool.options_flow import VistaPoolOptionsFlowHandler
 
 
 def make_flow(mock_config_entry):
@@ -67,7 +67,7 @@ async def test_options_unlock_advanced_correct(monkeypatch):
     mock_config_entry.data = {"name": "Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.vistapool.options_flow.date") as mock_date:
+    with patch("custom_components.neopool.options_flow.date") as mock_date:
         mock_today = MagicMock()
         mock_today.year = 2025
         mock_date.today.return_value = mock_today
@@ -88,7 +88,7 @@ async def test_options_unlock_advanced_wrong(monkeypatch, caplog):
     mock_config_entry.data = {"name": "Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.vistapool.options_flow.date") as mock_date:
+    with patch("custom_components.neopool.options_flow.date") as mock_date:
         mock_date.today.return_value.year = 2025
         user_input = {"unlock_advanced": "wrongpassword"}
         result = await flow.async_step_init(user_input=user_input)
@@ -108,7 +108,7 @@ async def test_options_unlock_advanced_correct_slug_fallback(monkeypatch):
     mock_config_entry.data = {"name": "My Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.vistapool.options_flow.date") as mock_date:
+    with patch("custom_components.neopool.options_flow.date") as mock_date:
         mock_today = MagicMock()
         mock_today.year = 2025
         mock_date.today.return_value = mock_today
@@ -129,7 +129,7 @@ async def test_options_unlock_advanced_wrong_slug_fallback(monkeypatch, caplog):
     mock_config_entry.data = {"name": "My Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.vistapool.options_flow.date") as mock_date:
+    with patch("custom_components.neopool.options_flow.date") as mock_date:
         mock_date.today.return_value.year = 2025
         user_input = {"unlock_advanced": "wrongpassword"}
         result = await flow.async_step_init(user_input=user_input)
@@ -148,7 +148,7 @@ async def test_options_unlock_advanced_title_fallback(monkeypatch):
     mock_config_entry.title = "My Pool"
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.vistapool.options_flow.date") as mock_date:
+    with patch("custom_components.neopool.options_flow.date") as mock_date:
         mock_today = MagicMock()
         mock_today.year = 2025
         mock_date.today.return_value = mock_today

@@ -16,11 +16,11 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
-from custom_components.vistapool.const import (
+from custom_components.neopool.const import (
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
 )
-from custom_components.vistapool.number import VistaPoolNumber, async_setup_entry
+from custom_components.neopool.number import VistaPoolNumber, async_setup_entry
 
 
 @pytest.fixture
@@ -162,7 +162,7 @@ async def test_async_set_native_value_and_debounce(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     # Patch asyncio.sleep to run immediately
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent.async_set_native_value(6.5)
         assert ent._pending_write_task is not None
         await ent._pending_write_task
@@ -183,7 +183,7 @@ async def test_debounced_write_mirrors_setpoints_from_heating_register(
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent.async_set_native_value(28)
         assert ent._pending_write_task is not None
         await ent._pending_write_task
@@ -209,7 +209,7 @@ async def test_debounced_write_mirrors_setpoints_from_intelligent_register(
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent.async_set_native_value(26)
         assert ent._pending_write_task is not None
         await ent._pending_write_task
@@ -227,7 +227,7 @@ async def test_debounced_write_no_client(mock_coordinator):
     props = make_props(register=0x0210, scale=2.0)
     ent = VistaPoolNumber(mock_coordinator, "test_entry", "MBF_PAR_PH1", props)
     ent.coordinator.client = None
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent._debounced_write()  # Should do nothing, but not crash
 
 
@@ -247,7 +247,7 @@ async def test_debounced_write_cancelled_when_winter_mode_enabled_during_delay(
         mock_coordinator.winter_mode = True
 
     with patch(
-        "custom_components.vistapool.number.asyncio.sleep",
+        "custom_components.neopool.number.asyncio.sleep",
         side_effect=enable_winter_mode_during_sleep,
     ):
         with caplog.at_level("WARNING"):
@@ -265,7 +265,7 @@ async def test_async_added_to_hass_sets_value(mock_coordinator):
     ent.coordinator.client = client
     client.async_read_all = AsyncMock(return_value={"MBF_PAR_PH1": 7.7})
     ent.async_write_ha_state = MagicMock()
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent.async_added_to_hass()
     ent.coordinator.data = {
         "MBF_PAR_PH1": 7.7
@@ -293,7 +293,7 @@ async def test_async_added_to_hass_sets_value_none(mock_coordinator):
     # async_read_all returns a dict, but missing the key
     client.async_read_all = AsyncMock(return_value={"OTHER_KEY": 42.0})
     ent.async_write_ha_state = MagicMock()
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent.async_added_to_hass()
     # _attr_native_value should be None
     assert ent._attr_native_value is None
@@ -328,7 +328,7 @@ async def test_number_async_setup_entry_adds_entities(monkeypatch):
     async_add_entities = MagicMock()
 
     # Patch NUMBER_DEFINITIONS for this test
-    from custom_components.vistapool import number as num_module
+    from custom_components.neopool import number as num_module
 
     monkeypatch.setitem(
         num_module.NUMBER_DEFINITIONS, "MBF_PAR_HEATING_TEMP", {"register": 0x0201}
@@ -384,7 +384,7 @@ async def test_number_setup_skips_smart_when_no_temp(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import number as num_module
+    from custom_components.neopool import number as num_module
 
     monkeypatch.setitem(
         num_module.NUMBER_DEFINITIONS, "MBF_PAR_SMART_TEMP_HIGH", {"register": 0x0418}
@@ -426,7 +426,7 @@ async def test_number_async_setup_entry_skips_unassigned(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import number as num_module
+    from custom_components.neopool import number as num_module
 
     monkeypatch.setitem(
         num_module.NUMBER_DEFINITIONS, "MBF_PAR_HEATING_TEMP", {"register": 0x0201}
@@ -477,7 +477,7 @@ async def test_number_setup_skips_cover_without_cover_sensor(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import number as num_module
+    from custom_components.neopool import number as num_module
 
     monkeypatch.setitem(
         num_module.NUMBER_DEFINITIONS,
@@ -519,7 +519,7 @@ async def test_number_setup_creates_cover_with_cover_sensor(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import number as num_module
+    from custom_components.neopool import number as num_module
 
     monkeypatch.setitem(
         num_module.NUMBER_DEFINITIONS,
@@ -558,7 +558,7 @@ async def test_number_setup_skips_cover_without_hydro_module(monkeypatch):
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import number as num_module
+    from custom_components.neopool import number as num_module
 
     monkeypatch.setitem(
         num_module.NUMBER_DEFINITIONS,
@@ -597,7 +597,7 @@ async def test_number_setup_skips_temp_shutdown_without_temp_sensor(monkeypatch)
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import number as num_module
+    from custom_components.neopool import number as num_module
 
     monkeypatch.setitem(
         num_module.NUMBER_DEFINITIONS,
@@ -669,7 +669,7 @@ async def test_async_added_to_hass_bitmask(mock_coordinator):
     mock_coordinator.data = {"MBF_PAR_HIDRO_COVER_REDUCTION": 0x1E28}
     mock_coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent.async_added_to_hass()
     assert ent._attr_native_value == 40
 
@@ -693,7 +693,7 @@ async def test_debounced_write_bitmask_lsb(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     ent._pending_value = 50  # set cover reduction to 50%
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent._debounced_write()
     # Expected: (0x1E28 & ~0x00FF) | (50 & 0x00FF) = 0x1E00 | 0x0032 = 0x1E32
     ent.coordinator.client.async_write_register.assert_awaited_with(
@@ -720,7 +720,7 @@ async def test_debounced_write_bitmask_msb(mock_coordinator):
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     ent._pending_value = 25  # set shutdown temperature to 25°C
-    with patch("custom_components.vistapool.number.asyncio.sleep", AsyncMock()):
+    with patch("custom_components.neopool.number.asyncio.sleep", AsyncMock()):
         await ent._debounced_write()
     # Expected: (0x1E28 & ~0xFF00) | ((25 << 8) & 0xFF00) = 0x0028 | 0x1900 = 0x1928
     ent.coordinator.client.async_write_register.assert_awaited_with(
@@ -778,7 +778,7 @@ async def test_async_setup_entry_no_data(caplog):
 @pytest.mark.asyncio
 async def test_async_setup_entry_skips_hidro_without_hydrolysis(caplog):
     """Test that MBF_PAR_HIDRO number is skipped when Hydrolysis module detected is False."""
-    from custom_components.vistapool.number import async_setup_entry
+    from custom_components.neopool.number import async_setup_entry
 
     class DummyEntry:
         unique_id = None
