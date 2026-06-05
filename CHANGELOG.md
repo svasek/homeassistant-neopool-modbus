@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v2.1.0...v3.0.0) (2026-06-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* 💥 rename domain to neopool with automatic entity migration ([#160](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/160))
+
+### ✨ Features
+
+* 💥 rename domain to neopool with automatic entity migration ([#160](https://github.com/Svasek/homeassistant-vistapool-modbus/issues/160)) ([0552146](https://github.com/Svasek/homeassistant-vistapool-modbus/commit/055214686164e5c1cdfa8dbdb2521ad78d20fca2))
+
 ## [2.1.0](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v2.0.0...v2.1.0) (2026-06-04)
 
 
