@@ -20,6 +20,7 @@ on:
         type: choice
         options:
           - auto
+          - major
           - minor
           - patch
 
@@ -96,7 +97,11 @@ jobs:
           # Parse optional override from comment (e.g. "/alpha-release minor")
           if [[ "$EVENT_NAME" == "issue_comment" ]]; then
             OVERRIDE=$(echo "$COMMENT_BODY" | awk '{print $2}')
-            if [[ "$OVERRIDE" == "minor" || "$OVERRIDE" == "feat" ]]; then
+            if [[ "$OVERRIDE" == "major" || "$OVERRIDE" == "breaking" ]]; then
+              echo "type=major" >> "$GITHUB_OUTPUT"
+              echo "🔧 Bump type from comment override: major ($OVERRIDE)"
+              exit 0
+            elif [[ "$OVERRIDE" == "minor" || "$OVERRIDE" == "feat" ]]; then
               echo "type=minor" >> "$GITHUB_OUTPUT"
               echo "🔧 Bump type from comment override: minor ($OVERRIDE)"
               exit 0
@@ -118,7 +123,10 @@ jobs:
           echo "PR title: $PR_TITLE"
 
           # Detect type from conventional commit prefix in PR title
-          if echo "$PR_TITLE" | grep -qiP '^feat[(!:]'; then
+          if echo "$PR_TITLE" | grep -qiP '^[a-z]+(\([^)]*\))?!:'; then
+            echo "type=major" >> "$GITHUB_OUTPUT"
+            echo "💥 Detected breaking change (type!:) → major bump"
+          elif echo "$PR_TITLE" | grep -qiP '^feat[(!:]'; then
             echo "type=minor" >> "$GITHUB_OUTPUT"
             echo "✨ Detected feat → minor bump"
           else
@@ -137,7 +145,10 @@ jobs:
           BASE=$(echo "$CURRENT" | grep -oP '^\d+\.\d+\.\d+')
           IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE"
 
-          if [[ "$BUMP" == "minor" ]]; then
+          if [[ "$BUMP" == "major" ]]; then
+            NEXT_MAJOR=$((MAJOR + 1))
+            ALPHA_BASE="${NEXT_MAJOR}.0.0"
+          elif [[ "$BUMP" == "minor" ]]; then
             NEXT_MINOR=$((MINOR + 1))
             ALPHA_BASE="${MAJOR}.${NEXT_MINOR}.0"
           else
