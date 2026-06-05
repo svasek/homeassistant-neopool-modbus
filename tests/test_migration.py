@@ -131,6 +131,9 @@ async def test_single_v2_entry_success():
             "custom_components.neopool.migration._setup_registered_entry",
             new=AsyncMock(),
         ) as setup_mock,
+        patch(
+            "custom_components.neopool.migration._unregister_entry_without_save",
+        ) as unregister_mock,
     ):
         summary = await async_migrate_from_vistapool(hass)
 
@@ -144,6 +147,9 @@ async def test_single_v2_entry_success():
     hass.config_entries.async_unload.assert_awaited_once_with(old.entry_id)
     register_mock.assert_called_once()
     setup_mock.assert_awaited_once()
+    # Happy path: new entry must NOT be unregistered — it's the one we just
+    # successfully migrated to. Unregister belongs only to the failure paths.
+    unregister_mock.assert_not_called()
     new_entry = register_mock.call_args.args[1]
     assert new_entry.domain == "neopool"
     assert new_entry.version == CURRENT_VERSION
@@ -355,6 +361,12 @@ async def test_entity_retarget_failure_rolls_back():
             "custom_components.neopool.migration.er.async_get",
             return_value=entity_registry,
         ),
+        patch(
+            "custom_components.neopool.migration._register_entry_without_setup",
+        ) as register_mock,
+        patch(
+            "custom_components.neopool.migration._unregister_entry_without_save",
+        ) as unregister_mock,
     ):
         summary = await async_migrate_from_vistapool(hass)
 
@@ -365,6 +377,113 @@ async def test_entity_retarget_failure_rolls_back():
     # async_setup and async_remove must NOT have been called — we never reached them
     hass.config_entries.async_setup.assert_not_awaited()
     hass.config_entries.async_remove.assert_not_awaited()
+    # Critical: the new entry was registered in step 2, so step 3's failure
+    # must trigger the unregister cleanup — otherwise we leak a ghost entry.
+    register_mock.assert_called_once()
+    unregister_mock.assert_called_once()
+    # The unregister call must reference the SAME entry that was registered
+    assert unregister_mock.call_args.args[1] is register_mock.call_args.args[1]
+
+
+@pytest.mark.asyncio
+async def test_setup_failure_unregisters_entry():
+    """If async_setup fails after retarget completes, entry is unregistered."""
+    hass = MagicMock()
+    hass.config_entries.async_unload = AsyncMock(return_value=True)
+    hass.config_entries.async_setup = AsyncMock(
+        side_effect=RuntimeError("platform setup blew up")
+    )
+    hass.config_entries.async_remove = AsyncMock()
+
+    old = _make_old_entry()
+    hass.config_entries.async_entries.return_value = [old]
+
+    entity_registry = MagicMock()
+    entity_registry.entities.values.return_value = []
+    device_registry = MagicMock()
+
+    with (
+        patch(
+            "custom_components.neopool.migration.er.async_get",
+            return_value=entity_registry,
+        ),
+        patch(
+            "custom_components.neopool.migration.dr.async_get",
+            return_value=device_registry,
+        ),
+        patch(
+            "custom_components.neopool.migration.dr.async_entries_for_config_entry",
+            return_value=[],
+        ),
+        patch(
+            "custom_components.neopool.migration._register_entry_without_setup",
+        ) as register_mock,
+        patch(
+            "custom_components.neopool.migration._setup_registered_entry",
+            new=AsyncMock(side_effect=RuntimeError("platform setup blew up")),
+        ),
+        patch(
+            "custom_components.neopool.migration._unregister_entry_without_save",
+        ) as unregister_mock,
+    ):
+        summary = await async_migrate_from_vistapool(hass)
+
+    # Migration failed — recorded as a hard failure
+    assert summary["entries_failed"] == 1
+    assert any("platform setup blew up" in err for err in summary["errors"])
+    # async_remove (step 6) must NOT have run
+    hass.config_entries.async_remove.assert_not_awaited()
+    # Critical: ghost entry cleanup must have run
+    register_mock.assert_called_once()
+    unregister_mock.assert_called_once()
+    assert unregister_mock.call_args.args[1] is register_mock.call_args.args[1]
+
+
+@pytest.mark.asyncio
+async def test_unregister_helper_removes_entry_and_dispatches():
+    """_unregister_entry_without_save deletes from _entries and dispatches REMOVED."""
+    from custom_components.neopool.migration import _unregister_entry_without_save
+
+    hass = MagicMock()
+    hass.config_entries._entries = {"entry_xyz": "the_entry_object"}
+
+    entry = MagicMock()
+    entry.entry_id = "entry_xyz"
+
+    _unregister_entry_without_save(hass, entry)
+
+    # Entry removed from _entries
+    assert "entry_xyz" not in hass.config_entries._entries
+    # update_issues + REMOVED dispatch fired
+    hass.config_entries.async_update_issues.assert_called_once()
+    hass.config_entries._async_dispatch.assert_called_once()
+    # The dispatch arg must be the REMOVED change kind
+    from homeassistant.config_entries import ConfigEntryChange
+
+    assert (
+        hass.config_entries._async_dispatch.call_args.args[0]
+        == ConfigEntryChange.REMOVED
+    )
+    assert hass.config_entries._async_dispatch.call_args.args[1] is entry
+
+
+@pytest.mark.asyncio
+async def test_unregister_helper_is_idempotent():
+    """_unregister_entry_without_save no-ops when entry isn't in _entries."""
+    from custom_components.neopool.migration import _unregister_entry_without_save
+
+    hass = MagicMock()
+    hass.config_entries._entries = {}  # empty — entry was never registered
+
+    entry = MagicMock()
+    entry.entry_id = "entry_xyz"
+
+    # Must not raise
+    _unregister_entry_without_save(hass, entry)
+
+    # Nothing dispatched because there was nothing to remove
+    hass.config_entries.async_update_issues.assert_not_called()
+    hass.config_entries._async_dispatch.assert_not_called()
 
 
 @pytest.mark.asyncio

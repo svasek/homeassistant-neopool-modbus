@@ -379,104 +379,125 @@ async def migrate_single_entry_cross_domain(
     # it without touching `_entries` directly.
     _register_entry_without_setup(hass, new_entry)
 
-    # ── Step 3: Retarget entity_registry rows ────────────────────────────
-    # Change platform from "vistapool" to "neopool". entity_id and
-    # unique_id are preserved → recorder history (states + statistics)
-    # follows automatically because those tables key on entity_id strings,
-    # not on platform/domain.
-    entity_registry = er.async_get(hass)
-    candidates = [
-        e
-        for e in entity_registry.entities.values()
-        if e.platform == OLD_DOMAIN and e.config_entry_id == old_entry.entry_id
-    ]
+    # Steps 3-6 may fail (registry retarget collision, platform setup
+    # error, etc.). The new_entry is already in `hass.config_entries._entries`
+    # at this point, so any failure must remove it — otherwise we leak a
+    # ghost entry that has no platforms set up but would still appear in
+    # `async_entries(DOMAIN)` and could land in `.storage/core.config_entries`
+    # the next time something else triggers a save.
+    try:
+        # ── Step 3: Retarget entity_registry rows ────────────────────────
+        # Change platform from "vistapool" to "neopool". entity_id and
+        # unique_id are preserved → recorder history (states + statistics)
+        # follows automatically because those tables key on entity_id strings,
+        # not on platform/domain.
+        entity_registry = er.async_get(hass)
+        candidates = [
+            e
+            for e in entity_registry.entities.values()
+            if e.platform == OLD_DOMAIN and e.config_entry_id == old_entry.entry_id
+        ]
 
-    # async_update_entity_platform refuses to migrate any entity that still
-    # has a non-UNKNOWN state object in hass.states (HA core entity_registry
-    # L1933-1936). async_unload_platforms is supposed to remove those, but in
-    # practice we still hit the check — most likely recorder restoring the
-    # last known state from the database, or a stray async callback that
-    # repopulated the state after unload returned. Defensively wipe any
-    # lingering state objects for our candidates before retargeting.
-    stale_states = [
-        e.entity_id for e in candidates if hass.states.get(e.entity_id) is not None
-    ]
-    if stale_states:
-        _LOGGER.debug(
-            "Removing %d stale state object(s) before retarget: %s",
-            len(stale_states),
-            stale_states,
-        )
-        for entity_id in stale_states:
-            hass.states.async_remove(entity_id)
-
-    applied: list[tuple[str, str | None]] = []
-    for re_entry in candidates:
-        try:
-            entity_registry.async_update_entity_platform(
-                re_entry.entity_id,
-                new_platform=DOMAIN,
-                new_config_entry_id=new_entry.entry_id,
-                # No new_unique_id → keeps old unique_id intact.
+        # async_update_entity_platform refuses to migrate any entity that still
+        # has a non-UNKNOWN state object in hass.states (HA core entity_registry
+        # L1933-1936). async_unload_platforms is supposed to remove those, but
+        # in practice we still hit the check — most likely recorder restoring
+        # the last known state from the database, or a stray async callback
+        # that repopulated the state after unload returned. Defensively wipe
+        # any lingering state objects for our candidates before retargeting.
+        stale_states = [
+            e.entity_id for e in candidates if hass.states.get(e.entity_id) is not None
+        ]
+        if stale_states:
+            _LOGGER.debug(
+                "Removing %d stale state object(s) before retarget: %s",
+                len(stale_states),
+                stale_states,
             )
-            applied.append((re_entry.entity_id, re_entry.unique_id))
-        except ValueError as exc:
-            _LOGGER.error(
-                "Failed to retarget %s: %s — rolling back",
-                re_entry.entity_id,
-                exc,
-            )
-            for ent_id, _uid in applied:
-                try:
-                    entity_registry.async_update_entity_platform(
-                        ent_id,
-                        OLD_DOMAIN,
-                        new_config_entry_id=old_entry.entry_id,
-                    )
-                except Exception:  # noqa: BLE001
-                    _LOGGER.exception("Rollback failed for %s", ent_id)
-            raise
+            for entity_id in stale_states:
+                hass.states.async_remove(entity_id)
 
-    # ── Step 4: Retarget device_registry ─────────────────────────────────
-    # Order matters: ADD new_entry_id BEFORE REMOVE old_entry_id, otherwise
-    # the device may be auto-deleted (HA core checks if the device's
-    # config_entries set becomes empty during remove).
-    device_registry = dr.async_get(hass)
-    devices = list(
-        dr.async_entries_for_config_entry(device_registry, old_entry.entry_id)
-    )
-    for device in devices:
-        # 4a: Add new entry_id (so the device.config_entries set has both)
-        device_registry.async_update_device(
-            device.id,
-            add_config_entry_id=new_entry.entry_id,
+        applied: list[tuple[str, str | None]] = []
+        for re_entry in candidates:
+            try:
+                entity_registry.async_update_entity_platform(
+                    re_entry.entity_id,
+                    new_platform=DOMAIN,
+                    new_config_entry_id=new_entry.entry_id,
+                    # No new_unique_id → keeps old unique_id intact.
+                )
+                applied.append((re_entry.entity_id, re_entry.unique_id))
+            except ValueError as exc:
+                _LOGGER.error(
+                    "Failed to retarget %s: %s — rolling back",
+                    re_entry.entity_id,
+                    exc,
+                )
+                for ent_id, _uid in applied:
+                    try:
+                        entity_registry.async_update_entity_platform(
+                            ent_id,
+                            OLD_DOMAIN,
+                            new_config_entry_id=old_entry.entry_id,
+                        )
+                    except Exception:  # noqa: BLE001
+                        _LOGGER.exception("Rollback failed for %s", ent_id)
+                raise
+
+        # ── Step 4: Retarget device_registry ─────────────────────────────
+        # Order matters: ADD new_entry_id BEFORE REMOVE old_entry_id, otherwise
+        # the device may be auto-deleted (HA core checks if the device's
+        # config_entries set becomes empty during remove).
+        device_registry = dr.async_get(hass)
+        devices = list(
+            dr.async_entries_for_config_entry(device_registry, old_entry.entry_id)
         )
-        # 4b: Update identifiers (vistapool, X) → (neopool, X)
-        new_identifiers = {
-            (DOMAIN if d == OLD_DOMAIN else d, ident) for d, ident in device.identifiers
-        }
-        if new_identifiers != device.identifiers:
+        for device in devices:
+            # 4a: Add new entry_id (so the device.config_entries set has both)
             device_registry.async_update_device(
                 device.id,
-                new_identifiers=new_identifiers,
+                add_config_entry_id=new_entry.entry_id,
             )
-        # 4c: Remove old entry_id (safe — device has new entry_id too)
-        device_registry.async_update_device(
-            device.id,
-            remove_config_entry_id=old_entry.entry_id,
-        )
+            # 4b: Update identifiers (vistapool, X) → (neopool, X)
+            new_identifiers = {
+                (DOMAIN if d == OLD_DOMAIN else d, ident)
+                for d, ident in device.identifiers
+            }
+            if new_identifiers != device.identifiers:
+                device_registry.async_update_device(
+                    device.id,
+                    new_identifiers=new_identifiers,
+                )
+            # 4c: Remove old entry_id (safe — device has new entry_id too)
+            device_registry.async_update_device(
+                device.id,
+                remove_config_entry_id=old_entry.entry_id,
+            )
 
-    # ── Step 5: Set up the new entry ─────────────────────────────────────
-    # The entry was registered in `_entries` in Step 2 (without setup) so
-    # that the entity_registry validator would accept the retarget. Now that
-    # the retarget is done, run setup. This synchronously calls
-    # `async_setup_entry` → forward to platforms → `async_add_entities`. The
-    # platform lookup finds the already-retargeted (sensor, neopool, X) rows
-    # and reuses them — no duplicates are created.
-    await _setup_registered_entry(hass, new_entry)
+        # ── Step 5: Set up the new entry ─────────────────────────────────
+        # The entry was registered in `_entries` in Step 2 (without setup) so
+        # that the entity_registry validator would accept the retarget. Now
+        # that the retarget is done, run setup. This synchronously calls
+        # `async_setup_entry` → forward to platforms → `async_add_entities`.
+        # The platform lookup finds the already-retargeted (sensor, neopool, X)
+        # rows and reuses them — no duplicates are created.
+        await _setup_registered_entry(hass, new_entry)
 
-    # ── Step 6: Remove old vistapool entry ───────────────────────────────
-    await hass.config_entries.async_remove(old_entry.entry_id)
+        # ── Step 6: Remove old vistapool entry ───────────────────────────
+        await hass.config_entries.async_remove(old_entry.entry_id)
+    except BaseException:
+        # Migration aborted at some point after Step 2's registration. The
+        # new entry's entity_registry retargets may have been rolled back by
+        # Step 3's inner handler, but the registration itself (the row in
+        # `hass.config_entries._entries`) is ours to clean up. Without this,
+        # a failed migration leaves a ghost entry visible to
+        # `async_entries(DOMAIN)` and async_setup that does nothing useful.
+        #
+        # Catch BaseException so the cleanup also runs on cancellations
+        # (e.g. HA shutting down mid-migration). We re-raise unconditionally,
+        # so callers still see the original failure.
+        _unregister_entry_without_save(hass, new_entry)
+        raise
 
     _LOGGER.info(
         "Migrated vistapool entry %r (%d entities) to neopool entry %s",
@@ -505,6 +526,36 @@ def _register_entry_without_setup(hass: HomeAssistant, entry: ConfigEntry) -> No
     hass.config_entries.async_update_issues()
     hass.config_entries._async_dispatch(  # noqa: SLF001
         ConfigEntryChange.ADDED, entry
+    )
+
+
+def _unregister_entry_without_save(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reverse of `_register_entry_without_setup` — drop entry from `_entries`.
+
+    Called from the cross-domain migration error path so that a failure
+    after Step 2's registration doesn't leave a ghost entry in
+    `hass.config_entries._entries`. Without this, a partially-completed
+    migration would leak an unsetup neopool entry that:
+      * still appears in `async_entries(DOMAIN)`,
+      * has no platforms loaded (would no-op on `async_setup_entry`), and
+      * could land in `.storage/core.config_entries` the next time
+        another integration triggers `_async_schedule_save`.
+
+    Mirrors `ConfigEntries._async_remove`'s book-keeping but without
+    invoking `async_unload` (the entry never got set up) or scheduling
+    a save (Step 2 deliberately deferred saving until Step 5; if we got
+    here, the save call never ran). The matching REMOVED dispatch keeps
+    HACS / frontend listeners consistent with the ADDED we sent earlier.
+
+    Idempotent — silent if the entry is already gone (e.g. test mocks
+    that didn't actually populate `_entries`).
+    """
+    if hass.config_entries._entries.get(entry.entry_id) is None:  # noqa: SLF001
+        return
+    del hass.config_entries._entries[entry.entry_id]  # noqa: SLF001
+    hass.config_entries.async_update_issues()
+    hass.config_entries._async_dispatch(  # noqa: SLF001
+        ConfigEntryChange.REMOVED, entry
     )
 
 
