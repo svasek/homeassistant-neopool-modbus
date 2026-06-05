@@ -1,9 +1,6 @@
 {
   "domain": "neopool",
   "name": "NeoPool Modbus",
-  "after_dependencies": [
-    "modbus"
-  ],
   "codeowners": [
     "@svasek"
   ],
@@ -13,6 +10,9 @@
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/svasek/homeassistant-vistapool-modbus/issues",
+  "loggers": [
+    "pymodbus"
+  ],
   "requirements": [
     "pymodbus>=3.8.3,<4.0.0"
   ],
