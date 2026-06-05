@@ -95,14 +95,18 @@ If you find this integration useful, consider supporting its development:
 - **Multi-hub support**: Add multiple NeoPool devices, each with a custom prefix (used in entity IDs).
 - **Sensors**:
   pH, Redox (ORP), Salt, Conductivity, Water Temperature, Ionization, Hydrolysis Intensity/Voltage, Device Time, Status/Alarm bits, Filtration speed _(if supported)_, Backwash remaining time _(if Besgo automatic filter valve is configured)_, **Filtration pump power & energy** _(if pump wattage is configured in Options)_.
+- **Energy Dashboard support**: when the filtration pump wattage is configured in Options, the integration provides instantaneous power (W) and a cumulative energy (Wh / kWh) sensor that can be added to the Home Assistant Energy Dashboard under _Individual devices_ to track pool consumption alongside the rest of your home.
+- **Binary sensors** (~50 entities): relay states (Filtration, Light, AUX1–AUX4, pH acid pump), module detection and regulation status (pH, Redox, Chlorine, Conductivity, Hydrolysis), problem indicators (low flow, sensor faults, time-sync drift), Heating, UV Lamp, and Pool Cover _(if cover sensor enabled)_.
 - **Numbers**:
   Setpoints for pH, Redox, Chlorine, Temperature, Hydrolysis production, Hydrolysis cover reduction % _(if hydrolysis module present + cover sensor enabled)_, Hydrolysis shutdown temperature threshold _(if hydrolysis module + temperature sensor + cover sensor enabled)_.
 - **Switches**:
-  Manual filtration, relays (_Light & AUX1–AUX4_, can be enabled in Options), automatic time sync to Home Assistant (default: disabled), **winter mode** (suspends Modbus communication while keeping all entities registered in Home Assistant), Hydrolysis cover reduction enable _(if hydrolysis module present + cover sensor enabled)_, Hydrolysis temperature shutdown enable _(if hydrolysis module + temperature sensor + cover sensor enabled)_.
+  Manual filtration, relays (_Light & AUX1–AUX4_, can be enabled in Options), automatic time sync to Home Assistant (default: disabled), **winter mode** (suspends Modbus communication while keeping all entities registered in Home Assistant), **Climate mode** _(if heating relay + temperature sensor)_, **Smart antifreeze** _(if temperature sensor)_, **UV mode** _(if UV relay is assigned)_, Hydrolysis cover reduction enable _(if hydrolysis module present + cover sensor enabled)_, Hydrolysis temperature shutdown enable _(if hydrolysis module + temperature sensor + cover sensor enabled)_.
 - **Selects**:
-  Filtration mode (Manual, Auto, Heating, Smart, Intelligent, **Backwash** _(auto-enabled if Besgo valve configured)_), timers for automatic filtration, filtration speed _(if supported)_, boost control _(if Hydro/Electrolysis module is present)_, pH pump activation delay, **Backwash Repeat Interval** _(if Besgo valve configured)_, **Backwash Valve Mode** _(if Besgo valve configured)_.
+  Filtration mode (Manual, Auto, Heating, Smart, Intelligent, **Backwash** _(auto-enabled if Besgo valve configured)_), timers for automatic filtration, filtration speed _(if supported)_, boost control _(if Hydro/Electrolysis module is present)_, pH pump activation delay, **Intelligent mode minimum filtration time** _(if heating + temperature sensor)_, **Backwash Repeat Interval** _(if Besgo valve configured)_, **Backwash Valve Mode** _(if Besgo valve configured)_, plus per-relay timer/period/mode controls for AUX and Light relays.
 - **Buttons**:
   Manual time sync, reset alarm/error states, **Start Backwash** _(only if Besgo automatic filter valve is configured on the device)_.
+- **Diagnostic entities** (disabled by default — enable per-entity in Settings → Devices & Services if needed):
+  Hydrolysis voltage, ionizer / hydrolysis polarity, pH pump status, pH alarm state, intelligent-mode intervals and next-interval timestamp, filtration time remaining.
 
 ---
 
@@ -223,6 +227,19 @@ Additional Besgo-only entities are created automatically when `MBF_PAR_FILTVALVE
 
 ---
 
+## Data Update
+
+This integration polls the NeoPool controller over Modbus TCP using a Home Assistant **DataUpdateCoordinator**. A single shared Modbus client per hub fetches all registers in batched reads and distributes the result to every entity, so adding more entities does not increase Modbus traffic.
+
+- **Default interval:** 30 seconds (configurable from 5 s to 300 s in **Options → Scan interval**).
+- **Adaptive backoff:** When a Modbus read fails, all entities become **unavailable** immediately (`UpdateFailed`) and the polling interval is automatically extended (exponentially up to 3 minutes) to avoid hammering an offline device. Entities recover and the interval resets to the user-configured value as soon as the next read succeeds.
+- **Write-then-refresh:** When you toggle a switch, change a number, or call a service, a follow-up refresh is scheduled 2 seconds after the write so the UI reflects the new state without waiting for the next poll cycle.
+- **Winter Mode:** When enabled, polling is fully suspended (no TCP connection attempts, no error logs). See [Winter Mode](#winter-mode).
+
+If you need higher responsiveness for a specific automation, lowering the scan interval is safe — the gateway and controller easily handle 5-second polling — but be aware that some Modbus TCP gateways (especially Wi-Fi-based ones) become unstable under sustained sub-10-second polling.
+
+---
+
 ## Example Entities
 
 Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_filt_mode`:
@@ -253,6 +270,96 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
 
 ---
 
+## Automation Examples
+
+A few starting points showing how to use the entities and services this integration provides. All examples assume the device prefix `pool` — adjust to match your own setup.
+
+### Schedule manual filtration from Home Assistant
+
+Run filtration in a fixed daily window without configuring the controller's built-in timers. The condition on `select.<name>_filt_mode` ensures this automation only acts when the controller is in **manual** mode, so it never fights with on-device Auto/Heating/Smart schedules.
+
+```yaml
+automation:
+  - alias: "Pool: scheduled filtration"
+    triggers:
+      - trigger: time
+        at: "10:00:00"
+        id: turn_on
+      - trigger: time
+        at: "15:00:00"
+        id: turn_off
+    conditions:
+      - condition: state
+        entity_id: select.pool_filt_mode
+        state: manual
+    actions:
+      - choose:
+          - conditions:
+              - condition: trigger
+                id: turn_on
+              - condition: state
+                entity_id: switch.pool_filt_manual_state
+                state: "off"
+            sequence:
+              - action: switch.turn_on
+                target:
+                  entity_id: switch.pool_filt_manual_state
+          - conditions:
+              - condition: trigger
+                id: turn_off
+              - condition: state
+                entity_id: switch.pool_filt_manual_state
+                state: "on"
+            sequence:
+              - action: switch.turn_off
+                target:
+                  entity_id: switch.pool_filt_manual_state
+    mode: single
+```
+
+### Auto-enable Winter Mode on November 1st, disable on April 1st
+
+```yaml
+automation:
+  - alias: "Pool: enter winter mode"
+    triggers:
+      - trigger: time
+        at: "00:00:00"
+    conditions:
+      - condition: template
+        value_template: "{{ now().month == 11 and now().day == 1 }}"
+    actions:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.pool_winter_mode
+
+  - alias: "Pool: exit winter mode"
+    triggers:
+      - trigger: time
+        at: "00:00:00"
+    conditions:
+      - condition: template
+        value_template: "{{ now().month == 4 and now().day == 1 }}"
+    actions:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.pool_winter_mode
+```
+
+### Direct register access via the `write_register` service
+
+For advanced users who need to set a register not exposed as an entity. **Use with care — incorrect values can damage your hardware.**
+
+```yaml
+action: neopool.write_register
+data:
+  address: 0x0411 # MBF_PAR_FILT_MODE
+  value: 1 # Auto
+  apply: true # commit to EEPROM (false = volatile only)
+```
+
+---
+
 ## Special Notes
 
 - **Only enabled timers and relays (per Options) are shown in Home Assistant.**
@@ -267,6 +374,55 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
 - **Filtration pump power & energy sensors:** Created only when a non-zero pump wattage is set in Options. `sensor.<name>_filtration_pump_power` (W) shows instantaneous consumption; `sensor.<name>_filtration_pump_energy` (Wh) accumulates total energy — both can be added to the **Energy dashboard** under _Individual devices_.
 - **Boost control (select):** Only if Hydro/Electrolysis module is present.
 - **Reset Alarm button:** Allows clearing of error and alarm states from HA.
+
+---
+
+## Troubleshooting
+
+If the integration does not work as expected, work through these checks before opening an issue.
+
+### "Cannot connect" or "Cannot read Modbus" during setup
+
+- Verify the **gateway IP and port** are reachable from the Home Assistant host (`ping`, `nc -vz <host> <port>`).
+- Check that the **slave ID** (default `1`) matches the controller. Some firmwares use `2`.
+- Try switching the **Modbus framer** between `tcp` and `rtu` in the setup form. Some Wi-Fi gateways require `rtu` even when used over TCP — see the [Modbus Connection Guide](docs/modbus-connection-guide.md).
+- Confirm you are using the correct RS485 connector — **`WIFI` or `EXTERNAL`**, not `DISPLAY` (unless the internal LCD is physically disconnected).
+- Make sure no other Modbus client is connected to the same connector at the same time. The NeoPool RS485 bus accepts only one master per labelled connector.
+
+### All entities went unavailable suddenly
+
+- Even a single failed Modbus read marks all entities **unavailable** immediately (the coordinator raises `UpdateFailed`). Look in **Settings → Logs** for `Modbus error – marking all entities unavailable`.
+- The integration applies an exponential backoff (up to 3 minutes) between retries to avoid hammering an offline device. Entities recover automatically — and the polling interval resets to your configured value — as soon as the next read succeeds.
+- If you see repeated errors only at certain times of day, the gateway may be sharing its RS485 bus with the controller's own LCD or another device — physically disconnect the LCD or move the gateway to a free connector.
+
+### Repair issue: "Corrupted GPIO register"
+
+The integration creates a non-fixable [Repair issue](https://www.home-assistant.io/docs/repairs/) when it detects an out-of-range value in the controller's GPIO mapping registers. The most common cause is a **Modbus framer mismatch** — for example using `tcp` framer with a transparent gateway that expects `rtu`. Switching the framer in **Settings → Devices & Services → Configure** usually clears the issue on the next read. Until the values are valid again the affected switch/light/relay entities may behave unpredictably.
+
+### Backwash button does not appear
+
+The integration creates the **Start Backwash** button when it detects a Besgo automatic filter valve. Detection succeeds if **either**:
+
+- `MBF_PAR_FILTVALVE_GPIO` holds a valid relay number (`1`–`7`) — i.e. a relay is physically assigned to the valve, **or**
+- `MBF_PAR_FILTVALVE_ENABLE` is set to `1`.
+
+If neither condition is met, configure the valve from the controller's local UI (assign a free relay or enable the filter cleaning mode) and wait for the next poll cycle.
+
+### How to collect diagnostics for a bug report
+
+1. Go to **Settings → Devices & Services → NeoPool Modbus → ⋮ → Download diagnostics**.
+2. The downloaded file is sanitized — host, port, and any token-like fields are redacted — but please skim it before sharing.
+3. Open an issue at [github.com/svasek/homeassistant-vistapool-modbus/issues](https://github.com/svasek/homeassistant-vistapool-modbus/issues) and attach the file along with relevant log lines from `home-assistant.log`.
+
+To enable verbose logging for `pymodbus` (helpful for tricky connection issues), add to your `configuration.yaml`:
+
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.neopool: debug
+    pymodbus: debug
+```
 
 ---
 
