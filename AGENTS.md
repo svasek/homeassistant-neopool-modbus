@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-This is a Home Assistant custom integration for VistaPool/NeoPool pool controllers connected via Modbus TCP. It lives under `custom_components/vistapool/` and follows the standard HA integration pattern.
+This is a Home Assistant custom integration for NeoPool/VistaPool pool controllers connected via Modbus TCP. It lives under `custom_components/neopool/` and follows the standard HA integration pattern.
 
 ## Development Commands
 
@@ -42,16 +42,16 @@ ruff format
 ### Data Flow
 
 ```
-Config Flow → ConfigEntry → VistaPoolCoordinator → VistaPoolModbusClient
+Config Flow → ConfigEntry → NeoPoolCoordinator → NeoPoolModbusClient
                                     ↓
                          Platform entities subscribe
                          (sensor, switch, number, select, button, light, binary_sensor)
 ```
 
-- **`modbus.py`** (`VistaPoolModbusClient`): Low-level Modbus TCP communication via `pymodbus`. Reads/writes registers, decodes raw register values into structured dicts.
-- **`coordinator.py`** (`VistaPoolCoordinator`): `DataUpdateCoordinator` subclass. Polls `VistaPoolModbusClient` on `scan_interval`, distributes data to all platform entities. Also handles winter mode (suspends polling) and follow-up refresh after writes.
+- **`modbus.py`** (`NeoPoolModbusClient`): Low-level Modbus TCP communication via `pymodbus`. Reads/writes registers, decodes raw register values into structured dicts.
+- **`coordinator.py`** (`NeoPoolCoordinator`): `DataUpdateCoordinator` subclass. Polls `NeoPoolModbusClient` on `scan_interval`, distributes data to all platform entities. Also handles winter mode (suspends polling) and follow-up refresh after writes.
 - **`const.py`**: Central definition file (~1200 lines). All entity definitions (keys, register addresses, device classes, units, options) live here as data structures. Adding a new entity usually means only editing `const.py`.
-- **`entity.py`**: Base `VistaPoolEntity` — shared `unique_id`, `device_info`, `available` logic.
+- **`entity.py`**: Base `NeoPoolEntity` — shared `unique_id`, `device_info`, `available` logic.
 - **Platform files** (`sensor.py`, `switch.py`, etc.): Thin wrappers that read from `coordinator.data` using keys defined in `const.py`.
 
 ### Key Patterns

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Modbus Client"""
+"""NeoPool Integration for Home Assistant - Modbus Client"""
 
 import asyncio
 import logging
@@ -72,7 +72,7 @@ _NOTIF_MISC = 0x0020  # MBMSK_NOTIF_MISC_CHANGED
 _FULL_READ_INTERVAL = 60
 
 
-class VistaPoolModbusClient:
+class NeoPoolModbusClient:
     def __init__(self, config: Mapping[str, Any]) -> None:
         self._host: str = config["host"]
         self._port = config.get("port", 502)

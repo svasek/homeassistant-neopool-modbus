@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Diagnostics Module"""
+"""NeoPool Integration for Home Assistant - Diagnostics Module"""
 
 from __future__ import annotations
 
@@ -21,15 +21,15 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
-from . import VistaPoolConfigEntry
+from . import NeoPoolConfigEntry
 
 TO_REDACT = {"password", "token", "host", "port"}
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: VistaPoolConfigEntry
+    hass: HomeAssistant, entry: NeoPoolConfigEntry
 ) -> dict[str, Any]:
-    """Return diagnostics for a VistaPool config entry."""
+    """Return diagnostics for a NeoPool config entry."""
 
     diagnostics: dict[str, Any] = {}
 

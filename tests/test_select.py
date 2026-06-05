@@ -17,12 +17,12 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from custom_components.vistapool.const import SELECT_DEFINITIONS
-from custom_components.vistapool.select import (
+from custom_components.neopool.const import SELECT_DEFINITIONS
+from custom_components.neopool.select import (
     PERIOD_MAP,
     PERIOD_SECONDS_TO_KEY,
-    VistaPoolEntity,
-    VistaPoolSelect,
+    NeoPoolEntity,
+    NeoPoolSelect,
     async_setup_entry,
 )
 
@@ -37,7 +37,7 @@ def _fast_sleep(monkeypatch):
 def mock_coordinator():
     mock = AsyncMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.winter_mode = False
     mock.async_set_updated_data = MagicMock()
     mock.request_refresh_with_followup = MagicMock()
@@ -86,7 +86,7 @@ def boost_props():
 
 def test_options_basic_options_map(mock_coordinator):
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {}
     opts = ent.options
     assert set(opts) <= {"auto", "manual", "off"}
@@ -96,7 +96,7 @@ def test_options_hide_heating_intelligent(mock_coordinator):
     props = make_props(
         options_map={0: "auto", 2: "heating", 3: "intelligent", 4: "off"}
     )
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_HEATING_MODE": 0, "MBF_PAR_TEMPERATURE_ACTIVE": 0}
     opts = ent.options
     assert "heating" not in opts and "intelligent" not in opts
@@ -104,7 +104,7 @@ def test_options_hide_heating_intelligent(mock_coordinator):
 
 def test_options_hide_smart_temp_sensor(mock_coordinator):
     props = make_props(options_map={0: "auto", 3: "smart", 4: "off"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_HEATING_MODE": 0, "MBF_PAR_TEMPERATURE_ACTIVE": 0}
     opts = ent.options
     assert "smart" not in opts
@@ -112,7 +112,7 @@ def test_options_hide_smart_temp_sensor(mock_coordinator):
 
 def test_options_add_backwash(mock_coordinator):
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off", 13: "backwash"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {}
     mock_coordinator.config_entry.options = {"enable_backwash_option": True}
     opts = ent.options
@@ -123,7 +123,7 @@ def test_options_add_backwash_via_filtvalve(mock_coordinator):
     """Backwash must appear automatically when MBF_PAR_FILTVALVE_ENABLE=1 (Besgo valve),
     even without enable_backwash_option in config options."""
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off", 13: "backwash"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 1}
     mock_coordinator.config_entry.options = {}
     opts = ent.options
@@ -133,7 +133,7 @@ def test_options_add_backwash_via_filtvalve(mock_coordinator):
 def test_options_no_backwash_without_valve_or_option(mock_coordinator):
     """Backwash must be hidden when neither enable_backwash_option nor Besgo valve."""
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off", 13: "backwash"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
     mock_coordinator.config_entry.options = {}
     opts = ent.options
@@ -143,7 +143,7 @@ def test_options_no_backwash_without_valve_or_option(mock_coordinator):
 def test_options_add_backwash_via_gpio_only(mock_coordinator):
     """Backwash must appear when MBF_PAR_FILTVALVE_GPIO!=0 even with ENABLE=0."""
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off", 13: "backwash"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 5}
     mock_coordinator.config_entry.options = {}
     opts = ent.options
@@ -154,7 +154,7 @@ def test_options_backwash_kept_when_active(mock_coordinator):
     """Backwash must stay in options if device is currently in mode 13,
     even when backwash is not allowed — so current_option stays valid."""
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off", 13: "backwash"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {
         "MBF_PAR_FILTVALVE_ENABLE": 0,
         "MBF_PAR_FILTVALVE_GPIO": 0,
@@ -167,7 +167,7 @@ def test_options_backwash_kept_when_active(mock_coordinator):
 
 def test_options_timer_time(mock_coordinator):
     props = make_props(select_type="timer_time")
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_start", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_start", props)
     mock_coordinator.data = {"relay_aux1_start": 0}
     mock_coordinator.config_entry.options = {"timer_resolution": 5}
     opts = ent.options
@@ -176,7 +176,7 @@ def test_options_timer_time(mock_coordinator):
 
 def test_options_timer_period(mock_coordinator):
     props = make_props(select_type="timer_period")
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_period", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_period", props)
     mock_coordinator.data = {"relay_aux1_period": 600}
     opts = ent.options
     assert any(isinstance(x, str) for x in opts)
@@ -184,7 +184,7 @@ def test_options_timer_period(mock_coordinator):
 
 def test_options_relay_mode_disabled(mock_coordinator):
     props = make_props(select_type="relay_mode", options_map={1: "auto"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_enable", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_enable", props)
     mock_coordinator.data = {"relay_aux1_enable": 0}
     opts = ent.options
     assert "disabled" in opts
@@ -198,7 +198,7 @@ def test_options_boost_hide_redox(mock_coordinator):
             2: "active (redox enabled)",
         }
     )
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", props)
     mock_coordinator.data = {"Redox measurement module detected": False}
     opts = ent.options
     assert "active (redox enabled)" not in opts
@@ -212,7 +212,7 @@ def test_current_option_cell_boost(mock_coordinator):
             2: "active (redox enabled)",
         }
     )
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", props)
     mock_coordinator.data = {"MBF_CELL_BOOST": 0x8000}
     assert ent.current_option == "active (redox disabled)"
     mock_coordinator.data["MBF_CELL_BOOST"] = 0x05A0
@@ -225,7 +225,7 @@ def test_current_option_filtration_speed(mock_coordinator):
         "mask": 0x70,
         "shift": 4,
     }
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTRATION_SPEED", props
     )
     mock_coordinator.data = {"MBF_PAR_FILTRATION_CONF": 32}
@@ -238,7 +238,7 @@ def test_current_option_filtration_speed(mock_coordinator):
 
 def test_current_option_timer_period(mock_coordinator):
     props = make_props(select_type="timer_period")
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_period", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_period", props)
     value = list(PERIOD_MAP.values())[0]
     mock_coordinator.data = {"relay_aux1_period": value}
     assert ent.current_option == PERIOD_SECONDS_TO_KEY[value]
@@ -246,7 +246,7 @@ def test_current_option_timer_period(mock_coordinator):
 
 def test_current_option_relay_mode(mock_coordinator):
     props = make_props(select_type="relay_mode", options_map={1: "auto", 2: "manual"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_enable", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_enable", props)
     mock_coordinator.data = {"relay_aux1_enable": 0}
     assert ent.current_option == "disabled"
     mock_coordinator.data["relay_aux1_enable"] = 2
@@ -255,7 +255,7 @@ def test_current_option_relay_mode(mock_coordinator):
 
 def test_current_option_default(mock_coordinator):
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILT_MODE": 1}
     assert ent.current_option == "manual"
 
@@ -283,7 +283,7 @@ def _intelligent_min_time_props():
 
 def test_options_intelligent_min_time_unknown_value(mock_coordinator):
     props = _intelligent_min_time_props()
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_INTELLIGENT_FILT_MIN_TIME", props
     )
     # Known value → just labels, no numeric prefix
@@ -298,7 +298,7 @@ def test_options_intelligent_min_time_unknown_value(mock_coordinator):
 
 def test_current_option_intelligent_min_time(mock_coordinator):
     props = _intelligent_min_time_props()
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_INTELLIGENT_FILT_MIN_TIME", props
     )
     mock_coordinator.data = {"MBF_PAR_INTELLIGENT_FILT_MIN_TIME": 360}
@@ -310,7 +310,7 @@ def test_current_option_intelligent_min_time(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_timer_time(mock_coordinator):
     props = make_props(select_type="timer_time")
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_start", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_start", props)
     ent.hass = MagicMock()
     ent.hass.services.async_call = AsyncMock()
     mock_coordinator.data = {"relay_aux1_stop": 0}
@@ -321,7 +321,7 @@ async def test_async_select_option_timer_time(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_timer_period(mock_coordinator):
     props = make_props(select_type="timer_period")
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_period", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_period", props)
     ent.hass = MagicMock()
     ent.hass.services.async_call = AsyncMock()
     await ent.async_select_option("10")
@@ -331,7 +331,7 @@ async def test_async_select_option_timer_period(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_relay_mode(mock_coordinator):
     props = make_props(select_type="relay_mode", options_map={0: "auto", 1: "manual"})
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_enable", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_enable", props)
     ent.hass = MagicMock()
     ent.hass.services.async_call = AsyncMock()
     await ent.async_select_option("manual")
@@ -344,7 +344,7 @@ async def test_async_select_option_backwash(mock_coordinator):
     # Use real SELECT_DEFINITIONS props — backwash (13) is NOT pre-populated in options_map.
     # It is injected dynamically by the options property when enable_backwash_option is True.
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     ent.hass = MagicMock()
     ent.hass.services.async_call = AsyncMock()
     ent.coordinator.data = {
@@ -352,7 +352,7 @@ async def test_async_select_option_backwash(mock_coordinator):
         "MBF_PAR_HEATING_GPIO": 0,
         "MBF_PAR_TEMPERATURE_ACTIVE": 0,
     }
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -369,7 +369,7 @@ async def test_async_select_option_backwash_from_manual(mock_coordinator):
     The user needs the pump stopped so they can safely rotate the multi-way valve.
     """
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     ent.hass = MagicMock()
     ent.coordinator.data = {
         "MBF_PAR_FILT_MODE": 0,  # current: manual
@@ -378,7 +378,7 @@ async def test_async_select_option_backwash_from_manual(mock_coordinator):
         "MBF_PAR_FILTVALVE_ENABLE": 0,
         "MBF_PAR_FILTVALVE_GPIO": 0,  # no valve => manual
     }
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -397,7 +397,7 @@ async def test_async_select_option_backwash_from_manual_auto_valve(mock_coordina
     stop the pump - it must keep running so the valve opens correctly.
     """
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     ent.hass = MagicMock()
     ent.coordinator.data = {
         "MBF_PAR_FILT_MODE": 0,  # current: manual
@@ -406,7 +406,7 @@ async def test_async_select_option_backwash_from_manual_auto_valve(mock_coordina
         "MBF_PAR_FILTVALVE_ENABLE": 1,  # Besgo auto valve present
         "MBF_PAR_FILTVALVE_GPIO": 5,
     }
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     ent.coordinator.entry.options = {"enable_backwash_option": True}
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -427,7 +427,7 @@ async def test_async_select_option_cell_boost(mock_coordinator):
             2: "active (redox enabled)",
         }
     )
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", props)
     ent.hass = MagicMock()
     ent.coordinator.client = AsyncMock()
     await ent.async_select_option("active (redox enabled)")
@@ -442,12 +442,12 @@ async def test_async_select_option_filtration_speed(mock_coordinator):
         "shift": 4,
         "register": 0x050F,
     }
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTRATION_SPEED", props
     )
     ent.hass = MagicMock()
     ent.coordinator.client = AsyncMock()
-    ent.coordinator.device_name = "vistapool"
+    ent.coordinator.device_name = "neopool"
     # Start with current=0 (should be "low"). Set to "mid" (1).
     mock_coordinator.data = {"MBF_PAR_FILTRATION_CONF": 0}
     await ent.async_select_option("mid")
@@ -466,7 +466,7 @@ async def test_async_select_option_filtration_speed(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_default(mock_coordinator):
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off"}, register=0x0200)
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     ent.hass = MagicMock()
     ent.coordinator.client = AsyncMock()
     ent.coordinator.data = {"MBF_PAR_FILT_MODE": 1}
@@ -479,7 +479,7 @@ async def test_async_select_option_default(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_intelligent_min_time_label(mock_coordinator):
     props = _intelligent_min_time_props()
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_INTELLIGENT_FILT_MIN_TIME", props
     )
     ent.hass = MagicMock()
@@ -493,7 +493,7 @@ async def test_async_select_option_intelligent_min_time_label(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_intelligent_min_time_numeric(mock_coordinator):
     props = _intelligent_min_time_props()
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_INTELLIGENT_FILT_MIN_TIME", props
     )
     ent.hass = MagicMock()
@@ -505,7 +505,7 @@ async def test_async_select_option_intelligent_min_time_numeric(mock_coordinator
 
 
 def test_select_cell_boost_current_option(mock_coordinator, boost_props):
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", boost_props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_CELL_BOOST", boost_props)
 
     # case: Inactive
     mock_coordinator.data["MBF_CELL_BOOST"] = 0
@@ -528,7 +528,7 @@ def test_select_filtration_speed_current_option(mock_coordinator):
     props = make_props(
         options_map={0: "low", 1: "mid", 2: "high"}, mask=0x0070, shift=4
     )
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTRATION_SPEED", props
     )
     # mask=0x0070, shift=4; tedy 16 => 1 (mid)
@@ -544,7 +544,7 @@ def test_filtration_speed_unavailable_in_non_manual_mode(mock_coordinator):
     props = make_props(
         options_map={0: "low", 1: "mid", 2: "high"}, mask=0x0070, shift=4
     )
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTRATION_SPEED", props
     )
     mock_coordinator.last_update_success = True
@@ -585,7 +585,7 @@ def test_current_option_filtration_timer_speed(
         "mask": mask,
         "shift": shift,
     }
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", key, props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", key, props)
     mock_coordinator.data = {"MBF_PAR_FILTRATION_CONF": conf_bits}
     assert ent.current_option == expected
 
@@ -622,7 +622,7 @@ async def test_async_select_option_filtration_timer_speed(
         "shift": shift,
         "register": 0x050F,
     }
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", key, props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", key, props)
     ent.hass = MagicMock()
     ent.coordinator.client = AsyncMock()
     mock_coordinator.data = {"MBF_PAR_FILTRATION_CONF": initial_conf}
@@ -647,7 +647,7 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -655,7 +655,7 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
     async_add_entities = MagicMock()
 
     # Patch SELECT_DEFINITIONS to make the test predictable
-    from custom_components.vistapool import select as select_module
+    from custom_components.neopool import select as select_module
 
     monkeypatch.setitem(
         select_module.SELECT_DEFINITIONS, "MBF_PAR_FILTRATION_SPEED", {"option": None}
@@ -666,7 +666,7 @@ async def test_select_async_setup_entry_adds_entities(monkeypatch):
 
     # Patch get_filtration_pump_type to always return True
     monkeypatch.setattr(
-        "custom_components.vistapool.select.get_filtration_pump_type", lambda x: True
+        "custom_components.neopool.select.get_filtration_pump_type", lambda x: True
     )
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -687,19 +687,19 @@ async def test_select_async_setup_entry_option_disabled(monkeypatch):
         data = {"MBF_PAR_FILTRATION_CONF": 1, "MBF_PAR_MODEL": 0x0002}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
-    from custom_components.vistapool import select as select_module
+    from custom_components.neopool import select as select_module
 
     monkeypatch.setitem(
         select_module.SELECT_DEFINITIONS, "TEST_SELECT", {"option": "test_option"}
     )
     monkeypatch.setattr(
-        "custom_components.vistapool.select.get_filtration_pump_type", lambda x: True
+        "custom_components.neopool.select.get_filtration_pump_type", lambda x: True
     )
 
     await async_setup_entry(hass, entry, async_add_entities)  # type: ignore[arg-type]
@@ -720,7 +720,7 @@ async def test_select_async_setup_entry_no_data(caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -735,8 +735,8 @@ async def test_select_async_setup_entry_no_data(caplog):
 @pytest.mark.asyncio
 async def test_async_added_to_hass_calls_super(mock_coordinator):
     props = make_props()
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
-    with patch.object(VistaPoolEntity, "async_added_to_hass", AsyncMock()) as sup:
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    with patch.object(NeoPoolEntity, "async_added_to_hass", AsyncMock()) as sup:
         await ent.async_added_to_hass()
         sup.assert_awaited_once()
 
@@ -744,7 +744,7 @@ async def test_async_added_to_hass_calls_super(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_stop_field(mock_coordinator):
     props = make_props(select_type="timer_time")
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_stop", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_stop", props)
     mock_coordinator.data = {
         "relay_aux1_start": 3600,
         "relay_aux1_stop": 7200,
@@ -760,7 +760,7 @@ async def test_async_select_option_stop_field(mock_coordinator):
         await ent.async_select_option(option)
 
     ent.hass.services.async_call.assert_any_call(
-        "vistapool",
+        "neopool",
         "set_timer",
         {
             "entry_id": "test_entry",
@@ -776,7 +776,7 @@ def test_options_ph_pump_delay(mock_coordinator):
     props = make_props(
         options_map=DELAY_OPTIONS_MAP, register=0x0433, select_type="mapped_register"
     )
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_RELAY_ACTIVATION_DELAY", props
     )
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 20}
@@ -794,7 +794,7 @@ def test_current_option_ph_pump_delay(mock_coordinator):
     props = make_props(
         options_map=DELAY_OPTIONS_MAP, register=0x0433, select_type="mapped_register"
     )
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_RELAY_ACTIVATION_DELAY", props
     )
     mock_coordinator.data = {"MBF_PAR_RELAY_ACTIVATION_DELAY": 120}
@@ -812,7 +812,7 @@ async def test_async_select_option_ph_pump_delay(mock_coordinator):
         select_type="mapped_register",
         write_offset=-10,
     )
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_RELAY_ACTIVATION_DELAY", props
     )
     mock_coordinator.client = AsyncMock()
@@ -831,7 +831,7 @@ async def test_select_option_blocked_during_winter_mode(mock_coordinator, caplog
     """async_select_option is ignored when winter mode is active."""
     mock_coordinator.winter_mode = True
     props = {"register": 0x0412, "options_map": {1: "Manual", 2: "Auto"}}
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     with caplog.at_level("WARNING"):
         await ent.async_select_option("Manual")
     mock_coordinator.client.async_write_register.assert_not_called()
@@ -839,10 +839,10 @@ async def test_select_option_blocked_during_winter_mode(mock_coordinator, caplog
 
 
 def test_available_false_during_winter_mode(mock_coordinator):
-    """VistaPoolSelect is unavailable when winter mode is active."""
+    """NeoPoolSelect is unavailable when winter mode is active."""
     mock_coordinator.winter_mode = True
     props = {"register": 0x0412, "options_map": {1: "Manual", 2: "Auto"}}
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     assert ent.available is False
 
 
@@ -854,7 +854,7 @@ def test_available_false_during_winter_mode(mock_coordinator):
 @pytest.mark.asyncio
 async def test_select_filtvalve_period_minutes_skipped_without_besgo(mock_coordinator):
     """MBF_PAR_FILTVALVE_PERIOD_MINUTES select must be skipped when Besgo valve is not configured."""
-    from custom_components.vistapool.select import async_setup_entry
+    from custom_components.neopool.select import async_setup_entry
 
     class DummyEntry:
         unique_id = None
@@ -864,7 +864,7 @@ async def test_select_filtvalve_period_minutes_skipped_without_besgo(mock_coordi
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
 
     from unittest.mock import MagicMock
@@ -883,7 +883,7 @@ async def test_select_filtvalve_period_minutes_skipped_without_besgo(mock_coordi
 @pytest.mark.asyncio
 async def test_select_filtvalve_period_minutes_created_with_besgo(mock_coordinator):
     """MBF_PAR_FILTVALVE_PERIOD_MINUTES select must be created when Besgo valve is configured."""
-    from custom_components.vistapool.select import async_setup_entry
+    from custom_components.neopool.select import async_setup_entry
 
     class DummyEntry:
         unique_id = None
@@ -893,7 +893,7 @@ async def test_select_filtvalve_period_minutes_created_with_besgo(mock_coordinat
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 1, "MBF_PAR_FILTVALVE_PERIOD_MINUTES": 1440}
 
     from unittest.mock import MagicMock
@@ -912,7 +912,7 @@ async def test_select_filtvalve_period_minutes_created_with_besgo(mock_coordinat
 @pytest.mark.asyncio
 async def test_select_filtvalve_period_minutes_created_with_gpio_only(mock_coordinator):
     """MBF_PAR_FILTVALVE_PERIOD_MINUTES select must be created when only GPIO is set (ENABLE=0)."""
-    from custom_components.vistapool.select import async_setup_entry
+    from custom_components.neopool.select import async_setup_entry
 
     class DummyEntry:
         unique_id = None
@@ -922,7 +922,7 @@ async def test_select_filtvalve_period_minutes_created_with_gpio_only(mock_coord
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {
             "MBF_PAR_FILTVALVE_ENABLE": 0,
             "MBF_PAR_FILTVALVE_GPIO": 5,
@@ -944,10 +944,10 @@ async def test_select_filtvalve_period_minutes_created_with_gpio_only(mock_coord
 
 def test_select_filtvalve_period_minutes_current_option_known(mock_coordinator):
     """current_option returns the mapped label for a known minute value."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_PERIOD_MINUTES"]
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_PERIOD_MINUTES", props
     )
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_PERIOD_MINUTES": 1440}
@@ -956,10 +956,10 @@ def test_select_filtvalve_period_minutes_current_option_known(mock_coordinator):
 
 def test_select_filtvalve_period_minutes_current_option_unknown(mock_coordinator):
     """current_option returns raw minutes string for an unmapped value."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_PERIOD_MINUTES"]
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_PERIOD_MINUTES", props
     )
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_PERIOD_MINUTES": 999}
@@ -968,10 +968,10 @@ def test_select_filtvalve_period_minutes_current_option_unknown(mock_coordinator
 
 def test_select_filtvalve_period_minutes_options_prepend_unknown(mock_coordinator):
     """options prepends raw value when device holds an unmapped minute count."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_PERIOD_MINUTES"]
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_PERIOD_MINUTES", props
     )
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_PERIOD_MINUTES": 999}
@@ -982,10 +982,10 @@ def test_select_filtvalve_period_minutes_options_prepend_unknown(mock_coordinato
 
 def test_select_filtvalve_period_minutes_options_known_value(mock_coordinator):
     """options returns standard list without prepend when device holds a known value."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_PERIOD_MINUTES"]
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_PERIOD_MINUTES", props
     )
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_PERIOD_MINUTES": 1440}
@@ -997,10 +997,10 @@ def test_select_filtvalve_period_minutes_options_known_value(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_filtvalve_period_minutes_label(mock_coordinator):
     """async_select_option writes the correct minute value for a mapped label."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_PERIOD_MINUTES"]
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_PERIOD_MINUTES", props
     )
     ent.hass = MagicMock()
@@ -1014,10 +1014,10 @@ async def test_async_select_option_filtvalve_period_minutes_label(mock_coordinat
 @pytest.mark.asyncio
 async def test_async_select_option_filtvalve_period_minutes_raw_m(mock_coordinator):
     """async_select_option parses and writes a raw 'Xm' string."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_PERIOD_MINUTES"]
-    ent = VistaPoolSelect(
+    ent = NeoPoolSelect(
         mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_PERIOD_MINUTES", props
     )
     ent.hass = MagicMock()
@@ -1035,7 +1035,7 @@ async def test_async_select_option_filtvalve_period_minutes_raw_m(mock_coordinat
 @pytest.mark.asyncio
 async def test_select_filtvalve_mode_skipped_without_besgo(mock_coordinator):
     """MBF_PAR_FILTVALVE_MODE select must be skipped when Besgo valve is not configured."""
-    from custom_components.vistapool.select import async_setup_entry
+    from custom_components.neopool.select import async_setup_entry
 
     class DummyEntry:
         unique_id = None
@@ -1045,7 +1045,7 @@ async def test_select_filtvalve_mode_skipped_without_besgo(mock_coordinator):
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}
 
     from unittest.mock import MagicMock
@@ -1064,7 +1064,7 @@ async def test_select_filtvalve_mode_skipped_without_besgo(mock_coordinator):
 @pytest.mark.asyncio
 async def test_select_filtvalve_mode_created_with_besgo(mock_coordinator):
     """MBF_PAR_FILTVALVE_MODE select must be created when Besgo valve is configured."""
-    from custom_components.vistapool.select import async_setup_entry
+    from custom_components.neopool.select import async_setup_entry
 
     class DummyEntry:
         unique_id = None
@@ -1074,7 +1074,7 @@ async def test_select_filtvalve_mode_created_with_besgo(mock_coordinator):
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {"MBF_PAR_FILTVALVE_ENABLE": 1, "MBF_PAR_FILTVALVE_MODE": 1}
 
     from unittest.mock import MagicMock
@@ -1093,7 +1093,7 @@ async def test_select_filtvalve_mode_created_with_besgo(mock_coordinator):
 @pytest.mark.asyncio
 async def test_select_filtvalve_mode_created_with_gpio_only(mock_coordinator):
     """MBF_PAR_FILTVALVE_MODE select must be created when only GPIO is set (ENABLE=0)."""
-    from custom_components.vistapool.select import async_setup_entry
+    from custom_components.neopool.select import async_setup_entry
 
     class DummyEntry:
         unique_id = None
@@ -1103,7 +1103,7 @@ async def test_select_filtvalve_mode_created_with_gpio_only(mock_coordinator):
     class DummyCoordinator:
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
         data = {
             "MBF_PAR_FILTVALVE_ENABLE": 0,
             "MBF_PAR_FILTVALVE_GPIO": 5,
@@ -1136,24 +1136,20 @@ def test_select_filtvalve_mode_current_option(
     mock_coordinator, raw_value, expected_option
 ):
     """current_option maps CTIMER enum values to the correct option strings."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_MODE"]
-    ent = VistaPoolSelect(
-        mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_MODE", props
-    )
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_MODE": raw_value}
     assert ent.current_option == expected_option
 
 
 def test_select_filtvalve_mode_options(mock_coordinator):
     """options returns the three valid CTIMER mode strings."""
-    from custom_components.vistapool.const import SELECT_DEFINITIONS
+    from custom_components.neopool.const import SELECT_DEFINITIONS
 
     props = SELECT_DEFINITIONS["MBF_PAR_FILTVALVE_MODE"]
-    ent = VistaPoolSelect(
-        mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_MODE", props
-    )
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILTVALVE_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_MODE": 1}
     assert ent.options == ["enabled", "always_on", "always_off"]
 
@@ -1161,7 +1157,7 @@ def test_select_filtvalve_mode_options(mock_coordinator):
 def test_optimistic_update_relay_mode(mock_coordinator):
     """Optimistic update sets relay enable value for relay_mode selects."""
     props = SELECT_DEFINITIONS["relay_aux1_mode"]
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "relay_aux1_mode", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "relay_aux1_mode", props)
     mock_coordinator.data = {"relay_aux1_enable": 4}
     ent._optimistic_update(3)
     assert mock_coordinator.data["relay_aux1_enable"] == 3
@@ -1170,7 +1166,7 @@ def test_optimistic_update_relay_mode(mock_coordinator):
 def test_optimistic_update_filt_mode(mock_coordinator):
     """Optimistic update sets MBF_PAR_FILT_MODE value."""
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILT_MODE": 0}
     ent._optimistic_update(1)
     assert mock_coordinator.data["MBF_PAR_FILT_MODE"] == 1
@@ -1179,7 +1175,7 @@ def test_optimistic_update_filt_mode(mock_coordinator):
 def test_optimistic_update_noop_when_data_is_none(mock_coordinator):
     """Optimistic update is a no-op when coordinator data is None."""
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = None
     ent._optimistic_update(1)  # Should not raise
 
@@ -1187,7 +1183,7 @@ def test_optimistic_update_noop_when_data_is_none(mock_coordinator):
 def test_optimistic_update_noop_when_value_is_none(mock_coordinator):
     """Optimistic update is a no-op when value is None."""
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
-    ent = VistaPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
+    ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILT_MODE": 0}
     ent._optimistic_update(None)
     assert mock_coordinator.data["MBF_PAR_FILT_MODE"] == 0
@@ -1196,7 +1192,7 @@ def test_optimistic_update_noop_when_value_is_none(mock_coordinator):
 @pytest.mark.asyncio
 async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
     """MBF_PAR_RELAY_ACTIVATION_DELAY is skipped when pH module is not detected."""
-    from custom_components.vistapool.select import async_setup_entry
+    from custom_components.neopool.select import async_setup_entry
 
     class DummyEntry:
         unique_id = None
@@ -1210,7 +1206,7 @@ async def test_setup_entry_skips_relay_activation_delay_without_ph_module():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()

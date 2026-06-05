@@ -16,7 +16,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.vistapool.diagnostics import async_get_config_entry_diagnostics
+from custom_components.neopool.diagnostics import async_get_config_entry_diagnostics
 
 REDACTED = "**REDACTED**"
 

@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.vistapool.const import EXEC_REGISTER
-from custom_components.vistapool.switch import VistaPoolSwitch, async_setup_entry
+from custom_components.neopool.const import EXEC_REGISTER
+from custom_components.neopool.switch import NeoPoolSwitch, async_setup_entry
 
 
 @pytest.fixture(autouse=True)
@@ -31,7 +31,7 @@ def _fast_sleep(monkeypatch):
 def mock_coordinator():
     mock = MagicMock()
     mock.data = {}
-    mock.device_slug = "vistapool"
+    mock.device_slug = "neopool"
     mock.config_entry.entry_id = "test_entry"
     mock.winter_mode = False
     mock.request_refresh_with_followup = MagicMock()
@@ -47,7 +47,7 @@ def make_props(**kwargs):
 @pytest.mark.asyncio
 async def test_turn_on_manual_filtration(mock_coordinator):
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "manual", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "manual", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -58,7 +58,7 @@ async def test_turn_on_manual_filtration(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_off_manual_filtration(mock_coordinator):
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "manual", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "manual", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -69,7 +69,7 @@ async def test_turn_off_manual_filtration(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_on_aux(mock_coordinator):
     props = make_props(switch_type="aux", relay_index=2)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux2", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux2", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -80,7 +80,7 @@ async def test_turn_on_aux(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_off_aux(mock_coordinator):
     props = make_props(switch_type="aux", relay_index=2)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux2", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux2", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -91,7 +91,7 @@ async def test_turn_off_aux(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_on_auto_time_sync(mock_coordinator):
     props = make_props(switch_type="auto_time_sync")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "sync", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "sync", props)
     ent.coordinator.set_auto_time_sync = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -102,7 +102,7 @@ async def test_turn_on_auto_time_sync(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_off_auto_time_sync(mock_coordinator):
     props = make_props(switch_type="auto_time_sync")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "sync", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "sync", props)
     ent.coordinator.set_auto_time_sync = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -118,7 +118,7 @@ async def test_turn_on_relay_timer(mock_coordinator):
         function_code=7,
         timer_block_addr=0x0200,
     )
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -131,7 +131,7 @@ async def test_turn_on_relay_timer(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_off_relay_timer(mock_coordinator):
     props = make_props(switch_type="relay_timer", timer_block_addr=0x0200)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -143,7 +143,7 @@ async def test_turn_off_relay_timer(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_on_climate_mode(mock_coordinator):
     props = make_props(switch_type="climate_mode", function_addr=0x0417)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_CLIMA_ONOFF", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_CLIMA_ONOFF", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -154,7 +154,7 @@ async def test_turn_on_climate_mode(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_off_climate_mode(mock_coordinator):
     props = make_props(switch_type="climate_mode", function_addr=0x0417)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_CLIMA_ONOFF", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_CLIMA_ONOFF", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -165,7 +165,7 @@ async def test_turn_off_climate_mode(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_on_smart_anti_freeze(mock_coordinator):
     props = make_props(switch_type="smart_anti_freeze", function_addr=0x041A)
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_SMART_ANTI_FREEZE", props
     )
     ent.coordinator.client = AsyncMock()
@@ -178,7 +178,7 @@ async def test_turn_on_smart_anti_freeze(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_off_smart_anti_freeze(mock_coordinator):
     props = make_props(switch_type="smart_anti_freeze", function_addr=0x041A)
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_SMART_ANTI_FREEZE", props
     )
     ent.coordinator.client = AsyncMock()
@@ -190,7 +190,7 @@ async def test_turn_off_smart_anti_freeze(mock_coordinator):
 
 def test_is_on_smart_anti_freeze(mock_coordinator):
     props = make_props(switch_type="smart_anti_freeze")
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_SMART_ANTI_FREEZE", props
     )
     mock_coordinator.data = {"MBF_PAR_SMART_ANTI_FREEZE": 1}
@@ -201,14 +201,14 @@ def test_is_on_smart_anti_freeze(mock_coordinator):
 
 def test_is_on_manual_filtration_on(mock_coordinator):
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "foo", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "foo", props)
     mock_coordinator.data = {"MBF_PAR_FILT_MODE": 0, "MBF_PAR_FILT_MANUAL_STATE": 1}
     assert ent.is_on is True
 
 
 def test_is_on_manual_filtration_off(mock_coordinator):
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "foo", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "foo", props)
     mock_coordinator.data = {"MBF_PAR_FILT_MODE": 0, "MBF_PAR_FILT_MANUAL_STATE": 0}
     assert ent.is_on is False
     mock_coordinator.data = {"MBF_PAR_FILT_MODE": 1, "MBF_PAR_FILT_MANUAL_STATE": 1}
@@ -217,7 +217,7 @@ def test_is_on_manual_filtration_off(mock_coordinator):
 
 def test_is_on_aux(mock_coordinator):
     props = make_props(switch_type="aux")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     mock_coordinator.data = {"aux1": True}
     assert ent.is_on is True
     mock_coordinator.data = {"aux1": False}
@@ -226,7 +226,7 @@ def test_is_on_aux(mock_coordinator):
 
 def test_is_on_auto_time_sync(mock_coordinator):
     props = make_props(switch_type="auto_time_sync")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "auto_time_sync", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "auto_time_sync", props)
     mock_coordinator.auto_time_sync = True
     assert ent.is_on is True
     mock_coordinator.auto_time_sync = False
@@ -235,7 +235,7 @@ def test_is_on_auto_time_sync(mock_coordinator):
 
 def test_is_on_timer_enable(mock_coordinator):
     props = make_props(switch_type="timer_enable")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "timer1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "timer1", props)
     mock_coordinator.data = {"timer1": 1}
     assert ent.is_on is True
     mock_coordinator.data = {"timer1": 0}
@@ -244,7 +244,7 @@ def test_is_on_timer_enable(mock_coordinator):
 
 def test_is_on_relay_timer(mock_coordinator):
     props = make_props(switch_type="relay_timer")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     mock_coordinator.data = {"relay_aux1_enable": 3}
     assert ent.is_on is True
     mock_coordinator.data = {"relay_aux1_enable": 4}
@@ -255,13 +255,13 @@ def test_is_on_relay_timer(mock_coordinator):
 
 def test_is_on_unknown_type(mock_coordinator):
     props = make_props(switch_type="unknown")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "foo", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "foo", props)
     assert ent.is_on is False
 
 
 def test_is_on_climate_mode(mock_coordinator):
     props = make_props(switch_type="climate_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_CLIMA_ONOFF", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_CLIMA_ONOFF", props)
     mock_coordinator.data = {"MBF_PAR_CLIMA_ONOFF": 1}
     assert ent.is_on is True
     mock_coordinator.data = {"MBF_PAR_CLIMA_ONOFF": 0}
@@ -270,7 +270,7 @@ def test_is_on_climate_mode(mock_coordinator):
 
 def test_available_manual_filtration(mock_coordinator):
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "foo", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "foo", props)
     mock_coordinator.data = {"MBF_PAR_FILT_MODE": 0}
     assert ent.available is True
     # All non-manual modes must be unavailable
@@ -281,7 +281,7 @@ def test_available_manual_filtration(mock_coordinator):
 
 def test_available_relay_timer_aux(mock_coordinator):
     props = make_props(switch_type="relay_timer")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     mock_coordinator.data = {"relay_aux1_enable": 3}
     assert ent.available is True
     mock_coordinator.data = {"relay_aux1_enable": 4}
@@ -294,7 +294,7 @@ def test_available_relay_timer_aux(mock_coordinator):
 
 def test_available_relay_timer_light(mock_coordinator):
     props = make_props(switch_type="relay_timer")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "light", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "light", props)
     mock_coordinator.data = {"relay_light_enable": 3}
     assert ent.available is True
     mock_coordinator.data = {"relay_light_enable": 0}
@@ -303,14 +303,14 @@ def test_available_relay_timer_light(mock_coordinator):
 
 def test_available_relay_timer_other(mock_coordinator):
     props = make_props(switch_type="relay_timer")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "somethingelse", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "somethingelse", props)
     mock_coordinator.data = {}
     assert ent.available is True
 
 
 def test_available_unknown_type(mock_coordinator):
     props = make_props(switch_type="unknown")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "foo", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "foo", props)
     assert ent.available is True
 
 
@@ -325,14 +325,14 @@ async def test_switch_async_setup_entry_adds_entities(monkeypatch):
         data = {"MBF_PAR_FILT_MODE": 0, "relay_aux1_enable": 3}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS, "manual", {"switch_type": "manual_filtration"}
@@ -358,14 +358,14 @@ async def test_switch_setup_skips_smart_antifreeze_when_no_temp(monkeypatch):
         data = {"MBF_PAR_TEMPERATURE_ACTIVE": 0}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -393,7 +393,7 @@ async def test_switch_async_setup_entry_no_data(caplog):
         data = None
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -416,14 +416,14 @@ async def test_switch_async_setup_entry_option_disabled(monkeypatch):
         data = {"MBF_PAR_FILT_MODE": 0, "relay_aux1_enable": 3}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -442,7 +442,7 @@ async def test_switch_async_setup_entry_option_disabled(monkeypatch):
 
 def test_available_relay_timer(mock_coordinator):
     props = make_props(switch_type="relay_timer", relay_key="aux1")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     # relay_*_enable == 3 → available
     mock_coordinator.data = {"relay_aux1_enable": 3}
     assert ent.available is True
@@ -467,7 +467,7 @@ async def test_switch_setup_skips_hidro_cover_without_hydro_module():
         data = {"Hydrolysis module detected": False}  # hydro module absent
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -496,7 +496,7 @@ async def test_switch_setup_creates_hidro_cover_with_hydro_module():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -525,7 +525,7 @@ async def test_switch_setup_skips_hidro_temp_shutdown_without_temp_sensor():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -556,7 +556,7 @@ async def test_switch_setup_skips_hidro_cover_without_cover_sensor():
         }
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
@@ -581,7 +581,7 @@ async def test_turn_on_bitmask(mock_coordinator):
         mask_bit=0x0001,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
     )
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_HIDRO_COVER_ENABLE", props
     )
     mock_coordinator.data = {"MBF_PAR_HIDRO_COVER_ENABLE": 0x0002}  # bit1 already set
@@ -604,7 +604,7 @@ async def test_turn_off_bitmask(mock_coordinator):
         mask_bit=0x0001,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
     )
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_HIDRO_COVER_ENABLE", props
     )
     mock_coordinator.data = {"MBF_PAR_HIDRO_COVER_ENABLE": 0x0003}  # both bits set
@@ -625,7 +625,7 @@ def test_is_on_bitmask(mock_coordinator):
         mask_bit=0x0001,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
     )
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_HIDRO_COVER_ENABLE", props
     )
     mock_coordinator.data = {"MBF_PAR_HIDRO_COVER_ENABLE": 0x0001}
@@ -643,7 +643,7 @@ def test_is_on_bitmask_second_bit(mock_coordinator):
         mask_bit=0x0002,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
     )
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_HIDRO_TEMP_SHUTDOWN", props
     )
     mock_coordinator.data = {"MBF_PAR_HIDRO_COVER_ENABLE": 0x0003}
@@ -659,7 +659,7 @@ def test_is_on_bitmask_second_bit(mock_coordinator):
 async def test_turn_on_winter_mode(mock_coordinator):
     """Turning ON the winter_mode switch calls coordinator.set_winter_mode(True)."""
     props = make_props(switch_type="winter_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
     ent.coordinator.set_winter_mode = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -671,7 +671,7 @@ async def test_turn_on_winter_mode(mock_coordinator):
 async def test_turn_off_winter_mode(mock_coordinator):
     """Turning OFF the winter_mode switch calls coordinator.set_winter_mode(False)."""
     props = make_props(switch_type="winter_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
     ent.coordinator.set_winter_mode = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -682,7 +682,7 @@ async def test_turn_off_winter_mode(mock_coordinator):
 def test_is_on_winter_mode(mock_coordinator):
     """is_on reflects coordinator.winter_mode attribute."""
     props = make_props(switch_type="winter_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
     mock_coordinator.winter_mode = True
     assert ent.is_on is True
     mock_coordinator.winter_mode = False
@@ -694,7 +694,7 @@ async def test_turn_on_blocked_during_winter_mode(mock_coordinator):
     """Non-exempt switch turn_on is ignored when winter mode is active."""
     mock_coordinator.winter_mode = True
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_FILT_MANUAL_STATE", props
     )
     mock_coordinator.client.async_write_register = AsyncMock()
@@ -707,7 +707,7 @@ async def test_turn_off_blocked_during_winter_mode(mock_coordinator):
     """Non-exempt switch turn_off is ignored when winter mode is active."""
     mock_coordinator.winter_mode = True
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_FILT_MANUAL_STATE", props
     )
     mock_coordinator.client.async_write_register = AsyncMock()
@@ -722,7 +722,7 @@ async def test_auto_time_sync_turn_on_not_blocked_during_winter_mode(mock_coordi
     mock_coordinator.set_auto_time_sync = AsyncMock()
     mock_coordinator.async_request_refresh = AsyncMock()
     props = make_props(switch_type="auto_time_sync")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "auto_time_sync", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "auto_time_sync", props)
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
     mock_coordinator.set_auto_time_sync.assert_awaited_once_with(True)
@@ -735,7 +735,7 @@ async def test_auto_time_sync_turn_off_not_blocked_during_winter_mode(mock_coord
     mock_coordinator.set_auto_time_sync = AsyncMock()
     mock_coordinator.async_request_refresh = AsyncMock()
     props = make_props(switch_type="auto_time_sync")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "auto_time_sync", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "auto_time_sync", props)
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
     mock_coordinator.set_auto_time_sync.assert_awaited_once_with(False)
@@ -745,7 +745,7 @@ def test_available_returns_false_during_winter_mode(mock_coordinator):
     """available returns False for non-winter_mode switch when winter mode is active."""
     mock_coordinator.winter_mode = True
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_FILT_MANUAL_STATE", props
     )
     assert ent.available is False
@@ -756,7 +756,7 @@ def test_available_false_on_coordinator_failure(mock_coordinator):
     mock_coordinator.winter_mode = False
     mock_coordinator.last_update_success = False
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(
+    ent = NeoPoolSwitch(
         mock_coordinator, "test_entry", "MBF_PAR_FILT_MANUAL_STATE", props
     )
     assert ent.available is False
@@ -766,7 +766,7 @@ def test_available_winter_mode_switch_during_winter_mode(mock_coordinator):
     """The winter_mode switch itself stays available while winter mode is active."""
     mock_coordinator.winter_mode = True
     props = make_props(switch_type="winter_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
     assert ent.available is True
 
 
@@ -779,7 +779,7 @@ def test_available_winter_mode_switch_during_coordinator_failure(mock_coordinato
     mock_coordinator.winter_mode = False
     mock_coordinator.last_update_success = False
     props = make_props(switch_type="winter_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "WINTER_MODE", props)
     assert ent.available is True
 
 
@@ -789,7 +789,7 @@ def test_available_winter_mode_switch_during_coordinator_failure(mock_coordinato
 @pytest.mark.asyncio
 async def test_turn_on_uv_mode(mock_coordinator):
     props = make_props(switch_type="uv_mode", function_addr=0x0427)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_UV_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_UV_MODE", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -800,7 +800,7 @@ async def test_turn_on_uv_mode(mock_coordinator):
 @pytest.mark.asyncio
 async def test_turn_off_uv_mode(mock_coordinator):
     props = make_props(switch_type="uv_mode", function_addr=0x0427)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_UV_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_UV_MODE", props)
     ent.coordinator.client = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -810,7 +810,7 @@ async def test_turn_off_uv_mode(mock_coordinator):
 
 def test_is_on_uv_mode(mock_coordinator):
     props = make_props(switch_type="uv_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_UV_MODE", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "MBF_PAR_UV_MODE", props)
     mock_coordinator.data = {"MBF_PAR_UV_MODE": 1}
     assert ent.is_on is True
     mock_coordinator.data = {"MBF_PAR_UV_MODE": 0}
@@ -830,14 +830,14 @@ async def test_switch_setup_includes_uv_mode_when_relay_assigned(monkeypatch):
         data = {"MBF_PAR_UV_RELAY_GPIO": 3}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -865,14 +865,14 @@ async def test_switch_setup_skips_uv_mode_when_no_relay(monkeypatch):
         data = {"MBF_PAR_UV_RELAY_GPIO": 0}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -900,14 +900,14 @@ async def test_switch_setup_skips_uv_mode_when_key_missing(monkeypatch):
         data = {}  # no MBF_PAR_UV_RELAY_GPIO at all
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -935,14 +935,14 @@ async def test_switch_setup_skips_uv_mode_when_gpio_out_of_range(monkeypatch):
         data = {"MBF_PAR_UV_RELAY_GPIO": 255}
         config_entry = DummyEntry()
         entry = config_entry
-        device_slug = "vistapool"
+        device_slug = "neopool"
 
     hass = MagicMock()
     entry = DummyEntry()
     entry.runtime_data = DummyCoordinator()
     async_add_entities = MagicMock()
 
-    from custom_components.vistapool import switch as switch_module
+    from custom_components.neopool import switch as switch_module
 
     monkeypatch.setitem(
         switch_module.SWITCH_DEFINITIONS,
@@ -963,7 +963,7 @@ async def test_switch_setup_skips_uv_mode_when_gpio_out_of_range(monkeypatch):
 async def test_follow_up_refresh_called_on_turn_on(mock_coordinator):
     """Follow-up refresh is used after turn_on for IO switch types."""
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "manual", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "manual", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
@@ -974,7 +974,7 @@ async def test_follow_up_refresh_called_on_turn_on(mock_coordinator):
 async def test_follow_up_refresh_called_on_turn_off(mock_coordinator):
     """Follow-up refresh is used after turn_off for IO switch types."""
     props = make_props(switch_type="aux", relay_index=1)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
@@ -985,7 +985,7 @@ async def test_follow_up_refresh_called_on_turn_off(mock_coordinator):
 async def test_no_follow_up_refresh_for_non_io_switch(mock_coordinator):
     """Non-IO switches use plain refresh without follow-up."""
     props = make_props(switch_type="auto_time_sync")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "sync", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "sync", props)
     ent.coordinator.set_auto_time_sync = AsyncMock()
     ent.coordinator.async_request_refresh = AsyncMock()
     ent.async_write_ha_state = MagicMock()
@@ -999,7 +999,7 @@ async def test_optimistic_update_manual_filtration(mock_coordinator):
     """Optimistic update sets MBF_PAR_FILT_MANUAL_STATE correctly."""
     mock_coordinator.data = {"MBF_PAR_FILT_MANUAL_STATE": 0}
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "manual", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "manual", props)
     ent._optimistic_update(True)
     assert mock_coordinator.data["MBF_PAR_FILT_MANUAL_STATE"] == 1
     ent._optimistic_update(False)
@@ -1011,7 +1011,7 @@ async def test_optimistic_update_aux(mock_coordinator):
     """Optimistic update sets data[key] for aux switches."""
     mock_coordinator.data = {"aux1": False}
     props = make_props(switch_type="aux", relay_index=1)
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     ent._optimistic_update(True)
     assert mock_coordinator.data["aux1"] is True
     ent._optimistic_update(False)
@@ -1028,7 +1028,7 @@ async def test_optimistic_update_relay_timer(mock_coordinator):
         function_addr=0x04B7,
         function_code=0x0800,
     )
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     ent._optimistic_update(True)
     assert mock_coordinator.data["relay_aux1_enable"] == 3
     ent._optimistic_update(False)
@@ -1045,7 +1045,7 @@ async def test_optimistic_update_bitmask(mock_coordinator):
         mask_bit=0x0001,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
     )
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "cover", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "cover", props)
     ent._optimistic_update(True)
     assert mock_coordinator.data["MBF_PAR_HIDRO_COVER_ENABLE"] == 1
     ent._optimistic_update(False)
@@ -1056,7 +1056,7 @@ def test_optimistic_update_noop_when_data_is_none(mock_coordinator):
     """Optimistic update is a no-op when coordinator data is None."""
     mock_coordinator.data = None
     props = make_props(switch_type="manual_filtration")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "manual", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "manual", props)
     ent._optimistic_update(True)  # Should not raise
 
 
@@ -1064,7 +1064,7 @@ def test_optimistic_update_noop_when_data_is_none(mock_coordinator):
 async def test_turn_on_relay_timer_missing_config(mock_coordinator, caplog):
     """relay_timer turn_on logs error and returns when config is missing."""
     props = make_props(switch_type="relay_timer")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
@@ -1076,7 +1076,7 @@ async def test_turn_on_relay_timer_missing_config(mock_coordinator, caplog):
 async def test_turn_off_relay_timer_missing_config(mock_coordinator, caplog):
     """relay_timer turn_off logs error and returns when timer_block_addr is missing."""
     props = make_props(switch_type="relay_timer")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "aux1", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
@@ -1088,7 +1088,7 @@ async def test_turn_off_relay_timer_missing_config(mock_coordinator, caplog):
 async def test_turn_on_climate_mode_missing_function_addr(mock_coordinator, caplog):
     """climate_mode turn_on logs error when function_addr is missing."""
     props = make_props(switch_type="climate_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "clima", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "clima", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
@@ -1100,7 +1100,7 @@ async def test_turn_on_climate_mode_missing_function_addr(mock_coordinator, capl
 async def test_turn_off_climate_mode_missing_function_addr(mock_coordinator, caplog):
     """climate_mode turn_off logs error when function_addr is missing."""
     props = make_props(switch_type="climate_mode")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "clima", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "clima", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()
@@ -1112,7 +1112,7 @@ async def test_turn_off_climate_mode_missing_function_addr(mock_coordinator, cap
 async def test_turn_on_bitmask_missing_config(mock_coordinator, caplog):
     """bitmask turn_on logs error when function_addr/mask_bit is missing."""
     props = make_props(switch_type="bitmask")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "bit", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "bit", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_on()
@@ -1124,7 +1124,7 @@ async def test_turn_on_bitmask_missing_config(mock_coordinator, caplog):
 async def test_turn_off_bitmask_missing_config(mock_coordinator, caplog):
     """bitmask turn_off logs error when function_addr/mask_bit is missing."""
     props = make_props(switch_type="bitmask")
-    ent = VistaPoolSwitch(mock_coordinator, "test_entry", "bit", props)
+    ent = NeoPoolSwitch(mock_coordinator, "test_entry", "bit", props)
     ent.coordinator.client = AsyncMock()
     ent.async_write_ha_state = MagicMock()
     await ent.async_turn_off()

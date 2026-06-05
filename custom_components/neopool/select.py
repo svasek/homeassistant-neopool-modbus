@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Select Module"""
+"""NeoPool Integration for Home Assistant - Select Module"""
 
 import asyncio
 import logging
@@ -23,7 +23,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import VistaPoolConfigEntry
+from . import NeoPoolConfigEntry
 from .const import (
     DEFAULT_TIMER_RESOLUTION,
     DOMAIN,
@@ -32,8 +32,8 @@ from .const import (
     PERIOD_SECONDS_TO_KEY,
     SELECT_DEFINITIONS,
 )
-from .coordinator import VistaPoolCoordinator
-from .entity import VistaPoolEntity
+from .coordinator import NeoPoolCoordinator
+from .entity import NeoPoolEntity
 from .helpers import (
     generate_time_options,
     get_filtration_pump_type,
@@ -98,10 +98,10 @@ def _should_skip_select(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: VistaPoolConfigEntry,
+    entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool select entities from a config entry."""
+    """Set up NeoPool select entities from a config entry."""
     coordinator = entry.runtime_data
     entry_id = entry.entry_id
     entities = []
@@ -114,30 +114,30 @@ async def async_setup_entry(
         if _should_skip_select(key, props, coordinator.data, entry.options):
             continue
 
-        entities.append(VistaPoolSelect(coordinator, entry_id, key, props))
+        entities.append(NeoPoolSelect(coordinator, entry_id, key, props))
     async_add_entities(entities)
 
 
-class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool select entity."""
+class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Representation of a NeoPool select entity."""
 
     def __init__(
         self,
-        coordinator: VistaPoolCoordinator,
+        coordinator: NeoPoolCoordinator,
         entry_id: str,
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool select entity."""
+        """Initialize the NeoPool select entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
         self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
+            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
         )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
-        self._attr_translation_key = VistaPoolEntity.slugify(self._key)
+        self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._options_map = dict(props.get("options_map") or {})
         self._attr_entity_category = props.get("entity_category") or None
@@ -335,7 +335,7 @@ class VistaPoolSelect(VistaPoolEntity, SelectEntity):  # type: ignore[reportInco
             await client.async_write_register(self._register, value)
             if self._key == "MBF_PAR_FILT_MODE" and option == "backwash":
                 _LOGGER.info(
-                    f'Your pool "{VistaPoolEntity.slugify(self.coordinator.device_name)}" has been switched to the BACKWASH mode!'
+                    f'Your pool "{NeoPoolEntity.slugify(self.coordinator.device_name)}" has been switched to the BACKWASH mode!'
                 )
 
             # Optimistic update + schedule follow-up

@@ -1,4 +1,4 @@
-# Contributing to VistaPool Modbus Integration
+# Contributing to NeoPool Modbus Integration
 
 Thank you for your interest in contributing! 🙌  
 This project follows common Home Assistant and open source conventions.

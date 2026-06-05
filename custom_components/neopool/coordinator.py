@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Coordinator Module"""
+"""NeoPool Integration for Home Assistant - Coordinator Module"""
 
 import json
 import logging
@@ -42,7 +42,7 @@ from .const import (
     TIMER_BLOCKS,
 )
 from .helpers import is_device_time_out_of_sync, parse_version, prepare_device_time
-from .modbus import VistaPoolModbusClient
+from .modbus import NeoPoolModbusClient
 
 MAX_SCAN_INTERVAL = timedelta(seconds=180)  # Maximum allowed scan interval (3 minutes)
 
@@ -51,15 +51,15 @@ _FILT_TIMERS = ("filtration1", "filtration2", "filtration3")
 _LOGGER = logging.getLogger(__name__)
 
 
-class VistaPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Coordinator for VistaPool platform."""
+class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+    """Coordinator for NeoPool platform."""
 
-    client: VistaPoolModbusClient
+    client: NeoPoolModbusClient
 
     def __init__(
         self,
         hass: HomeAssistant,
-        client: VistaPoolModbusClient,
+        client: NeoPoolModbusClient,
         entry: ConfigEntry,
         entry_id: str,
     ) -> None:
@@ -192,7 +192,7 @@ class VistaPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.update_interval = self.normal_update_interval
 
             self._firmware = parse_version(data.get("MBF_POWER_MODULE_VERSION"))
-            self._model = "VistaPool"
+            self._model = "NeoPool"
 
             # One-time GPIO sanity check after first successful read
             if not self._gpio_checked:

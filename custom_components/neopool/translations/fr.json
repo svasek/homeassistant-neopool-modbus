@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "reconfigure": {
-        "title": "Reconfigurer la connexion VistaPool",
-        "description": "Mettez à jour les paramètres de connexion à votre contrôleur VistaPool.",
+        "title": "Reconfigurer la connexion NeoPool",
+        "description": "Mettez à jour les paramètres de connexion à votre contrôleur NeoPool.",
         "data": {
           "host": "Adresse IP de la passerelle Modbus",
           "port": "Port TCP pour Modbus (défaut : 502).",
@@ -18,8 +18,8 @@
         }
       },
       "user": {
-        "title": "Connexion VistaPool",
-        "description": "Configurez la connexion à votre contrôleur VistaPool.",
+        "title": "Connexion NeoPool",
+        "description": "Configurez la connexion à votre contrôleur NeoPool.",
         "data": {
           "name": "Nom de l'appareil (utilisé comme préfixe d’ID d’entité).",
           "name_default": "Piscine",
@@ -49,6 +49,10 @@
           "use_cover_sensor": "Crée un capteur binaire indiquant si la couverture de la piscine est ouverte ou fermée.",
           "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique."
         }
+      },
+      "import_from_vistapool": {
+        "title": "Import from existing VistaPool integration",
+        "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually."
       }
     },
     "error": {
@@ -60,13 +64,15 @@
     "abort": {
       "already_configured": "Cet appareil est déjà configuré.",
       "entry_not_found": "L'entrée d'intégration est introuvable.",
-      "reconfigure_successful": "Paramètres de connexion mis à jour avec succès."
+      "reconfigure_successful": "Connection settings updated successfully.",
+      "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
+      "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Paramètres VistaPool",
+        "title": "Paramètres NeoPool",
         "description": "ATTENTION : La modification des relais activés rechargera automatiquement l’intégration ! Les modifications prennent effet immédiatement.",
         "data": {
           "scan_interval": "Intervalle de mise à jour des données (secondes)",
@@ -606,9 +612,9 @@
     }
   },
   "exceptions": {
-    "entry_not_found": { "message": "Aucune entrée de configuration VistaPool trouvée pour entry_id {entry_id}" },
-    "no_loaded_entry": { "message": "Aucune entrée de configuration VistaPool chargée disponible" },
-    "no_coordinator": { "message": "Aucun coordinateur VistaPool trouvé pour entry_id {entry_id}" },
+    "entry_not_found": { "message": "Aucune entrée de configuration NeoPool trouvée pour entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "Aucune entrée de configuration NeoPool chargée disponible" },
+    "no_coordinator": { "message": "Aucun coordinateur NeoPool trouvé pour entry_id {entry_id}" },
     "missing_parameter": { "message": "Paramètre obligatoire {parameter} manquant" },
     "invalid_timer": { "message": "Nom de minuteur non valide {timer_name}. Minuteurs valides : {valid_timers}" },
     "timer_failed": { "message": "Échec du réglage du minuteur : {error}" },
@@ -628,6 +634,14 @@
     "corrupted_gpio": {
       "title": "Registres GPIO corrompus détectés",
       "description": "Les registres GPIO suivants de votre contrôleur de piscine contiennent des valeurs invalides :\n\n{details}\n\nCela se produit généralement lorsque le mode de trame de la passerelle Modbus ne correspond pas au paramètre de trame de l'intégration. Les fonctions concernées ne fonctionneront pas correctement tant que les registres ne seront pas restaurés à des valeurs valides.\n\nConsultez la documentation de l'intégration pour les instructions de réparation."
+    },
+    "domain_renamed": {
+      "title": "Integration domain migrated to neopool",
+      "description": "The integration domain has been renamed from `vistapool` to `neopool` to avoid a clash with the new core `vistapool` integration introduced in Home Assistant 2026.6.\n\n**{entries} config entr(ies)** and **{entities} entit(ies)** were migrated automatically. Your `entity_id`s, history, automations and dashboards continue to work without changes.\n\n**Old folder cleanup:** `{folder_cleaned}` (if `no`, please remove `custom_components/vistapool/` manually).\n\n**Please restart Home Assistant** to complete the migration."
+    },
+    "domain_rename_partial_failure": {
+      "title": "Migration to neopool partially failed",
+      "description": "Some VistaPool config entries could not be migrated to the new `neopool` domain:\n\n```\n{errors}\n```\n\nIf your pool controller is offline, deferred entries will retry on the next Home Assistant restart. Other failures should be investigated in the logs and reported on GitHub."
     }
   }
 }

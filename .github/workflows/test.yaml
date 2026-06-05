@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
       - "tests/**"
   pull_request:
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
       - "tests/**"
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=custom_components.vistapool --cov-report=xml --junitxml=junit.xml -o junit_family=legacy --disable-warnings
+          pytest --cov=custom_components.neopool --cov-report=xml --junitxml=junit.xml -o junit_family=legacy --disable-warnings
 
       - name: Upload coverage to Codecov
         if: ${{ !cancelled() }}

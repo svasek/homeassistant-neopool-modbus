@@ -13,9 +13,9 @@
 # limitations under the License.
 
 """
-VistaPool Integration for Home Assistant - Helpers Module
+NeoPool Integration for Home Assistant - Helpers Module
 
-This module contains helper functions for the VistaPool integration.
+This module contains helper functions for the NeoPool integration.
 It includes functions to handle device time, prepare data for writing to the device,
 and parse version information.
 """

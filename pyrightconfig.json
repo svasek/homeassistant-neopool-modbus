@@ -2,7 +2,7 @@
   "pythonVersion": "3.14",
   "pythonPlatform": "Linux",
   "typeCheckingMode": "strict",
-  "include": ["custom_components/vistapool"],
+  "include": ["custom_components/neopool"],
   "exclude": ["tests", "**/node_modules", "**/__pycache__", "**/.*", ".venv"],
   "reportUnknownMemberType": false,
   "reportUnknownArgumentType": false,

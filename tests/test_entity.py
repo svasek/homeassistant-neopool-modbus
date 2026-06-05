@@ -16,7 +16,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.vistapool.entity import VistaPoolEntity
+from custom_components.neopool.entity import NeoPoolEntity
 
 
 @pytest.mark.parametrize(
@@ -43,7 +43,7 @@ from custom_components.vistapool.entity import VistaPoolEntity
 )
 def test_decode_modules(bitmask, expected):
     """Test decode_modules returns correct module names for bitmask."""
-    result = VistaPoolEntity.decode_modules(bitmask)
+    result = NeoPoolEntity.decode_modules(bitmask)
     assert result == expected
 
 
@@ -64,17 +64,17 @@ def test_decode_modules(bitmask, expected):
 )
 def test_slugify(input_name, expected):
     """Test slugify generates expected slugs."""
-    assert VistaPoolEntity.slugify(input_name) == expected
+    assert NeoPoolEntity.slugify(input_name) == expected
 
 
 def _make_entity(
     winter_mode: bool, switch_type: str | None = None, last_update_success: bool = True
-) -> VistaPoolEntity:
-    """Create a minimal VistaPoolEntity with a mocked coordinator."""
+) -> NeoPoolEntity:
+    """Create a minimal NeoPoolEntity with a mocked coordinator."""
     coordinator = MagicMock()
     coordinator.winter_mode = winter_mode
     coordinator.last_update_success = last_update_success
-    entity = VistaPoolEntity.__new__(VistaPoolEntity)
+    entity = NeoPoolEntity.__new__(NeoPoolEntity)
     entity.coordinator = coordinator
     if switch_type is not None:
         entity._switch_type = switch_type  # type: ignore[attr-defined]

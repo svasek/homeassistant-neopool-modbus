@@ -30,18 +30,18 @@ jobs:
       - name: Create release archive
         if: ${{ steps.release.outputs.release_created }}
         run: |
-          cd custom_components/vistapool
-          zip -r ../../vistapool_modbus.zip . -x "*.pyc" -x "__pycache__/*" -x "tmp/*"
+          cd custom_components/neopool
+          zip -r ../../neopool_modbus.zip . -x "*.pyc" -x "__pycache__/*" -x "tmp/*"
           cd ../..
-          echo "Created vistapool_modbus.zip"
-          ls -lh vistapool_modbus.zip
+          echo "Created neopool_modbus.zip"
+          ls -lh neopool_modbus.zip
 
       - name: Upload release asset
         if: ${{ steps.release.outputs.release_created }}
         env:
           GITHUB_TOKEN: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
         run: |
-          gh release upload ${{ steps.release.outputs.tag_name }} vistapool_modbus.zip --clobber
+          gh release upload ${{ steps.release.outputs.tag_name }} neopool_modbus.zip --clobber
 
       - name: Extract version from CHANGELOG.md
         if: startsWith(github.ref, 'refs/heads/release-please--')
@@ -52,7 +52,7 @@ jobs:
       - name: Update manifest.json version
         if: startsWith(github.ref, 'refs/heads/release-please--')
         run: |
-          jq ".version=\"$VERSION\"" custom_components/vistapool/manifest.json > tmp.$$.json && mv tmp.$$.json custom_components/vistapool/manifest.json
+          jq ".version=\"$VERSION\"" custom_components/neopool/manifest.json > tmp.$$.json && mv tmp.$$.json custom_components/neopool/manifest.json
 
       - name: Commit manifest.json version bump
         if: startsWith(github.ref, 'refs/heads/release-please--')
@@ -61,7 +61,7 @@ jobs:
           AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
           git config user.name "$AUTHOR_NAME"
           git config user.email "$AUTHOR_EMAIL"
-          git add custom_components/vistapool/manifest.json
+          git add custom_components/neopool/manifest.json
           # Commit only if there are changes
           if ! git diff --cached --quiet; then
             git commit -m "chore(manifest): bump version to $VERSION"

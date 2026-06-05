@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Number Module"""
+"""NeoPool Integration for Home Assistant - Number Module"""
 
 import asyncio
 import logging
@@ -23,15 +23,15 @@ from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import VistaPoolConfigEntry
+from . import NeoPoolConfigEntry
 from .const import (
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     NUMBER_DEFINITIONS,
     is_valid_relay_gpio,
 )
-from .coordinator import VistaPoolCoordinator
-from .entity import VistaPoolEntity
+from .coordinator import NeoPoolCoordinator
+from .entity import NeoPoolEntity
 from .helpers import is_hydrolysis_in_percent
 
 _LOGGER = logging.getLogger(__name__)
@@ -105,10 +105,10 @@ def _should_skip_number(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: VistaPoolConfigEntry,
+    entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool number entities from a config entry."""
+    """Set up NeoPool number entities from a config entry."""
     coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
@@ -122,22 +122,22 @@ async def async_setup_entry(
         if _should_skip_number(key, props, coordinator.data, entry.options):
             continue
 
-        entities.append(VistaPoolNumber(coordinator, entry_id, key, props))
+        entities.append(NeoPoolNumber(coordinator, entry_id, key, props))
 
     async_add_entities(entities)
 
 
-class VistaPoolNumber(VistaPoolEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool number entity."""
+class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Representation of a NeoPool number entity."""
 
     def __init__(
         self,
-        coordinator: VistaPoolCoordinator,
+        coordinator: NeoPoolCoordinator,
         entry_id: str,
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool number entity."""
+        """Initialize the NeoPool number entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
         self._register = props.get("register", None)
@@ -148,12 +148,12 @@ class VistaPoolNumber(VistaPoolEntity, NumberEntity):  # type: ignore[reportInco
         self._data_key: str = props.get("data_key", key)
 
         self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
+            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
         )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
-        self._attr_translation_key = VistaPoolEntity.slugify(self._key)
+        self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._attr_native_unit_of_measurement = props.get("unit", None)
         self._attr_native_min_value = props.get("min", None)

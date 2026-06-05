@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Config Flow"""
+"""NeoPool Integration for Home Assistant - Config Flow"""
 
 import asyncio
 import logging
@@ -23,7 +23,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 
 if TYPE_CHECKING:
-    from .options_flow import VistaPoolOptionsFlowHandler
+    from .options_flow import NeoPoolOptionsFlowHandler
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers import translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
@@ -53,10 +53,15 @@ async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
         return False
 
 
-class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
-    """Handle a config flow for VistaPool."""
+class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+    """Handle a config flow for NeoPool."""
 
-    VERSION = 2
+    # Mirrors `migration.CURRENT_VERSION` so that fresh entries created via
+    # this flow are born at the current schema version and don't trigger
+    # `async_migrate_entry` on first load. Cross-domain migration of legacy
+    # vistapool entries also targets this same version, keeping a single
+    # source of truth.
+    VERSION = 3
 
     async def _async_validate_connection(self, user_input: dict) -> dict:
         """Validate host/port connectivity and return an errors dict."""
@@ -81,7 +86,24 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step of the configuration flow."""
+        """Handle the initial step of the configuration flow.
+
+        If a legacy `vistapool` config entry is present (left over from the
+        v2.x release before the domain rename), offer the user a one-click
+        import step that migrates the entry, its entities and device-level
+        customizations to the new `neopool` domain. Otherwise fall through
+        to the regular new-entry form.
+        """
+        # Detect a legacy vistapool entry the user hasn't dealt with yet.
+        # We only offer the import on the first form display (user_input None);
+        # if they already started typing a fresh config we don't interrupt.
+        if user_input is None:
+            legacy_entries = self.hass.config_entries.async_entries("vistapool")
+            if legacy_entries:
+                self._legacy_entry_id = legacy_entries[0].entry_id
+                self._legacy_entry_title = legacy_entries[0].title
+                return await self.async_step_import_from_vistapool()
+
         default_name = await self._async_get_default_name()
         data_schema = vol.Schema(
             {
@@ -194,7 +216,7 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
                 user_input["scan_interval"] = int(user_input["scan_interval"])
 
             _LOGGER.info(
-                "Creating new VistaPool config entry: %s (serial: …%s)",
+                "Creating new NeoPool config entry: %s (serial: …%s)",
                 device_name,
                 serial_number[-6:],
             )
@@ -205,6 +227,119 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
             step_id="user",
             data_schema=data_schema,
         )
+
+    async def async_step_import_from_vistapool(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Offer to migrate an existing vistapool entry to the new neopool domain.
+
+        On confirmation:
+          1. Snapshot device-level customizations (area_id, name_by_user, labels)
+             from the device tied to the legacy vistapool entry, so we can
+             restore them onto the new neopool device after migration.
+          2. Run the cross-domain migration via `migrate_single_entry_cross_domain`
+             which retargets entity_registry rows, retargets device_registry rows,
+             creates a fresh neopool ConfigEntry mirroring the legacy data, and
+             removes the old vistapool entry.
+          3. Try to clean up the leftover `custom_components/vistapool/` folder.
+          4. Abort the flow with `migration_complete` — the new neopool entry
+             was already added by the migration, so we must NOT also call
+             `async_create_entry` here (would create a duplicate).
+
+        On decline ("user said no"):
+          - Fall through to the regular `async_step_user` form so the user
+            can manually configure a fresh, unrelated neopool entry.
+        """
+        from .migration import (
+            async_cleanup_old_folder,
+            migrate_single_entry_cross_domain,
+        )
+
+        # The legacy entry might have been removed between async_step_user
+        # detecting it and the user clicking Submit — re-resolve to be safe.
+        legacy_entry = self.hass.config_entries.async_get_entry(self._legacy_entry_id)
+        if legacy_entry is None or legacy_entry.domain != "vistapool":
+            # Nothing to import any more; fall through to the regular new-entry
+            # path. user_input None forces a fresh form display there.
+            return await self.async_step_user()
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="import_from_vistapool",
+                data_schema=vol.Schema({}),
+                description_placeholders={
+                    "entry_title": self._legacy_entry_title,
+                },
+            )
+
+        # ── Snapshot device customizations BEFORE migration ──────────────
+        # The cross-domain migration retargets the device's identifiers and
+        # config_entries, but it doesn't preserve user-set fields like
+        # area_id, name_by_user, or labels. We capture them here keyed by
+        # the device's serial-based identifier so we can match them onto the
+        # new device after migration.
+        from homeassistant.helpers import device_registry as dr
+
+        device_registry = dr.async_get(self.hass)
+        snapshots: dict[str, dict[str, Any]] = {}
+        for device in dr.async_entries_for_config_entry(
+            device_registry, legacy_entry.entry_id
+        ):
+            # Match the (vistapool, X) tuple — that's the serial-based key
+            # the migration will rewrite to (neopool, X).
+            serial_key = next(
+                (ident for dom, ident in device.identifiers if dom == "vistapool"),
+                None,
+            )
+            if not serial_key:
+                continue
+            snapshots[serial_key] = {
+                "area_id": device.area_id,
+                "name_by_user": device.name_by_user,
+                "labels": set(device.labels),
+                "disabled_by": device.disabled_by,
+            }
+
+        # ── Run the cross-domain migration ───────────────────────────────
+        try:
+            await migrate_single_entry_cross_domain(self.hass, legacy_entry)
+        except Exception as exc:  # noqa: BLE001
+            _LOGGER.exception(
+                "Cross-domain migration failed for %s",
+                legacy_entry.entry_id,
+            )
+            return self.async_abort(
+                reason="migration_failed",
+                description_placeholders={"error": str(exc)},
+            )
+
+        # ── Restore device customizations onto the migrated device ───────
+        # The migration kept the device row in place but flipped its
+        # identifier to (neopool, serial_key). Find each by that tuple
+        # and re-apply the user-set fields.
+        for serial_key, snap in snapshots.items():
+            device = device_registry.async_get_device(
+                identifiers={(DOMAIN, serial_key)}
+            )
+            if device is None:
+                continue
+            device_registry.async_update_device(
+                device.id,
+                area_id=snap["area_id"],
+                name_by_user=snap["name_by_user"],
+                labels=snap["labels"],
+                disabled_by=snap["disabled_by"],
+            )
+
+        # ── Clean up the leftover custom_components/vistapool/ folder ────
+        await async_cleanup_old_folder(self.hass)
+
+        # ── End the flow ─────────────────────────────────────────────────
+        # `migrate_single_entry_cross_domain` already created and added the
+        # new neopool entry to hass.config_entries, so we must NOT call
+        # async_create_entry here. Aborting with a friendly reason gives the
+        # user a confirmation dialog ("migration completed").
+        return self.async_abort(reason="migration_complete")
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
@@ -263,7 +398,7 @@ class VistaPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ig
     @staticmethod
     def async_get_options_flow(
         config_entry: ConfigEntry,
-    ) -> "VistaPoolOptionsFlowHandler":
-        from .options_flow import VistaPoolOptionsFlowHandler
+    ) -> "NeoPoolOptionsFlowHandler":
+        from .options_flow import NeoPoolOptionsFlowHandler
 
-        return VistaPoolOptionsFlowHandler()
+        return NeoPoolOptionsFlowHandler()

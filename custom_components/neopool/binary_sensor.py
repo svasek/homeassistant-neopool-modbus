@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Binary Sensor Module"""
+"""NeoPool Integration for Home Assistant - Binary Sensor Module"""
 
 import logging
 from collections.abc import Mapping
@@ -22,10 +22,10 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import VistaPoolConfigEntry
+from . import NeoPoolConfigEntry
 from .const import BINARY_SENSOR_DEFINITIONS, is_valid_relay_gpio
-from .coordinator import VistaPoolCoordinator
-from .entity import VistaPoolEntity
+from .coordinator import NeoPoolCoordinator
+from .entity import NeoPoolEntity
 from .helpers import is_device_time_out_of_sync
 
 _LOGGER = logging.getLogger(__name__)
@@ -144,10 +144,10 @@ def _should_skip_binary_sensor(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: VistaPoolConfigEntry,
+    entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool binary sensors from a config entry."""
+    """Set up NeoPool binary sensors from a config entry."""
     coordinator = entry.runtime_data
     entities = []
 
@@ -169,7 +169,7 @@ async def async_setup_entry(
             sensor_props["enabled_default"] = True
 
         entities.append(
-            VistaPoolBinarySensor(
+            NeoPoolBinarySensor(
                 coordinator,
                 entry.entry_id,  # Pass entry_id explicitly
                 key,  # Pass key as a positional argument
@@ -179,14 +179,14 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool binary sensor."""
+class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Representation of a NeoPool binary sensor."""
 
     _winter_mode_active = False  # binary sensors stay available during winter mode
 
     def __init__(
         self,
-        coordinator: VistaPoolCoordinator,
+        coordinator: NeoPoolCoordinator,
         entry_id: str,
         key: str,
         props: dict[str, Any],
@@ -203,12 +203,12 @@ class VistaPoolBinarySensor(VistaPoolEntity, BinarySensorEntity):  # type: ignor
 
         self._key = key
         self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
+            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
         )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
-        self._attr_translation_key = VistaPoolEntity.slugify(self._key)
+        self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._attr_device_class = props.get("device_class") or None
         self._attr_entity_category = props.get("entity_category") or None

@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "reconfigure": {
-        "title": "Překonfigurovat připojení VistaPool",
-        "description": "Aktualizujte nastavení připojení k vašemu řadiči VistaPool.",
+        "title": "Překonfigurovat připojení NeoPool",
+        "description": "Aktualizujte nastavení připojení k vašemu řadiči NeoPool.",
         "data": {
           "host": "IP adresa Modbus brány",
           "port": "TCP port pro Modbus (výchozí: 502).",
@@ -18,8 +18,8 @@
         }
       },
       "user": {
-        "title": "Připojení VistaPool",
-        "description": "Nakonfigurujte připojení k vašemu řadiči VistaPool.",
+        "title": "Připojení NeoPool",
+        "description": "Nakonfigurujte připojení k vašemu řadiči NeoPool.",
         "data": {
           "name": "Název zařízení (používá se jako prefix v ID entit).",
           "name_default": "Bazén",
@@ -49,6 +49,10 @@
           "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý.",
           "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie."
         }
+      },
+      "import_from_vistapool": {
+        "title": "Import from existing VistaPool integration",
+        "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually."
       }
     },
     "error": {
@@ -60,13 +64,15 @@
     "abort": {
       "already_configured": "Toto zařízení je již nakonfigurováno.",
       "entry_not_found": "Záznam integrace nebyl nalezen.",
-      "reconfigure_successful": "Nastavení připojení bylo úspěšně aktualizováno."
+      "reconfigure_successful": "Connection settings updated successfully.",
+      "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
+      "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Nastavení VistaPool",
+        "title": "Nastavení NeoPool",
         "description": "POZOR: Změna povolených relé vyvolá automaticky reload integrace! Změny se projeví ihned.",
         "data": {
           "scan_interval": "Interval aktualizace dat (v sekundách)",
@@ -611,9 +617,9 @@
     }
   },
   "exceptions": {
-    "entry_not_found": { "message": "Nebyla nalezena konfigurace VistaPool pro entry_id {entry_id}" },
-    "no_loaded_entry": { "message": "Není k dispozici žádná načtená konfigurace VistaPool" },
-    "no_coordinator": { "message": "Nebyl nalezen koordinátor VistaPool pro entry_id {entry_id}" },
+    "entry_not_found": { "message": "Nebyla nalezena konfigurace NeoPool pro entry_id {entry_id}" },
+    "no_loaded_entry": { "message": "Není k dispozici žádná načtená konfigurace NeoPool" },
+    "no_coordinator": { "message": "Nebyl nalezen koordinátor NeoPool pro entry_id {entry_id}" },
     "missing_parameter": { "message": "Chybí povinný parametr {parameter}" },
     "invalid_timer": { "message": "Neplatný název časovače {timer_name}. Platné časovače: {valid_timers}" },
     "timer_failed": { "message": "Nastavení časovače selhalo: {error}" },
@@ -631,6 +637,14 @@
     "corrupted_gpio": {
       "title": "Detekovány poškozené GPIO registry",
       "description": "Následující GPIO registry na vašem ovladači bazénu obsahují neplatné hodnoty:\n\n{details}\n\nK tomu obvykle dochází, když režim rámování Modbus brány neodpovídá nastavení rámování v integraci. Postižené funkce nebudou správně fungovat, dokud nebudou registry obnoveny na platné hodnoty.\n\nViz dokumentaci integrace pro pokyny k opravě."
+    },
+    "domain_renamed": {
+      "title": "Integration domain migrated to neopool",
+      "description": "The integration domain has been renamed from `vistapool` to `neopool` to avoid a clash with the new core `vistapool` integration introduced in Home Assistant 2026.6.\n\n**{entries} config entr(ies)** and **{entities} entit(ies)** were migrated automatically. Your `entity_id`s, history, automations and dashboards continue to work without changes.\n\n**Old folder cleanup:** `{folder_cleaned}` (if `no`, please remove `custom_components/vistapool/` manually).\n\n**Please restart Home Assistant** to complete the migration."
+    },
+    "domain_rename_partial_failure": {
+      "title": "Migration to neopool partially failed",
+      "description": "Some VistaPool config entries could not be migrated to the new `neopool` domain:\n\n```\n{errors}\n```\n\nIf your pool controller is offline, deferred entries will retry on the next Home Assistant restart. Other failures should be investigated in the logs and reported on GitHub."
     }
   }
 }

@@ -14,8 +14,8 @@
 
 import pytest
 
-import custom_components.vistapool.modbus_compat as compat
-from custom_components.vistapool.modbus_compat import (
+import custom_components.neopool.modbus_compat as compat
+from custom_components.neopool.modbus_compat import (
     address_kwargs,
     modbus_acall,
     modbus_scall,

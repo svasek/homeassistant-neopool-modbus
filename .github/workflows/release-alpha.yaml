@@ -129,7 +129,7 @@ jobs:
       - name: Determine alpha version
         id: version
         run: |
-          CURRENT=$(jq -r .version custom_components/vistapool/manifest.json)
+          CURRENT=$(jq -r .version custom_components/neopool/manifest.json)
           SUFFIX="${{ github.event.inputs.version_suffix || 'alpha' }}"
           BUMP="${{ steps.bump.outputs.type }}"
 
@@ -165,17 +165,17 @@ jobs:
           ALPHA_VERSION: ${{ steps.version.outputs.version }}
         run: |
           jq --arg v "$ALPHA_VERSION" '.version = $v' \
-            custom_components/vistapool/manifest.json > tmp.$$.json
-          mv tmp.$$.json custom_components/vistapool/manifest.json
+            custom_components/neopool/manifest.json > tmp.$$.json
+          mv tmp.$$.json custom_components/neopool/manifest.json
           echo "✅ manifest.json version set to $ALPHA_VERSION"
 
       - name: Create release archive
         run: |
-          cd custom_components/vistapool
-          zip -r ../../vistapool_modbus.zip . -x "*.pyc" -x "__pycache__/*" -x "tmp/*"
+          cd custom_components/neopool
+          zip -r ../../neopool_modbus.zip . -x "*.pyc" -x "__pycache__/*" -x "tmp/*"
           cd ../..
-          echo "📦 Created vistapool_modbus.zip"
-          ls -lh vistapool_modbus.zip
+          echo "📦 Created neopool_modbus.zip"
+          ls -lh neopool_modbus.zip
 
       # ── 4. Create GitHub pre-release ────────────────────────────────
       - name: Create GitHub pre-release
@@ -210,7 +210,7 @@ jobs:
           3. Select version \`${VERSION}\` and install
           4. Restart Home Assistant"
 
-          gh release create "$TAG" vistapool_modbus.zip \
+          gh release create "$TAG" neopool_modbus.zip \
             --title "🧪 ${TAG} (alpha)" \
             --notes "$NOTES" \
             --prerelease \

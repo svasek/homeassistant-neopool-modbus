@@ -5,13 +5,13 @@ on:
     branches:
       - "main"
     paths:
-      - "custom_components/vistapool/**"
+      - "custom_components/neopool/**"
       - ".github/workflows/typecheck.yaml"
       - "pyrightconfig.json"
   pull_request:
     paths:
-      - "custom_components/vistapool/**"
-      - ".github/workflows/typecheck.yml"
+      - "custom_components/neopool/**"
+      - ".github/workflows/typecheck.yaml"
       - "pyrightconfig.json"
   workflow_dispatch:
 
@@ -37,4 +37,4 @@ jobs:
           pip install basedpyright pymodbus homeassistant-stubs
 
       - name: Run BasedPyright
-        run: basedpyright custom_components/vistapool
+        run: basedpyright custom_components/neopool

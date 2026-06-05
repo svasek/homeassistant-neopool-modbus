@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Sensor Module"""
+"""NeoPool Integration for Home Assistant - Sensor Module"""
 
 import logging
 import math
@@ -30,10 +30,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
-from . import VistaPoolConfigEntry
+from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
-from .coordinator import VistaPoolCoordinator
-from .entity import VistaPoolEntity
+from .coordinator import NeoPoolCoordinator
+from .entity import NeoPoolEntity
 from .helpers import (
     calculate_next_interval_time,
     get_filtration_pump_type,
@@ -134,10 +134,10 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: VistaPoolConfigEntry,
+    entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool sensors from a config entry."""
+    """Set up NeoPool sensors from a config entry."""
     coordinator = entry.runtime_data
     entities = []
 
@@ -151,7 +151,7 @@ async def async_setup_entry(
             continue
 
         entities.append(
-            VistaPoolSensor(
+            NeoPoolSensor(
                 coordinator,
                 entry.entry_id,  # Pass entry_id explicitly to the sensor entity
                 key,
@@ -162,34 +162,34 @@ async def async_setup_entry(
     pump_power = int(entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
     if pump_power > 0:
         entities.append(
-            VistaPoolFiltrationEnergySensor(coordinator, entry.entry_id, pump_power)
+            NeoPoolFiltrationEnergySensor(coordinator, entry.entry_id, pump_power)
         )
 
     async_add_entities(entities)
 
 
-class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool sensor."""
+class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Representation of a NeoPool sensor."""
 
     _winter_mode_active = False  # sensors stay available during winter mode
 
     def __init__(
         self,
-        coordinator: VistaPoolCoordinator,
+        coordinator: NeoPoolCoordinator,
         entry_id: str,
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool sensor entity."""
+        """Initialize the NeoPool sensor entity."""
         super().__init__(coordinator, entry_id)  # Pass entry_id to the parent class
         self._key = key
         self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
+            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
         )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
-        self._attr_translation_key = VistaPoolEntity.slugify(self._key)
+        self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._attr_native_unit_of_measurement = props.get("unit") or None
         self._attr_device_class = props.get("device_class") or None
@@ -366,7 +366,7 @@ class VistaPoolSensor(VistaPoolEntity, SensorEntity):  # type: ignore[reportInco
         return None  # pragma: no cover
 
 
-class VistaPoolFiltrationEnergySensor(VistaPoolEntity, SensorEntity, RestoreEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Cumulative energy consumed by the filtration pump (Wh).
 
     Integrates instantaneous power over time using coordinator update timestamps.
@@ -383,7 +383,7 @@ class VistaPoolFiltrationEnergySensor(VistaPoolEntity, SensorEntity, RestoreEnti
 
     def __init__(
         self,
-        coordinator: VistaPoolCoordinator,
+        coordinator: NeoPoolCoordinator,
         entry_id: str,
         pump_power_w: int,
     ) -> None:

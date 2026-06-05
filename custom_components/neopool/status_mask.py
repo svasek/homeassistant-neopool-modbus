@@ -13,9 +13,9 @@
 # limitations under the License.
 
 """
-VistaPool Integration for Home Assistant - Status Mask Decoders Module
+NeoPool Integration for Home Assistant - Status Mask Decoders Module
 
-Mask decoders for VistaPool / NeoPool integration, based on xsns_83_neopool.ino
+Mask decoders for NeoPool integration, based on xsns_83_neopool.ino
 WARNING: DO NOT change names of this keys, they are used in the code !!!
 """
 

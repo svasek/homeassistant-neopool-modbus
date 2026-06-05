@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant"""
+"""NeoPool Integration for Home Assistant"""
 
 import logging
 
@@ -24,14 +24,14 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS, TIMER_BLOCKS
-from .coordinator import VistaPoolCoordinator
+from .coordinator import NeoPoolCoordinator
 
 # Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
 # from the integration's __init__ module when config entry version changes.
 from .migration import async_migrate_entry as async_migrate_entry  # noqa: F401
-from .modbus import VistaPoolModbusClient
+from .modbus import NeoPoolModbusClient
 
-type VistaPoolConfigEntry = ConfigEntry[VistaPoolCoordinator]
+type NeoPoolConfigEntry = ConfigEntry[NeoPoolCoordinator]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -58,8 +58,8 @@ def _cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
             registry.async_remove(entity_entry.entity_id)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: VistaPoolConfigEntry) -> bool:
-    """Set up the VistaPool integration."""
+async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
+    """Set up the NeoPool integration."""
 
     # --- MIGRATE CONFIG FLOW DATA TO OPTIONS IF NEEDED ---
     # Copy all keys except connection settings from data to options
@@ -69,15 +69,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: VistaPoolConfigEntry) ->
         new_options = {k: entry.data[k] for k in candidate_keys}
         if new_options:  # pragma: no cover
             _LOGGER.debug(
-                "VistaPool: Migrating ALL config entry data (except connection params) to options: %s",
+                "NeoPool: Migrating ALL config entry data (except connection params) to options: %s",
                 new_options,
             )
             hass.config_entries.async_update_entry(entry, options=new_options)
     # --- End migration ---
 
     # Initialize Modbus client and coordinator
-    client = VistaPoolModbusClient(entry.data)
-    coordinator = VistaPoolCoordinator(hass, client, entry, entry.entry_id)
+    client = NeoPoolModbusClient(entry.data)
+    coordinator = NeoPoolCoordinator(hass, client, entry, entry.entry_id)
 
     # Wait for the first update from the coordinator
     await coordinator.async_config_entry_first_refresh()
@@ -97,8 +97,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: VistaPoolConfigEntry) ->
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: VistaPoolConfigEntry) -> bool:
-    """Unload a VistaPool config entry."""
+async def async_unload_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
+    """Unload a NeoPool config entry."""
     coordinator = getattr(entry, "runtime_data", None)
     if coordinator is not None:
         coordinator.cancel_follow_up_refresh()
@@ -121,10 +121,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: VistaPoolConfigEntry) -
 
 
 def _register_services(hass: HomeAssistant) -> None:
-    """Register VistaPool services."""
+    """Register NeoPool services."""
     from .helpers import get_timer_interval, hhmm_to_seconds, parse_register_int
 
-    def _get_coordinator(call: ServiceCall) -> VistaPoolCoordinator:
+    def _get_coordinator(call: ServiceCall) -> NeoPoolCoordinator:
         """Resolve coordinator from service call data."""
         entries = hass.config_entries.async_entries(DOMAIN)
         entry_id = call.data.get("entry_id")
@@ -146,7 +146,7 @@ def _register_services(hass: HomeAssistant) -> None:
                 translation_domain=DOMAIN,
                 translation_key="no_loaded_entry",
             )
-        coordinator: VistaPoolCoordinator = entry.runtime_data
+        coordinator: NeoPoolCoordinator = entry.runtime_data
         if not coordinator:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,

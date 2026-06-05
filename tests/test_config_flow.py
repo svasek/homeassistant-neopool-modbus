@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.vistapool import config_flow
-from custom_components.vistapool.const import (
+from custom_components.neopool import config_flow
+from custom_components.neopool.const import (
     DEFAULT_MODBUS_FRAMER,
     DEFAULT_NAME,
     DEFAULT_PORT,
@@ -41,7 +41,7 @@ def make_test_flow_with_modbus_mock(serial_string: str | None = DEFAULT_SERIAL_S
     Returns:
         tuple: (flow, serial_string)
     """
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow.context = {}
     # Mock config_entries to return empty list for in-progress check (sync function)
@@ -58,7 +58,10 @@ def make_test_flow_with_modbus_mock(serial_string: str | None = DEFAULT_SERIAL_S
 
 @pytest.mark.asyncio
 async def test_show_user_form_on_init():
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    # No legacy vistapool entries → fall through to the regular new-entry form
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
     result = await flow.async_step_user(user_input=None)
     assert result is not None
     assert result["type"] == "form"
@@ -85,11 +88,11 @@ async def test_create_entry_success():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -116,11 +119,11 @@ async def test_create_entry_with_rtu_framer():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -142,7 +145,7 @@ async def test_create_entry_failure_cannot_connect():
         "name": "Test Pool",
     }
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=False),
     ):
         result = await flow.async_step_user(user_input)
@@ -165,11 +168,11 @@ async def test_create_entry_failure_cannot_read_modbus():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=None),
         ),
     ):
@@ -192,11 +195,11 @@ def test_async_get_options_flow(monkeypatch):
 
     # Patch import ve funkci
     monkeypatch.setattr(
-        "custom_components.vistapool.options_flow.VistaPoolOptionsFlowHandler",
+        "custom_components.neopool.options_flow.NeoPoolOptionsFlowHandler",
         DummyOptionsFlow,
     )
     config_entry = DummyConfigEntry()
-    handler = config_flow.VistaPoolConfigFlow.async_get_options_flow(config_entry)  # type: ignore[arg-type]
+    handler = config_flow.NeoPoolConfigFlow.async_get_options_flow(config_entry)  # type: ignore[arg-type]
     assert isinstance(handler, DummyOptionsFlow)
     assert handler.called is True
 
@@ -204,7 +207,7 @@ def test_async_get_options_flow(monkeypatch):
 @pytest.mark.asyncio
 async def test_reconfigure_shows_form_with_current_data():
     """Reconfigure form is shown with pre-filled values from the existing entry."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     existing_data = {
         "host": "10.0.0.1",
@@ -243,7 +246,7 @@ async def test_reconfigure_shows_form_with_current_data():
 @pytest.mark.asyncio
 async def test_reconfigure_success():
     """Successful reconfiguration merges new values and calls update_reload_and_abort."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     existing_data = {
         "host": "10.0.0.1",
@@ -272,7 +275,7 @@ async def test_reconfigure_success():
     }
 
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_reconfigure(user_input)
@@ -296,7 +299,7 @@ async def test_reconfigure_success():
 @pytest.mark.asyncio
 async def test_reconfigure_cannot_connect():
     """Reconfigure shows cannot_connect error when host is unreachable."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     mock_entry = MagicMock()
     mock_entry.data = {
@@ -318,7 +321,7 @@ async def test_reconfigure_cannot_connect():
     }
 
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=False),
     ):
         result = await flow.async_step_reconfigure(user_input)
@@ -332,7 +335,7 @@ async def test_reconfigure_cannot_connect():
 @pytest.mark.asyncio
 async def test_reconfigure_serial_mismatch():
     """Reconfigure shows serial_mismatch error when device serial differs."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     mock_entry = MagicMock()
     mock_entry.data = {
@@ -356,11 +359,11 @@ async def test_reconfigure_serial_mismatch():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="FFFFFFFFFFFFFFFFFFFFFFFF"),
         ),
     ):
@@ -374,7 +377,7 @@ async def test_reconfigure_serial_mismatch():
 @pytest.mark.asyncio
 async def test_reconfigure_serial_read_fails():
     """Reconfigure shows cannot_read_modbus when serial read fails."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     mock_entry = MagicMock()
     mock_entry.data = {
@@ -398,11 +401,11 @@ async def test_reconfigure_serial_read_fails():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=None),
         ),
     ):
@@ -416,7 +419,7 @@ async def test_reconfigure_serial_read_fails():
 @pytest.mark.asyncio
 async def test_reconfigure_no_unique_id_skips_serial_check():
     """Reconfigure skips serial check for v1 entries without unique_id."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     mock_entry = MagicMock()
     mock_entry.data = {
@@ -443,7 +446,7 @@ async def test_reconfigure_no_unique_id_skips_serial_check():
     }
 
     with patch(
-        "custom_components.vistapool.config_flow.is_host_port_open",
+        "custom_components.neopool.config_flow.is_host_port_open",
         new=AsyncMock(return_value=True),
     ):
         result = await flow.async_step_reconfigure(user_input)
@@ -455,7 +458,7 @@ async def test_reconfigure_no_unique_id_skips_serial_check():
 @pytest.mark.asyncio
 async def test_reconfigure_entry_not_found_aborts():
     """When the entry cannot be found, the flow aborts gracefully."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     flow.hass = MagicMock()
     flow.hass.config_entries.async_get_entry.return_value = None
@@ -474,7 +477,7 @@ async def test_reconfigure_entry_not_found_aborts():
 @pytest.mark.asyncio
 async def test_reconfigure_no_entry_id_in_context_aborts():
     """When entry_id is absent from context, the flow aborts immediately."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     flow.hass = MagicMock()
     flow.context = {}  # no entry_id key
@@ -534,11 +537,11 @@ async def test_create_entry_scan_interval_coerced_to_int():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -552,7 +555,9 @@ async def test_create_entry_scan_interval_coerced_to_int():
 @pytest.mark.asyncio
 async def test_user_form_contains_use_cover_sensor():
     """Config flow form schema must include use_cover_sensor toggle."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
     result = await flow.async_step_user(user_input=None)
     assert result is not None
     assert result["type"] == "form"
@@ -567,12 +572,12 @@ async def test_user_form_contains_use_cover_sensor():
 @pytest.mark.asyncio
 async def test_get_default_name_returns_translated_name():
     """When translation contains name_default the translated name is returned."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow.hass.config.language = "cs"
     key = f"component.{DOMAIN}.config.step.user.data.name_default"
     with patch(
-        "custom_components.vistapool.config_flow.ha_translation.async_get_translations",
+        "custom_components.neopool.config_flow.ha_translation.async_get_translations",
         new=AsyncMock(return_value={key: "Bazén"}),
     ):
         name = await flow._async_get_default_name()
@@ -582,11 +587,11 @@ async def test_get_default_name_returns_translated_name():
 @pytest.mark.asyncio
 async def test_get_default_name_falls_back_when_key_missing():
     """When translation dict does not contain name_default, DEFAULT_NAME is returned."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow.hass.config.language = "en"
     with patch(
-        "custom_components.vistapool.config_flow.ha_translation.async_get_translations",
+        "custom_components.neopool.config_flow.ha_translation.async_get_translations",
         new=AsyncMock(return_value={}),
     ):
         name = await flow._async_get_default_name()
@@ -596,7 +601,7 @@ async def test_get_default_name_falls_back_when_key_missing():
 @pytest.mark.asyncio
 async def test_get_default_name_falls_back_without_hass():
     """When hass is not set (AttributeError), DEFAULT_NAME is returned."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
     name = await flow._async_get_default_name()
     assert name == DEFAULT_NAME
 
@@ -604,11 +609,11 @@ async def test_get_default_name_falls_back_without_hass():
 @pytest.mark.asyncio
 async def test_get_default_name_falls_back_on_translation_error():
     """When async_get_translations raises, DEFAULT_NAME is returned."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow.hass.config.language = "en"
     with patch(
-        "custom_components.vistapool.config_flow.ha_translation.async_get_translations",
+        "custom_components.neopool.config_flow.ha_translation.async_get_translations",
         new=AsyncMock(side_effect=RuntimeError("fail")),
     ):
         name = await flow._async_get_default_name()
@@ -633,11 +638,11 @@ async def test_create_entry_empty_name_uses_default():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -662,11 +667,11 @@ async def test_create_entry_no_name_key_uses_default():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -686,7 +691,9 @@ async def test_create_entry_no_name_key_uses_default():
 @pytest.mark.asyncio
 async def test_user_form_schema_boolean_defaults():
     """Schema defaults: use_filtration1=True, others False."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
     result = await flow.async_step_user(user_input=None)
     assert result is not None
     schema = result["data_schema"]
@@ -715,7 +722,9 @@ async def test_user_form_schema_boolean_defaults():
 @pytest.mark.asyncio
 async def test_user_form_schema_connection_defaults():
     """Schema defaults for port, slave_id and modbus_framer match constants."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
     result = await flow.async_step_user(user_input=None)
     assert result is not None
     schema = result["data_schema"]
@@ -751,11 +760,11 @@ async def test_create_entry_stores_use_light_flag():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -782,11 +791,11 @@ async def test_create_entry_stores_filtration_flags():
     }
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
     ):
@@ -807,7 +816,7 @@ async def test_create_entry_stores_filtration_flags():
 @pytest.mark.asyncio
 async def test_reconfigure_schema_defaults_to_constants_when_keys_absent():
     """When entry data lacks optional keys the schema defaults to module constants."""
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
 
     # Entry with only the host stored (no port / slave_id / modbus_framer)
     mock_entry = MagicMock()
@@ -835,7 +844,7 @@ async def test_reconfigure_schema_defaults_to_constants_when_keys_absent():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_success():
     """Test that trial Modbus read extracts device serial correctly."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -859,7 +868,7 @@ async def test_trial_modbus_read_success():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -872,7 +881,7 @@ async def test_trial_modbus_read_success():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_timeout():
     """Test that trial Modbus read handles timeout gracefully."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -897,7 +906,7 @@ async def test_trial_modbus_read_timeout():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_connect_returns_false():
     """Test that trial Modbus read returns None when connect() returns False."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -922,7 +931,7 @@ async def test_trial_modbus_read_connect_returns_false():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_no_serial_in_data():
     """Test that trial Modbus read returns None when registers return error."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -942,7 +951,7 @@ async def test_trial_modbus_read_no_serial_in_data():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -968,11 +977,11 @@ async def test_create_entry_with_duplicate_prevention():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=serial_string),
         ),
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
     ):
@@ -989,7 +998,7 @@ async def test_create_entry_aborts_when_already_configured():
     """Test that adding a device with an already-registered serial aborts."""
     from homeassistant.data_entry_flow import AbortFlow
 
-    flow = config_flow.VistaPoolConfigFlow()
+    flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow.context = {}
     flow.hass.config_entries.flow.async_progress_by_handler = MagicMock(return_value=[])
@@ -1011,11 +1020,11 @@ async def test_create_entry_aborts_when_already_configured():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         pytest.raises(AbortFlow, match="already_configured"),
@@ -1053,11 +1062,11 @@ async def test_create_entry_aborts_unmigrated_v1_duplicate():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
         ),
     ):
@@ -1087,11 +1096,11 @@ async def test_create_entry_rejects_duplicate_name():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
         ),
     ):
@@ -1122,11 +1131,11 @@ async def test_create_entry_rejects_duplicate_name_from_title():
 
     with (
         patch(
-            "custom_components.vistapool.config_flow.is_host_port_open",
+            "custom_components.neopool.config_flow.is_host_port_open",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "custom_components.vistapool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_get_device_serial",
             new=AsyncMock(return_value="AABBCCDD11223344EEFF0011"),
         ),
     ):
@@ -1139,7 +1148,7 @@ async def test_create_entry_rejects_duplicate_name_from_title():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_general_exception():
     """Test that trial Modbus read handles non-timeout exceptions gracefully."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1163,7 +1172,7 @@ async def test_trial_modbus_read_general_exception():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_async_close():
     """Test that trial Modbus read awaits close() when it returns a coroutine."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1189,7 +1198,7 @@ async def test_trial_modbus_read_async_close():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -1202,7 +1211,7 @@ async def test_trial_modbus_read_async_close():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_close_raises():
     """Test that trial Modbus read handles close() exception gracefully."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1224,7 +1233,7 @@ async def test_trial_modbus_read_close_raises():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
     ):
@@ -1237,7 +1246,7 @@ async def test_trial_modbus_read_close_raises():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_cancelled_error():
     """Test that CancelledError is re-raised, not swallowed."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1264,7 +1273,7 @@ async def test_trial_modbus_read_cancelled_error():
 @pytest.mark.asyncio
 async def test_trial_modbus_read_close_cancelled_error():
     """Test that CancelledError in close() is re-raised."""
-    from custom_components.vistapool.helpers import async_get_device_serial
+    from custom_components.neopool.helpers import async_get_device_serial
 
     user_input = {
         "host": "192.168.1.100",
@@ -1286,9 +1295,294 @@ async def test_trial_modbus_read_close_cancelled_error():
             return_value=mock_client,
         ),
         patch(
-            "custom_components.vistapool.modbus_compat.modbus_acall",
+            "custom_components.neopool.modbus_compat.modbus_acall",
             new=AsyncMock(return_value=mock_response),
         ),
         pytest.raises(asyncio.CancelledError),
     ):
         await async_get_device_serial(user_input)
+
+
+# ---------------------------------------------------------------------------
+# async_step_user — legacy vistapool detection routing
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_user_step_routes_to_import_when_legacy_entry_exists():
+    """When a legacy vistapool entry is present, user step routes to import flow."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+
+    legacy_entry = MagicMock()
+    legacy_entry.entry_id = "legacy_entry_xyz"
+    legacy_entry.title = "Bazén"
+    legacy_entry.domain = "vistapool"
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[legacy_entry])
+    # The import step re-resolves the legacy entry by id; return it again
+    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    result = await flow.async_step_user(user_input=None)
+    assert result is not None
+    assert result["type"] == "form"
+    # The form must be the import confirmation, not the regular new-entry one
+    assert result["step_id"] == "import_from_vistapool"
+    # And the entry title must be propagated to the description
+    assert result["description_placeholders"]["entry_title"] == "Bazén"
+    # State on the flow object must be set so the migrate step can resolve it
+    assert flow._legacy_entry_id == "legacy_entry_xyz"
+    assert flow._legacy_entry_title == "Bazén"
+
+
+# ---------------------------------------------------------------------------
+# async_step_import_from_vistapool — migration trigger
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_import_step_falls_back_to_user_when_legacy_gone():
+    """If the legacy entry vanished between detection and Submit, fall back to user."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "stale_entry"
+    flow._legacy_entry_title = "Bazén"
+    # Legacy entry no longer in registry
+    flow.hass.config_entries.async_get_entry.return_value = None
+    # async_step_user fallback needs an empty list to render the regular form
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
+
+    result = await flow.async_step_import_from_vistapool(user_input=None)
+    assert result is not None
+    # Fall through path — the regular new-entry form is shown
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+
+
+@pytest.mark.asyncio
+async def test_import_step_falls_back_when_entry_is_not_vistapool():
+    """If the resolved entry isn't a vistapool entry, fall back to user."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "some_entry"
+    flow._legacy_entry_title = "Bazén"
+
+    other_entry = MagicMock()
+    other_entry.domain = "neopool"  # not vistapool — race against another flow
+    flow.hass.config_entries.async_get_entry.return_value = other_entry
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
+
+    result = await flow.async_step_import_from_vistapool(user_input=None)
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+
+
+@pytest.mark.asyncio
+async def test_import_step_shows_form_on_first_call():
+    """First call (no user_input) shows the confirmation form with placeholders."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "legacy_entry"
+    flow._legacy_entry_title = "Bazén"
+
+    legacy_entry = MagicMock()
+    legacy_entry.domain = "vistapool"
+    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    result = await flow.async_step_import_from_vistapool(user_input=None)
+    assert result["type"] == "form"
+    assert result["step_id"] == "import_from_vistapool"
+    assert result["description_placeholders"]["entry_title"] == "Bazén"
+
+
+@pytest.mark.asyncio
+async def test_import_step_runs_migration_and_restores_device():
+    """Submit → migration runs, device customizations are restored, abort emitted."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "legacy_entry"
+    flow._legacy_entry_title = "Bazén"
+
+    legacy_entry = MagicMock()
+    legacy_entry.domain = "vistapool"
+    legacy_entry.entry_id = "legacy_entry"
+    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    # Build a legacy device tied to the vistapool entry, with all the user
+    # customizations we want to see restored after migration.
+    device = MagicMock()
+    device.id = "device_1"
+    device.identifiers = {("vistapool", "neopool_SERIAL_X")}
+    device.area_id = "kitchen"
+    device.name_by_user = "Můj bazén"
+    device.labels = {"outdoor", "pool"}
+    device.disabled_by = None
+
+    # Migrated device (after migration the identifier was flipped to neopool)
+    migrated_device = MagicMock()
+    migrated_device.id = "device_1"  # same row, same id
+
+    device_registry = MagicMock()
+    device_registry.async_get_device.return_value = migrated_device
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(return_value=2),
+        ) as migrate_mock,
+        patch(
+            "custom_components.neopool.migration.async_cleanup_old_folder",
+            new=AsyncMock(return_value=True),
+        ) as cleanup_mock,
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=device_registry,
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[device],
+        ),
+    ):
+        result = await flow.async_step_import_from_vistapool(user_input={})
+
+    # Migration was invoked with the legacy entry
+    migrate_mock.assert_awaited_once_with(flow.hass, legacy_entry)
+    # Cleanup was called
+    cleanup_mock.assert_awaited_once_with(flow.hass)
+    # Device customizations restored onto the migrated device
+    device_registry.async_update_device.assert_called_once_with(
+        "device_1",
+        area_id="kitchen",
+        name_by_user="Můj bazén",
+        labels={"outdoor", "pool"},
+        disabled_by=None,
+    )
+    # Flow ends with the migration_complete abort reason
+    assert result["type"] == "abort"
+    assert result["reason"] == "migration_complete"
+
+
+@pytest.mark.asyncio
+async def test_import_step_skips_device_without_vistapool_identifier():
+    """A legacy device without a (vistapool, X) identifier is skipped during snapshot."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "legacy_entry"
+    flow._legacy_entry_title = "Bazén"
+
+    legacy_entry = MagicMock()
+    legacy_entry.domain = "vistapool"
+    legacy_entry.entry_id = "legacy_entry"
+    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    # Device with only a non-vistapool identifier — defensive case
+    device = MagicMock()
+    device.identifiers = {("zigbee", "stray-id")}
+
+    device_registry = MagicMock()
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(return_value=0),
+        ),
+        patch(
+            "custom_components.neopool.migration.async_cleanup_old_folder",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=device_registry,
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[device],
+        ),
+    ):
+        result = await flow.async_step_import_from_vistapool(user_input={})
+
+    # Nothing to restore — no async_update_device call
+    device_registry.async_update_device.assert_not_called()
+    assert result["reason"] == "migration_complete"
+
+
+@pytest.mark.asyncio
+async def test_import_step_skips_restore_when_migrated_device_missing():
+    """If the migrated device disappeared, restore is silently skipped."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "legacy_entry"
+    flow._legacy_entry_title = "Bazén"
+
+    legacy_entry = MagicMock()
+    legacy_entry.domain = "vistapool"
+    legacy_entry.entry_id = "legacy_entry"
+    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    device = MagicMock()
+    device.identifiers = {("vistapool", "neopool_SERIAL_X")}
+    device.area_id = "kitchen"
+    device.name_by_user = None
+    device.labels = set()
+    device.disabled_by = None
+
+    device_registry = MagicMock()
+    # After migration, the device row is gone (e.g. migration also dropped it
+    # because all config_entries became empty during a partial failure)
+    device_registry.async_get_device.return_value = None
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(return_value=0),
+        ),
+        patch(
+            "custom_components.neopool.migration.async_cleanup_old_folder",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=device_registry,
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[device],
+        ),
+    ):
+        result = await flow.async_step_import_from_vistapool(user_input={})
+
+    device_registry.async_update_device.assert_not_called()
+    assert result["reason"] == "migration_complete"
+
+
+@pytest.mark.asyncio
+async def test_import_step_aborts_on_migration_failure():
+    """If migrate_single_entry_cross_domain raises, abort with migration_failed."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "legacy_entry"
+    flow._legacy_entry_title = "Bazén"
+
+    legacy_entry = MagicMock()
+    legacy_entry.domain = "vistapool"
+    legacy_entry.entry_id = "legacy_entry"
+    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(side_effect=RuntimeError("simulated failure")),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[],
+        ),
+    ):
+        result = await flow.async_step_import_from_vistapool(user_input={})
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "migration_failed"
+    assert "simulated failure" in result["description_placeholders"]["error"]

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""VistaPool Integration for Home Assistant - Switch Module"""
+"""NeoPool Integration for Home Assistant - Switch Module"""
 
 import logging
 from collections.abc import Mapping
@@ -22,15 +22,15 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import VistaPoolConfigEntry
+from . import NeoPoolConfigEntry
 from .const import (
     EXEC_REGISTER,
     MANUAL_FILTRATION_REGISTER,
     SWITCH_DEFINITIONS,
     is_valid_relay_gpio,
 )
-from .coordinator import VistaPoolCoordinator
-from .entity import VistaPoolEntity
+from .coordinator import NeoPoolCoordinator
+from .entity import NeoPoolEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,10 +78,10 @@ def _should_skip_switch(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: VistaPoolConfigEntry,
+    entry: NeoPoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VistaPool switches from a config entry."""
+    """Set up NeoPool switches from a config entry."""
     coordinator = entry.runtime_data
     entry_id = entry.entry_id
 
@@ -95,31 +95,31 @@ async def async_setup_entry(
         if _should_skip_switch(key, props, coordinator.data, entry.options):
             continue
 
-        entities.append(VistaPoolSwitch(coordinator, entry_id, key, props))
+        entities.append(NeoPoolSwitch(coordinator, entry_id, key, props))
 
     async_add_entities(entities)
 
 
-class VistaPoolSwitch(VistaPoolEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Representation of a VistaPool switch entity."""
+class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Representation of a NeoPool switch entity."""
 
     def __init__(
         self,
-        coordinator: VistaPoolCoordinator,
+        coordinator: NeoPoolCoordinator,
         entry_id: str,
         key: str,
         props: dict[str, Any],
     ) -> None:
-        """Initialize the VistaPool switch entity."""
+        """Initialize the NeoPool switch entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
         self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{VistaPoolEntity.slugify(self._key)}"
+            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
         )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
-        self._attr_translation_key = VistaPoolEntity.slugify(self._key)
+        self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._switch_type = props.get("switch_type") or None
         self._relay_index = props.get("relay_index") or None
