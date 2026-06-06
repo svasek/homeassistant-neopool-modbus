@@ -232,6 +232,11 @@ async def test_async_setup_entry_success():
     hass.config_entries = MagicMock()
     hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=None)
     hass.async_add_executor_job = AsyncMock(return_value=[])
+    # async_cleanup_legacy_files (called from async_setup_entry) builds a
+    # Path() from hass.config.path(...); without a stub MagicMock leaks
+    # into Path() and the test only "passes" by accident (and may break on
+    # other Python versions where Path rejects MagicMock).
+    hass.config.path = MagicMock(side_effect=lambda sub: f"/tmp/ha_test/{sub}")
     config_entry = MagicMock()
     with patch("custom_components.neopool.NeoPoolModbusClient"):
         with patch("custom_components.neopool.NeoPoolCoordinator") as mock_coordinator:
@@ -667,6 +672,8 @@ async def test_async_setup_entry_registers_services():
     hass.services.has_service = MagicMock(return_value=False)
     hass.services.async_register = MagicMock()
     hass.async_add_executor_job = AsyncMock(return_value=[])
+    # See note on hass.config.path stub in test_async_setup_entry_success.
+    hass.config.path = MagicMock(side_effect=lambda sub: f"/tmp/ha_test/{sub}")
 
     entry = MagicMock()
     entry.entry_id = "test_entry"
