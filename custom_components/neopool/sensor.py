@@ -29,17 +29,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
+from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import (
-    calculate_next_interval_time,
-    get_filtration_pump_type,
-    has_filtvalve,
-    is_hydrolysis_in_percent,
-)
+from .helpers import calculate_next_interval_time, has_filtvalve
 
 _LOGGER = logging.getLogger(__name__)
 

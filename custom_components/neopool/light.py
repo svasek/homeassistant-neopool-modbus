@@ -21,9 +21,10 @@ from homeassistant.components.light import LightEntity
 from homeassistant.components.light.const import ColorMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
 
 from . import NeoPoolConfigEntry
-from .const import EXEC_REGISTER, LIGHT_DEFINITIONS, is_valid_relay_gpio
+from .const import LIGHT_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
 

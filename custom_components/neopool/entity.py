@@ -23,10 +23,14 @@ from typing import Any
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify as ha_slugify
+from neopool_modbus.decoders import (
+    get_machine_name,
+    modbus_regs_to_hex_string,
+    parse_version,
+)
 
 from .const import DOMAIN, NAME
 from .coordinator import NeoPoolCoordinator
-from .helpers import get_machine_name, modbus_regs_to_hex_string, parse_version
 
 
 class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):

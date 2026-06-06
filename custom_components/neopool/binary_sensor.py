@@ -21,9 +21,10 @@ from typing import Any
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from neopool_modbus.registers import is_valid_relay_gpio
 
 from . import NeoPoolConfigEntry
-from .const import BINARY_SENSOR_DEFINITIONS, is_valid_relay_gpio
+from .const import BINARY_SENSOR_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
 from .helpers import is_device_time_out_of_sync

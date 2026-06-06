@@ -22,25 +22,23 @@ from typing import Any
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from . import NeoPoolConfigEntry
-from .const import (
-    DEFAULT_TIMER_RESOLUTION,
-    DOMAIN,
-    MANUAL_FILTRATION_REGISTER,
-    PERIOD_MAP,
-    PERIOD_SECONDS_TO_KEY,
-    SELECT_DEFINITIONS,
-)
-from .coordinator import NeoPoolCoordinator
-from .entity import NeoPoolEntity
-from .helpers import (
+from neopool_modbus.decoders import (
     generate_time_options,
     get_filtration_pump_type,
-    has_filtvalve,
     hhmm_to_seconds,
     seconds_to_hhmm,
 )
+from neopool_modbus.registers import (
+    MANUAL_FILTRATION_REGISTER,
+    PERIOD_MAP,
+    PERIOD_SECONDS_TO_KEY,
+)
+
+from . import NeoPoolConfigEntry
+from .const import DEFAULT_TIMER_RESOLUTION, DOMAIN, SELECT_DEFINITIONS
+from .coordinator import NeoPoolCoordinator
+from .entity import NeoPoolEntity
+from .helpers import has_filtvalve
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -22,17 +22,17 @@ from typing import Any
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from . import NeoPoolConfigEntry
-from .const import (
+from neopool_modbus.decoders import is_hydrolysis_in_percent
+from neopool_modbus.registers import (
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
-    NUMBER_DEFINITIONS,
     is_valid_relay_gpio,
 )
+
+from . import NeoPoolConfigEntry
+from .const import NUMBER_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import is_hydrolysis_in_percent
 
 _LOGGER = logging.getLogger(__name__)
 
