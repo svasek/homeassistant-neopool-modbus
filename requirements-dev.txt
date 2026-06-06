@@ -1,5 +1,5 @@
-# Runtime dependency (Modbus communication)
-pymodbus>=3.8.3
+# Runtime dependency (Modbus communication via NeoPool library)
+neopool-modbus
 
 # Type stubs for Home Assistant Core
 homeassistant-stubs

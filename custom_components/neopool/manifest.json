@@ -11,10 +11,11 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/svasek/homeassistant-vistapool-modbus/issues",
   "loggers": [
+    "neopool_modbus",
     "pymodbus"
   ],
   "requirements": [
-    "pymodbus>=3.8.3,<4.0.0"
+    "neopool-modbus"
   ],
   "version": "3.0.0"
 }
