@@ -1,7 +1,7 @@
 {
-  // Dev container for developing the Vistapool integration using
+  // Dev container for developing the Neopool integration using
   // thomasloven/hass-custom-devcontainer (runs HA Core inside the container).
-  "name": "Vistapool Dev (hass-custom-devcontainer)",
+  "name": "Neopool Dev (hass-custom-devcontainer)",
 
   // Base image that bootstraps Home Assistant Core and a dev-friendly config.
   // "image": "ghcr.io/home-assistant/home-assistant:stable",
@@ -37,7 +37,7 @@
     // Mount the entire dev config folder to /config (must be writable from inside the container)
     "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
     "source=${localWorkspaceFolder}/.devcontainer/.ha_config,target=/config,type=bind",
-    "source=${localWorkspaceFolder}/custom_components/vistapool,target=/config/custom_components/vistapool,type=bind"
+    "source=${localWorkspaceFolder}/custom_components/neopool,target=/config/custom_components/neopool,type=bind"
   ],
 
   // VS Code recommendations and per-workspace settings.
@@ -85,7 +85,7 @@
 
         // Testing: run pytest with the same args you'd run from CLI
         "python.testing.pytestEnabled": true,
-        "python.testing.pytestArgs": ["tests", "--cov=custom_components/vistapool", "--cov-report=term-missing", "-q"],
+        "python.testing.pytestArgs": ["tests", "--cov=custom_components/neopool", "--cov-report=term-missing", "-q"],
 
         // Optional: silence random forwarded ports (keep HA visible)
         "remote.otherPortsAttributes": { "onAutoForward": "ignore" },

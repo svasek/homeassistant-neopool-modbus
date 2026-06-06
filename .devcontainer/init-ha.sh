@@ -50,19 +50,35 @@ mkdir -p "${HA_CONFIG_DIR}/.storage"
 
 cat > "${HA_CONFIG_DIR}/.storage/onboarding" << 'EOF'
 {
-    "version": 3,
-    "key": "onboarding",
-    "data": {
-        "done": [
-            "user",
-            "core_config",
-            "analytics",
-            "integration"
-        ]
-    }
+  "version": 4,
+  "minor_version": 1,
+  "key": "onboarding",
+  "data": {
+    "done": [
+      "user",
+      "core_config",
+      "analytics",
+      "integration",
+      "analytics"
+    ]
+  }
 }
 EOF
 echo "[init-ha] Created onboarding file to skip onboarding"
+
+cat > "${HA_CONFIG_DIR}/.storage/frontend.system_data" << 'EOF'
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "frontend.system_data",
+  "data": {
+    "home": {
+      "welcome_banner_dismissed": true
+    }
+  }
+}
+EOF
+echo "[init-ha] Created frontend.system_data to dismiss welcome banner"
 
 # Ensure ownership (safe)
 doas chown -R vscode:vscode "$HA_CONFIG_DIR"

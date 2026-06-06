@@ -1,10 +1,10 @@
-# Minimal Home Assistant config for Vistapool development (Core in devcontainer)
+# Minimal Home Assistant config for Neopool development (Core in devcontainer)
 
 homeassistant:
-  name: Vistapool Dev
+  name: Neopool Dev
   time_zone: Europe/Prague
   country: CZ
-  language: en
+  language: cs
 
 # Enable a sane default set of core integrations (UI, config, etc.).
 default_config:
@@ -13,7 +13,7 @@ default_config:
 logger:
   default: info
   logs:
-    custom_components.vistapool: debug
+    custom_components.neopool: debug
     pymodbus: warning
     homeassistant.components.http: warning
 
@@ -30,9 +30,9 @@ logbook:
 frontend:
 api:
 
-# Example Modbus TCP hub for Vistapool (adjust host/port as needed).
+# Example Modbus TCP hub for Neopool (adjust host/port as needed).
 # modbus:
-#   - name: vistapool_hub
+#   - name: neopool_hub
 #     type: tcp
 #     host: 127.0.0.1
 #     port: 8899
