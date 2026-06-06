@@ -1,5 +1,5 @@
 # Runtime dependency (Modbus communication via NeoPool library)
-neopool-modbus>=1.0.0
+neopool-modbus>=1.1.0
 
 # Type stubs for Home Assistant Core
 homeassistant-stubs
