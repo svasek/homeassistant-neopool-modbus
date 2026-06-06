@@ -15,7 +15,7 @@
     "pymodbus"
   ],
   "requirements": [
-    "neopool-modbus"
+    "neopool-modbus>=0.2.0"
   ],
   "version": "3.0.0"
 }
