@@ -214,5 +214,11 @@ async def async_get_device_serial(
     except asyncio.CancelledError:
         raise
     except NeoPoolError as err:
-        _LOGGER.warning("Trial Modbus read failed for %s:%s: %s", host, port, err)
+        _LOGGER.warning(
+            "Trial Modbus read failed for %s:%s: %s (%s)",
+            host,
+            port,
+            err,
+            type(err).__name__,
+        )
         return None
