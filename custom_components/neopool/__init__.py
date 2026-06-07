@@ -216,7 +216,10 @@ def _register_services(hass: HomeAssistant) -> None:
             raise
         except Exception as e:
             _LOGGER.error(
-                "Failed to set timer %s: %s", call.data.get("timer", "unknown"), e
+                "Failed to set timer %s: %s (%s)",
+                call.data.get("timer", "unknown"),
+                e,
+                type(e).__name__,
             )
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -278,7 +281,12 @@ def _register_services(hass: HomeAssistant) -> None:
         except ServiceValidationError:
             raise
         except Exception as e:
-            _LOGGER.error("Failed to write register 0x%04X: %s", address, e)
+            _LOGGER.error(
+                "Failed to write register 0x%04X: %s (%s)",
+                address,
+                e,
+                type(e).__name__,
+            )
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="register_write_failed",

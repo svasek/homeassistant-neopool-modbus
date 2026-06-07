@@ -379,7 +379,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         except Exception as err:
             self._consecutive_errors += 1
-            _LOGGER.error("Modbus communication error: %s", err)
+            _LOGGER.error(
+                "Modbus communication error: %s (%s)", err, type(err).__name__
+            )
 
             # Exponential backoff: double the interval, but never more than max
             current_interval = self.update_interval or self.normal_update_interval
