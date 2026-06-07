@@ -32,6 +32,7 @@ from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
 
 from .const import (
     CONF_FILTRATION_PUMP_POWER,
+    CURRENT_VERSION,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
@@ -39,7 +40,6 @@ from .const import (
     DOMAIN,
 )
 from .helpers import async_get_device_serial
-from .migration import CURRENT_VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,11 +57,10 @@ async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
 class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for NeoPool."""
 
-    # Mirrors `migration.CURRENT_VERSION` so that fresh entries created via
-    # this flow are born at the current schema version and don't trigger
-    # `async_migrate_entry` on first load. Cross-domain migration of legacy
-    # vistapool entries also targets this same version, keeping a single
-    # source of truth.
+    # HA contract: ConfigFlow subclasses must declare a class-level VERSION
+    # used to stamp fresh entries and to detect when async_migrate_entry
+    # needs to run. The single source of truth lives in const.CURRENT_VERSION
+    # — this attribute just exposes it under the name HA core looks for.
     VERSION = CURRENT_VERSION
 
     async def _async_validate_connection(self, user_input: dict) -> dict:

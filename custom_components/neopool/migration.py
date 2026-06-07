@@ -29,7 +29,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from .const import DOMAIN
+from .const import CURRENT_VERSION, DOMAIN
 from .helpers import async_get_device_serial
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,14 +37,13 @@ _LOGGER = logging.getLogger(__name__)
 # The legacy domain we migrate FROM during the v3 cross-domain rename.
 OLD_DOMAIN = "vistapool"
 
-# Target ConfigEntry version for the v4 release. Reached in steps:
+# CURRENT_VERSION (imported from .const) is reached in steps:
 #   v1 → v2  serial-based unique_id (HA-driven async_migrate_entry, or
 #            cross-domain Step 0 if the entry is still under vistapool).
 #   v2 → v3  cross-domain rename (migrate_single_entry_cross_domain,
 #            invoked from the neopool config flow).
 #   v3 → v4  marker bump after the neopool-modbus library extraction
 #            (HA-driven async_migrate_entry — no data-shape change).
-CURRENT_VERSION = 4
 
 # Marker used to validate that the orphaned `custom_components/vistapool/`
 # directory we're about to delete actually belonged to OUR integration

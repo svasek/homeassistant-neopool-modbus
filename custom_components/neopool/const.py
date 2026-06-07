@@ -57,6 +57,25 @@ DEFAULT_PORT = 502
 DEFAULT_SLAVE_ID = 1
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ConfigEntry schema version
+# ─────────────────────────────────────────────────────────────────────────────
+# Single source of truth for the ConfigEntry version: imported by both
+# `migration.py` (which writes it during migrations) and `config_flow.py`
+# (whose `NeoPoolConfigFlow.VERSION` class attribute mirrors it so HA
+# stamps fresh entries at the current schema version). Lives in const.py
+# rather than migration.py so the two consumers are symmetric — neither
+# is the "owner".
+#
+# Reached in steps:
+#   v1 → v2  serial-based unique_id (HA-driven async_migrate_entry, or
+#            cross-domain Step 0 if the entry is still under vistapool).
+#   v2 → v3  cross-domain rename (migrate_single_entry_cross_domain,
+#            invoked from the neopool config flow).
+#   v3 → v4  marker bump after the neopool-modbus library extraction
+#            (HA-driven async_migrate_entry — no data-shape change).
+CURRENT_VERSION = 4
+
 # Command registers that auto-clear to 0 after write; read-back verification must be skipped.
 # MBF_RELAY_STATE has 7 relays (bits 0-6); MBF_PAR_UV_RELAY_GPIO is a 1-based index.
 
