@@ -543,6 +543,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
 
     @property
     def available(self) -> bool:  # type: ignore[override]
+        """Return whether the select entity should be presented as available."""
         if self._key == "MBF_PAR_FILTRATION_SPEED":
             if not super().available:
                 return False

@@ -66,6 +66,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entry: ConfigEntry,
         entry_id: str,
     ) -> None:
+        """Initialise the NeoPool data update coordinator."""
         # Store normal and maximal intervals
         self.normal_update_interval = timedelta(
             seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
@@ -404,6 +405,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed(f"Modbus communication error: {err}") from err
 
     async def set_auto_time_sync(self, enabled: bool):
+        """Persist the auto_time_sync flag and refresh the entry options."""
         self.auto_time_sync = enabled
         # Update the entry options to reflect the change
         # This is necessary to persist the setting across restarts
@@ -414,6 +416,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hass.config_entries.async_update_entry(self.entry, options=options)
 
     async def set_winter_mode(self, enabled: bool):
+        """Toggle winter mode and persist the capability snapshot."""
         self.winter_mode = enabled
         options = dict(self.entry.options)
         options["winter_mode"] = enabled
@@ -431,12 +434,15 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @property
     def firmware(self) -> str:
+        """Return the device firmware version string."""
         return self._firmware
 
     @property
     def model(self) -> str:
+        """Return the device model string."""
         return self._model
 
     @property
     def device_slug(self) -> str:  # pragma: no cover
+        """Return the slugified device name used as object_id prefix."""
         return slugify(self.device_name)

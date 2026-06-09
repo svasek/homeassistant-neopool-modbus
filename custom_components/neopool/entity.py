@@ -39,6 +39,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     _winter_mode_active: bool = True
 
     def __init__(self, coordinator: NeoPoolCoordinator, entry_id: str) -> None:
+        """Initialise the base NeoPool entity."""
         super().__init__(coordinator)
         self._entry_id = entry_id
 

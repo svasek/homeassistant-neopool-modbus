@@ -391,4 +391,5 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
     def async_get_options_flow(
         config_entry: ConfigEntry,
     ) -> NeoPoolOptionsFlowHandler:
+        """Return the options flow handler for this entry."""
         return NeoPoolOptionsFlowHandler()
