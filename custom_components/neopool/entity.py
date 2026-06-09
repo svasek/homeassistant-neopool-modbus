@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-NeoPool Integration for Home Assistant - Entity Module
+"""NeoPool integration for Home Assistant - Entity module.
 
 This module defines the base entity class for the NeoPool integration.
 It provides common functionality for all entities, including device information,

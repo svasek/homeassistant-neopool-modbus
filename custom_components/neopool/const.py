@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-NeoPool Integration for Home Assistant - Constants
+"""NeoPool integration for Home Assistant - constants.
 
 This file contains metadata about the integration such as name, version, domain, etc.
 The manifest file is loaded to get the integration name and version

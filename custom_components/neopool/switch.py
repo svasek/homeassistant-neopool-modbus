@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Switch Module"""
+"""NeoPool integration for Home Assistant - Switch module."""
 
 import logging
 from collections.abc import Mapping

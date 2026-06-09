@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Light Module"""
+"""NeoPool integration for Home Assistant - Light module."""
 
 import logging
 from typing import Any

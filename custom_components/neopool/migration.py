@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Config Entry Migration"""
+"""NeoPool integration for Home Assistant - Config entry migration."""
 
 import asyncio
 import json

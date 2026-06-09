@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Coordinator Module"""
+"""NeoPool integration for Home Assistant - Coordinator module."""
 
 import json
 import logging

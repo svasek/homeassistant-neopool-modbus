@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-NeoPool Integration for Home Assistant - Helpers Module
+"""NeoPool integration for Home Assistant - Helpers module.
 
 This module contains helper functions for the NeoPool integration.
 It includes functions to handle device time, prepare data for writing to the device,

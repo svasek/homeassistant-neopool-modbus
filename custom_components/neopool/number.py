@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Number Module"""
+"""NeoPool integration for Home Assistant - Number module."""
 
 import asyncio
 import logging
