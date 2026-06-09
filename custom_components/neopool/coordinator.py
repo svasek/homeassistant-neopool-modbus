@@ -23,7 +23,6 @@ from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -407,11 +406,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 self.update_interval = next_interval
 
-            # If we have never received data, prevent the entry from loading.
-            if getattr(self, "data", None) is None:
-                raise ConfigEntryNotReady(f"Error fetching data: {err}") from err
-            # Raise UpdateFailed so the coordinator marks last_update_success=False.
-            # All entities (except winter_mode and auto_time_sync switches) become unavailable.
+            # Always raise UpdateFailed; HA core converts it to
+            # ConfigEntryNotReady automatically on the first refresh
+            # (when self.data is still None) via async_config_entry_first_refresh.
             _LOGGER.warning("Modbus error - marking all entities unavailable")
             raise UpdateFailed(f"Modbus communication error: {err}") from err
 
