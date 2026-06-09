@@ -704,8 +704,7 @@ def _read_manifest_json(path: Path) -> dict:
 
 
 async def async_cleanup_legacy_files(hass: HomeAssistant) -> None:
-    """Remove .py modules whose implementation moved to the neopool-modbus
-    PyPI library.
+    """Remove .py modules whose implementation moved to the neopool-modbus PyPI library.
 
     HACS extracts ZIP releases on top of the existing
     `custom_components/neopool/` directory without deleting files that no

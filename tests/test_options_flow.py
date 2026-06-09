@@ -67,10 +67,10 @@ async def test_options_unlock_advanced_correct(monkeypatch):
     mock_config_entry.data = {"name": "Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.neopool.options_flow.date") as mock_date:
-        mock_today = MagicMock()
-        mock_today.year = 2025
-        mock_date.today.return_value = mock_today
+    with patch("custom_components.neopool.options_flow.dt_util") as mock_dt_util:
+        mock_now = MagicMock()
+        mock_now.year = 2025
+        mock_dt_util.now.return_value = mock_now
         # Password is derived from slugified name, NOT from unique_id
         user_input = {"unlock_advanced": "pool2025"}
         flow.async_step_advanced = AsyncMock(return_value="advanced_step_called")
@@ -88,8 +88,8 @@ async def test_options_unlock_advanced_wrong(monkeypatch, caplog):
     mock_config_entry.data = {"name": "Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.neopool.options_flow.date") as mock_date:
-        mock_date.today.return_value.year = 2025
+    with patch("custom_components.neopool.options_flow.dt_util") as mock_dt_util:
+        mock_dt_util.now.return_value.year = 2025
         user_input = {"unlock_advanced": "wrongpassword"}
         result = await flow.async_step_init(user_input=user_input)
         # Should show error in form
@@ -108,10 +108,10 @@ async def test_options_unlock_advanced_correct_slug_fallback(monkeypatch):
     mock_config_entry.data = {"name": "My Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.neopool.options_flow.date") as mock_date:
-        mock_today = MagicMock()
-        mock_today.year = 2025
-        mock_date.today.return_value = mock_today
+    with patch("custom_components.neopool.options_flow.dt_util") as mock_dt_util:
+        mock_now = MagicMock()
+        mock_now.year = 2025
+        mock_dt_util.now.return_value = mock_now
         # slugify("My Pool") == "my_pool", so expected password is "my_pool2025"
         user_input = {"unlock_advanced": "my_pool2025"}
         flow.async_step_advanced = AsyncMock(return_value="advanced_step_called")
@@ -129,8 +129,8 @@ async def test_options_unlock_advanced_wrong_slug_fallback(monkeypatch, caplog):
     mock_config_entry.data = {"name": "My Pool"}
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.neopool.options_flow.date") as mock_date:
-        mock_date.today.return_value.year = 2025
+    with patch("custom_components.neopool.options_flow.dt_util") as mock_dt_util:
+        mock_dt_util.now.return_value.year = 2025
         user_input = {"unlock_advanced": "wrongpassword"}
         result = await flow.async_step_init(user_input=user_input)
         assert result.get("type") == "form"
@@ -148,10 +148,10 @@ async def test_options_unlock_advanced_title_fallback(monkeypatch):
     mock_config_entry.title = "My Pool"
     flow = make_flow(mock_config_entry)
 
-    with patch("custom_components.neopool.options_flow.date") as mock_date:
-        mock_today = MagicMock()
-        mock_today.year = 2025
-        mock_date.today.return_value = mock_today
+    with patch("custom_components.neopool.options_flow.dt_util") as mock_dt_util:
+        mock_now = MagicMock()
+        mock_now.year = 2025
+        mock_dt_util.now.return_value = mock_now
         # Falls back to slugify("My Pool") == "my_pool"
         user_input = {"unlock_advanced": "my_pool2025"}
         flow.async_step_advanced = AsyncMock(return_value="advanced_step_called")

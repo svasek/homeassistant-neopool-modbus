@@ -335,7 +335,8 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
             await client.async_write_register(self._register, value)
             if self._key == "MBF_PAR_FILT_MODE" and option == "backwash":
                 _LOGGER.info(
-                    f'Your pool "{NeoPoolEntity.slugify(self.coordinator.device_name)}" has been switched to the BACKWASH mode!'
+                    'Your pool "%s" has been switched to the BACKWASH mode!',
+                    NeoPoolEntity.slugify(self.coordinator.device_name),
                 )
 
             # Optimistic update + schedule follow-up
@@ -422,7 +423,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
             if value is not None:
                 current_hhmm = seconds_to_hhmm(value)
                 if current_hhmm not in options_list:  # pragma: no cover
-                    return [current_hhmm] + options_list
+                    return [current_hhmm, *options_list]
             return options_list
 
         # Handle Timer Period options
@@ -443,9 +444,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
             value = self.coordinator.data.get(f"{timer_name}_enable")
             # Dynamically add "disabled" at the beginning if enable==0
             if value == 0 and "disabled" not in options:
-                options = ["disabled"] + options
+                options = ["disabled", *options]
             if value == 2 and "auto_linked" not in options:  # pragma: no cover
-                options = ["auto_linked"] + options
+                options = ["auto_linked", *options]
             return options
 
         # Mapped register selects: return labels from options_map.
@@ -455,7 +456,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
             value = self.coordinator.data.get(self._key)
             if isinstance(value, int) and value not in self._options_map:
                 suffix = self._props.get("fallback_suffix", "")
-                return [f"{value}{suffix}"] + options
+                return [f"{value}{suffix}", *options]
             return options
 
         return [self._options_map[k] for k in option_keys]

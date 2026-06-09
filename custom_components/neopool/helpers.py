@@ -54,17 +54,15 @@ def get_device_time(
         # WORKAROUND: This is the naive datetime object, without timezone info
         dt_naive = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=unix_ts)
         dt_local = dt_naive.replace(tzinfo=local_tz)
-        dt_utc = dt_local.astimezone(datetime.timezone.utc)
-        return dt_utc
-    else:
-        return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.timezone.utc)
+        return dt_local.astimezone(datetime.timezone.utc)
+    return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.timezone.utc)
 
 
 # This function prepares the device time for writing to the device
 # It takes the current time in the local timezone and converts it to a format suitable for the device
 def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
-    """
-    Prepare device time for writing to the device.
+    """Prepare device time for writing to the device.
+
     Returns a list of two integers representing the low and high parts of the time.
     """
     if hass:

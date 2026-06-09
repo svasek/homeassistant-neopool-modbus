@@ -22,7 +22,8 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
-from homeassistant.helpers import device_registry as dr, translation as ha_translation
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from homeassistant.util import slugify
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER

@@ -286,7 +286,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         _LOGGER.debug("Applied dev overrides: %s", overrides)
                     else:  # pragma: no cover
                         _LOGGER.warning("dev_overrides must be a JSON object (dict)")
-            except (json.JSONDecodeError, TypeError, ValueError) as dev_err:  # pragma: no cover
+            except (
+                json.JSONDecodeError,
+                TypeError,
+                ValueError,
+            ) as dev_err:  # pragma: no cover
                 _LOGGER.warning("Failed to apply dev_overrides: %s", dev_err)
 
             # Keep heating and intelligent setpoints synchronized based on the last change.
@@ -367,7 +371,13 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             data["MBF_PAR_HEATING_TEMP"],
                             data["MBF_PAR_INTELLIGENT_TEMP"],
                         )
-            except (NeoPoolError, OSError, KeyError, TypeError, ValueError) as sync_err:  # pragma: no cover
+            except (
+                NeoPoolError,
+                OSError,
+                KeyError,
+                TypeError,
+                ValueError,
+            ) as sync_err:  # pragma: no cover
                 _LOGGER.debug("Setpoint auto-sync skipped due to error: %s", sync_err)
             # Keep capability snapshot up-to-date after every successful read and
             # persist it to options so it survives HA restarts while Modbus is down.
@@ -389,9 +399,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Exponential backoff: double the interval, but never more than max
             current_interval = self.update_interval or self.normal_update_interval
-            next_interval = current_interval * 2
-            if next_interval > self.max_update_interval:  # pragma: no cover
-                next_interval = self.max_update_interval
+            next_interval = min(current_interval * 2, self.max_update_interval)
             if self.update_interval != next_interval:
                 _LOGGER.warning(
                     "Increasing update interval to %s seconds due to communication errors.",
