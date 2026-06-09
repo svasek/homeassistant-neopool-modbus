@@ -134,7 +134,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _check_gpio_registers(self, data: dict) -> None:
         """Validate GPIO register values after first successful read.
 
-        GPIO registers assign physical relay outputs (valid range 0–MAX_RELAY_GPIO).
+        GPIO registers assign physical relay outputs (valid range 0-MAX_RELAY_GPIO).
         A value outside this range indicates register corruption, which can happen
         when the Modbus gateway framing mode does not match the integration's framer
         setting (e.g. transparent gateway with TCP framer).
@@ -146,7 +146,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 corrupted.append((key, label, value))
                 _LOGGER.error(
                     "Corrupted GPIO register %s (%s): value %d (0x%04X) is outside "
-                    "valid range 0–%d. The pool controller may malfunction",
+                    "valid range 0-%d. The pool controller may malfunction",
                     key,
                     label,
                     value,
@@ -159,7 +159,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if corrupted:
             details = "\n".join(
-                f"- **{label}** (`{key}`): value **{value}** (expected 0–{MAX_RELAY_GPIO})"
+                f"- **{label}** (`{key}`): value **{value}** (expected 0-{MAX_RELAY_GPIO})"
                 for key, label, value in corrupted
             )
             ir.async_create_issue(
@@ -179,7 +179,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         # Winter mode: skip all Modbus communication; entities remain but show unknown values
         if self.winter_mode:
-            _LOGGER.debug("Winter mode active – skipping Modbus communication")
+            _LOGGER.debug("Winter mode active - skipping Modbus communication")
             return self.data if self.data is not None else self._capability_snapshot
 
         try:
@@ -400,7 +400,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise ConfigEntryNotReady(f"Error fetching data: {err}") from err
             # Raise UpdateFailed so the coordinator marks last_update_success=False.
             # All entities (except winter_mode and auto_time_sync switches) become unavailable.
-            _LOGGER.warning("Modbus error – marking all entities unavailable")
+            _LOGGER.warning("Modbus error - marking all entities unavailable")
             raise UpdateFailed(f"Modbus communication error: {err}") from err
 
     async def set_auto_time_sync(self, enabled: bool):

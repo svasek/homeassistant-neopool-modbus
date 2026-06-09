@@ -364,7 +364,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):  # type: ignore[reportIncompat
     @property
     def available(self) -> bool:  # type: ignore[override]
         """Return True if the switch is available."""
-        # These switches are pure HA settings (not device state) – always operable.
+        # These switches are pure HA settings (not device state) - always operable.
         if self._switch_type in ("winter_mode", "auto_time_sync"):
             return True
         if not super().available:

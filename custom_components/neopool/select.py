@@ -487,10 +487,10 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
             # 0: Inactive
             if reg_val == 0:
                 return self._options_map[0]
-            # 1: Active (redox control disabled) – bit 0x8000 set
+            # 1: Active (redox control disabled) - bit 0x8000 set
             elif reg_val & 0x8000:
                 return self._options_map[1]
-            # 2: Active (Redox control) – bits 0x0500 | 0x00A0 set and 0x8000 NOT set
+            # 2: Active (Redox control) - bits 0x0500 | 0x00A0 set and 0x8000 NOT set
             elif (reg_val & (0x0500 | 0x00A0)) == (0x0500 | 0x00A0):
                 return self._options_map[2]
             # fallback (should not occur)
