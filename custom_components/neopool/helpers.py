@@ -30,7 +30,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from neopool_modbus import async_probe_serial
 from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
+from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER, is_valid_relay_gpio
+
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -138,8 +140,6 @@ def has_filtvalve(data: dict) -> bool:
     for cases where GPIO is 0 but the feature flag is explicitly set.
     Values outside the valid relay range (1-7) are treated as not present.
     """
-    from neopool_modbus.registers import is_valid_relay_gpio
-
     gpio = data.get("MBF_PAR_FILTVALVE_GPIO") or 0
     enable = data.get("MBF_PAR_FILTVALVE_ENABLE") or 0
     return is_valid_relay_gpio(gpio) or enable != 0
@@ -147,8 +147,6 @@ def has_filtvalve(data: dict) -> bool:
 
 def parse_register_int(raw: int | str, name: str) -> int:
     """Parse an integer from decimal or hex string (e.g. '1539' or '0x0603')."""
-    from .const import DOMAIN
-
     if isinstance(raw, bool):
         raise ServiceValidationError(
             translation_domain=DOMAIN,

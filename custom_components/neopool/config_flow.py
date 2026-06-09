@@ -16,16 +16,13 @@
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
-
-if TYPE_CHECKING:
-    from .options_flow import NeoPoolOptionsFlowHandler
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
-from homeassistant.helpers import translation as ha_translation
+from homeassistant.helpers import device_registry as dr, translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from homeassistant.util import slugify
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
@@ -40,6 +37,8 @@ from .const import (
     DOMAIN,
 )
 from .helpers import async_get_device_serial
+from .migration import async_cleanup_old_folder, migrate_single_entry_cross_domain
+from .options_flow import NeoPoolOptionsFlowHandler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -250,11 +249,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
           - Fall through to the regular `async_step_user` form so the user
             can manually configure a fresh, unrelated neopool entry.
         """
-        from .migration import (
-            async_cleanup_old_folder,
-            migrate_single_entry_cross_domain,
-        )
-
         # The legacy entry might have been removed between async_step_user
         # detecting it and the user clicking Submit — re-resolve to be safe.
         legacy_entry = self.hass.config_entries.async_get_entry(self._legacy_entry_id)
@@ -278,8 +272,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
         # area_id, name_by_user, or labels. We capture them here keyed by
         # the device's serial-based identifier so we can match them onto the
         # new device after migration.
-        from homeassistant.helpers import device_registry as dr
-
         device_registry = dr.async_get(self.hass)
         snapshots: dict[str, dict[str, Any]] = {}
         for device in dr.async_entries_for_config_entry(
@@ -398,7 +390,5 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
     @staticmethod
     def async_get_options_flow(
         config_entry: ConfigEntry,
-    ) -> "NeoPoolOptionsFlowHandler":
-        from .options_flow import NeoPoolOptionsFlowHandler
-
+    ) -> NeoPoolOptionsFlowHandler:
         return NeoPoolOptionsFlowHandler()

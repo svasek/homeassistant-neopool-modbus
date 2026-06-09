@@ -193,9 +193,9 @@ def test_async_get_options_flow(monkeypatch):
         def __init__(self):
             self.called = True
 
-    # Patch import ve funkci
+    # Patch the symbol bound in config_flow's namespace (top-level import)
     monkeypatch.setattr(
-        "custom_components.neopool.options_flow.NeoPoolOptionsFlowHandler",
+        "custom_components.neopool.config_flow.NeoPoolOptionsFlowHandler",
         DummyOptionsFlow,
     )
     config_entry = DummyConfigEntry()
@@ -1229,11 +1229,11 @@ async def test_import_step_runs_migration_and_restores_device():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(return_value=2),
         ) as migrate_mock,
         patch(
-            "custom_components.neopool.migration.async_cleanup_old_folder",
+            "custom_components.neopool.config_flow.async_cleanup_old_folder",
             new=AsyncMock(return_value=True),
         ) as cleanup_mock,
         patch(
@@ -1285,11 +1285,11 @@ async def test_import_step_skips_device_without_vistapool_identifier():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(return_value=0),
         ),
         patch(
-            "custom_components.neopool.migration.async_cleanup_old_folder",
+            "custom_components.neopool.config_flow.async_cleanup_old_folder",
             new=AsyncMock(return_value=True),
         ),
         patch(
@@ -1335,11 +1335,11 @@ async def test_import_step_skips_restore_when_migrated_device_missing():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(return_value=0),
         ),
         patch(
-            "custom_components.neopool.migration.async_cleanup_old_folder",
+            "custom_components.neopool.config_flow.async_cleanup_old_folder",
             new=AsyncMock(return_value=True),
         ),
         patch(
@@ -1372,7 +1372,7 @@ async def test_import_step_aborts_on_migration_failure():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(side_effect=RuntimeError("simulated failure")),
         ),
         patch(
