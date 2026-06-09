@@ -377,7 +377,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 options = dict(self.entry.options)
                 options["_capabilities"] = new_snapshot
                 self.hass.config_entries.async_update_entry(self.entry, options=options)
-            return data
+            # The except clause below always re-raises, so returning here
+            # rather than from an `else:` block keeps the happy path obvious.
+            return data  # noqa: TRY300
 
         except Exception as err:
             self._consecutive_errors += 1

@@ -161,12 +161,12 @@ def parse_register_int(raw: int | str, name: str) -> int:
         )
     try:
         val = int(raw, 0) if isinstance(raw, str) else int(raw)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as err:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="invalid_register_type",
             translation_placeholders={"name": name, "value": str(raw)},
-        )
+        ) from err
     if not 0 <= val <= 65535:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
