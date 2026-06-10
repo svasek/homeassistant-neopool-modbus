@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-NeoPool Integration for Home Assistant - Helpers Module
+"""NeoPool integration for Home Assistant - Helpers module.
 
 This module contains helper functions for the NeoPool integration.
 It includes functions to handle device time, prepare data for writing to the device,
@@ -31,7 +30,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from neopool_modbus import async_probe_serial
 from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
+from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER, is_valid_relay_gpio
+
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,20 +51,19 @@ def get_device_time(
     unix_ts = (high << 16) | low
     if hass:
         local_tz = dt_util.get_time_zone(hass.config.time_zone)
-        # WORKAROUND: This is the naive datetime object, without timezone info
-        dt_naive = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=unix_ts)
+        # The naive datetime is intentional: we localise it to the HA timezone
+        # below before converting to UTC, since the device clock has no tz info.
+        dt_naive = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=unix_ts)  # noqa: DTZ001
         dt_local = dt_naive.replace(tzinfo=local_tz)
-        dt_utc = dt_local.astimezone(datetime.timezone.utc)
-        return dt_utc
-    else:
-        return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.timezone.utc)
+        return dt_local.astimezone(datetime.timezone.utc)
+    return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.timezone.utc)
 
 
 # This function prepares the device time for writing to the device
 # It takes the current time in the local timezone and converts it to a format suitable for the device
 def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
-    """
-    Prepare device time for writing to the device.
+    """Prepare device time for writing to the device.
+
     Returns a list of two integers representing the low and high parts of the time.
     """
     if hass:
@@ -73,7 +73,9 @@ def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
         epoch_local = datetime.datetime(1970, 1, 1, tzinfo=ha_tz)
         unix_time_local = int((now_local - epoch_local).total_seconds())
     else:  # pragma: no cover
-        unix_time_local = int(datetime.datetime.now().timestamp())
+        # No hass available (unit tests / standalone helpers): fall back to the
+        # host clock. The device protocol expects local epoch seconds, not UTC.
+        unix_time_local = int(datetime.datetime.now().timestamp())  # noqa: DTZ005
     low = unix_time_local & 0xFFFF
     high = (unix_time_local >> 16) & 0xFFFF
     return [low, high]
@@ -139,8 +141,6 @@ def has_filtvalve(data: dict) -> bool:
     for cases where GPIO is 0 but the feature flag is explicitly set.
     Values outside the valid relay range (1-7) are treated as not present.
     """
-    from neopool_modbus.registers import is_valid_relay_gpio
-
     gpio = data.get("MBF_PAR_FILTVALVE_GPIO") or 0
     enable = data.get("MBF_PAR_FILTVALVE_ENABLE") or 0
     return is_valid_relay_gpio(gpio) or enable != 0
@@ -148,8 +148,6 @@ def has_filtvalve(data: dict) -> bool:
 
 def parse_register_int(raw: int | str, name: str) -> int:
     """Parse an integer from decimal or hex string (e.g. '1539' or '0x0603')."""
-    from .const import DOMAIN
-
     if isinstance(raw, bool):
         raise ServiceValidationError(
             translation_domain=DOMAIN,
@@ -164,12 +162,12 @@ def parse_register_int(raw: int | str, name: str) -> int:
         )
     try:
         val = int(raw, 0) if isinstance(raw, str) else int(raw)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as err:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="invalid_register_type",
             translation_placeholders={"name": name, "value": str(raw)},
-        )
+        ) from err
     if not 0 <= val <= 65535:
         raise ServiceValidationError(
             translation_domain=DOMAIN,

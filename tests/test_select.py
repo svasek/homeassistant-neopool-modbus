@@ -120,8 +120,11 @@ def test_options_add_backwash(mock_coordinator):
 
 
 def test_options_add_backwash_via_filtvalve(mock_coordinator):
-    """Backwash must appear automatically when MBF_PAR_FILTVALVE_ENABLE=1 (Besgo valve),
-    even without enable_backwash_option in config options."""
+    """Backwash appears automatically when a Besgo valve is enabled.
+
+    MBF_PAR_FILTVALVE_ENABLE=1 must add backwash to the options list even
+    without enable_backwash_option set in config options.
+    """
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off", 13: "backwash"})
     ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {"MBF_PAR_FILTVALVE_ENABLE": 1}
@@ -151,8 +154,11 @@ def test_options_add_backwash_via_gpio_only(mock_coordinator):
 
 
 def test_options_backwash_kept_when_active(mock_coordinator):
-    """Backwash must stay in options if device is currently in mode 13,
-    even when backwash is not allowed — so current_option stays valid."""
+    """Backwash stays in options if the device is currently in mode 13.
+
+    Even when backwash is not normally allowed, keeping it in options lets
+    current_option remain valid for the active mode.
+    """
     props = make_props(options_map={0: "auto", 1: "manual", 2: "off", 13: "backwash"})
     ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
     mock_coordinator.data = {
@@ -366,6 +372,7 @@ async def test_async_select_option_backwash(mock_coordinator):
 @pytest.mark.asyncio
 async def test_async_select_option_backwash_from_manual(mock_coordinator):
     """Switching from manual to backwash with a MANUAL valve must stop the pump first.
+
     The user needs the pump stopped so they can safely rotate the multi-way valve.
     """
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
@@ -393,8 +400,10 @@ async def test_async_select_option_backwash_from_manual(mock_coordinator):
 
 @pytest.mark.asyncio
 async def test_async_select_option_backwash_from_manual_auto_valve(mock_coordinator):
-    """Switching from manual to backwash with an AUTOMATIC valve (Besgo) must NOT
-    stop the pump - it must keep running so the valve opens correctly.
+    """Switching from manual to backwash with an AUTOMATIC valve must keep the pump running.
+
+    A Besgo automatic valve needs flow to open correctly, so the pump must
+    keep running across the mode transition.
     """
     props = SELECT_DEFINITIONS["MBF_PAR_FILT_MODE"]
     ent = NeoPoolSelect(mock_coordinator, "test_entry", "MBF_PAR_FILT_MODE", props)
@@ -1129,7 +1138,7 @@ async def test_select_filtvalve_mode_created_with_gpio_only(mock_coordinator):
         (1, "enabled"),
         (3, "always_on"),
         (4, "always_off"),
-        (0, None),  # disabled – not in options_map, returns None
+        (0, None),  # disabled - not in options_map, returns None
     ],
 )
 def test_select_filtvalve_mode_current_option(

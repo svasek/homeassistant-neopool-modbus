@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant"""
+"""NeoPool integration for Home Assistant."""
 
 import logging
 
@@ -30,7 +30,9 @@ from .coordinator import NeoPoolCoordinator
 
 # Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
 # from the integration's __init__ module when config entry version changes.
-from .migration import async_migrate_entry as async_migrate_entry  # noqa: F401
+from .migration import async_cleanup_legacy_files, async_migrate_entry
+
+__all__ = ["async_migrate_entry"]
 
 type NeoPoolConfigEntry = ConfigEntry[NeoPoolCoordinator]
 
@@ -91,8 +93,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
 
     # Remove .py modules whose implementation moved to the neopool-modbus
     # PyPI library; HACS does not prune deleted files on upgrade.
-    from .migration import async_cleanup_legacy_files
-
     await async_cleanup_legacy_files(hass)
 
     # Forward entities setup to Home Assistant

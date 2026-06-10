@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-NeoPool Integration for Home Assistant - Constants
+"""NeoPool integration for Home Assistant - constants.
 
 This file contains metadata about the integration such as name, version, domain, etc.
 The manifest file is loaded to get the integration name and version
@@ -674,9 +673,9 @@ SELECT_DEFINITIONS = {
         "name": "Backwash Valve Mode",
         "entity_category": EntityCategory.CONFIG,
         "options_map": {
-            # 0: "disabled",     # valve disabled – hidden (covered by MBF_PAR_FILTVALVE_ENABLE)
+            # 0: "disabled",     # valve disabled - hidden (covered by MBF_PAR_FILTVALVE_ENABLE)
             1: "enabled",  # timer-controlled (MBV_PAR_CTIMER_ENABLED)
-            # 2: "auto_linked",  # linked to parent relay – not applicable for filtvalve
+            # 2: "auto_linked",  # linked to parent relay - not applicable for filtvalve
             3: "always_on",  # MBV_PAR_CTIMER_ALWAYS_ON
             4: "always_off",  # MBV_PAR_CTIMER_ALWAYS_OFF
         },

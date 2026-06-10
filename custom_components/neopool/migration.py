@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Config Entry Migration"""
+"""NeoPool integration for Home Assistant - Config entry migration."""
 
 import asyncio
 import json
@@ -26,6 +26,7 @@ from homeassistant.config_entries import (
     ConfigEntryChange,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
@@ -195,7 +196,7 @@ async def _migrate_v1_to_v2(
         try:
             entity_registry.async_update_entity(entity_id, new_unique_id=new_uid)
             applied.append((entity_id, old_uid, new_uid))
-        except Exception as err:
+        except (HomeAssistantError, ValueError, KeyError) as err:
             _LOGGER.error("Failed to migrate entity %s: %s", entity_id, err)
             # Roll back already-applied changes
             rollback_failed = False
@@ -205,6 +206,9 @@ async def _migrate_v1_to_v2(
                         rb_entity_id, new_unique_id=rb_old_uid
                     )
                 except Exception as rb_err:  # noqa: BLE001
+                    # Best-effort: if a single entry can't be restored we log
+                    # it and keep going with the rest, then raise the original
+                    # migration failure to the caller.
                     _LOGGER.error(
                         "Rollback failed for entity %s: %s", rb_entity_id, rb_err
                     )
@@ -307,7 +311,12 @@ async def async_migrate_from_vistapool(hass: HomeAssistant) -> dict:
             summary["errors"].append(
                 f"{old_entry.title}: deferred (controller offline)"
             )
-        except Exception as err:  # noqa: BLE001
+        except Exception as err:
+            # Intentionally broad: this loop processes every legacy vistapool
+            # entry independently and a single bad one must not abort the
+            # rest. Anything raised by migrate_single_entry_cross_domain
+            # (HomeAssistantError, RuntimeError, OSError, NeoPoolError, …)
+            # is logged and counted as a failure for this entry.
             _LOGGER.exception(
                 "Cross-domain migration failed for vistapool entry %s",
                 old_entry.entry_id,
@@ -498,7 +507,11 @@ async def migrate_single_entry_cross_domain(
                             OLD_DOMAIN,
                             new_config_entry_id=old_entry.entry_id,
                         )
-                    except Exception:  # noqa: BLE001
+                    except Exception:
+                        # Best-effort: if this entity can't be restored we
+                        # log and continue with the rest, then re-raise the
+                        # original ValueError so the caller surfaces the
+                        # migration failure.
                         _LOGGER.exception("Rollback failed for %s", ent_id)
                 raise
 
@@ -580,11 +593,9 @@ def _register_entry_without_setup(hass: HomeAssistant, entry: ConfigEntry) -> No
     so an aborted migration leaves no stale row in
     `.storage/core.config_entries`.
     """
-    hass.config_entries._entries[entry.entry_id] = entry  # noqa: SLF001
+    hass.config_entries._entries[entry.entry_id] = entry
     hass.config_entries.async_update_issues()
-    hass.config_entries._async_dispatch(  # noqa: SLF001
-        ConfigEntryChange.ADDED, entry
-    )
+    hass.config_entries._async_dispatch(ConfigEntryChange.ADDED, entry)
 
 
 def _unregister_entry_without_save(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -608,13 +619,11 @@ def _unregister_entry_without_save(hass: HomeAssistant, entry: ConfigEntry) -> N
     Idempotent — silent if the entry is already gone (e.g. test mocks
     that didn't actually populate `_entries`).
     """
-    if hass.config_entries._entries.get(entry.entry_id) is None:  # noqa: SLF001
+    if hass.config_entries._entries.get(entry.entry_id) is None:
         return
-    del hass.config_entries._entries[entry.entry_id]  # noqa: SLF001
+    del hass.config_entries._entries[entry.entry_id]
     hass.config_entries.async_update_issues()
-    hass.config_entries._async_dispatch(  # noqa: SLF001
-        ConfigEntryChange.REMOVED, entry
-    )
+    hass.config_entries._async_dispatch(ConfigEntryChange.REMOVED, entry)
 
 
 async def _setup_registered_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -626,7 +635,7 @@ async def _setup_registered_entry(hass: HomeAssistant, entry: ConfigEntry) -> No
     first will fail inside `async_setup`.
     """
     await hass.config_entries.async_setup(entry.entry_id)
-    hass.config_entries._async_schedule_save()  # noqa: SLF001
+    hass.config_entries._async_schedule_save()
 
 
 async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
@@ -664,6 +673,8 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
     try:
         manifest = await hass.async_add_executor_job(_read_manifest_json, manifest_path)
     except Exception as err:  # noqa: BLE001
+        # Anything from JSONDecodeError to OSError counts as "manifest
+        # unreadable"; we refuse to delete a folder we can't identify.
         _LOGGER.warning(
             "Cannot read legacy manifest %s: %s — refusing to delete",
             manifest_path,
@@ -686,6 +697,9 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
     try:
         await hass.async_add_executor_job(shutil.rmtree, str(config_dir))
     except Exception as err:  # noqa: BLE001
+        # rmtree can raise PermissionError, OSError, or sub-classes thereof
+        # depending on the platform. We log and ask the user to remove the
+        # folder by hand rather than crashing the integration.
         _LOGGER.error(
             "Failed to delete legacy folder %s: %s — please remove it manually",
             config_dir,
@@ -703,8 +717,7 @@ def _read_manifest_json(path: Path) -> dict:
 
 
 async def async_cleanup_legacy_files(hass: HomeAssistant) -> None:
-    """Remove .py modules whose implementation moved to the neopool-modbus
-    PyPI library.
+    """Remove .py modules whose implementation moved to the neopool-modbus PyPI library.
 
     HACS extracts ZIP releases on top of the existing
     `custom_components/neopool/` directory without deleting files that no

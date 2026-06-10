@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Sensor Module"""
+"""NeoPool integration for Home Assistant - Sensor module."""
 
 import logging
 import math
@@ -383,6 +383,7 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
         entry_id: str,
         pump_power_w: int,
     ) -> None:
+        """Initialise the filtration-pump energy accumulator sensor."""
         super().__init__(coordinator, entry_id)
         self._pump_power_w = pump_power_w
         self._attr_suggested_object_id = (

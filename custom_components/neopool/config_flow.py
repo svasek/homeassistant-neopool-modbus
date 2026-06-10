@@ -12,19 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Config Flow"""
+"""NeoPool integration for Home Assistant - Config flow."""
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
-
-if TYPE_CHECKING:
-    from .options_flow import NeoPoolOptionsFlowHandler
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import translation as ha_translation
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from homeassistant.util import slugify
@@ -40,18 +38,22 @@ from .const import (
     DOMAIN,
 )
 from .helpers import async_get_device_serial
+from .migration import async_cleanup_old_folder, migrate_single_entry_cross_domain
+from .options_flow import NeoPoolOptionsFlowHandler
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
+    """Return True if a TCP connection to host:port can be established."""
     try:
         _, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout)
         writer.close()
         await writer.wait_closed()
-        return True
-    except Exception:
+    except (TimeoutError, OSError):
         return False
+    else:
+        return True
 
 
 class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
@@ -81,6 +83,8 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
             key = f"component.{DOMAIN}.config.step.user.data.name_default"
             return t.get(key) or DEFAULT_NAME
         except Exception:  # noqa: BLE001
+            # Translation lookup is best-effort; on any failure we fall
+            # back to the literal English default so the form still opens.
             return DEFAULT_NAME
 
     async def async_step_user(
@@ -250,11 +254,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
           - Fall through to the regular `async_step_user` form so the user
             can manually configure a fresh, unrelated neopool entry.
         """
-        from .migration import (
-            async_cleanup_old_folder,
-            migrate_single_entry_cross_domain,
-        )
-
         # The legacy entry might have been removed between async_step_user
         # detecting it and the user clicking Submit — re-resolve to be safe.
         legacy_entry = self.hass.config_entries.async_get_entry(self._legacy_entry_id)
@@ -278,8 +277,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
         # area_id, name_by_user, or labels. We capture them here keyed by
         # the device's serial-based identifier so we can match them onto the
         # new device after migration.
-        from homeassistant.helpers import device_registry as dr
-
         device_registry = dr.async_get(self.hass)
         snapshots: dict[str, dict[str, Any]] = {}
         for device in dr.async_entries_for_config_entry(
@@ -303,7 +300,13 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
         # ── Run the cross-domain migration ───────────────────────────────
         try:
             await migrate_single_entry_cross_domain(self.hass, legacy_entry)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
+            # Intentionally broad: migration walks entity / device / config
+            # registries and the Modbus probe, so it can surface anything
+            # from HomeAssistantError to RuntimeError / OSError / NeoPoolError
+            # / ValueError. We never want a config-flow step to crash with a
+            # traceback — surface the message via abort(migration_failed)
+            # and let the user retry.
             _LOGGER.exception(
                 "Cross-domain migration failed for %s",
                 legacy_entry.entry_id,
@@ -398,7 +401,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
     @staticmethod
     def async_get_options_flow(
         config_entry: ConfigEntry,
-    ) -> "NeoPoolOptionsFlowHandler":
-        from .options_flow import NeoPoolOptionsFlowHandler
-
+    ) -> NeoPoolOptionsFlowHandler:
+        """Return the options flow handler for this entry."""
         return NeoPoolOptionsFlowHandler()

@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from neopool_modbus.exceptions import NeoPoolError
 
 from custom_components.neopool.const import DOMAIN, FOLLOW_UP_REFRESH_DELAY
 from custom_components.neopool.coordinator import NeoPoolCoordinator
@@ -51,7 +52,7 @@ async def test_async_update_data_success(mock_entry):
 async def test_async_update_data_raises_UpdateFailed_on_subsequent_error(mock_entry):
     """When cached data exists, a Modbus error raises UpdateFailed (not a silent cache return)."""
     client = AsyncMock()
-    client.async_read_all = AsyncMock(side_effect=Exception("Modbus fail"))
+    client.async_read_all = AsyncMock(side_effect=NeoPoolError("Modbus fail"))
     client.read_all_timers = AsyncMock()
     coordinator = NeoPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id
@@ -65,7 +66,7 @@ async def test_async_update_data_raises_UpdateFailed_on_subsequent_error(mock_en
 @pytest.mark.asyncio
 async def test_async_update_data_raises_ConfigEntryNotReady_on_first_error(mock_entry):
     client = AsyncMock()
-    client.async_read_all = AsyncMock(side_effect=Exception("fail"))
+    client.async_read_all = AsyncMock(side_effect=NeoPoolError("fail"))
     client.read_all_timers = AsyncMock()
     coordinator = NeoPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id
@@ -81,7 +82,7 @@ async def test_async_update_data_raises_UpdateFailed_when_data_is_empty_dict(
 ):
     """An empty dict ({}) is treated as 'data was received' — subsequent errors raise UpdateFailed."""
     client = AsyncMock()
-    client.async_read_all = AsyncMock(side_effect=Exception("fail"))
+    client.async_read_all = AsyncMock(side_effect=NeoPoolError("fail"))
     client.read_all_timers = AsyncMock()
     coordinator = NeoPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id
@@ -483,7 +484,7 @@ async def test_winter_mode_returns_frozen_cached_data(mock_entry):
     data = await coordinator._async_update_data()
 
     client.async_read_all.assert_not_called()
-    assert data is cached  # same object – not a copy, frozen in place
+    assert data is cached  # same object - not a copy, frozen in place
 
 
 @pytest.mark.asyncio
@@ -551,8 +552,8 @@ async def test_set_winter_mode_snapshots_capability_keys(mock_entry):
         "MBF_PAR_MODEL": 3,
         "MBF_PAR_TEMPERATURE_ACTIVE": 1,
         "MBF_PAR_HEATING_GPIO": 5,
-        "MBF_MEASURE_TEMPERATURE": 27.5,  # measurement – must NOT be in snapshot
-        "MBF_PAR_FILT_MODE": 2,  # runtime value – must NOT be in snapshot
+        "MBF_MEASURE_TEMPERATURE": 27.5,  # measurement - must NOT be in snapshot
+        "MBF_PAR_FILT_MODE": 2,  # runtime value - must NOT be in snapshot
     }
 
     await coordinator.set_winter_mode(True)
@@ -596,8 +597,11 @@ async def test_winter_mode_restores_capabilities_from_options_on_restart(mock_en
 
 @pytest.mark.asyncio
 async def test_async_update_data_updates_capability_snapshot(mock_entry):
-    """A successful Modbus read updates _capability_snapshot with the capability keys
-    and persists it to entry.options so it survives HA restarts while Modbus is down."""
+    """A successful Modbus read updates the capability snapshot.
+
+    The snapshot contains all capability keys and is persisted to
+    entry.options so it survives HA restarts while Modbus is down.
+    """
     mock_entry.options = {"winter_mode": False}
 
     client = AsyncMock()

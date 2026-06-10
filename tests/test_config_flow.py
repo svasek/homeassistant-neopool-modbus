@@ -193,9 +193,9 @@ def test_async_get_options_flow(monkeypatch):
         def __init__(self):
             self.called = True
 
-    # Patch import ve funkci
+    # Patch the symbol bound in config_flow's namespace (top-level import)
     monkeypatch.setattr(
-        "custom_components.neopool.options_flow.NeoPoolOptionsFlowHandler",
+        "custom_components.neopool.config_flow.NeoPoolOptionsFlowHandler",
         DummyOptionsFlow,
     )
     config_entry = DummyConfigEntry()
@@ -621,7 +621,7 @@ async def test_get_default_name_falls_back_on_translation_error():
 
 
 # ---------------------------------------------------------------------------
-# async_step_user – name fallback
+# async_step_user - name fallback
 # ---------------------------------------------------------------------------
 
 
@@ -684,7 +684,7 @@ async def test_create_entry_no_name_key_uses_default():
 
 
 # ---------------------------------------------------------------------------
-# async_step_user – form schema defaults
+# async_step_user - form schema defaults
 # ---------------------------------------------------------------------------
 
 
@@ -742,7 +742,7 @@ async def test_user_form_schema_connection_defaults():
 
 
 # ---------------------------------------------------------------------------
-# async_step_user – optional flags stored correctly
+# async_step_user - optional flags stored correctly
 # ---------------------------------------------------------------------------
 
 
@@ -809,7 +809,7 @@ async def test_create_entry_stores_filtration_flags():
 
 
 # ---------------------------------------------------------------------------
-# async_step_reconfigure – missing optional keys fall back to constants
+# async_step_reconfigure - missing optional keys fall back to constants
 # ---------------------------------------------------------------------------
 
 
@@ -872,10 +872,12 @@ async def test_trial_modbus_read_success():
 
 @pytest.mark.asyncio
 async def test_trial_modbus_read_neopool_error_returns_none():
-    """Probe-level errors (timeout, connect refused, Modbus error, …) all
-    surface to the helper as NeoPoolError; the helper swallows them and
-    reports None so the config-flow / migration callers can treat them as
-    "device unreachable" rather than crashing."""
+    """Probe-level errors all surface to the helper as NeoPoolError.
+
+    Timeout, connect refused, Modbus error, etc. — the helper swallows them
+    and reports None so the config-flow / migration callers can treat them
+    as "device unreachable" rather than crashing.
+    """
     from neopool_modbus.exceptions import NeoPoolError
 
     from custom_components.neopool.helpers import async_get_device_serial
@@ -1229,11 +1231,11 @@ async def test_import_step_runs_migration_and_restores_device():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(return_value=2),
         ) as migrate_mock,
         patch(
-            "custom_components.neopool.migration.async_cleanup_old_folder",
+            "custom_components.neopool.config_flow.async_cleanup_old_folder",
             new=AsyncMock(return_value=True),
         ) as cleanup_mock,
         patch(
@@ -1285,11 +1287,11 @@ async def test_import_step_skips_device_without_vistapool_identifier():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(return_value=0),
         ),
         patch(
-            "custom_components.neopool.migration.async_cleanup_old_folder",
+            "custom_components.neopool.config_flow.async_cleanup_old_folder",
             new=AsyncMock(return_value=True),
         ),
         patch(
@@ -1335,11 +1337,11 @@ async def test_import_step_skips_restore_when_migrated_device_missing():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(return_value=0),
         ),
         patch(
-            "custom_components.neopool.migration.async_cleanup_old_folder",
+            "custom_components.neopool.config_flow.async_cleanup_old_folder",
             new=AsyncMock(return_value=True),
         ),
         patch(
@@ -1372,7 +1374,7 @@ async def test_import_step_aborts_on_migration_failure():
 
     with (
         patch(
-            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
             new=AsyncMock(side_effect=RuntimeError("simulated failure")),
         ),
         patch(

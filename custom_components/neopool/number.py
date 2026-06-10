@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Number Module"""
+"""NeoPool integration for Home Assistant - Number module."""
 
 import asyncio
 import logging
@@ -273,7 +273,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
         if (
             self.suggested_display_precision == 0 and raw is not None
         ):  # pragma: no cover
-            return int(round(raw))
+            return round(raw)
         if raw is None:
             return self._attr_native_value  # fallback if coordinator is not updated yet
         return round(raw, 2)

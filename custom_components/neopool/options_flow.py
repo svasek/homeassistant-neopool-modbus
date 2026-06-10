@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Options Flow Module"""
+"""NeoPool integration for Home Assistant - Options flow module."""
 
 import logging
-from datetime import date
 from typing import Any
 
 import voluptuous as vol
@@ -23,6 +22,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
+from homeassistant.util import dt as dt_util
 from homeassistant.util import slugify
 
 from .const import (
@@ -57,7 +57,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         device_slug = slugify(
             self.config_entry.data.get(CONF_NAME) or self.config_entry.title
         )
-        expected = f"{device_slug}{date.today().year}"
+        expected = f"{device_slug}{dt_util.now().year}"
 
         schema_dict = {
             vol.Optional(

@@ -129,7 +129,7 @@ def test_get_filtration_speed_cumulative_encoding(relay_state, expected):
     """Controllers using cumulative (thermometer) speed bits (#152)."""
     d = {
         "MBF_RELAY_STATE": relay_state,
-        "MBF_PAR_FILTRATION_CONF": 0x0020,  # conf says high – must be ignored
+        "MBF_PAR_FILTRATION_CONF": 0x0020,  # conf says high - must be ignored
         "Filtration Pump": True,
     }
     assert get_filtration_speed(d) == expected

@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-NeoPool Integration for Home Assistant - Entity Module
+"""NeoPool integration for Home Assistant - Entity module.
 
 This module defines the base entity class for the NeoPool integration.
 It provides common functionality for all entities, including device information,
@@ -40,6 +39,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     _winter_mode_active: bool = True
 
     def __init__(self, coordinator: NeoPoolCoordinator, entry_id: str) -> None:
+        """Initialise the base NeoPool entity."""
         super().__init__(coordinator)
         self._entry_id = entry_id
 
@@ -69,7 +69,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         machine_type = (get_machine_name(data) or "").strip()
         model_prefix = "NeoPool Compatible: " if machine_type else "NeoPool Compatible"
 
-        info = {
+        return {
             "identifiers": {(DOMAIN, hw_identifier)},
             "name": getattr(self.coordinator, "device_name", NAME),
             "model": f"{model_prefix}{machine_type}".strip(),
@@ -78,7 +78,6 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
             "sw_version": f"v{self.coordinator.firmware} (v{parse_version(data.get('MBF_PAR_VERSION'))})",
             "serial_number": serial_number,
         }
-        return info
 
     # Generate a unique object ID for the entity to use in Home Assistant
     # This remove the prefix "mbf_" and "par_" from the key and replaces spaces, dashes, and dots with underscores

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool Integration for Home Assistant - Coordinator Module"""
+"""NeoPool integration for Home Assistant - Coordinator module."""
 
 import json
 import logging
@@ -30,6 +30,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import slugify
 from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import parse_version
+from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
@@ -66,6 +67,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entry: ConfigEntry,
         entry_id: str,
     ) -> None:
+        """Initialise the NeoPool data update coordinator."""
         # Store normal and maximal intervals
         self.normal_update_interval = timedelta(
             seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
@@ -134,7 +136,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _check_gpio_registers(self, data: dict) -> None:
         """Validate GPIO register values after first successful read.
 
-        GPIO registers assign physical relay outputs (valid range 0–MAX_RELAY_GPIO).
+        GPIO registers assign physical relay outputs (valid range 0-MAX_RELAY_GPIO).
         A value outside this range indicates register corruption, which can happen
         when the Modbus gateway framing mode does not match the integration's framer
         setting (e.g. transparent gateway with TCP framer).
@@ -146,7 +148,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 corrupted.append((key, label, value))
                 _LOGGER.error(
                     "Corrupted GPIO register %s (%s): value %d (0x%04X) is outside "
-                    "valid range 0–%d. The pool controller may malfunction",
+                    "valid range 0-%d. The pool controller may malfunction",
                     key,
                     label,
                     value,
@@ -159,7 +161,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if corrupted:
             details = "\n".join(
-                f"- **{label}** (`{key}`): value **{value}** (expected 0–{MAX_RELAY_GPIO})"
+                f"- **{label}** (`{key}`): value **{value}** (expected 0-{MAX_RELAY_GPIO})"
                 for key, label, value in corrupted
             )
             ir.async_create_issue(
@@ -179,7 +181,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         # Winter mode: skip all Modbus communication; entities remain but show unknown values
         if self.winter_mode:
-            _LOGGER.debug("Winter mode active – skipping Modbus communication")
+            _LOGGER.debug("Winter mode active - skipping Modbus communication")
             return self.data if self.data is not None else self._capability_snapshot
 
         try:
@@ -284,7 +286,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         _LOGGER.debug("Applied dev overrides: %s", overrides)
                     else:  # pragma: no cover
                         _LOGGER.warning("dev_overrides must be a JSON object (dict)")
-            except Exception as dev_err:  # pragma: no cover
+            except (
+                json.JSONDecodeError,
+                TypeError,
+                ValueError,
+            ) as dev_err:  # pragma: no cover
                 _LOGGER.warning("Failed to apply dev_overrides: %s", dev_err)
 
             # Keep heating and intelligent setpoints synchronized based on the last change.
@@ -365,7 +371,13 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             data["MBF_PAR_HEATING_TEMP"],
                             data["MBF_PAR_INTELLIGENT_TEMP"],
                         )
-            except Exception as sync_err:  # pragma: no cover
+            except (
+                NeoPoolError,
+                OSError,
+                KeyError,
+                TypeError,
+                ValueError,
+            ) as sync_err:  # pragma: no cover
                 _LOGGER.debug("Setpoint auto-sync skipped due to error: %s", sync_err)
             # Keep capability snapshot up-to-date after every successful read and
             # persist it to options so it survives HA restarts while Modbus is down.
@@ -375,9 +387,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 options = dict(self.entry.options)
                 options["_capabilities"] = new_snapshot
                 self.hass.config_entries.async_update_entry(self.entry, options=options)
-            return data
+            # The except clause below always re-raises, so returning here
+            # rather than from an `else:` block keeps the happy path obvious.
+            return data  # noqa: TRY300
 
-        except Exception as err:
+        except (NeoPoolError, OSError, TimeoutError) as err:
             self._consecutive_errors += 1
             _LOGGER.error(
                 "Modbus communication error: %s (%s)", err, type(err).__name__
@@ -385,9 +399,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Exponential backoff: double the interval, but never more than max
             current_interval = self.update_interval or self.normal_update_interval
-            next_interval = current_interval * 2
-            if next_interval > self.max_update_interval:  # pragma: no cover
-                next_interval = self.max_update_interval
+            next_interval = min(current_interval * 2, self.max_update_interval)
             if self.update_interval != next_interval:
                 _LOGGER.warning(
                     "Increasing update interval to %s seconds due to communication errors.",
@@ -400,10 +412,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise ConfigEntryNotReady(f"Error fetching data: {err}") from err
             # Raise UpdateFailed so the coordinator marks last_update_success=False.
             # All entities (except winter_mode and auto_time_sync switches) become unavailable.
-            _LOGGER.warning("Modbus error – marking all entities unavailable")
+            _LOGGER.warning("Modbus error - marking all entities unavailable")
             raise UpdateFailed(f"Modbus communication error: {err}") from err
 
     async def set_auto_time_sync(self, enabled: bool):
+        """Persist the auto_time_sync flag and refresh the entry options."""
         self.auto_time_sync = enabled
         # Update the entry options to reflect the change
         # This is necessary to persist the setting across restarts
@@ -414,6 +427,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hass.config_entries.async_update_entry(self.entry, options=options)
 
     async def set_winter_mode(self, enabled: bool):
+        """Toggle winter mode and persist the capability snapshot."""
         self.winter_mode = enabled
         options = dict(self.entry.options)
         options["winter_mode"] = enabled
@@ -431,12 +445,15 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @property
     def firmware(self) -> str:
+        """Return the device firmware version string."""
         return self._firmware
 
     @property
     def model(self) -> str:
+        """Return the device model string."""
         return self._model
 
     @property
     def device_slug(self) -> str:  # pragma: no cover
+        """Return the slugified device name used as object_id prefix."""
         return slugify(self.device_name)

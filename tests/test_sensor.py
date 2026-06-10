@@ -776,7 +776,7 @@ async def test_sensor_setup_with_capability_snapshot_only():
             "Redox measurement module detected": True,
             "Chlorine measurement module detected": True,
             "Conductivity measurement module detected": True,
-            # No measurement values – as returned after a restart in winter mode
+            # No measurement values - as returned after a restart in winter mode
         }
         config_entry = DummyEntry()
         entry = config_entry
