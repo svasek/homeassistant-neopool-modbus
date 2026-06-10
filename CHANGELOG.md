@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.0.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.0.0...v4.0.1) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* 🐛 use COPY_TO_RTC_REGISTER constant for time sync writes ([#172](https://github.com/svasek/homeassistant-neopool-modbus/issues/172)) ([524b7b7](https://github.com/svasek/homeassistant-neopool-modbus/commit/524b7b7f94b2b8fbca25325a81f66fcf019e93da))
+* **translations:** 🩹 align translation keys and add strings.json ([#167](https://github.com/svasek/homeassistant-neopool-modbus/issues/167)) ([4bbf645](https://github.com/svasek/homeassistant-neopool-modbus/commit/4bbf645c00ea0a8d35906f8f699eae1847afc525))
+
+
+### ♻️ Refactoring
+
+* ♻️ extract services to dedicated module and simplify coordinator ([#170](https://github.com/svasek/homeassistant-neopool-modbus/issues/170)) ([0b54268](https://github.com/svasek/homeassistant-neopool-modbus/commit/0b542687c3922d056575dced361489e03b33a9fe))
+
 ## [4.0.0](https://github.com/Svasek/homeassistant-vistapool-modbus/compare/v3.0.0...v4.0.0) (2026-06-07)
 
 
