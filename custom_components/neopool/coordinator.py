@@ -31,6 +31,7 @@ from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import parse_version
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
+    COPY_TO_RTC_REGISTER,
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     MAX_RELAY_GPIO,
@@ -272,7 +273,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     await self.client.async_write_register(
                         0x0408, prepare_device_time(self.hass)
                     )
-                    await self.client.async_write_register(0x04F0, 1)
+                    await self.client.async_write_register(COPY_TO_RTC_REGISTER, 1)
 
             # Apply developer overrides (for testing UI visibility without hardware)
             try:
