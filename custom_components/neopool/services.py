@@ -133,9 +133,16 @@ async def _async_set_timer(call: ServiceCall) -> None:
     period = call.data.get(ATTR_PERIOD)
     enable = call.data.get(ATTR_ENABLE)
 
-    start_sec = hhmm_to_seconds(start) if start else None
-    stop_sec = hhmm_to_seconds(stop) if stop else None
-    interval = get_timer_interval(start_sec, stop_sec) if (start and stop) else None
+    try:
+        start_sec = hhmm_to_seconds(start) if start else None
+        stop_sec = hhmm_to_seconds(stop) if stop else None
+        interval = get_timer_interval(start_sec, stop_sec) if (start and stop) else None
+    except (TypeError, ValueError) as err:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="invalid_timer_time",
+            translation_placeholders={"start": str(start), "stop": str(stop)},
+        ) from err
 
     timer_data: dict[str, Any] = {}
     if start_sec is not None:

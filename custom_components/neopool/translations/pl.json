@@ -630,6 +630,7 @@
     "no_coordinator": { "message": "Nie znaleziono koordynatora NeoPool dla entry_id {entry_id}" },
     "missing_parameter": { "message": "Brak wymaganego parametru {parameter}" },
     "invalid_timer": { "message": "Nieprawidłowa nazwa timera {timer_name}. Prawidłowe timery: {valid_timers}" },
+    "invalid_timer_time": { "message": "Invalid timer time format (start: {start}, stop: {stop}). Use HH:MM (e.g. 08:30)." },
     "timer_failed": { "message": "Ustawienie timera nie powiodło się: {error}" },
     "invalid_apply": { "message": "Nieprawidłowa wartość apply {apply}: musi być wartością logiczną (true/false)" },
     "write_failed": { "message": "Zapis do rejestru {address} nie powiódł się" },

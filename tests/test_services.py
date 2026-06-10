@@ -175,6 +175,26 @@ async def test_set_timer_invalid_timer_name():
 
 
 @pytest.mark.asyncio
+async def test_set_timer_invalid_time_format_translates_to_validation_error():
+    """Malformed start/stop strings raise a translatable invalid_timer_time error.
+
+    `hhmm_to_seconds()` raises ValueError on garbage input; without an
+    explicit catch the user would see a raw traceback instead of the
+    translated UI-friendly error.
+    """
+    entry = _make_loaded_entry()
+    hass = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[entry])
+    call = _make_call(
+        {"timer": "filtration1", "start": "not-a-time", "stop": "10:00"},
+        hass,
+    )
+    with pytest.raises(ServiceValidationError) as exc:
+        await _async_set_timer(call)
+    assert exc.value.translation_key == "invalid_timer_time"
+
+
+@pytest.mark.asyncio
 async def test_set_timer_write_failure_translates_to_validation_error():
     """A NeoPoolError from write_timer becomes a translatable timer_failed error."""
     entry = _make_loaded_entry()
