@@ -52,7 +52,7 @@ SERVICE_SET_TIMER_SCHEMA = vol.Schema(
         vol.Optional(ATTR_START): cv.string,
         vol.Optional(ATTR_STOP): cv.string,
         vol.Optional(ATTR_PERIOD): vol.All(int, vol.Range(min=1, max=604800)),
-        # 'enable' carries the relay-mode integer (0=disabled, 1=auto, 3=on, 4=off)
+        # 'enable' carries the relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off)
         # used by the relay_mode select platform.
         vol.Optional(ATTR_ENABLE): vol.All(int, vol.Range(min=0, max=4)),
     }
@@ -71,14 +71,23 @@ SERVICE_WRITE_REGISTER_SCHEMA = vol.Schema(
 def _get_coordinator(hass: HomeAssistant, call: ServiceCall) -> NeoPoolCoordinator:
     """Resolve the coordinator for a service call.
 
-    If `entry_id` is provided in the service data, look it up; otherwise
-    use the first loaded config entry. Raises ServiceValidationError if
-    no matching loaded entry / coordinator is found.
+    If `entry_id` is provided in the service data, look up that specific
+    entry and require it to be in `ConfigEntryState.LOADED`; otherwise pick
+    the first loaded config entry. In both cases the resolved entry must
+    have a populated `runtime_data` (the coordinator). Raises
+    ServiceValidationError if any of those conditions is not met.
     """
     entries = hass.config_entries.async_entries(DOMAIN)
     entry_id = call.data.get(ATTR_ENTRY_ID)
     if entry_id:
-        entry = next((e for e in entries if e.entry_id == entry_id), None)
+        entry = next(
+            (
+                e
+                for e in entries
+                if e.entry_id == entry_id and e.state == ConfigEntryState.LOADED
+            ),
+            None,
+        )
     else:
         entry = next(
             (e for e in entries if e.state == ConfigEntryState.LOADED),

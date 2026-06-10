@@ -93,6 +93,23 @@ def test_get_coordinator_unknown_entry_id():
     assert exc.value.translation_key == "entry_not_found"
 
 
+def test_get_coordinator_explicit_entry_id_not_loaded():
+    """Explicit entry_id pointing at a NOT_LOADED entry is rejected.
+
+    Routing a service call to an entry whose runtime_data is stale or
+    missing would surface confusing AttributeError downstream — the
+    resolver must require the matching entry to be LOADED.
+    """
+    not_loaded = MagicMock()
+    not_loaded.entry_id = "e1"
+    not_loaded.state = ConfigEntryState.NOT_LOADED
+    hass = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[not_loaded])
+    with pytest.raises(ServiceValidationError) as exc:
+        _get_coordinator(hass, _make_call({"entry_id": "e1"}, hass))
+    assert exc.value.translation_key == "entry_not_found"
+
+
 def test_get_coordinator_no_loaded_entries():
     """No loaded entries surfaces a no_loaded_entry ServiceValidationError."""
     hass = MagicMock()
