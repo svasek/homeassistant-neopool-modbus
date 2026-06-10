@@ -15,7 +15,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from neopool_modbus.exceptions import NeoPoolError
 
@@ -64,15 +63,20 @@ async def test_async_update_data_raises_UpdateFailed_on_subsequent_error(mock_en
 
 
 @pytest.mark.asyncio
-async def test_async_update_data_raises_ConfigEntryNotReady_on_first_error(mock_entry):
+async def test_async_update_data_raises_UpdateFailed_on_first_error(mock_entry):
+    """A failure with no prior data still raises UpdateFailed.
+
+    HA core converts UpdateFailed to ConfigEntryNotReady automatically inside
+    async_config_entry_first_refresh, so the coordinator only needs to raise
+    a single exception type and let the framework handle entry-load semantics.
+    """
     client = AsyncMock()
     client.async_read_all = AsyncMock(side_effect=NeoPoolError("fail"))
     client.read_all_timers = AsyncMock()
     coordinator = NeoPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id
     )
-    # data is None (never received) → ConfigEntryNotReady
-    with pytest.raises(ConfigEntryNotReady):
+    with pytest.raises(UpdateFailed):
         await coordinator._async_update_data()
 
 

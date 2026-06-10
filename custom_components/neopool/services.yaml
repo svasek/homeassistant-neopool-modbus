@@ -49,6 +49,15 @@ set_timer:
           max: 604800
           step: 1
       description: "Repeat interval in seconds for AUX/Light timers (e.g. 86400 = every day). Not used for filtration timers."
+    enable:
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 0
+          max: 4
+          step: 1
+      description: "Relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off). Used by the relay_mode select platform."
 
 write_register:
   name: Write Register

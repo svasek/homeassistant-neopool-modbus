@@ -594,6 +594,10 @@
         "period": {
           "name": "Intervallo di ripetizione",
           "description": "Intervallo di ripetizione in secondi per i timer AUX/Luce (ad es. 86400 = ogni giorno). Non utilizzato per i timer di filtrazione."
+        },
+        "enable": {
+          "name": "Enable mode",
+          "description": "Relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off). Used by the relay_mode select platform."
         }
       }
     },
@@ -626,6 +630,7 @@
     "no_coordinator": { "message": "Nessun coordinatore NeoPool trovato per entry_id {entry_id}" },
     "missing_parameter": { "message": "Parametro obbligatorio {parameter} mancante" },
     "invalid_timer": { "message": "Nome timer non valido {timer_name}. Timer validi: {valid_timers}" },
+    "invalid_timer_time": { "message": "Invalid timer time format (start: {start}, stop: {stop}). Use HH:MM (e.g. 08:30)." },
     "timer_failed": { "message": "Impostazione timer fallita: {error}" },
     "invalid_apply": { "message": "Valore apply non valido {apply}: deve essere un booleano (true/false)" },
     "write_failed": { "message": "Scrittura nel registro {address} fallita" },

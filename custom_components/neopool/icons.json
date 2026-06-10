@@ -311,5 +311,9 @@
         }
       }
     }
+  },
+  "services": {
+    "set_timer": "mdi:timer-cog",
+    "write_register": "mdi:pencil-box"
   }
 }
