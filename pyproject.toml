@@ -17,7 +17,7 @@ select = [
     # Blind except
     "BLE",
     # Selected pydocstyle rules — module / public-method / __init__ docstrings
-    # plus the "summary line + period" hygiene that HA core also enforces.
+    # plus the "summary line + period" hygiene.
     "D102", "D107", "D205", "D415",
     # Datetime: timezone-aware constructors
     "DTZ",
@@ -44,10 +44,10 @@ ignore = [
 # Tests use plenty of in-function imports for monkeypatch boundaries and
 # don't follow the same docstring conventions as production code.
 "tests/**/*.py" = ["PLC0415", "D102", "D107", "D205", "D415"]
-# __init__.py still hosts the legacy service-handler block; PLC0415, B904 and
-# TRY301 there are slated for removal when service handlers move to a dedicated
-# services.py module in a follow-up refactor.
-"custom_components/neopool/__init__.py" = ["PLC0415", "B904", "TRY301"]
+# __init__.py still hosts the legacy service-handler block; PLC0415, B904,
+# TRY301 and BLE001 there are slated for removal when service handlers move
+# to a dedicated services.py module in a follow-up refactor.
+"custom_components/neopool/__init__.py" = ["PLC0415", "B904", "TRY301", "BLE001"]
 
 [tool.codespell]
 skip = "??.json,CHANGELOG.md"

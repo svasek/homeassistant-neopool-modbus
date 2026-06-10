@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from neopool_modbus.exceptions import NeoPoolError
 
 from custom_components.neopool.const import DOMAIN, FOLLOW_UP_REFRESH_DELAY
 from custom_components.neopool.coordinator import NeoPoolCoordinator
@@ -51,7 +52,7 @@ async def test_async_update_data_success(mock_entry):
 async def test_async_update_data_raises_UpdateFailed_on_subsequent_error(mock_entry):
     """When cached data exists, a Modbus error raises UpdateFailed (not a silent cache return)."""
     client = AsyncMock()
-    client.async_read_all = AsyncMock(side_effect=Exception("Modbus fail"))
+    client.async_read_all = AsyncMock(side_effect=NeoPoolError("Modbus fail"))
     client.read_all_timers = AsyncMock()
     coordinator = NeoPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id
@@ -65,7 +66,7 @@ async def test_async_update_data_raises_UpdateFailed_on_subsequent_error(mock_en
 @pytest.mark.asyncio
 async def test_async_update_data_raises_ConfigEntryNotReady_on_first_error(mock_entry):
     client = AsyncMock()
-    client.async_read_all = AsyncMock(side_effect=Exception("fail"))
+    client.async_read_all = AsyncMock(side_effect=NeoPoolError("fail"))
     client.read_all_timers = AsyncMock()
     coordinator = NeoPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id
@@ -81,7 +82,7 @@ async def test_async_update_data_raises_UpdateFailed_when_data_is_empty_dict(
 ):
     """An empty dict ({}) is treated as 'data was received' — subsequent errors raise UpdateFailed."""
     client = AsyncMock()
-    client.async_read_all = AsyncMock(side_effect=Exception("fail"))
+    client.async_read_all = AsyncMock(side_effect=NeoPoolError("fail"))
     client.read_all_timers = AsyncMock()
     coordinator = NeoPoolCoordinator(
         MagicMock(), client, mock_entry, mock_entry.entry_id

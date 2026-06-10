@@ -206,6 +206,9 @@ async def _migrate_v1_to_v2(
                         rb_entity_id, new_unique_id=rb_old_uid
                     )
                 except Exception as rb_err:  # noqa: BLE001
+                    # Best-effort: if a single entry can't be restored we log
+                    # it and keep going with the rest, then raise the original
+                    # migration failure to the caller.
                     _LOGGER.error(
                         "Rollback failed for entity %s: %s", rb_entity_id, rb_err
                     )
@@ -309,6 +312,11 @@ async def async_migrate_from_vistapool(hass: HomeAssistant) -> dict:
                 f"{old_entry.title}: deferred (controller offline)"
             )
         except Exception as err:
+            # Intentionally broad: this loop processes every legacy vistapool
+            # entry independently and a single bad one must not abort the
+            # rest. Anything raised by migrate_single_entry_cross_domain
+            # (HomeAssistantError, RuntimeError, OSError, NeoPoolError, …)
+            # is logged and counted as a failure for this entry.
             _LOGGER.exception(
                 "Cross-domain migration failed for vistapool entry %s",
                 old_entry.entry_id,
@@ -500,6 +508,10 @@ async def migrate_single_entry_cross_domain(
                             new_config_entry_id=old_entry.entry_id,
                         )
                     except Exception:
+                        # Best-effort: if this entity can't be restored we
+                        # log and continue with the rest, then re-raise the
+                        # original ValueError so the caller surfaces the
+                        # migration failure.
                         _LOGGER.exception("Rollback failed for %s", ent_id)
                 raise
 
@@ -661,6 +673,8 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
     try:
         manifest = await hass.async_add_executor_job(_read_manifest_json, manifest_path)
     except Exception as err:  # noqa: BLE001
+        # Anything from JSONDecodeError to OSError counts as "manifest
+        # unreadable"; we refuse to delete a folder we can't identify.
         _LOGGER.warning(
             "Cannot read legacy manifest %s: %s — refusing to delete",
             manifest_path,
@@ -683,6 +697,9 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
     try:
         await hass.async_add_executor_job(shutil.rmtree, str(config_dir))
     except Exception as err:  # noqa: BLE001
+        # rmtree can raise PermissionError, OSError, or sub-classes thereof
+        # depending on the platform. We log and ask the user to remove the
+        # folder by hand rather than crashing the integration.
         _LOGGER.error(
             "Failed to delete legacy folder %s: %s — please remove it manually",
             config_dir,

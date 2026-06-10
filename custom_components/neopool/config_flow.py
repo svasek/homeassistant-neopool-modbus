@@ -83,6 +83,8 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
             key = f"component.{DOMAIN}.config.step.user.data.name_default"
             return t.get(key) or DEFAULT_NAME
         except Exception:  # noqa: BLE001
+            # Translation lookup is best-effort; on any failure we fall
+            # back to the literal English default so the form still opens.
             return DEFAULT_NAME
 
     async def async_step_user(
@@ -299,6 +301,12 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
         try:
             await migrate_single_entry_cross_domain(self.hass, legacy_entry)
         except Exception as exc:
+            # Intentionally broad: migration walks entity / device / config
+            # registries and the Modbus probe, so it can surface anything
+            # from HomeAssistantError to RuntimeError / OSError / NeoPoolError
+            # / ValueError. We never want a config-flow step to crash with a
+            # traceback — surface the message via abort(migration_failed)
+            # and let the user retry.
             _LOGGER.exception(
                 "Cross-domain migration failed for %s",
                 legacy_entry.entry_id,

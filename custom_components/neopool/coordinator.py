@@ -391,7 +391,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # rather than from an `else:` block keeps the happy path obvious.
             return data  # noqa: TRY300
 
-        except Exception as err:
+        except (NeoPoolError, OSError, TimeoutError) as err:
             self._consecutive_errors += 1
             _LOGGER.error(
                 "Modbus communication error: %s (%s)", err, type(err).__name__
