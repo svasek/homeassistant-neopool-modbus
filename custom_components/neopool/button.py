@@ -20,6 +20,7 @@ from typing import Any
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from neopool_modbus.registers import COPY_TO_RTC_REGISTER
 
 from . import NeoPoolConfigEntry
 from .const import BUTTON_DEFINITIONS
@@ -94,7 +95,7 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):  # type: ignore[reportIncompat
             client = self.coordinator.client
             _LOGGER.debug("Syncing time with device...")
             await client.async_write_register(0x0408, prepare_device_time(self.hass))
-            await client.async_write_register(0x04F0, 1)
+            await client.async_write_register(COPY_TO_RTC_REGISTER, 1)
             await self.coordinator.async_request_refresh()
         elif self._key == "MBF_ESCAPE":
             client = self.coordinator.client
