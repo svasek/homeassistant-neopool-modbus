@@ -30,8 +30,9 @@ from .coordinator import NeoPoolCoordinator
 
 # Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
 # from the integration's __init__ module when config entry version changes.
-from .migration import async_cleanup_legacy_files
-from .migration import async_migrate_entry as async_migrate_entry
+from .migration import async_cleanup_legacy_files, async_migrate_entry
+
+__all__ = ["async_migrate_entry"]
 
 type NeoPoolConfigEntry = ConfigEntry[NeoPoolCoordinator]
 
