@@ -25,8 +25,10 @@ from custom_components.neopool.migration import (
     _DeferredMigration,
     async_cleanup_legacy_files,
     async_cleanup_old_folder,
+    async_detect_legacy_vistapool_entry,
     async_import_legacy_vistapool_entry,
     async_migrate_from_vistapool,
+    find_unmigrated_v1_entry,
     migrate_single_entry_cross_domain,
 )
 from homeassistant.config_entries import ConfigEntryState
@@ -1139,3 +1141,79 @@ async def test_import_legacy_vistapool_entry_returns_failure_on_migration_error(
     assert reason == "migration_failed"
     assert error is not None
     assert "simulated failure" in error
+
+
+# ---------------------------------------------------------------------------
+# async_detect_legacy_vistapool_entry
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_detect_legacy_vistapool_entry_returns_first():
+    """Returns (entry_id, title) of the first vistapool entry."""
+    hass = MagicMock()
+    entry1 = MagicMock()
+    entry1.entry_id = "vp1"
+    entry1.title = "Old Pool"
+    entry2 = MagicMock()
+    entry2.entry_id = "vp2"
+    entry2.title = "Other Pool"
+    hass.config_entries.async_entries = MagicMock(return_value=[entry1, entry2])
+    result = await async_detect_legacy_vistapool_entry(hass)
+    assert result == ("vp1", "Old Pool")
+    hass.config_entries.async_entries.assert_called_once_with(OLD_DOMAIN)
+
+
+@pytest.mark.asyncio
+async def test_detect_legacy_vistapool_entry_returns_none_when_empty():
+    """Returns None when no vistapool entries exist."""
+    hass = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[])
+    result = await async_detect_legacy_vistapool_entry(hass)
+    assert result is None
+
+
+# ---------------------------------------------------------------------------
+# find_unmigrated_v1_entry
+# ---------------------------------------------------------------------------
+
+
+def _v1_entry(host: str, port: int, slave_id: int, framer: str) -> MagicMock:
+    entry = MagicMock()
+    entry.unique_id = None
+    entry.data = {
+        "host": host,
+        "port": port,
+        "slave_id": slave_id,
+        "modbus_framer": framer,
+    }
+    return entry
+
+
+def test_find_unmigrated_v1_entry_returns_match():
+    """Returns the entry whose connection params match all four fields."""
+    hass = MagicMock()
+    match = _v1_entry("10.0.0.1", 502, 1, "tcp")
+    other = _v1_entry("10.0.0.2", 502, 1, "tcp")
+    hass.config_entries.async_entries = MagicMock(return_value=[other, match])
+    found = find_unmigrated_v1_entry(hass, "10.0.0.1", 502, 1, "tcp")
+    assert found is match
+
+
+def test_find_unmigrated_v1_entry_skips_already_migrated_entries():
+    """Entries with a non-None unique_id are skipped (they're already migrated)."""
+    hass = MagicMock()
+    migrated = _v1_entry("10.0.0.1", 502, 1, "tcp")
+    migrated.unique_id = "neopool_SERIAL"
+    hass.config_entries.async_entries = MagicMock(return_value=[migrated])
+    found = find_unmigrated_v1_entry(hass, "10.0.0.1", 502, 1, "tcp")
+    assert found is None
+
+
+def test_find_unmigrated_v1_entry_returns_none_when_no_match():
+    """Different connection params → no match."""
+    hass = MagicMock()
+    other = _v1_entry("10.0.0.2", 502, 1, "tcp")
+    hass.config_entries.async_entries = MagicMock(return_value=[other])
+    found = find_unmigrated_v1_entry(hass, "10.0.0.1", 502, 1, "tcp")
+    assert found is None

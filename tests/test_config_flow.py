@@ -1207,7 +1207,7 @@ async def test_import_step_dispatches_migration_complete():
     flow.hass.config_entries.async_get_entry.return_value = legacy_entry
 
     with patch(
-        "custom_components.neopool.config_flow.async_import_legacy_vistapool_entry",
+        "custom_components.neopool.migration.async_import_legacy_vistapool_entry",
         new=AsyncMock(return_value=("migration_complete", None)),
     ):
         result = await flow.async_step_import_from_vistapool(user_input={})
@@ -1229,7 +1229,7 @@ async def test_import_step_dispatches_migration_failed():
     flow.hass.config_entries.async_get_entry.return_value = legacy_entry
 
     with patch(
-        "custom_components.neopool.config_flow.async_import_legacy_vistapool_entry",
+        "custom_components.neopool.migration.async_import_legacy_vistapool_entry",
         new=AsyncMock(return_value=("migration_failed", "boom")),
     ):
         result = await flow.async_step_import_from_vistapool(user_input={})
@@ -1254,7 +1254,7 @@ async def test_import_step_falls_through_when_legacy_disappears_in_helper():
     flow.hass.config_entries.async_entries = MagicMock(return_value=[])
 
     with patch(
-        "custom_components.neopool.config_flow.async_import_legacy_vistapool_entry",
+        "custom_components.neopool.migration.async_import_legacy_vistapool_entry",
         new=AsyncMock(return_value=(None, None)),
     ):
         result = await flow.async_step_import_from_vistapool(user_input={})
