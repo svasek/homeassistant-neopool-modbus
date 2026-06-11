@@ -167,7 +167,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._attr_device_class = props.get("device_class") or None
         self._attr_entity_category = props.get("entity_category") or None
         self._pending_write_task: asyncio.Task[None] | None = None
-        self._pending_value: float | str | None = None
+        self._pending_value: float | None = None
         self._debounce_delay = 2.0
 
         _LOGGER.debug(
@@ -202,7 +202,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
 
         self.async_write_ha_state()
 
-    async def async_set_native_value(self, value: float | str) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Set the native value of the number entity."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
