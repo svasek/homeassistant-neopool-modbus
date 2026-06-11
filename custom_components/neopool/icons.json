@@ -313,7 +313,11 @@
     }
   },
   "services": {
-    "set_timer": "mdi:timer-cog",
-    "write_register": "mdi:pencil-box"
+    "set_timer": {
+      "service": "mdi:timer-cog"
+    },
+    "write_register": {
+      "service": "mdi:pencil-box"
+    }
   }
 }

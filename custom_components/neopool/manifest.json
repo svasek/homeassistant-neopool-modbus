@@ -5,7 +5,6 @@
     "@svasek"
   ],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://github.com/svasek/homeassistant-neopool-modbus",
   "integration_type": "hub",
   "iot_class": "local_polling",
@@ -14,7 +13,7 @@
     "neopool_modbus"
   ],
   "requirements": [
-    "neopool-modbus>=2.0.1"
+    "neopool-modbus==2.0.1"
   ],
   "version": "4.0.1"
 }
