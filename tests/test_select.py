@@ -260,6 +260,38 @@ async def test_relay_mode_current_option_handles_disabled_state(
     assert entity_obj.current_option == "disabled"
 
 
+async def test_timer_period_options_and_current_option(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """timer_period select reads options + current_option from coordinator data."""
+    await setup_integration(hass, mock_config_entry)
+    coordinator = mock_config_entry.runtime_data
+    # Pre-set the relay_aux1_period to a known PERIOD_MAP value (1 day).
+    coordinator.data["relay_aux1_period"] = 86400
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    entity_obj = None
+    for platforms in ep.async_get_platforms(hass, "neopool"):
+        for ent in platforms.entities.values():
+            if (
+                ent.entity_id.startswith("select.")
+                and getattr(ent, "_key", None) == "relay_aux1_period"
+            ):
+                entity_obj = ent
+                break
+        if entity_obj is not None:
+            break
+    assert entity_obj is not None
+    # current_option resolves the seconds value back to its key.
+    assert entity_obj.current_option == "1_day"
+    # options list is the full PERIOD_MAP.
+    assert "1_day" in entity_obj.options
+    assert "1_week" in entity_obj.options
+
+
 async def test_cell_boost_options_drop_active_redox_when_no_redox_module(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,

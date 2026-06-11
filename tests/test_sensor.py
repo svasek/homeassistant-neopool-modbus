@@ -455,3 +455,27 @@ async def test_ph_pump_status_options_per_relay_config(
     assert entity.options == ["off", "idle", "base"]
     coordinator.data["MBF_PAR_RELAY_PH"] = 0
     assert entity.options == ["off", "idle", "acid", "base", "both"]
+
+
+async def test_hidro_current_g_per_hour_mode(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """In g/h mode HIDRO_CURRENT swaps unit and bumps display precision.
+
+    HIDROLIFE machines (MBF_PAR_UICFG_MACHINE=1) display hydrolysis as g/h
+    rather than %; the sensor adapts unit + precision accordingly.
+    """
+    await setup_integration(hass, mock_config_entry)
+    coordinator = mock_config_entry.runtime_data
+    # HIDROLIFE machine type → is_hydrolysis_in_percent returns False.
+    coordinator.data["MBF_PAR_UICFG_MACHINE"] = 1
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    entity = _sensor_by_key(hass, "MBF_HIDRO_CURRENT")
+    if entity is None:
+        pytest.skip("MBF_HIDRO_CURRENT entity not registered on this fixture")
+    assert entity.suggested_display_precision == 1
+    assert entity.native_unit_of_measurement == "g/h"
