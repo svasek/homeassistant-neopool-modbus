@@ -47,17 +47,28 @@ async def _set_value(hass: HomeAssistant, entity_id: str, value: float) -> None:
     )
 
 
-async def _flush_debounce(
-    hass: HomeAssistant, entity_obj, debounce_seconds: float = 2.5
-) -> None:
+def _disable_debounce(hass: HomeAssistant) -> None:
+    """Set `_debounce_delay = 0` on every number entity for this run.
+
+    The production code uses `asyncio.sleep(_debounce_delay)` (defaults to
+    2 s) before writing the register, so a normal test would block for
+    that long. Setting the delay to zero lets the write happen on the
+    next event-loop iteration without waiting on a real-time clock.
+    `freezer.tick + async_fire_time_changed` doesn't help here because
+    `asyncio.sleep` runs on the event-loop wall clock, not HA's scheduler.
+    """
+    for platforms in ep.async_get_platforms(hass, "neopool"):
+        for ent in platforms.entities.values():
+            if ent.entity_id.startswith("number."):
+                ent._debounce_delay = 0
+
+
+async def _flush_debounce(hass: HomeAssistant, entity_obj) -> None:
     """Wait for the entity's pending debounced write task to complete."""
     task = getattr(entity_obj, "_pending_write_task", None)
     if task is None:
         return
-    try:
-        await asyncio.wait_for(task, timeout=debounce_seconds + 1)
-    except TimeoutError:  # pragma: no cover
-        task.cancel()
+    await asyncio.wait_for(task, timeout=1)
     await hass.async_block_till_done()
 
 
@@ -68,12 +79,12 @@ async def test_simple_number_writes_register_after_debounce(
 ) -> None:
     """Setting a numeric value writes raw=value*scale to the register."""
     await setup_integration(hass, mock_config_entry)
+    _disable_debounce(hass)
 
     entity_id = _number_entity_id(hass, mock_config_entry, "mbf_par_ph1")
     mock_neopool_client.async_write_register.reset_mock()
 
     await _set_value(hass, entity_id, 7.5)
-    # Wait for the entity's _pending_write_task to fire (2 s debounce).
 
     entity_obj = None
     for platforms in ep.async_get_platforms(hass, "neopool"):
@@ -96,6 +107,7 @@ async def test_heating_setpoint_mirrors_to_intelligent(
     """Writing the heating setpoint mirrors the value to the intelligent register."""
 
     await setup_integration(hass, mock_config_entry)
+    _disable_debounce(hass)
     entity_id = _number_entity_id(hass, mock_config_entry, "mbf_par_heating_temp")
 
     mock_neopool_client.async_write_register.reset_mock()
