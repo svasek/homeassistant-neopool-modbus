@@ -1195,8 +1195,8 @@ async def test_import_step_shows_form_on_first_call():
 
 
 @pytest.mark.asyncio
-async def test_import_step_runs_migration_and_restores_device():
-    """Submit → migration runs, device customizations are restored, abort emitted."""
+async def test_import_step_dispatches_migration_complete():
+    """Submit → import helper returns migration_complete → flow aborts."""
     flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow._legacy_entry_id = "legacy_entry"
@@ -1204,66 +1204,21 @@ async def test_import_step_runs_migration_and_restores_device():
 
     legacy_entry = MagicMock()
     legacy_entry.domain = "vistapool"
-    legacy_entry.entry_id = "legacy_entry"
     flow.hass.config_entries.async_get_entry.return_value = legacy_entry
 
-    # Build a legacy device tied to the vistapool entry, with all the user
-    # customizations we want to see restored after migration.
-    device = MagicMock()
-    device.id = "device_1"
-    device.identifiers = {("vistapool", "neopool_SERIAL_X")}
-    device.area_id = "kitchen"
-    device.name_by_user = "Můj bazén"
-    device.labels = {"outdoor", "pool"}
-    device.disabled_by = None
-
-    # Migrated device (after migration the identifier was flipped to neopool)
-    migrated_device = MagicMock()
-    migrated_device.id = "device_1"  # same row, same id
-
-    device_registry = MagicMock()
-    device_registry.async_get_device.return_value = migrated_device
-
-    with (
-        patch(
-            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
-            new=AsyncMock(return_value=2),
-        ) as migrate_mock,
-        patch(
-            "custom_components.neopool.config_flow.async_cleanup_old_folder",
-            new=AsyncMock(return_value=True),
-        ) as cleanup_mock,
-        patch(
-            "homeassistant.helpers.device_registry.async_get",
-            return_value=device_registry,
-        ),
-        patch(
-            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
-            return_value=[device],
-        ),
+    with patch(
+        "custom_components.neopool.config_flow.async_import_legacy_vistapool_entry",
+        new=AsyncMock(return_value=("migration_complete", None)),
     ):
         result = await flow.async_step_import_from_vistapool(user_input={})
 
-    # Migration was invoked with the legacy entry
-    migrate_mock.assert_awaited_once_with(flow.hass, legacy_entry)
-    # Cleanup was called
-    cleanup_mock.assert_awaited_once_with(flow.hass)
-    # Device customizations restored onto the migrated device
-    device_registry.async_update_device.assert_called_once_with(
-        "device_1",
-        area_id="kitchen",
-        name_by_user="Můj bazén",
-        labels={"outdoor", "pool"},
-        disabled_by=None,
-    )
-    # Flow ends with the migration_complete abort reason
     assert result["type"] == "abort"
     assert result["reason"] == "migration_complete"
 
 
 @pytest.mark.asyncio
-async def test_import_step_skips_device_without_vistapool_identifier():
-    """A legacy device without a (vistapool, X) identifier is skipped during snapshot."""
+async def test_import_step_dispatches_migration_failed():
+    """Submit → import helper returns migration_failed → flow aborts with error."""
     flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow._legacy_entry_id = "legacy_entry"
@@ -1271,118 +1226,39 @@ async def test_import_step_skips_device_without_vistapool_identifier():
 
     legacy_entry = MagicMock()
     legacy_entry.domain = "vistapool"
-    legacy_entry.entry_id = "legacy_entry"
     flow.hass.config_entries.async_get_entry.return_value = legacy_entry
 
-    # Device with only a non-vistapool identifier — defensive case
-    device = MagicMock()
-    device.identifiers = {("zigbee", "stray-id")}
-
-    device_registry = MagicMock()
-
-    with (
-        patch(
-            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
-            new=AsyncMock(return_value=0),
-        ),
-        patch(
-            "custom_components.neopool.config_flow.async_cleanup_old_folder",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "homeassistant.helpers.device_registry.async_get",
-            return_value=device_registry,
-        ),
-        patch(
-            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
-            return_value=[device],
-        ),
-    ):
-        result = await flow.async_step_import_from_vistapool(user_input={})
-
-    # Nothing to restore — no async_update_device call
-    device_registry.async_update_device.assert_not_called()
-    assert result["reason"] == "migration_complete"
-
-
-@pytest.mark.asyncio
-async def test_import_step_skips_restore_when_migrated_device_missing():
-    """If the migrated device disappeared, restore is silently skipped."""
-    flow = config_flow.NeoPoolConfigFlow()
-    flow.hass = MagicMock()
-    flow._legacy_entry_id = "legacy_entry"
-    flow._legacy_entry_title = "Bazén"
-
-    legacy_entry = MagicMock()
-    legacy_entry.domain = "vistapool"
-    legacy_entry.entry_id = "legacy_entry"
-    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
-
-    device = MagicMock()
-    device.identifiers = {("vistapool", "neopool_SERIAL_X")}
-    device.area_id = "kitchen"
-    device.name_by_user = None
-    device.labels = set()
-    device.disabled_by = None
-
-    device_registry = MagicMock()
-    # After migration, the device row is gone (e.g. migration also dropped it
-    # because all config_entries became empty during a partial failure)
-    device_registry.async_get_device.return_value = None
-
-    with (
-        patch(
-            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
-            new=AsyncMock(return_value=0),
-        ),
-        patch(
-            "custom_components.neopool.config_flow.async_cleanup_old_folder",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "homeassistant.helpers.device_registry.async_get",
-            return_value=device_registry,
-        ),
-        patch(
-            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
-            return_value=[device],
-        ),
-    ):
-        result = await flow.async_step_import_from_vistapool(user_input={})
-
-    device_registry.async_update_device.assert_not_called()
-    assert result["reason"] == "migration_complete"
-
-
-@pytest.mark.asyncio
-async def test_import_step_aborts_on_migration_failure():
-    """If migrate_single_entry_cross_domain raises, abort with migration_failed."""
-    flow = config_flow.NeoPoolConfigFlow()
-    flow.hass = MagicMock()
-    flow._legacy_entry_id = "legacy_entry"
-    flow._legacy_entry_title = "Bazén"
-
-    legacy_entry = MagicMock()
-    legacy_entry.domain = "vistapool"
-    legacy_entry.entry_id = "legacy_entry"
-    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
-
-    with (
-        patch(
-            "custom_components.neopool.config_flow.migrate_single_entry_cross_domain",
-            new=AsyncMock(side_effect=RuntimeError("simulated failure")),
-        ),
-        patch(
-            "homeassistant.helpers.device_registry.async_get",
-            return_value=MagicMock(),
-        ),
-        patch(
-            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
-            return_value=[],
-        ),
+    with patch(
+        "custom_components.neopool.config_flow.async_import_legacy_vistapool_entry",
+        new=AsyncMock(return_value=("migration_failed", "boom")),
     ):
         result = await flow.async_step_import_from_vistapool(user_input={})
 
     assert result["type"] == "abort"
     assert result["reason"] == "migration_failed"
-    assert "simulated failure" in result["description_placeholders"]["error"]
+    assert result["description_placeholders"]["error"] == "boom"
+
+
+@pytest.mark.asyncio
+async def test_import_step_falls_through_when_legacy_disappears_in_helper():
+    """Submit → import helper returns (None, None) → flow falls through to user step."""
+    flow = config_flow.NeoPoolConfigFlow()
+    flow.hass = MagicMock()
+    flow._legacy_entry_id = "legacy_entry"
+    flow._legacy_entry_title = "Bazén"
+
+    legacy_entry = MagicMock()
+    legacy_entry.domain = "vistapool"
+    flow.hass.config_entries.async_get_entry.return_value = legacy_entry
+    # No legacy vistapool entries → async_step_user goes to fresh form
+    flow.hass.config_entries.async_entries = MagicMock(return_value=[])
+
+    with patch(
+        "custom_components.neopool.config_flow.async_import_legacy_vistapool_entry",
+        new=AsyncMock(return_value=(None, None)),
+    ):
+        result = await flow.async_step_import_from_vistapool(user_input={})
+
+    # async_step_user shows the regular new-entry form
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"

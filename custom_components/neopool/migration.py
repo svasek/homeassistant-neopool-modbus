@@ -20,6 +20,7 @@ import logging
 from pathlib import Path
 import shutil
 from types import MappingProxyType
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry, ConfigEntryChange
 from homeassistant.core import HomeAssistant
@@ -765,3 +766,89 @@ async def async_cleanup_legacy_files(hass: HomeAssistant) -> None:
             path,
             err,
         )
+
+
+async def async_import_legacy_vistapool_entry(
+    hass: HomeAssistant, legacy_entry_id: str
+) -> tuple[str | None, str | None]:
+    """Run the cross-domain migration for a legacy vistapool entry.
+
+    Snapshots the device-level customisations (area_id, name_by_user,
+    labels, disabled_by) tied to the legacy entry before retargeting,
+    runs `migrate_single_entry_cross_domain`, restores the snapshot
+    onto the migrated device, and cleans up the leftover
+    `custom_components/vistapool/` folder.
+
+    Returns:
+        ``("migration_complete", None)`` on success.
+        ``("migration_failed", str(exc))`` if the cross-domain migration
+        raised — caller should ``async_abort`` with the error message.
+        ``(None, None)`` if the legacy entry disappeared between detect
+        and confirm — caller should fall through to the regular new-entry
+        flow.
+    """
+    legacy_entry = hass.config_entries.async_get_entry(legacy_entry_id)
+    if legacy_entry is None or legacy_entry.domain != OLD_DOMAIN:
+        return (None, None)
+
+    # ── Snapshot device customizations BEFORE migration ──────────────
+    # The cross-domain migration retargets the device's identifiers and
+    # config_entries, but it doesn't preserve user-set fields like
+    # area_id, name_by_user, or labels. We capture them here keyed by
+    # the device's serial-based identifier so we can match them onto the
+    # new device after migration.
+    device_registry = dr.async_get(hass)
+    snapshots: dict[str, dict[str, Any]] = {}
+    for device in dr.async_entries_for_config_entry(
+        device_registry, legacy_entry.entry_id
+    ):
+        # Match the (vistapool, X) tuple — that's the serial-based key
+        # the migration will rewrite to (neopool, X).
+        serial_key = next(
+            (ident for dom, ident in device.identifiers if dom == OLD_DOMAIN),
+            None,
+        )
+        if not serial_key:
+            continue
+        snapshots[serial_key] = {
+            "area_id": device.area_id,
+            "name_by_user": device.name_by_user,
+            "labels": set(device.labels),
+            "disabled_by": device.disabled_by,
+        }
+
+    # ── Run the cross-domain migration ───────────────────────────────
+    try:
+        await migrate_single_entry_cross_domain(hass, legacy_entry)
+    except Exception as exc:
+        # Intentionally broad: migration walks entity / device / config
+        # registries and the Modbus probe, so it can surface anything
+        # from HomeAssistantError to RuntimeError / OSError / NeoPoolError
+        # / ValueError. We never want a config-flow step to crash with a
+        # traceback — surface the message via abort(migration_failed)
+        # and let the user retry.
+        _LOGGER.exception(
+            "Cross-domain migration failed for %s",
+            legacy_entry.entry_id,
+        )
+        return ("migration_failed", str(exc))
+
+    # ── Restore device customizations onto the migrated device ───────
+    # The migration kept the device row in place but flipped its
+    # identifier to (neopool, serial_key). Find each by that tuple
+    # and re-apply the user-set fields.
+    for serial_key, snap in snapshots.items():
+        device = device_registry.async_get_device(identifiers={(DOMAIN, serial_key)})
+        if device is None:
+            continue
+        device_registry.async_update_device(
+            device.id,
+            area_id=snap["area_id"],
+            name_by_user=snap["name_by_user"],
+            labels=snap["labels"],
+            disabled_by=snap["disabled_by"],
+        )
+
+    # ── Clean up the leftover custom_components/vistapool/ folder ────
+    await async_cleanup_old_folder(hass)
+    return ("migration_complete", None)

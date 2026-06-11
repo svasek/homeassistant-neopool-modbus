@@ -25,6 +25,7 @@ from custom_components.neopool.migration import (
     _DeferredMigration,
     async_cleanup_legacy_files,
     async_cleanup_old_folder,
+    async_import_legacy_vistapool_entry,
     async_migrate_from_vistapool,
     migrate_single_entry_cross_domain,
 )
@@ -934,3 +935,207 @@ async def test_cleanup_legacy_files_logs_on_unlink_failure(
     assert not succeeding_path.exists()
     # The failing file is still present (because unlink raised)
     assert failing_path.exists()
+
+
+# ---------------------------------------------------------------------------
+# async_import_legacy_vistapool_entry
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_import_legacy_vistapool_entry_returns_none_when_legacy_gone():
+    """Legacy entry vanished between detect and run → (None, None) for fall-through."""
+    hass = MagicMock()
+    hass.config_entries.async_get_entry.return_value = None
+    reason, error = await async_import_legacy_vistapool_entry(hass, "missing")
+    assert reason is None
+    assert error is None
+
+
+@pytest.mark.asyncio
+async def test_import_legacy_vistapool_entry_returns_none_when_entry_is_not_vistapool():
+    """Entry exists but its domain is not vistapool → (None, None) for fall-through."""
+    hass = MagicMock()
+    other_entry = MagicMock()
+    other_entry.domain = "zigbee"
+    hass.config_entries.async_get_entry.return_value = other_entry
+    reason, error = await async_import_legacy_vistapool_entry(hass, "other")
+    assert reason is None
+    assert error is None
+
+
+@pytest.mark.asyncio
+async def test_import_legacy_vistapool_entry_runs_migration_and_restores_device():
+    """Submit → migration runs, device customizations are restored, success returned."""
+    hass = MagicMock()
+    legacy_entry = MagicMock()
+    legacy_entry.domain = OLD_DOMAIN
+    legacy_entry.entry_id = "legacy_entry"
+    hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    # Build a legacy device tied to the vistapool entry, with all the user
+    # customizations we want to see restored after migration.
+    device = MagicMock()
+    device.id = "device_1"
+    device.identifiers = {(OLD_DOMAIN, "neopool_SERIAL_X")}
+    device.area_id = "kitchen"
+    device.name_by_user = "Můj bazén"
+    device.labels = {"outdoor", "pool"}
+    device.disabled_by = None
+
+    # Migrated device (after migration the identifier was flipped to neopool)
+    migrated_device = MagicMock()
+    migrated_device.id = "device_1"  # same row, same id
+
+    device_registry = MagicMock()
+    device_registry.async_get_device.return_value = migrated_device
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(return_value=2),
+        ) as migrate_mock,
+        patch(
+            "custom_components.neopool.migration.async_cleanup_old_folder",
+            new=AsyncMock(return_value=True),
+        ) as cleanup_mock,
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=device_registry,
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[device],
+        ),
+    ):
+        reason, error = await async_import_legacy_vistapool_entry(hass, "legacy_entry")
+
+    # Migration was invoked with the legacy entry
+    migrate_mock.assert_awaited_once_with(hass, legacy_entry)
+    # Cleanup was called
+    cleanup_mock.assert_awaited_once_with(hass)
+    # Device customizations restored onto the migrated device
+    device_registry.async_update_device.assert_called_once_with(
+        "device_1",
+        area_id="kitchen",
+        name_by_user="Můj bazén",
+        labels={"outdoor", "pool"},
+        disabled_by=None,
+    )
+    assert reason == "migration_complete"
+    assert error is None
+
+
+@pytest.mark.asyncio
+async def test_import_legacy_vistapool_entry_skips_device_without_vistapool_identifier():
+    """A legacy device without a (vistapool, X) identifier is skipped during snapshot."""
+    hass = MagicMock()
+    legacy_entry = MagicMock()
+    legacy_entry.domain = OLD_DOMAIN
+    legacy_entry.entry_id = "legacy_entry"
+    hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    # Device with only a non-vistapool identifier — defensive case
+    device = MagicMock()
+    device.identifiers = {("zigbee", "stray-id")}
+
+    device_registry = MagicMock()
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(return_value=0),
+        ),
+        patch(
+            "custom_components.neopool.migration.async_cleanup_old_folder",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=device_registry,
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[device],
+        ),
+    ):
+        reason, _ = await async_import_legacy_vistapool_entry(hass, "legacy_entry")
+
+    # Nothing to restore — no async_update_device call
+    device_registry.async_update_device.assert_not_called()
+    assert reason == "migration_complete"
+
+
+@pytest.mark.asyncio
+async def test_import_legacy_vistapool_entry_skips_restore_when_migrated_device_missing():
+    """If the migrated device disappeared, restore is silently skipped."""
+    hass = MagicMock()
+    legacy_entry = MagicMock()
+    legacy_entry.domain = OLD_DOMAIN
+    legacy_entry.entry_id = "legacy_entry"
+    hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    device = MagicMock()
+    device.identifiers = {(OLD_DOMAIN, "neopool_SERIAL_X")}
+    device.area_id = "kitchen"
+    device.name_by_user = None
+    device.labels = set()
+    device.disabled_by = None
+
+    device_registry = MagicMock()
+    # After migration, the device row is gone (e.g. migration also dropped it
+    # because all config_entries became empty during a partial failure)
+    device_registry.async_get_device.return_value = None
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(return_value=0),
+        ),
+        patch(
+            "custom_components.neopool.migration.async_cleanup_old_folder",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=device_registry,
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[device],
+        ),
+    ):
+        reason, _ = await async_import_legacy_vistapool_entry(hass, "legacy_entry")
+
+    device_registry.async_update_device.assert_not_called()
+    assert reason == "migration_complete"
+
+
+@pytest.mark.asyncio
+async def test_import_legacy_vistapool_entry_returns_failure_on_migration_error():
+    """If migrate_single_entry_cross_domain raises, return migration_failed + msg."""
+    hass = MagicMock()
+    legacy_entry = MagicMock()
+    legacy_entry.domain = OLD_DOMAIN
+    legacy_entry.entry_id = "legacy_entry"
+    hass.config_entries.async_get_entry.return_value = legacy_entry
+
+    with (
+        patch(
+            "custom_components.neopool.migration.migrate_single_entry_cross_domain",
+            new=AsyncMock(side_effect=RuntimeError("simulated failure")),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_get",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "homeassistant.helpers.device_registry.async_entries_for_config_entry",
+            return_value=[],
+        ),
+    ):
+        reason, error = await async_import_legacy_vistapool_entry(hass, "legacy_entry")
+
+    assert reason == "migration_failed"
+    assert error is not None
+    assert "simulated failure" in error
