@@ -18,12 +18,12 @@ import logging
 from typing import Any
 
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
-from homeassistant.util import dt as dt_util
-from homeassistant.util import slugify
+from homeassistant.util import dt as dt_util, slugify
 
 from .const import (
     CONF_FILTRATION_PUMP_POWER,

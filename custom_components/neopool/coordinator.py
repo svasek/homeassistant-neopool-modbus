@@ -14,19 +14,11 @@
 
 """NeoPool integration for Home Assistant - Coordinator module."""
 
+from datetime import timedelta
 import json
 import logging
-from datetime import timedelta
 from typing import Any
 
-from homeassistant.components import persistent_notification
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME
-from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.helpers import issue_registry as ir
-from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.util import slugify
 from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import parse_version
 from neopool_modbus.exceptions import NeoPoolError
@@ -37,6 +29,15 @@ from neopool_modbus.registers import (
     MAX_RELAY_GPIO,
     TIMER_BLOCKS,
 )
+
+from homeassistant.components import persistent_notification
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_NAME
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import slugify
 
 from .const import (
     CAPABILITY_KEYS,

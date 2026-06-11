@@ -24,13 +24,14 @@ import datetime
 import logging
 from typing import Any
 
-import homeassistant.util.dt as dt_util
-from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
 from neopool_modbus import async_probe_serial
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER, is_valid_relay_gpio
+
+from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
+import homeassistant.util.dt as dt_util
 
 from .const import DOMAIN
 

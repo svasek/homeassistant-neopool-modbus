@@ -16,12 +16,12 @@
 
 import logging
 
+from neopool_modbus import NeoPoolModbusClient
+
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import entity_registry as er
-from neopool_modbus import NeoPoolModbusClient
+from homeassistant.helpers import config_validation as cv, entity_registry as er
 
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS
 from .coordinator import NeoPoolCoordinator
@@ -29,11 +29,7 @@ from .coordinator import NeoPoolCoordinator
 # Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
 # from the integration's __init__ module when config entry version changes.
 from .migration import async_cleanup_legacy_files, async_migrate_entry
-from .services import (
-    SERVICE_SET_TIMER,
-    SERVICE_WRITE_REGISTER,
-    async_setup_services,
-)
+from .services import SERVICE_SET_TIMER, SERVICE_WRITE_REGISTER, async_setup_services
 
 __all__ = ["async_migrate_entry"]
 

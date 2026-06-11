@@ -15,13 +15,10 @@
 """NeoPool integration for Home Assistant - Select module."""
 
 import asyncio
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
 
-from homeassistant.components.select import SelectEntity
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from neopool_modbus.decoders import (
     generate_time_options,
     get_filtration_pump_type,
@@ -29,6 +26,10 @@ from neopool_modbus.decoders import (
     seconds_to_hhmm,
 )
 from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
+
+from homeassistant.components.select import SelectEntity
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import (

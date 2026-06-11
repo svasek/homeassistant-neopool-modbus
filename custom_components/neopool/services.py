@@ -17,14 +17,15 @@
 import logging
 from typing import Any
 
+from neopool_modbus.decoders import get_timer_interval, hhmm_to_seconds
+from neopool_modbus.exceptions import NeoPoolError
+from neopool_modbus.registers import TIMER_BLOCKS
 import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
-from neopool_modbus.decoders import get_timer_interval, hhmm_to_seconds
-from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import TIMER_BLOCKS
 
 from .const import DOMAIN
 from .coordinator import NeoPoolCoordinator

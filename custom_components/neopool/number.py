@@ -15,19 +15,20 @@
 """NeoPool integration for Home Assistant - Number module."""
 
 import asyncio
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
 
-from homeassistant.components.number import NumberEntity, NumberMode
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from neopool_modbus.decoders import is_hydrolysis_in_percent
 from neopool_modbus.registers import (
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     is_valid_relay_gpio,
 )
+
+from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import NUMBER_DEFINITIONS

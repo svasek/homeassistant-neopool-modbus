@@ -17,18 +17,14 @@
 import asyncio
 import json
 import logging
-import shutil
 from pathlib import Path
+import shutil
 from types import MappingProxyType
 
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigEntryChange,
-)
+from homeassistant.config_entries import ConfigEntry, ConfigEntryChange
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from .const import CURRENT_VERSION, DOMAIN
 from .helpers import async_get_device_serial

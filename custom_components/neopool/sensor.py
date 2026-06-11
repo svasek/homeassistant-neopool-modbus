@@ -14,10 +14,12 @@
 
 """NeoPool integration for Home Assistant - Sensor module."""
 
+from datetime import datetime
 import logging
 import math
-from datetime import datetime
 from typing import Any
+
+from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -29,7 +31,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
-from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS

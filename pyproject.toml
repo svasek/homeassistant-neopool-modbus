@@ -49,6 +49,12 @@ ignore = [
 # to a dedicated services.py module in a follow-up refactor.
 "custom_components/neopool/__init__.py" = ["PLC0415", "B904", "TRY301", "BLE001"]
 
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["homeassistant"]
+combine-as-imports = true
+split-on-trailing-comma = false
+
 [tool.codespell]
 skip = "??.json,CHANGELOG.md"
 ignore-words-list = "hass"

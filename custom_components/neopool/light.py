@@ -17,11 +17,12 @@
 import logging
 from typing import Any
 
+from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
+
 from homeassistant.components.light import LightEntity
 from homeassistant.components.light.const import ColorMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
 
 from . import NeoPoolConfigEntry
 from .const import LIGHT_DEFINITIONS

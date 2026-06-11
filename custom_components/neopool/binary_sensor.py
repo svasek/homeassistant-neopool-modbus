@@ -14,14 +14,15 @@
 
 """NeoPool integration for Home Assistant - Binary Sensor module."""
 
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
+
+from neopool_modbus.registers import is_valid_relay_gpio
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from neopool_modbus.registers import is_valid_relay_gpio
 
 from . import NeoPoolConfigEntry
 from .const import BINARY_SENSOR_DEFINITIONS
