@@ -22,10 +22,8 @@ service-registration path (which is covered separately in test_init.py).
 
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
-from homeassistant.config_entries import ConfigEntryState
-from homeassistant.exceptions import ServiceValidationError
 from neopool_modbus.exceptions import NeoPoolError
+import pytest
 
 from custom_components.neopool.services import (
     SERVICE_SET_TIMER,
@@ -35,6 +33,8 @@ from custom_components.neopool.services import (
     _get_coordinator,
     async_setup_services,
 )
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.exceptions import ServiceValidationError
 
 
 def _make_call(data: dict, hass: MagicMock | None = None) -> MagicMock:

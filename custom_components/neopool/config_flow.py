@@ -31,11 +31,11 @@ from homeassistant.util import slugify
 from .const import (
     CONF_FILTRATION_PUMP_POWER,
     CURRENT_VERSION,
-    DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE_ID,
     DOMAIN,
+    NAME,
 )
 from .helpers import async_get_device_serial
 from .migration import async_cleanup_old_folder, migrate_single_entry_cross_domain
@@ -81,11 +81,11 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: igno
                 self.hass, self.hass.config.language, "config", {DOMAIN}
             )
             key = f"component.{DOMAIN}.config.step.user.data.name_default"
-            return t.get(key) or DEFAULT_NAME
+            return t.get(key) or NAME
         except Exception:  # noqa: BLE001
             # Translation lookup is best-effort; on any failure we fall
             # back to the literal English default so the form still opens.
-            return DEFAULT_NAME
+            return NAME
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

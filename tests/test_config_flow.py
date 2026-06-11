@@ -15,16 +15,11 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
+import pytest
 
 from custom_components.neopool import config_flow
-from custom_components.neopool.const import (
-    DEFAULT_NAME,
-    DEFAULT_PORT,
-    DEFAULT_SLAVE_ID,
-    DOMAIN,
-)
+from custom_components.neopool.const import DEFAULT_PORT, DEFAULT_SLAVE_ID, DOMAIN, NAME
 
 # Default serial register values for tests
 DEFAULT_SERIAL_REGS = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
@@ -586,7 +581,7 @@ async def test_get_default_name_returns_translated_name():
 
 @pytest.mark.asyncio
 async def test_get_default_name_falls_back_when_key_missing():
-    """When translation dict does not contain name_default, DEFAULT_NAME is returned."""
+    """When translation dict does not contain name_default, NAME is returned."""
     flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow.hass.config.language = "en"
@@ -595,20 +590,20 @@ async def test_get_default_name_falls_back_when_key_missing():
         new=AsyncMock(return_value={}),
     ):
         name = await flow._async_get_default_name()
-    assert name == DEFAULT_NAME
+    assert name == NAME
 
 
 @pytest.mark.asyncio
 async def test_get_default_name_falls_back_without_hass():
-    """When hass is not set (AttributeError), DEFAULT_NAME is returned."""
+    """When hass is not set (AttributeError), NAME is returned."""
     flow = config_flow.NeoPoolConfigFlow()
     name = await flow._async_get_default_name()
-    assert name == DEFAULT_NAME
+    assert name == NAME
 
 
 @pytest.mark.asyncio
 async def test_get_default_name_falls_back_on_translation_error():
-    """When async_get_translations raises, DEFAULT_NAME is returned."""
+    """When async_get_translations raises, NAME is returned."""
     flow = config_flow.NeoPoolConfigFlow()
     flow.hass = MagicMock()
     flow.hass.config.language = "en"
@@ -617,7 +612,7 @@ async def test_get_default_name_falls_back_on_translation_error():
         new=AsyncMock(side_effect=RuntimeError("fail")),
     ):
         name = await flow._async_get_default_name()
-    assert name == DEFAULT_NAME
+    assert name == NAME
 
 
 # ---------------------------------------------------------------------------
@@ -650,8 +645,8 @@ async def test_create_entry_empty_name_uses_default():
         assert result is not None
 
     assert result["type"] == "create_entry"
-    assert result["title"] == DEFAULT_NAME
-    assert result["data"]["name"] == DEFAULT_NAME
+    assert result["title"] == NAME
+    assert result["data"]["name"] == NAME
 
 
 @pytest.mark.asyncio
@@ -679,8 +674,8 @@ async def test_create_entry_no_name_key_uses_default():
         assert result is not None
 
     assert result["type"] == "create_entry"
-    assert result["title"] == DEFAULT_NAME
-    assert result["data"]["name"] == DEFAULT_NAME
+    assert result["title"] == NAME
+    assert result["data"]["name"] == NAME
 
 
 # ---------------------------------------------------------------------------

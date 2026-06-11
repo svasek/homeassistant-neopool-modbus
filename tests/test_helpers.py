@@ -14,7 +14,6 @@
 
 import datetime
 
-import pytest
 from neopool_modbus.decoders import (
     build_timer_block,
     generate_time_options,
@@ -31,6 +30,7 @@ from neopool_modbus.decoders import (
     parse_version,
     seconds_to_hhmm,
 )
+import pytest
 
 from custom_components.neopool.helpers import (
     get_device_time,

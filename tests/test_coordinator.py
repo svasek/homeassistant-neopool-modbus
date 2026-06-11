@@ -14,12 +14,12 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from neopool_modbus.exceptions import NeoPoolError
+import pytest
 
 from custom_components.neopool.const import DOMAIN, FOLLOW_UP_REFRESH_DELAY
 from custom_components.neopool.coordinator import NeoPoolCoordinator
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 @pytest.fixture

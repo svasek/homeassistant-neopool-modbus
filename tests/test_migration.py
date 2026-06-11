@@ -18,7 +18,6 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.config_entries import ConfigEntryState
 
 from custom_components.neopool.migration import (
     LEGACY_FILES_REMOVED_IN_V4,
@@ -29,6 +28,7 @@ from custom_components.neopool.migration import (
     async_migrate_from_vistapool,
     migrate_single_entry_cross_domain,
 )
+from homeassistant.config_entries import ConfigEntryState
 
 DEFAULT_SERIAL = "0000000100AC00CD00120034"
 NEW_UID = f"neopool_{DEFAULT_SERIAL}"

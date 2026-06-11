@@ -14,11 +14,11 @@
 
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
-import pytest
 from neopool_modbus.registers import (
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
 )
+import pytest
 
 from custom_components.neopool.number import NeoPoolNumber, async_setup_entry
 
