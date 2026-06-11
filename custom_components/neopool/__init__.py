@@ -16,12 +16,13 @@
 
 import logging
 
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from neopool_modbus import NeoPoolModbusClient
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import entity_registry as er
-from neopool_modbus import NeoPoolModbusClient
+from homeassistant.helpers import config_validation as cv, entity_registry as er
+from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS
 from .coordinator import NeoPoolCoordinator
@@ -29,11 +30,7 @@ from .coordinator import NeoPoolCoordinator
 # Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
 # from the integration's __init__ module when config entry version changes.
 from .migration import async_cleanup_legacy_files, async_migrate_entry
-from .services import (
-    SERVICE_SET_TIMER,
-    SERVICE_WRITE_REGISTER,
-    async_setup_services,
-)
+from .services import async_setup_services
 
 __all__ = ["async_migrate_entry"]
 
@@ -64,8 +61,14 @@ def _cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
             registry.async_remove(entity_entry.entity_id)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the NeoPool integration."""
+    async_setup_services(hass)
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
+    """Set up the NeoPool integration from a config entry."""
     # --- MIGRATE CONFIG FLOW DATA TO OPTIONS IF NEEDED ---
     # Copy all keys except connection settings from data to options
     connection_keys = [CONF_HOST, CONF_PORT, CONF_NAME, "slave_id"]
@@ -100,30 +103,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
     # Forward entities setup to Home Assistant
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Register services (idempotent — each service is registered only if missing)
-    async_setup_services(hass)
-
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
     """Unload a NeoPool config entry."""
-    coordinator = getattr(entry, "runtime_data", None)
-    if coordinator is not None:
-        coordinator.cancel_follow_up_refresh()
-        if getattr(coordinator, "client", None):
-            await coordinator.client.close()
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        # Cleanup services when no other loaded entry remains
-        remaining = [
-            e
-            for e in hass.config_entries.async_entries(DOMAIN)
-            if e.entry_id != entry.entry_id and e.state == ConfigEntryState.LOADED
-        ]
-        if not remaining:
-            if hass.services.has_service(DOMAIN, SERVICE_SET_TIMER):
-                hass.services.async_remove(DOMAIN, SERVICE_SET_TIMER)
-            if hass.services.has_service(DOMAIN, SERVICE_WRITE_REGISTER):
-                hass.services.async_remove(DOMAIN, SERVICE_WRITE_REGISTER)
-    return unload_ok
+    coordinator = entry.runtime_data
+    coordinator.cancel_follow_up_refresh()
+    if coordinator.client is not None:
+        await coordinator.client.close()
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

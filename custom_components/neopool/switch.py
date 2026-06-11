@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Switch module."""
+"""Switch platform for the NeoPool integration."""
 
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from neopool_modbus.registers import (
     EXEC_REGISTER,
     MANUAL_FILTRATION_REGISTER,
     is_valid_relay_gpio,
 )
+
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import SWITCH_DEFINITIONS
@@ -100,7 +101,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     """Representation of a NeoPool switch entity."""
 
     def __init__(
@@ -333,36 +334,36 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):  # type: ignore[reportIncompat
                 data[self._data_key] = current & ~self._mask_bit
 
     @property
-    def is_on(self) -> bool:  # type: ignore[override]
+    def is_on(self) -> bool:
         """Return True if the switch is on."""
         if self._switch_type == "manual_filtration":
             if self.coordinator.data.get("MBF_PAR_FILT_MODE") == 1:
                 return False
             return self.coordinator.data.get("MBF_PAR_FILT_MANUAL_STATE") == 1
-        elif self._switch_type == "aux":
+        if self._switch_type == "aux":
             return bool(self.coordinator.data.get(self._key, False))
-        elif self._switch_type == "auto_time_sync":
+        if self._switch_type == "auto_time_sync":
             return getattr(self.coordinator, "auto_time_sync", False)
-        elif self._switch_type == "winter_mode":
+        if self._switch_type == "winter_mode":
             return getattr(self.coordinator, "winter_mode", False)
-        elif self._switch_type == "timer_enable":
+        if self._switch_type == "timer_enable":
             return bool(self.coordinator.data.get(self._key, 0))
-        elif self._switch_type == "relay_timer":
+        if self._switch_type == "relay_timer":
             enable_val = self.coordinator.data.get(f"relay_{self._key}_enable", None)
             return enable_val == 3  # ON if ALWAYS ON
-        elif self._switch_type == "climate_mode":
+        if self._switch_type == "climate_mode":
             return bool(self.coordinator.data.get("MBF_PAR_CLIMA_ONOFF", 0))
-        elif self._switch_type == "smart_anti_freeze":
+        if self._switch_type == "smart_anti_freeze":
             return bool(self.coordinator.data.get("MBF_PAR_SMART_ANTI_FREEZE", 0))
-        elif self._switch_type == "uv_mode":
+        if self._switch_type == "uv_mode":
             return bool(self.coordinator.data.get("MBF_PAR_UV_MODE", 0))
-        elif self._switch_type == "bitmask" and self._mask_bit is not None:
+        if self._switch_type == "bitmask" and self._mask_bit is not None:
             raw = int(self.coordinator.data.get(self._data_key, 0) or 0)
             return bool(raw & self._mask_bit)
         return False
 
     @property
-    def available(self) -> bool:  # type: ignore[override]
+    def available(self) -> bool:
         """Return True if the switch is available."""
         # These switches are pure HA settings (not device state) - always operable.
         if self._switch_type in ("winter_mode", "auto_time_sync"):

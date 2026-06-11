@@ -952,9 +952,7 @@ def test_sensor_filtration_remaining_none_when_idle():
 @pytest.mark.asyncio
 async def test_filtration_power_sensor_created_when_nonzero():
     """Power sensor is created as a NeoPoolSensor when filtration_pump_power > 0."""
-    from custom_components.neopool.const import (
-        CONF_FILTRATION_PUMP_POWER,
-    )
+    from custom_components.neopool.const import CONF_FILTRATION_PUMP_POWER
 
     class DummyEntry:
         unique_id = None

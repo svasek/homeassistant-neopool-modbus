@@ -52,7 +52,11 @@ jobs:
       - name: Update manifest.json version
         if: startsWith(github.ref, 'refs/heads/release-please--')
         run: |
+          # `jq` reformats the JSON (collapses multi-line arrays, etc.)
+          # so we always run prettier after it to restore the project's
+          # formatting conventions (see .prettierrc.js).
           jq ".version=\"$VERSION\"" custom_components/neopool/manifest.json > tmp.$$.json && mv tmp.$$.json custom_components/neopool/manifest.json
+          npx --yes prettier@3 --write custom_components/neopool/manifest.json
 
       - name: Commit manifest.json version bump
         if: startsWith(github.ref, 'refs/heads/release-please--')

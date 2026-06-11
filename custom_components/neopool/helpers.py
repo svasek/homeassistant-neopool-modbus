@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Helpers module.
+"""Helper functions for the NeoPool integration.
 
 This module contains helper functions for the NeoPool integration.
 It includes functions to handle device time, prepare data for writing to the device,
@@ -24,13 +24,14 @@ import datetime
 import logging
 from typing import Any
 
-import homeassistant.util.dt as dt_util
-from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
 from neopool_modbus import async_probe_serial
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER, is_valid_relay_gpio
+
+from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
+import homeassistant.util.dt as dt_util
 
 from .const import DOMAIN
 
@@ -51,12 +52,11 @@ def get_device_time(
     unix_ts = (high << 16) | low
     if hass:
         local_tz = dt_util.get_time_zone(hass.config.time_zone)
-        # The naive datetime is intentional: we localise it to the HA timezone
-        # below before converting to UTC, since the device clock has no tz info.
-        dt_naive = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=unix_ts)  # noqa: DTZ001
+        # WORKAROUND: This is the naive datetime object, without timezone info
+        dt_naive = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=unix_ts)
         dt_local = dt_naive.replace(tzinfo=local_tz)
-        return dt_local.astimezone(datetime.timezone.utc)
-    return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.timezone.utc)
+        return dt_local.astimezone(datetime.UTC)
+    return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.UTC)
 
 
 # This function prepares the device time for writing to the device
@@ -73,9 +73,7 @@ def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
         epoch_local = datetime.datetime(1970, 1, 1, tzinfo=ha_tz)
         unix_time_local = int((now_local - epoch_local).total_seconds())
     else:  # pragma: no cover
-        # No hass available (unit tests / standalone helpers): fall back to the
-        # host clock. The device protocol expects local epoch seconds, not UTC.
-        unix_time_local = int(datetime.datetime.now().timestamp())  # noqa: DTZ005
+        unix_time_local = int(datetime.datetime.now().timestamp())
     low = unix_time_local & 0xFFFF
     high = (unix_time_local >> 16) & 0xFFFF
     return [low, high]
@@ -86,22 +84,19 @@ def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
 def is_device_time_out_of_sync(
     data: dict[str, Any], hass: HomeAssistant | None = None, threshold_seconds: int = 60
 ) -> bool:
-    """
-    Returns True if device time and HA time differ by more than threshold_seconds.
-    """
+    """Returns True if device time and HA time differ by more than threshold_seconds."""
     device_dt = get_device_time(data, hass)
     if device_dt is None:
         return False
-    now_dt = dt_util.utcnow().replace(tzinfo=datetime.timezone.utc)
+    now_dt = dt_util.utcnow().replace(tzinfo=datetime.UTC)
     diff = abs((device_dt - now_dt).total_seconds())
     return diff > threshold_seconds
 
 
 def calculate_next_interval_time(
-    seconds: int | float | None, hass: HomeAssistant | None = None
+    seconds: float | None, hass: HomeAssistant | None = None
 ) -> datetime.datetime | None:
-    """
-    Calculate the timestamp for the next interval start.
+    """Calculate the timestamp for the next interval start.
 
     Args:
         seconds: Number of seconds until the next interval starts (countdown).
@@ -123,7 +118,7 @@ def calculate_next_interval_time(
         target_time = now_local + datetime.timedelta(seconds=seconds)
     else:
         # Fallback to UTC if hass is not available
-        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        now_utc = datetime.datetime.now(datetime.UTC)
         target_time = now_utc + datetime.timedelta(seconds=seconds)
 
     # Round to nearest minute (set seconds and microseconds to 0)

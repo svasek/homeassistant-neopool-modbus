@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Button module."""
+"""Button platform for the NeoPool integration."""
 
 import logging
 from typing import Any
 
+from neopool_modbus.registers import COPY_TO_RTC_REGISTER
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from neopool_modbus.registers import COPY_TO_RTC_REGISTER
 
 from . import NeoPoolConfigEntry
 from .const import BUTTON_DEFINITIONS
@@ -56,7 +57,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolButton(NeoPoolEntity, ButtonEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolButton(NeoPoolEntity, ButtonEntity):
     """Representation of a NeoPool button entity."""
 
     def __init__(

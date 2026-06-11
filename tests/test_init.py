@@ -19,10 +19,21 @@ import pytest
 from custom_components.neopool import (
     _cleanup_removed_entities,
     async_migrate_entry,
+    async_setup,
     async_setup_entry,
     async_unload_entry,
 )
 from custom_components.neopool.const import DEFAULT_PORT
+
+
+@pytest.mark.asyncio
+async def test_async_setup_registers_services():
+    """async_setup registers the neopool services and returns True."""
+    hass = MagicMock()
+    hass.services.async_register = MagicMock()
+    result = await async_setup(hass, {})
+    assert result is True
+    assert hass.services.async_register.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -66,45 +77,11 @@ async def test_async_unload_entry_success():
     coordinator = MagicMock()
     coordinator.client = AsyncMock()
     config_entry.runtime_data = coordinator
-    # Simulate another entry still loaded — services should NOT be removed
-    from homeassistant.config_entries import ConfigEntryState
-
-    other_entry = MagicMock()
-    other_entry.entry_id = "entry2"
-    other_entry.state = ConfigEntryState.LOADED
-    hass.config_entries.async_entries = MagicMock(
-        return_value=[config_entry, other_entry]
-    )
-    hass.services.has_service = MagicMock(return_value=True)
-    hass.services.async_remove = MagicMock()
     result = await async_unload_entry(hass, config_entry)
     assert result is True
     # Check that follow-up refresh was cancelled and client closed
     coordinator.cancel_follow_up_refresh.assert_called_once()
     assert coordinator.client.close.await_count == 1
-    # Services should NOT be removed (other entry still loaded)
-    hass.services.async_remove.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_async_unload_entry_last_entry():
-    """Test async_unload_entry removes services when last entry is unloaded."""
-    hass = MagicMock()
-    hass.config_entries = MagicMock()
-    hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
-    config_entry = MagicMock()
-    config_entry.entry_id = "entry1"
-    coordinator = MagicMock()
-    coordinator.client = AsyncMock()
-    config_entry.runtime_data = coordinator
-    # Only this entry — after unload, no remaining entries
-    hass.config_entries.async_entries = MagicMock(return_value=[config_entry])
-    hass.services.has_service = MagicMock(return_value=True)
-    hass.services.async_remove = MagicMock()
-    result = await async_unload_entry(hass, config_entry)
-    assert result is True
-    # Services should be removed (last entry)
-    assert hass.services.async_remove.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -118,9 +95,6 @@ async def test_async_unload_entry_no_client():
     coordinator = MagicMock()
     coordinator.client = None
     config_entry.runtime_data = coordinator
-    hass.config_entries.async_entries = MagicMock(return_value=[config_entry])
-    hass.services.has_service = MagicMock(return_value=True)
-    hass.services.async_remove = MagicMock()
     result = await async_unload_entry(hass, config_entry)
     assert result is True
 

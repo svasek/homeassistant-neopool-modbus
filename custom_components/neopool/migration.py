@@ -17,21 +17,28 @@
 import asyncio
 import json
 import logging
-import shutil
 from pathlib import Path
+import shutil
 from types import MappingProxyType
+from typing import TYPE_CHECKING, Any
+
+import voluptuous as vol
 
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigEntryChange,
+    ConfigFlowResult,
 )
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from .const import CURRENT_VERSION, DOMAIN
 from .helpers import async_get_device_serial
+
+if TYPE_CHECKING:
+    from .config_flow import NeoPoolConfigFlow
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -769,3 +776,221 @@ async def async_cleanup_legacy_files(hass: HomeAssistant) -> None:
             path,
             err,
         )
+
+
+async def async_import_legacy_vistapool_entry(
+    hass: HomeAssistant, legacy_entry_id: str
+) -> tuple[str | None, str | None]:
+    """Run the cross-domain migration for a legacy vistapool entry.
+
+    Snapshots the device-level customisations (area_id, name_by_user,
+    labels, disabled_by) tied to the legacy entry before retargeting,
+    runs `migrate_single_entry_cross_domain`, restores the snapshot
+    onto the migrated device, and cleans up the leftover
+    `custom_components/vistapool/` folder.
+
+    Returns:
+        ``("migration_complete", None)`` on success.
+        ``("migration_failed", str(exc))`` if the cross-domain migration
+        raised — caller should ``async_abort`` with the error message.
+        ``(None, None)`` if the legacy entry disappeared between detect
+        and confirm — caller should fall through to the regular new-entry
+        flow.
+    """
+    legacy_entry = hass.config_entries.async_get_entry(legacy_entry_id)
+    if legacy_entry is None or legacy_entry.domain != OLD_DOMAIN:
+        return (None, None)
+
+    # ── Snapshot device customizations BEFORE migration ──────────────
+    # The cross-domain migration retargets the device's identifiers and
+    # config_entries, but it doesn't preserve user-set fields like
+    # area_id, name_by_user, or labels. We capture them here keyed by
+    # the device's serial-based identifier so we can match them onto the
+    # new device after migration.
+    device_registry = dr.async_get(hass)
+    snapshots: dict[str, dict[str, Any]] = {}
+    for device in dr.async_entries_for_config_entry(
+        device_registry, legacy_entry.entry_id
+    ):
+        # Match the (vistapool, X) tuple — that's the serial-based key
+        # the migration will rewrite to (neopool, X).
+        serial_key = next(
+            (ident for dom, ident in device.identifiers if dom == OLD_DOMAIN),
+            None,
+        )
+        if not serial_key:
+            continue
+        snapshots[serial_key] = {
+            "area_id": device.area_id,
+            "name_by_user": device.name_by_user,
+            "labels": set(device.labels),
+            "disabled_by": device.disabled_by,
+        }
+
+    # ── Run the cross-domain migration ───────────────────────────────
+    try:
+        await migrate_single_entry_cross_domain(hass, legacy_entry)
+    except Exception as exc:
+        # Intentionally broad: migration walks entity / device / config
+        # registries and the Modbus probe, so it can surface anything
+        # from HomeAssistantError to RuntimeError / OSError / NeoPoolError
+        # / ValueError. We never want a config-flow step to crash with a
+        # traceback — surface the message via abort(migration_failed)
+        # and let the user retry.
+        _LOGGER.exception(
+            "Cross-domain migration failed for %s",
+            legacy_entry.entry_id,
+        )
+        return ("migration_failed", str(exc))
+
+    # ── Restore device customizations onto the migrated device ───────
+    # The migration kept the device row in place but flipped its
+    # identifier to (neopool, serial_key). Find each by that tuple
+    # and re-apply the user-set fields.
+    for serial_key, snap in snapshots.items():
+        device = device_registry.async_get_device(identifiers={(DOMAIN, serial_key)})
+        if device is None:
+            continue
+        device_registry.async_update_device(
+            device.id,
+            area_id=snap["area_id"],
+            name_by_user=snap["name_by_user"],
+            labels=snap["labels"],
+            disabled_by=snap["disabled_by"],
+        )
+
+    # ── Clean up the leftover custom_components/vistapool/ folder ────
+    await async_cleanup_old_folder(hass)
+    return ("migration_complete", None)
+
+
+async def async_detect_legacy_vistapool_entry(
+    hass: HomeAssistant,
+) -> tuple[str, str] | None:
+    """Return ``(entry_id, title)`` of the first legacy vistapool entry, or ``None``.
+
+    Used by the config flow to decide whether to offer the one-click
+    cross-domain import step.
+    """
+    legacy_entries = hass.config_entries.async_entries(OLD_DOMAIN)
+    if not legacy_entries:
+        return None
+    return (legacy_entries[0].entry_id, legacy_entries[0].title)
+
+
+async def async_offer_vistapool_import_if_present(
+    flow: "NeoPoolConfigFlow",
+) -> ConfigFlowResult | None:
+    """Detect a legacy vistapool entry; if found, set state and dispatch.
+
+    Sets ``flow._legacy_entry_id`` / ``flow._legacy_entry_title`` and
+    returns the result of ``async_step_import_from_vistapool``. Returns
+    ``None`` if no legacy entry is present, signalling that the caller
+    should fall through to the regular new-entry form.
+    """
+    legacy = await async_detect_legacy_vistapool_entry(flow.hass)
+    if legacy is None:
+        return None
+    flow._legacy_entry_id, flow._legacy_entry_title = legacy
+    return await flow.async_step_import_from_vistapool()
+
+
+def find_unmigrated_v1_entry(
+    hass: HomeAssistant,
+    host: str | None,
+    port: int | None,
+    slave_id: int | None,
+    modbus_framer: str | None,
+) -> ConfigEntry | None:
+    """Return an existing v1 (``unique_id=None``) entry matching connection params.
+
+    Used by the config flow to abort with ``already_configured`` when a user
+    tries to add a controller that's already configured under a v1 entry
+    that hasn't been migrated yet (host/port/slave_id/framer all match).
+    """
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id is not None:
+            continue
+        if (
+            entry.data.get(CONF_HOST) == host
+            and entry.data.get(CONF_PORT) == port
+            and entry.data.get("slave_id") == slave_id
+            and entry.data.get("modbus_framer") == modbus_framer
+        ):
+            return entry
+    return None
+
+
+def async_abort_if_unmigrated_v1_match(
+    flow: "NeoPoolConfigFlow",
+    user_input: dict[str, Any],
+) -> ConfigFlowResult | None:
+    """Abort the flow if ``user_input`` matches an unmigrated v1 entry, else None.
+
+    HA's standard ``_abort_if_unique_id_configured`` doesn't catch v1
+    entries (their ``unique_id`` is ``None``) — this defensive check
+    matches them by connection parameters instead.
+    """
+    if find_unmigrated_v1_entry(
+        flow.hass,
+        user_input.get(CONF_HOST),
+        user_input.get(CONF_PORT),
+        user_input.get("slave_id"),
+        user_input.get("modbus_framer"),
+    ):
+        return flow.async_abort(reason="already_configured")
+    return None
+
+
+async def async_handle_import_step(
+    flow: "NeoPoolConfigFlow",
+    user_input: dict[str, Any] | None,
+    legacy_entry_id: str,
+    legacy_entry_title: str,
+) -> ConfigFlowResult:
+    """Body of the ``import_from_vistapool`` config flow step.
+
+    The ConfigFlow class only owns the HA framework binding
+    (``async_step_import_from_vistapool``); the actual orchestration
+    of pre-check → form display → migration dispatch → result mapping
+    lives here so the rest of the migration plumbing stays in one
+    module.
+
+    On confirmation, delegates to :func:`async_import_legacy_vistapool_entry`.
+    On decline / disappearance of the legacy entry, falls through to the
+    regular ``async_step_user`` form.
+    """
+    # The legacy entry might have been removed between async_step_user
+    # detecting it and the user clicking Submit — re-resolve to be safe.
+    legacy_entry = flow.hass.config_entries.async_get_entry(legacy_entry_id)
+    if legacy_entry is None or legacy_entry.domain != OLD_DOMAIN:
+        # Nothing to import any more; fall through to the regular new-entry
+        # path. user_input None forces a fresh form display there.
+        return await flow.async_step_user()
+
+    if user_input is None:
+        return flow.async_show_form(
+            step_id="import_from_vistapool",
+            data_schema=vol.Schema({}),
+            description_placeholders={
+                "entry_title": legacy_entry_title,
+            },
+        )
+
+    # Run the cross-domain migration (snapshot → retarget → restore →
+    # cleanup) — the helper already created and added the new neopool
+    # entry to hass.config_entries, so we MUST NOT call
+    # async_create_entry here. Aborting with a friendly reason gives
+    # the user a confirmation dialog ("migration completed").
+    reason, error = await async_import_legacy_vistapool_entry(
+        flow.hass, legacy_entry_id
+    )
+    if reason is None:
+        # Legacy entry disappeared between detect and run — fall through.
+        return await flow.async_step_user()
+    if reason == "migration_failed":
+        return flow.async_abort(
+            reason="migration_failed",
+            description_placeholders={"error": error or ""},
+        )
+    return flow.async_abort(reason="migration_complete")

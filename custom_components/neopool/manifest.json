@@ -1,20 +1,13 @@
 {
   "domain": "neopool",
   "name": "NeoPool Modbus",
-  "codeowners": [
-    "@svasek"
-  ],
+  "codeowners": ["@svasek"],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://github.com/svasek/homeassistant-neopool-modbus",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/svasek/homeassistant-neopool-modbus/issues",
-  "loggers": [
-    "neopool_modbus"
-  ],
-  "requirements": [
-    "neopool-modbus>=2.0.1"
-  ],
+  "loggers": ["neopool_modbus"],
+  "requirements": ["neopool-modbus==2.0.1"],
   "version": "4.0.1"
 }

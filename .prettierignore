@@ -1,2 +1,9 @@
 LICENSE
 .github/CODEOWNERS
+
+# node_modules is not part of the integration; only present when devs
+# install the prettier tooling locally.
+node_modules/
+
+# Generated translations (created on demand for tests; gitignored).
+custom_components/neopool/translations/

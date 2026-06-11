@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Light module."""
+"""Light platform for the NeoPool integration."""
 
 import logging
 from typing import Any
+
+from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
 
 from homeassistant.components.light import LightEntity
 from homeassistant.components.light.const import ColorMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
 
 from . import NeoPoolConfigEntry
 from .const import LIGHT_DEFINITIONS
@@ -66,7 +67,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolLight(NeoPoolEntity, LightEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolLight(NeoPoolEntity, LightEntity):
     """Representation of a NeoPool light entity."""
 
     def __init__(
@@ -186,7 +187,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):  # type: ignore[reportIncompatib
         await super().async_added_to_hass()
 
     @property
-    def is_on(self) -> bool:  # type: ignore[override]
+    def is_on(self) -> bool:
         """Return True if the light is ON."""
         if self._switch_type == "relay_timer":
             enable_val = self.coordinator.data.get("relay_light_enable", None)
@@ -194,7 +195,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):  # type: ignore[reportIncompatib
         return False
 
     @property
-    def available(self) -> bool:  # type: ignore[override]
+    def available(self) -> bool:
         """Return True if the light is available."""
         if not super().available:
             return False
@@ -204,13 +205,13 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):  # type: ignore[reportIncompatib
         return True
 
     @property
-    def supported_color_modes(self) -> set[str]:  # type: ignore[override]
+    def supported_color_modes(self) -> set[ColorMode]:
         """Return the color modes supported by this light."""
         # For simple on/off light, the correct mode is COLOR_MODE_ONOFF (or ColorMode.ONOFF)
         return {ColorMode.ONOFF}
 
     @property
-    def color_mode(self) -> str:  # type: ignore[override]
+    def color_mode(self) -> ColorMode:
         """Return the current color mode of the light."""
         # Actual mode is always onoff, as brightness and color are not available
         return ColorMode.ONOFF

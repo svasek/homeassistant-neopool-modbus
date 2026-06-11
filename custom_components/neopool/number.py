@@ -12,22 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Number module."""
+"""Number platform for the NeoPool integration."""
 
 import asyncio
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
 
-from homeassistant.components.number import NumberEntity, NumberMode
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from neopool_modbus.decoders import is_hydrolysis_in_percent
 from neopool_modbus.registers import (
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     is_valid_relay_gpio,
 )
+
+from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import NUMBER_DEFINITIONS
@@ -127,7 +128,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     """Representation of a NeoPool number entity."""
 
     def __init__(
@@ -140,10 +141,10 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
         """Initialize the NeoPool number entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        self._register = props.get("register", None)
+        self._register = props.get("register")
         self._scale = props.get("scale", 1.0)
         # Optional bitmask support for compound registers
-        self._mask: int | None = props.get("mask", None)
+        self._mask: int | None = props.get("mask")
         self._shift: int = props.get("shift", 0)
         self._data_key: str = props.get("data_key", key)
 
@@ -155,16 +156,18 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
-        self._attr_native_unit_of_measurement = props.get("unit", None)
-        self._attr_native_min_value = props.get("min", None)
-        self._attr_native_max_value = props.get("max", None)
+        self._attr_native_unit_of_measurement = props.get("unit")
+        if (min_val := props.get("min")) is not None:
+            self._attr_native_min_value = min_val
+        if (max_val := props.get("max")) is not None:
+            self._attr_native_max_value = max_val
         self._attr_native_step = props.get("step", 1.0)
         self._attr_mode = NumberMode.BOX
 
         self._attr_device_class = props.get("device_class") or None
         self._attr_entity_category = props.get("entity_category") or None
-        self._pending_write_task = None
-        self._pending_value = None
+        self._pending_write_task: asyncio.Task[None] | None = None
+        self._pending_value: float | None = None
         self._debounce_delay = 2.0
 
         _LOGGER.debug(
@@ -199,7 +202,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
 
         self.async_write_ha_state()
 
-    async def async_set_native_value(self, value: float | int | str) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Set the native value of the number entity."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
@@ -265,7 +268,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
         return None
 
     @property
-    def native_value(self) -> float | int | str | None:  # type: ignore[override]
+    def native_value(self) -> float | None:
         """Return the actual number value."""
         raw = self.coordinator.data.get(self._data_key)
         if raw is not None and self._mask is not None:
@@ -280,7 +283,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
 
     # Property to set correct native value for hydrolysis
     @property
-    def native_unit_of_measurement(self) -> str | None:  # type: ignore[override]
+    def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement for the number value."""
         if self._key == "MBF_PAR_HIDRO":
             # Dynamically determine unit based on machine configuration using the same logic as Tasmota
@@ -289,7 +292,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
 
     # Property to set correct native max value for hydrolysis
     @property
-    def native_max_value(self) -> float | None:  # type: ignore[override]
+    def native_max_value(self) -> float:
         """Return the maximum value for the number entity."""
         if self._key == "MBF_PAR_HIDRO":
             hidro_nom = self.coordinator.data.get("MBF_PAR_HIDRO_NOM")
@@ -298,7 +301,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):  # type: ignore[reportIncompat
         return self._attr_native_max_value
 
     @property
-    def native_step(self) -> float | None:  # type: ignore[override]
+    def native_step(self) -> float | None:
         """Return the step value for the number entity."""
         if self._key == "MBF_PAR_HIDRO":
             # 1.0 step in percent mode, 0.1 step in g/h mode (matches display precision and register scale)

@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Diagnostics module."""
-
-from __future__ import annotations
+"""Diagnostics support for the NeoPool integration."""
 
 from typing import Any
 

@@ -12,16 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Select module."""
+"""Select platform for the NeoPool integration."""
 
 import asyncio
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
 
-from homeassistant.components.select import SelectEntity
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from neopool_modbus.decoders import (
     generate_time_options,
     get_filtration_pump_type,
@@ -29,6 +26,10 @@ from neopool_modbus.decoders import (
     seconds_to_hhmm,
 )
 from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
+
+from homeassistant.components.select import SelectEntity
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import (
@@ -118,7 +119,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     """Representation of a NeoPool select entity."""
 
     def __init__(
@@ -160,8 +161,175 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
             getattr(self, "has_entity_name", None),
         )
 
+    async def _select_mapped_register(self, client: Any, option: str) -> None:
+        """Reverse-lookup the option label and write to a register.
+
+        Used by mapped-register selects (INTELLIGENT_FILT_MIN_TIME,
+        FILTVALVE_PERIOD_MINUTES, RELAY_ACTIVATION_DELAY): looks the option
+        label back to its register value, applies the optional
+        ``write_offset``, and writes to the entity's register.
+        """
+        reverse_map = {v: k for k, v in self._options_map.items()}
+        value = reverse_map.get(option)
+        if value is None:
+            try:  # pragma: no cover  # mapped_register option is always in options_map; this fallback is for raw values
+                value = int(option.rstrip("ms"))
+            except (TypeError, ValueError):  # pragma: no cover
+                return
+        write_val = value + self._props.get("write_offset", 0)
+        await client.async_write_register(self._register, max(0, write_val))
+        await asyncio.sleep(0.2)
+        self._optimistic_update(value)
+        if self.coordinator.data is not None:
+            self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.request_refresh_with_followup()
+
+    async def _select_timer_time(self, option: str) -> None:
+        """Update the start or stop time of a timer via the set_timer service."""
+        timer_name, field = self._key.rsplit("_", 1)
+        data = self.coordinator.data
+        if field == "start":
+            start = option
+            stop = seconds_to_hhmm(data.get(f"{timer_name}_stop", 0))
+        elif field == "stop":
+            start = seconds_to_hhmm(data.get(f"{timer_name}_start", 0))
+            stop = option
+        else:  # pragma: no cover
+            return
+        await self.hass.services.async_call(
+            DOMAIN,
+            "set_timer",
+            {
+                "entry_id": self._entry_id,
+                "timer": timer_name,
+                "start": start,
+                "stop": stop,
+            },
+        )
+
+    async def _select_timer_period(self, option: str) -> None:
+        """Update the repeat period of a timer via the set_timer service."""
+        timer_name = self._key.rsplit("_", 1)[0]  # for example, "relay_aux1"
+        period_value = PERIOD_MAP.get(option)
+        if period_value is None:
+            # fallback to integer conversion
+            try:  # pragma: no cover  # 'option' is always one of the labels in PERIOD_MAP
+                period_value = int(option)
+            except (TypeError, ValueError):  # pragma: no cover
+                return
+        await self.hass.services.async_call(
+            DOMAIN,
+            "set_timer",
+            {
+                "entry_id": self._entry_id,
+                "timer": timer_name,
+                "period": period_value,
+            },
+        )
+
+    async def _select_relay_mode(self, option: str) -> None:
+        """Update a relay's automatic/on/off mode via the set_timer service."""
+        timer_field = self._props.get("timer_field", "enable")
+        timer_name = self._key.rsplit("_", 1)[0]  # for example, "relay_aux1"
+        reverse_map = {v: k for k, v in self._options_map.items()}
+        value = reverse_map.get(option)
+        if value is None:  # pragma: no cover
+            return
+        await self.hass.services.async_call(
+            DOMAIN,
+            "set_timer",
+            {
+                "entry_id": self._entry_id,
+                "timer": timer_name,
+                timer_field: value,
+            },
+        )
+        self._optimistic_update(value)
+        if self.coordinator.data is not None:
+            self.coordinator.async_set_updated_data(self.coordinator.data)
+
+    async def _select_cell_boost(self, client: Any, option: str) -> None:
+        """Encode the cell boost mode into the composite cell-status register."""
+        value = next(
+            (k for k, v in self._options_map.items() if v == option),
+            None,
+        )
+        if value is None:  # pragma: no cover
+            return
+        if value == 0:  # pragma: no cover
+            write_val = 0
+        elif value == 1:  # pragma: no cover
+            # 0x85A0 = Boost active, redox control DISABLED
+            write_val = 0x0500 | 0x00A0 | 0x8000
+        elif value == 2:
+            # 0x05A0 = Boost active, redox control ENABLED
+            write_val = 0x0500 | 0x00A0
+        else:  # pragma: no cover
+            return
+        reg = SELECT_DEFINITIONS[self._key]["register"]
+        await client.async_write_register(reg, write_val)
+        await asyncio.sleep(0.2)
+
+    async def _select_filtration_speed(self, client: Any, option: str) -> None:
+        """Pack the filtration speed into the composite filtration_conf register."""
+        rev_map = {v: k for k, v in self._options_map.items()}
+        value = rev_map.get(option)
+        if value is None:  # pragma: no cover
+            return
+        current = self.coordinator.data.get("MBF_PAR_FILTRATION_CONF")
+        if current is None or self._attr_mask is None or self._attr_shift is None:
+            return  # pragma: no cover
+        new_val = (current & ~self._attr_mask) | (value << self._attr_shift)
+        _LOGGER.debug(
+            "Setting new filtration speed: current=0x%04X, new_val=0x%04X, mask=0x%04X, shift=%s",
+            current,
+            new_val,
+            self._attr_mask,
+            self._attr_shift,
+        )
+        await client.async_write_register(self._register, new_val, apply=True)
+        await asyncio.sleep(0.2)
+
+    async def _select_default_register(self, client: Any, option: str) -> None:
+        """Write the option's mapped value to the entity's register.
+
+        Special-cases MBF_PAR_FILT_MODE: leaving manual mode first stops the
+        pump (writing 0 to MANUAL_FILTRATION_REGISTER), except when switching
+        to backwash on a device with an automatic Besgo valve, where the pump
+        must keep running for the valve to open correctly.
+        """
+        value = next(
+            (k for k, v in self._options_map.items() if v == option),
+            None,
+        )
+        if value is None:  # pragma: no cover
+            return
+        if self._key == "MBF_PAR_FILT_MODE":
+            current_mode = self.coordinator.data.get(self._key)
+            current_name = self._options_map.get(current_mode)
+            has_auto_valve = has_filtvalve(self.coordinator.data)
+            # When leaving manual mode, stop the pump first - EXCEPT when
+            # switching to backwash on a device WITH an automatic valve (Besgo).
+            # In that case the pump must keep running so the valve opens correctly.
+            # For manual valve users the pump must stop so the user can safely
+            # rotate the multi-way valve before the backwash cycle begins.
+            if current_name == "manual" and option != "manual":
+                if not (option == "backwash" and has_auto_valve):
+                    await client.async_write_register(MANUAL_FILTRATION_REGISTER, 0)
+                    await asyncio.sleep(0.1)
+        await client.async_write_register(self._register, value)
+        if self._key == "MBF_PAR_FILT_MODE" and option == "backwash":
+            _LOGGER.info(
+                'Your pool "%s" has been switched to the BACKWASH mode!',
+                NeoPoolEntity.slugify(self.coordinator.device_name),
+            )
+        self._optimistic_update(value)
+        if self.coordinator.data is not None:
+            self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.request_refresh_with_followup()
+
     async def async_select_option(self, option: str) -> None:
-        """Handle option selection."""
+        """Handle option selection by dispatching to the per-type writer."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
                 "Winter mode is active — ignoring select_option for %s", self._key
@@ -171,179 +339,25 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers.")
             return
-        # Mapped register selects (INTELLIGENT_FILT_MIN_TIME, FILTVALVE_PERIOD_MINUTES,
-        # RELAY_ACTIVATION_DELAY): reverse-lookup option label to register value,
-        # apply optional write_offset, and write to register.
         if self._select_type == "mapped_register":
-            reverse_map = {v: k for k, v in self._options_map.items()}
-            value = reverse_map.get(option)
-            if value is None:
-                try:
-                    value = int(option.rstrip("ms"))
-                except (TypeError, ValueError):  # pragma: no cover
-                    return
-            write_val = value + self._props.get("write_offset", 0)
-            await client.async_write_register(self._register, max(0, write_val))
-            await asyncio.sleep(0.2)
-            self._optimistic_update(value)
-            if self.coordinator.data is not None:
-                self.coordinator.async_set_updated_data(self.coordinator.data)
-            self.coordinator.request_refresh_with_followup()
+            await self._select_mapped_register(client, option)
             return
         if self._select_type == "timer_time":
-            timer_name, field = self._key.rsplit("_", 1)
-            entry_id = self._entry_id
-            data = self.coordinator.data
-            if field == "start":
-                start = option
-                stop = seconds_to_hhmm(data.get(f"{timer_name}_stop", 0))
-            elif field == "stop":
-                start = seconds_to_hhmm(data.get(f"{timer_name}_start", 0))
-                stop = option
-            else:  # pragma: no cover
-                return
-
-            await self.hass.services.async_call(
-                DOMAIN,
-                "set_timer",
-                {
-                    "entry_id": entry_id,
-                    "timer": timer_name,
-                    "start": start,
-                    "stop": stop,
-                },
-            )
+            await self._select_timer_time(option)
             return
-
         if self._select_type == "timer_period":
-            timer_name = self._key.rsplit("_", 1)[0]  # for example, "relay_aux1"
-            entry_id = self._entry_id
-
-            period_value = PERIOD_MAP.get(option)
-            if period_value is None:
-                # fallback to integer conversion
-                try:
-                    period_value = int(option)
-                except (TypeError, ValueError):  # pragma: no cover
-                    return
-
-            await self.hass.services.async_call(
-                DOMAIN,
-                "set_timer",
-                {
-                    "entry_id": entry_id,
-                    "timer": timer_name,
-                    "period": period_value,
-                },
-            )
+            await self._select_timer_period(option)
             return
-
         if self._select_type == "relay_mode":
-            timer_field = self._props.get("timer_field", "enable")
-            timer_name = self._key.rsplit("_", 1)[0]  # for example, "relay_aux1"
-            reverse_map = {v: k for k, v in self._options_map.items()}
-            value = reverse_map.get(option)
-            if value is None:  # pragma: no cover
-                return
-            entry_id = self._entry_id
-            await self.hass.services.async_call(
-                DOMAIN,
-                "set_timer",
-                {
-                    "entry_id": entry_id,
-                    "timer": timer_name,
-                    timer_field: value,
-                },
-            )
-            self._optimistic_update(value)
-            if self.coordinator.data is not None:
-                self.coordinator.async_set_updated_data(self.coordinator.data)
+            await self._select_relay_mode(option)
             return
-
         if self._key == "MBF_CELL_BOOST":
-            value = None
-            for k, v in self._options_map.items():
-                if v == option:
-                    value = k
-                    break
-
-            reg = SELECT_DEFINITIONS[self._key]["register"]
-            if value is not None:
-                if value == 0:  # pragma: no cover
-                    write_val = 0
-                elif value == 1:  # pragma: no cover
-                    write_val = (
-                        0x0500 | 0x00A0 | 0x8000
-                    )  # 0x85A0 = Boost active, redox control DISABLED
-                elif value == 2:
-                    write_val = (
-                        0x0500 | 0x00A0
-                    )  # 0x05A0 = Boost active, redox control ENABLED
-                else:  # pragma: no cover
-                    return
-
-                await client.async_write_register(reg, write_val)
-                await asyncio.sleep(0.2)
+            await self._select_cell_boost(client, option)
             return
-
         if self._key in _FILTRATION_SPEED_KEYS:
-            rev_map = {v: k for k, v in self._options_map.items()}
-            value = rev_map.get(option)
-            if value is None:  # pragma: no cover
-                return
-
-            current = self.coordinator.data.get("MBF_PAR_FILTRATION_CONF")
-            if current is None or self._attr_mask is None or self._attr_shift is None:
-                return  # pragma: no cover
-
-            new_val = (current & ~self._attr_mask) | (value << self._attr_shift)
-            _LOGGER.debug(
-                "Setting new filtration speed: current=0x%04X, new_val=0x%04X, mask=0x%04X, shift=%s",
-                current,
-                new_val,
-                self._attr_mask,
-                self._attr_shift,
-            )
-            await client.async_write_register(self._register, new_val, apply=True)
-            await asyncio.sleep(0.2)
+            await self._select_filtration_speed(client, option)
             return
-
-        value = None
-        for k, v in self._options_map.items():
-            if v == option:
-                value = k
-                break
-
-        if value is not None:
-            # Special: MBF_PAR_FILT_MODE needs to handle manual → other
-            # We have to turn off manual filtration first (set register 0x0413 to 0)
-            # and then set the new mode
-            if self._key == "MBF_PAR_FILT_MODE":
-                current_mode = self.coordinator.data.get(self._key)
-                current_name = self._options_map.get(current_mode)
-                has_auto_valve = has_filtvalve(self.coordinator.data)
-                # When leaving manual mode, stop the pump first - EXCEPT when
-                # switching to backwash on a device WITH an automatic valve (Besgo).
-                # In that case the pump must keep running so the valve opens correctly.
-                # For manual valve users the pump must stop so the user can safely
-                # rotate the multi-way valve before the backwash cycle begins.
-                if current_name == "manual" and option != "manual":
-                    if not (option == "backwash" and has_auto_valve):
-                        await client.async_write_register(MANUAL_FILTRATION_REGISTER, 0)
-                        await asyncio.sleep(0.1)
-            # Set the new mode
-            await client.async_write_register(self._register, value)
-            if self._key == "MBF_PAR_FILT_MODE" and option == "backwash":
-                _LOGGER.info(
-                    'Your pool "%s" has been switched to the BACKWASH mode!',
-                    NeoPoolEntity.slugify(self.coordinator.device_name),
-                )
-
-            # Optimistic update + schedule follow-up
-            self._optimistic_update(value)
-            if self.coordinator.data is not None:
-                self.coordinator.async_set_updated_data(self.coordinator.data)
-            self.coordinator.request_refresh_with_followup()
+        await self._select_default_register(client, option)
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
@@ -356,7 +370,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
         await super().async_added_to_hass()
 
     @property
-    def options(self) -> list[str]:  # type: ignore[override]
+    def options(self) -> list[str]:
         """Return the list of options for the select entity."""
         option_keys = list(self._options_map.keys())
 
@@ -479,7 +493,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
             data[self._key] = value
 
     @property
-    def current_option(self) -> str | None:  # type: ignore[override]
+    def current_option(self) -> str | None:
         """Return the current option for the select entity."""
         if self._key == "MBF_CELL_BOOST":
             reg_val = self.coordinator.data.get(self._key)
@@ -543,7 +557,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompat
         return seconds_to_hhmm(value)  # pragma: no cover
 
     @property
-    def available(self) -> bool:  # type: ignore[override]
+    def available(self) -> bool:
         """Return whether the select entity should be presented as available."""
         if self._key == "MBF_PAR_FILTRATION_SPEED":
             if not super().available:

@@ -15,8 +15,8 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
 from neopool_modbus.registers import EXEC_REGISTER
+import pytest
 
 from custom_components.neopool.switch import NeoPoolSwitch, async_setup_entry
 

@@ -17,14 +17,15 @@
 import logging
 from typing import Any
 
+from neopool_modbus.decoders import get_timer_interval, hhmm_to_seconds
+from neopool_modbus.exceptions import NeoPoolError
+from neopool_modbus.registers import TIMER_BLOCKS
 import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
-from neopool_modbus.decoders import get_timer_interval, hhmm_to_seconds
-from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import TIMER_BLOCKS
 
 from .const import DOMAIN
 from .coordinator import NeoPoolCoordinator
@@ -52,8 +53,8 @@ SERVICE_SET_TIMER_SCHEMA = vol.Schema(
         vol.Optional(ATTR_START): cv.string,
         vol.Optional(ATTR_STOP): cv.string,
         vol.Optional(ATTR_PERIOD): vol.All(int, vol.Range(min=1, max=604800)),
-        # 'enable' carries the relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off)
-        # used by the relay_mode select platform.
+        # 'enable' carries the relay-mode integer (0=disabled, 1=auto,
+        # 2=auto_linked, 3=on, 4=off) used by the relay_mode select platform.
         vol.Optional(ATTR_ENABLE): vol.All(int, vol.Range(min=0, max=4)),
     }
 )
@@ -136,7 +137,9 @@ async def _async_set_timer(call: ServiceCall) -> None:
     try:
         start_sec = hhmm_to_seconds(start) if start else None
         stop_sec = hhmm_to_seconds(stop) if stop else None
-        interval = get_timer_interval(start_sec, stop_sec) if (start and stop) else None
+        interval: int | None = None
+        if start_sec is not None and stop_sec is not None:
+            interval = get_timer_interval(start_sec, stop_sec)
     except (TypeError, ValueError) as err:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
@@ -229,18 +232,16 @@ async def _async_write_register(call: ServiceCall) -> None:
 
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
-    """Register the NeoPool services (idempotent)."""
-    if not hass.services.has_service(DOMAIN, SERVICE_SET_TIMER):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_SET_TIMER,
-            _async_set_timer,
-            schema=SERVICE_SET_TIMER_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_WRITE_REGISTER):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_WRITE_REGISTER,
-            _async_write_register,
-            schema=SERVICE_WRITE_REGISTER_SCHEMA,
-        )
+    """Register the NeoPool services."""
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TIMER,
+        _async_set_timer,
+        schema=SERVICE_SET_TIMER_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_WRITE_REGISTER,
+        _async_write_register,
+        schema=SERVICE_WRITE_REGISTER_SCHEMA,
+    )

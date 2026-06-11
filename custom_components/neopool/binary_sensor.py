@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Binary Sensor module."""
+"""Binary sensor platform for the NeoPool integration."""
 
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
+
+from neopool_modbus.registers import is_valid_relay_gpio
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from neopool_modbus.registers import is_valid_relay_gpio
 
 from . import NeoPoolConfigEntry
 from .const import BINARY_SENSOR_DEFINITIONS
@@ -180,7 +181,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     """Representation of a NeoPool binary sensor."""
 
     _winter_mode_active = False  # binary sensors stay available during winter mode
@@ -234,7 +235,7 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):  # type: ignore[re
         await super().async_added_to_hass()
 
     @property
-    def is_on(self) -> bool | None:  # type: ignore[override]
+    def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
         if self._key == "Device Time Out Of Sync":
             if self.coordinator.data.get("MBF_PAR_TIME_LOW") is None:
@@ -263,14 +264,12 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):  # type: ignore[re
             status = self.coordinator.data.get(f"{base}_STATUS", {})
             if isinstance(status, dict):
                 return status.get(flag.lower())
-            else:
-                return None
-        else:
-            value = self.coordinator.data.get(self._key)
-            return None if value is None else bool(value)
+            return None
+        value = self.coordinator.data.get(self._key)
+        return None if value is None else bool(value)
 
     @property
-    def native_value(self) -> bool | None:  # type: ignore[override]
+    def native_value(self) -> bool | None:
         """Return the actual sensor value."""
         # Return the actual sensor value from coordinator data
         return self.coordinator.data.get(self._key)

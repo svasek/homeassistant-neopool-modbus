@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Options flow module."""
+"""Options flow for the NeoPool integration."""
 
 import logging
 from typing import Any
 
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
-from homeassistant.util import dt as dt_util
-from homeassistant.util import slugify
+from homeassistant.util import dt as dt_util, slugify
 
 from .const import (
     CONF_FILTRATION_PUMP_POWER,
@@ -44,7 +44,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         self.config_entry property provided by the OptionsFlow base class.
         """
         super().__init__()
-        self._base_options = {}
+        self._base_options: dict[str, Any] = {}
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -141,14 +141,13 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
                 self._base_options = user_input.copy()
                 self._base_options.pop("unlock_advanced", None)
                 return await self.async_step_advanced()
-            else:
-                if (user_input.get("unlock_advanced") or "").strip() != "":
-                    _LOGGER.warning("Wrong password for the advanced settings!")
-                    return self.async_show_form(
-                        step_id="init",
-                        data_schema=schema,
-                        errors={"unlock_advanced": "unlock_advanced_error"},
-                    )
+            if (user_input.get("unlock_advanced") or "").strip() != "":
+                _LOGGER.warning("Wrong password for the advanced settings!")
+                return self.async_show_form(
+                    step_id="init",
+                    data_schema=schema,
+                    errors={"unlock_advanced": "unlock_advanced_error"},
+                )
             data = user_input.copy()
             data.pop("unlock_advanced", None)
             prev_options = dict(self.config_entry.options)

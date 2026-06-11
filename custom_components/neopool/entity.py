@@ -12,21 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Entity module.
+"""Base entity class for the NeoPool integration.
 
 This module defines the base entity class for the NeoPool integration.
 It provides common functionality for all entities, including device information,
 """
 
-from typing import Any
-
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util import slugify as ha_slugify
 from neopool_modbus.decoders import (
     get_machine_name,
     modbus_regs_to_hex_string,
     parse_version,
 )
+
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify as ha_slugify
 
 from .const import DOMAIN, NAME
 from .coordinator import NeoPoolCoordinator
@@ -39,24 +39,24 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     _winter_mode_active: bool = True
 
     def __init__(self, coordinator: NeoPoolCoordinator, entry_id: str) -> None:
-        """Initialise the base NeoPool entity."""
+        """Initialise the NeoPool base entity."""
         super().__init__(coordinator)
         self._entry_id = entry_id
 
     @property
-    def available(self) -> bool:  # type: ignore[override]
+    def available(self) -> bool:
         """Return False for control entities while winter mode is active."""
         if self._winter_mode_active and getattr(self.coordinator, "winter_mode", False):
             return False
         return super().available
 
     @property
-    def translation_key(self) -> str | None:  # type: ignore[override]
+    def translation_key(self) -> str | None:
         """Return the translation key for the entity."""
         return getattr(self, "_attr_translation_key", None)  # pragma: no cover
 
     @property
-    def device_info(self) -> dict[str, Any]:  # type: ignore[override]  # pragma: no cover
+    def device_info(self) -> DeviceInfo:  # pragma: no cover
         """Return device information for the entity."""
         data = self.coordinator.data or {}
         serial_number = modbus_regs_to_hex_string(data.get("MBF_POWER_MODULE_NODEID"))
@@ -69,15 +69,15 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         machine_type = (get_machine_name(data) or "").strip()
         model_prefix = "NeoPool Compatible: " if machine_type else "NeoPool Compatible"
 
-        return {
-            "identifiers": {(DOMAIN, hw_identifier)},
-            "name": getattr(self.coordinator, "device_name", NAME),
-            "model": f"{model_prefix}{machine_type}".strip(),
-            "manufacturer": "Hayward (Sugar Valley)",
-            "hw_version": f"Detected Modules: [{self.decode_modules(data.get('MBF_PAR_MODEL'))}]",
-            "sw_version": f"v{self.coordinator.firmware} (v{parse_version(data.get('MBF_PAR_VERSION'))})",
-            "serial_number": serial_number,
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, hw_identifier)},
+            name=getattr(self.coordinator, "device_name", NAME),
+            model=f"{model_prefix}{machine_type}".strip(),
+            manufacturer="Hayward (Sugar Valley)",
+            hw_version=f"Detected Modules: [{self.decode_modules(data.get('MBF_PAR_MODEL'))}]",
+            sw_version=f"v{self.coordinator.firmware} (v{parse_version(data.get('MBF_PAR_VERSION'))})",
+            serial_number=serial_number,
+        )
 
     # Generate a unique object ID for the entity to use in Home Assistant
     # This remove the prefix "mbf_" and "par_" from the key and replaces spaces, dashes, and dots with underscores

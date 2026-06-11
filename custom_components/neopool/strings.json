@@ -234,7 +234,9 @@
       "chlorine_control_module": { "name": "Chlorine Regulation Active" },
       "chlorine_measurement_active": { "name": "Chlorine Measurement" },
       "conductivity_pump_active": { "name": "Conductivity Pump Active" },
-      "conductivity_control_module": { "name": "Conductivity Regulation Active" },
+      "conductivity_control_module": {
+        "name": "Conductivity Regulation Active"
+      },
       "conductivity_measurement_active": { "name": "Conductivity Measurement" },
       "ion_on_target": { "name": "Ionizer On Target" },
       "ion_low_flow": { "name": "Ionizer Production Problem" },
@@ -243,9 +245,15 @@
       "pool_cover": { "name": "Pool Cover" },
       "hidro_module_active": { "name": "Hydrolysis Enabled" },
       "hidro_module_regulated": { "name": "Hydrolysis Regulation Active" },
-      "hidro_activated_by_the_rx_module": { "name": "Hydrolysis Activated by Redox Module" },
-      "hidro_chlorine_shock_mode": { "name": "Hydrolysis Chlorine Shock Mode (Boost)" },
-      "hidro_activated_by_the_cl_module": { "name": "Hydrolysis Activated by Chlorine Module" },
+      "hidro_activated_by_the_rx_module": {
+        "name": "Hydrolysis Activated by Redox Module"
+      },
+      "hidro_chlorine_shock_mode": {
+        "name": "Hydrolysis Chlorine Shock Mode (Boost)"
+      },
+      "hidro_activated_by_the_cl_module": {
+        "name": "Hydrolysis Activated by Chlorine Module"
+      },
       "heating": { "name": "Heating" },
       "uv_lamp": { "name": "UV Lamp" },
       "device_time_out_of_sync": { "name": "Device Time Sync" },
@@ -264,7 +272,9 @@
       "smart_temp_high": { "name": "Smart upper temperature" },
       "smart_temp_low": { "name": "Smart lower temperature" },
       "hidro_cover_reduction": { "name": "Cover Reduction (when covered)" },
-      "hidro_shutdown_temperature": { "name": "Hydrolysis Shutdown Temp. Threshold" }
+      "hidro_shutdown_temperature": {
+        "name": "Hydrolysis Shutdown Temp. Threshold"
+      }
     },
     "switch": {
       "winter_mode": { "name": "Winter Mode" },
@@ -277,7 +287,9 @@
       "aux3": { "name": "Relay Aux3" },
       "aux4": { "name": "Relay Aux4" },
       "hidro_cover_enable": { "name": "Enable cover reduction (when covered)" },
-      "hidro_temp_shutdown": { "name": "Enable hydrolysis shutdown on high temperature" },
+      "hidro_temp_shutdown": {
+        "name": "Enable hydrolysis shutdown on high temperature"
+      },
       "uv_mode": { "name": "UV Mode" }
     },
     "light": {
@@ -545,7 +557,9 @@
           "10800": "3 hours"
         }
       },
-      "intelligent_filt_min_time": { "name": "Intelligent: Minimum Filtration Time" },
+      "intelligent_filt_min_time": {
+        "name": "Intelligent: Minimum Filtration Time"
+      },
       "filtvalve_period_minutes": {
         "name": "Backwash Repeat Interval",
         "state": {
@@ -625,22 +639,44 @@
     }
   },
   "exceptions": {
-    "entry_not_found": { "message": "No NeoPool config entry found for entry_id {entry_id}" },
-    "no_loaded_entry": { "message": "No loaded NeoPool config entry available" },
-    "no_coordinator": { "message": "No NeoPool coordinator found for entry_id {entry_id}" },
-    "missing_parameter": { "message": "Missing required parameter {parameter}" },
-    "invalid_timer": { "message": "Invalid timer name {timer_name}. Valid timers: {valid_timers}" },
-    "invalid_timer_time": { "message": "Invalid timer time format (start: {start}, stop: {stop}). Use HH:MM (e.g. 08:30)." },
+    "entry_not_found": {
+      "message": "No NeoPool config entry found for entry_id {entry_id}"
+    },
+    "no_loaded_entry": {
+      "message": "No loaded NeoPool config entry available"
+    },
+    "no_coordinator": {
+      "message": "No NeoPool coordinator found for entry_id {entry_id}"
+    },
+    "missing_parameter": {
+      "message": "Missing required parameter {parameter}"
+    },
+    "invalid_timer": {
+      "message": "Invalid timer name {timer_name}. Valid timers: {valid_timers}"
+    },
+    "invalid_timer_time": {
+      "message": "Invalid timer time format (start: {start}, stop: {stop}). Use HH:MM (e.g. 08:30)."
+    },
     "timer_failed": { "message": "Timer setting failed: {error}" },
-    "invalid_apply": { "message": "Invalid apply {apply}: must be a boolean (true/false)" },
+    "invalid_apply": {
+      "message": "Invalid apply {apply}: must be a boolean (true/false)"
+    },
     "write_failed": { "message": "Write to register {address} failed" },
     "write_verification_failed": {
       "message": "Write verification failed at {address}: wrote {value}, read back {confirmed}"
     },
-    "register_write_failed": { "message": "Register write failed at {address}: {error}" },
-    "invalid_register_type": { "message": "Invalid {name} {value}: use a decimal number or hex (0x…)" },
-    "invalid_register_float": { "message": "Invalid {name} {value}: use an integer, not a float" },
-    "register_out_of_range": { "message": "{name} {value} out of range (0-65535)" }
+    "register_write_failed": {
+      "message": "Register write failed at {address}: {error}"
+    },
+    "invalid_register_type": {
+      "message": "Invalid {name} {value}: use a decimal number or hex (0x…)"
+    },
+    "invalid_register_float": {
+      "message": "Invalid {name} {value}: use an integer, not a float"
+    },
+    "register_out_of_range": {
+      "message": "{name} {value} out of range (0-65535)"
+    }
   },
   "issues": {
     "corrupted_gpio": {

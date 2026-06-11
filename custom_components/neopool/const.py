@@ -12,38 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - constants.
+"""Constants for the NeoPool integration."""
 
-This file contains metadata about the integration such as name, version, domain, etc.
-The manifest file is loaded to get the integration name and version
-The integration name and version are used to identify the integration
-and to display information about the integration in Home Assistant
-"""
-
-import json
 import logging
-from pathlib import Path
+from typing import Any
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.number import NumberDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import EntityCategory
+from homeassistant.const import EntityCategory, Platform
 
-PLATFORMS = ["sensor", "binary_sensor", "switch", "number", "button", "select", "light"]
+DOMAIN = "neopool"
+NAME = "NeoPool"
 
-manifest_path = Path(__file__).parent / "manifest.json"
-with open(manifest_path, encoding="utf-8") as f:
-    MANIFEST = json.load(f)
-
-INTEGRATION_VERSION = MANIFEST.get("version")
-
-DOMAIN = (
-    MANIFEST.get("domain").lower().replace("-", "_").replace(" ", "_").replace(".", "_")
-    or "neopool"
-)
-NAME = MANIFEST.get("name") or "NeoPool Modbus"
-DEFAULT_NAME = "NeoPool"
-VERSION = MANIFEST.get("version") or None
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.LIGHT,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 LOGGER = logging.getLogger(__name__)
 
@@ -159,7 +149,7 @@ PERIOD_MAP = {
 
 PERIOD_SECONDS_TO_KEY = {v: k for k, v in PERIOD_MAP.items()}
 
-SENSOR_DEFINITIONS = {
+SENSOR_DEFINITIONS: dict[str, dict[str, Any]] = {
     "MBF_ION_CURRENT": {
         "name": "Ionization Level",
         "unit": "%",
@@ -288,7 +278,7 @@ SENSOR_DEFINITIONS = {
     },
 }
 
-BINARY_SENSOR_DEFINITIONS = {
+BINARY_SENSOR_DEFINITIONS: dict[str, dict[str, Any]] = {
     "Device Time Out Of Sync": {
         "name": "Device Time Out Of Sync",
         "device_class": BinarySensorDeviceClass.PROBLEM,
@@ -507,7 +497,7 @@ BINARY_SENSOR_DEFINITIONS = {
     # into the ION_POLARITY enum sensor.
 }
 
-NUMBER_DEFINITIONS = {
+NUMBER_DEFINITIONS: dict[str, dict[str, Any]] = {
     "MBF_PAR_HIDRO": {
         "name": "Hydrolysis target production level",
         "unit": "%",
@@ -626,7 +616,7 @@ NUMBER_DEFINITIONS = {
     },
 }
 
-BUTTON_DEFINITIONS = {
+BUTTON_DEFINITIONS: dict[str, dict[str, Any]] = {
     "SYNC_TIME": {
         "name": "Synchronize Device Time",
         "entity_category": EntityCategory.CONFIG,
@@ -640,7 +630,7 @@ BUTTON_DEFINITIONS = {
     },
 }
 
-SELECT_DEFINITIONS = {
+SELECT_DEFINITIONS: dict[str, dict[str, Any]] = {
     "MBF_PAR_FILT_MODE": {
         "name": "Filtration Mode",
         "options_map": {
@@ -1070,7 +1060,7 @@ SELECT_DEFINITIONS = {
     },
 }
 
-SWITCH_DEFINITIONS = {
+SWITCH_DEFINITIONS: dict[str, dict[str, Any]] = {
     "WINTER_MODE": {
         "name": "Winter Mode",
         "entity_category": EntityCategory.CONFIG,
@@ -1172,7 +1162,7 @@ SWITCH_DEFINITIONS = {
     },
 }
 
-LIGHT_DEFINITIONS = {
+LIGHT_DEFINITIONS: dict[str, dict[str, Any]] = {
     "light": {
         "name": "Pool Light",
         "switch_type": "relay_timer",

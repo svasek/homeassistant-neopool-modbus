@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Sensor module."""
+"""Sensor platform for the NeoPool integration."""
 
+from datetime import datetime
 import logging
 import math
-from datetime import datetime
 from typing import Any
+
+from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -29,7 +31,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
-from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
@@ -135,7 +136,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up NeoPool sensors from a config entry."""
     coordinator = entry.runtime_data
-    entities = []
+    entities: list[SensorEntity] = []
 
     if coordinator.data is None:
         _LOGGER.warning("No data from Modbus, skipping sensor setup!")
@@ -164,7 +165,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     """Representation of a NeoPool sensor."""
 
     _winter_mode_active = False  # sensors stay available during winter mode
@@ -215,7 +216,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompat
         await super().async_added_to_hass()
 
     @property
-    def suggested_display_precision(self) -> int | None:  # type: ignore[override]
+    def suggested_display_precision(self) -> int | None:
         """Return the suggested display precision for the sensor value."""
         if self._key == "MBF_HIDRO_CURRENT" and not is_hydrolysis_in_percent(
             self.coordinator.data
@@ -224,7 +225,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompat
         return self._attr_suggested_display_precision
 
     @property
-    def native_unit_of_measurement(self) -> str | None:  # type: ignore[override]
+    def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement for the sensor value."""
         if self._key == "MBF_HIDRO_CURRENT" and not is_hydrolysis_in_percent(
             self.coordinator.data
@@ -232,96 +233,106 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompat
             return "g/h"
         return self._attr_native_unit_of_measurement
 
+    _MEASURE_KEYS_REQUIRING_FILTRATION = frozenset(
+        {
+            "MBF_MEASURE_TEMPERATURE",
+            "MBF_MEASURE_PH",
+            "MBF_MEASURE_RX",
+            "MBF_MEASURE_CONDUCTIVITY",
+            "MBF_HIDRO_VOLTAGE",
+            "FILTRATION_SPEED",
+        }
+    )
+
+    def _is_measurement_suppressed(self) -> bool:
+        """Return True if a measurement sensor should report None.
+
+        Some chemical / temperature sensors only return meaningful values
+        while the filtration pump is running. The 'measure_when_filtration_off'
+        option lets the user opt out of this gating.
+        """
+        if self._key not in self._MEASURE_KEYS_REQUIRING_FILTRATION:
+            return False
+        if self.coordinator.entry.options.get("measure_when_filtration_off", False):
+            return False
+        return self.coordinator.data.get("Filtration Pump") is False
+
+    def _compute_ph_pump_status(self) -> str | None:
+        """Decode the pH pump status from the control + per-pump bits."""
+        ctrl = self.coordinator.data.get("pH control module")
+        acid_bit = self.coordinator.data.get("pH acid pump active")
+        pump_bit = self.coordinator.data.get("pH pump active")
+        if ctrl is None and acid_bit is None and pump_bit is None:
+            return None
+        if ctrl is None:
+            return None  # partial data — cannot determine status
+        if not ctrl:
+            return "off"
+        # MBF_PAR_RELAY_PH determines the pH pump configuration:
+        #   0 = acid + base (bit 11 = acid, bit 12 = base)
+        #   1 = acid only   (bit 12 = acid pump; bit 11 unused)
+        #   2 = base only   (bit 12 = base pump; bit 11 unused)
+        relay_ph = self.coordinator.data.get("MBF_PAR_RELAY_PH", 0) or 0
+        if relay_ph == 1:
+            return "acid" if pump_bit else "idle"
+        if relay_ph == 2:
+            return "base" if pump_bit else "idle"
+        # Both pumps (relay_ph == 0): bit 11 = acid, bit 12 = base
+        if acid_bit and pump_bit:
+            return "both"
+        if acid_bit:
+            return "acid"
+        if pump_bit:
+            return "base"
+        return "idle"
+
+    def _compute_hidro_polarity(self) -> str | None:
+        """Decode the hydrolysis polarity from the cell status bits."""
+        pol1 = self.coordinator.data.get("HIDRO in Pol1")
+        pol2 = self.coordinator.data.get("HIDRO in Pol2")
+        dead = self.coordinator.data.get("HIDRO in dead time")
+        if pol1 is None and pol2 is None and dead is None:
+            return None
+        filtration = self.coordinator.data.get("Filtration Pump")
+        if filtration is not None and filtration is False:
+            return "off"
+        fl1 = self.coordinator.data.get("HIDRO Cell Flow FL1")
+        if filtration is True and fl1 is False:
+            return "no_flow"
+        if dead:
+            return "dead_time"
+        if pol1:
+            return "pol1"
+        if pol2:
+            return "pol2"
+        return "off"
+
+    def _compute_ion_polarity(self) -> str | None:
+        """Decode the ionizer polarity from the cell status bits."""
+        pol1 = self.coordinator.data.get("ION in Pol1")
+        pol2 = self.coordinator.data.get("ION in Pol2")
+        dead = self.coordinator.data.get("ION in dead time")
+        if pol1 is None and pol2 is None and dead is None:
+            return None
+        if dead:
+            return "dead_time"
+        if pol1:
+            return "pol1"
+        if pol2:
+            return "pol2"
+        return "off"
+
     @property
-    def native_value(self) -> float | int | str | datetime | None:  # type: ignore[override]
+    def native_value(self) -> float | int | str | datetime | None:
         """Return the actual sensor value from coordinator data."""
-
-        # If filtration is not running, some sensors should not return a value
-        # This is to avoid showing stale or irrelevant data when filtration is off
-        # For example, temperature, pH, RX, conductivity, and voltage sensors
-        # These sensors are only relevant when the filtration pump is running
-        # Anyway, we allow to override this behavior in the options
-        measure_when_off = self.coordinator.entry.options.get(
-            "measure_when_filtration_off", False
-        )
-        if (
-            self._key
-            in {
-                "MBF_MEASURE_TEMPERATURE",
-                "MBF_MEASURE_PH",
-                "MBF_MEASURE_RX",
-                "MBF_MEASURE_CONDUCTIVITY",
-                "MBF_HIDRO_VOLTAGE",
-                "FILTRATION_SPEED",
-            }
-            and not measure_when_off
-        ):
-            filtration_state = self.coordinator.data.get("Filtration Pump")
-            if filtration_state is not None and filtration_state is False:
-                return None
-
-        # Polarity sensors created from status register bits (Pol1, Pol2, dead time)
+        if self._is_measurement_suppressed():
+            return None
         if self._key == "PH_PUMP_STATUS":
-            ctrl = self.coordinator.data.get("pH control module")
-            acid_bit = self.coordinator.data.get("pH acid pump active")
-            pump_bit = self.coordinator.data.get("pH pump active")
-            if ctrl is None and acid_bit is None and pump_bit is None:
-                return None
-            if ctrl is None:
-                return None  # partial data — cannot determine status
-            if not ctrl:
-                return "off"
-            # MBF_PAR_RELAY_PH determines the pH pump configuration:
-            #   0 = acid + base (bit 11 = acid, bit 12 = base)
-            #   1 = acid only   (bit 12 = acid pump; bit 11 unused)
-            #   2 = base only   (bit 12 = base pump; bit 11 unused)
-            relay_ph = self.coordinator.data.get("MBF_PAR_RELAY_PH", 0) or 0
-            if relay_ph == 1:
-                # Acid-only: bit 12 is the acid pump
-                return "acid" if pump_bit else "idle"
-            if relay_ph == 2:
-                # Base-only: bit 12 is the base pump
-                return "base" if pump_bit else "idle"
-            # Both pumps (relay_ph == 0): bit 11 = acid, bit 12 = base
-            if acid_bit and pump_bit:
-                return "both"
-            if acid_bit:
-                return "acid"
-            if pump_bit:
-                return "base"
-            return "idle"
+            return self._compute_ph_pump_status()
         if self._key == "HIDRO_POLARITY":
-            pol1 = self.coordinator.data.get("HIDRO in Pol1")
-            pol2 = self.coordinator.data.get("HIDRO in Pol2")
-            dead = self.coordinator.data.get("HIDRO in dead time")
-            if pol1 is None and pol2 is None and dead is None:
-                return None
-            filtration = self.coordinator.data.get("Filtration Pump")
-            if filtration is not None and filtration is False:
-                return "off"
-            fl1 = self.coordinator.data.get("HIDRO Cell Flow FL1")
-            if filtration is True and fl1 is False:
-                return "no_flow"
-            if dead:
-                return "dead_time"
-            if pol1:
-                return "pol1"
-            if pol2:
-                return "pol2"
-            return "off"
+            return self._compute_hidro_polarity()
         if self._key == "ION_POLARITY":
-            pol1 = self.coordinator.data.get("ION in Pol1")
-            pol2 = self.coordinator.data.get("ION in Pol2")
-            dead = self.coordinator.data.get("ION in dead time")
-            if pol1 is None and pol2 is None and dead is None:
-                return None
-            if dead:
-                return "dead_time"
-            if pol1:
-                return "pol1"
-            if pol2:
-                return "pol2"
-            return "off"
+            return self._compute_ion_polarity()
         if self._key == "MBF_PAR_FILT_MODE":
             filt_mode: int | None = self.coordinator.data.get(self._key)
             return FILTRATION_MODE_MAP.get(filt_mode) if filt_mode is not None else None
@@ -340,7 +351,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompat
         return self.coordinator.data.get(self._key)
 
     @property
-    def options(self) -> list[str] | None:  # type: ignore[override]
+    def options(self) -> list[str] | None:
         """Return the list of options for the sensor."""
         if self._key == "MBF_PAR_FILT_MODE":
             return list(FILTRATION_MODE_MAP.values())
@@ -362,7 +373,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompat
         return None  # pragma: no cover
 
 
-class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
     """Cumulative energy consumed by the filtration pump (Wh).
 
     Integrates instantaneous power over time using coordinator update timestamps.
