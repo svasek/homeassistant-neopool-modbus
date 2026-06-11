@@ -16,3 +16,5 @@ htmlcov
 *.pyo
 *.pyd
 *.db
+node_modules/
+package-lock.json

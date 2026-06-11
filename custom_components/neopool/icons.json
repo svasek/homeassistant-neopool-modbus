@@ -39,7 +39,9 @@
       "ph_pump_status": { "default": "mdi:pump" },
       "filtration_speed": { "default": "mdi:fan" },
       "intelligent_intervals": { "default": "mdi:counter" },
-      "intelligent_tt_next_interval": { "default": "mdi:timeline-clock-outline" },
+      "intelligent_tt_next_interval": {
+        "default": "mdi:timeline-clock-outline"
+      },
       "filtvalve_remaining": { "default": "mdi:timer-sand" },
       "filtration_remaining": { "default": "mdi:timer-sand" }
     },
