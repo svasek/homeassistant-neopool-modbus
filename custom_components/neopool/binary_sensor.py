@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NeoPool integration for Home Assistant - Binary Sensor module."""
+"""Binary sensor platform for the NeoPool integration."""
 
 from collections.abc import Mapping
 import logging
@@ -235,7 +235,7 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
         await super().async_added_to_hass()
 
     @property
-    def is_on(self) -> bool | None:  # type: ignore[override]
+    def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
         if self._key == "Device Time Out Of Sync":
             if self.coordinator.data.get("MBF_PAR_TIME_LOW") is None:
@@ -264,14 +264,12 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
             status = self.coordinator.data.get(f"{base}_STATUS", {})
             if isinstance(status, dict):
                 return status.get(flag.lower())
-            else:
-                return None
-        else:
-            value = self.coordinator.data.get(self._key)
-            return None if value is None else bool(value)
+            return None
+        value = self.coordinator.data.get(self._key)
+        return None if value is None else bool(value)
 
     @property
-    def native_value(self) -> bool | None:  # type: ignore[override]
+    def native_value(self) -> bool | None:
         """Return the actual sensor value."""
         # Return the actual sensor value from coordinator data
         return self.coordinator.data.get(self._key)
