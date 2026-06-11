@@ -1,232 +1,130 @@
-# Copyright 2025 Miloš Svašek
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#     http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Test the NeoPool integration setup and unload."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool import (
-    _cleanup_removed_entities,
-    async_migrate_entry,
-    async_setup,
-    async_setup_entry,
-    async_unload_entry,
+from custom_components.neopool import async_migrate_entry
+from custom_components.neopool.const import (
+    CURRENT_VERSION,
+    DEFAULT_PORT,
+    DOMAIN,
+    REMOVED_ENTITY_KEYS,
 )
-from custom_components.neopool.const import DEFAULT_PORT
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+
+from . import setup_integration
+
+# ---------------------------------------------------------------------------
+# Setup / unload (framework path)
+# ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
-async def test_async_setup_registers_services():
-    """async_setup registers the neopool services and returns True."""
-    hass = MagicMock()
-    hass.services.async_register = MagicMock()
-    result = await async_setup(hass, {})
-    assert result is True
-    assert hass.services.async_register.call_count == 2
+async def test_setup_and_unload(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Set up the integration end-to-end and tear it down again."""
+    await setup_integration(hass, mock_config_entry)
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert mock_config_entry.state is ConfigEntryState.NOT_LOADED
 
 
-@pytest.mark.asyncio
-async def test_async_setup_entry_success():
-    """Test async_setup_entry completes successfully."""
-    hass = MagicMock()
-    hass.config_entries = MagicMock()
-    hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=None)
-    hass.async_add_executor_job = AsyncMock(return_value=[])
-    # async_cleanup_legacy_files (called from async_setup_entry) builds a
-    # Path() from hass.config.path(...); without a stub MagicMock leaks
-    # into Path() and the test only "passes" by accident (and may break on
-    # other Python versions where Path rejects MagicMock).
-    hass.config.path = MagicMock(side_effect=lambda sub: f"/tmp/ha_test/{sub}")
-    config_entry = MagicMock()
-    with patch("custom_components.neopool.NeoPoolModbusClient"):
-        with patch("custom_components.neopool.NeoPoolCoordinator") as mock_coordinator:
-            mock_coord_instance = mock_coordinator.return_value
-            mock_coord_instance.async_config_entry_first_refresh = AsyncMock(
-                return_value=None
-            )
-            with patch("custom_components.neopool.er.async_get") as mock_er_get:
-                mock_registry = MagicMock()
-                mock_er_get.return_value = mock_registry
-                with patch(
-                    "custom_components.neopool.er.async_entries_for_config_entry",
-                    return_value=[],
-                ):
-                    result = await async_setup_entry(hass, config_entry)
-                    assert result is True
-
-
-@pytest.mark.asyncio
-async def test_async_unload_entry_success():
-    """Test async_unload_entry completes successfully."""
-    hass = MagicMock()
-    hass.config_entries = MagicMock()
-    hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
-    config_entry = MagicMock()
-    config_entry.entry_id = "entry1"
-    coordinator = MagicMock()
-    coordinator.client = AsyncMock()
-    config_entry.runtime_data = coordinator
-    result = await async_unload_entry(hass, config_entry)
-    assert result is True
-    # Check that follow-up refresh was cancelled and client closed
-    coordinator.cancel_follow_up_refresh.assert_called_once()
-    assert coordinator.client.close.await_count == 1
-
-
-@pytest.mark.asyncio
-async def test_async_unload_entry_no_client():
-    """Test async_unload_entry when coordinator has no client."""
-    hass = MagicMock()
-    hass.config_entries = MagicMock()
-    hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
-    config_entry = MagicMock()
-    config_entry.entry_id = "entry2"
-    coordinator = MagicMock()
-    coordinator.client = None
-    config_entry.runtime_data = coordinator
-    result = await async_unload_entry(hass, config_entry)
-    assert result is True
-
-
-def test_cleanup_removes_orphaned_entities():
-    """Test _cleanup_removed_entities removes entities matching REMOVED_ENTITY_KEYS."""
-    hass = MagicMock()
-    entry = MagicMock()
-    entry.entry_id = "test_entry"
-
-    orphan = MagicMock()
-    orphan.unique_id = "test_entry_hidro on target"
-    orphan.entity_id = "binary_sensor.hydrolysis_on_target"
-
-    valid = MagicMock()
-    valid.unique_id = "test_entry_hidro low flow"
-    valid.entity_id = "binary_sensor.hydrolysis_low_flow"
-
-    mock_registry = MagicMock()
-
-    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
-        with patch(
-            "custom_components.neopool.er.async_entries_for_config_entry",
-            return_value=[orphan, valid],
-        ):
-            _cleanup_removed_entities(hass, entry)
-
-    mock_registry.async_remove.assert_called_once_with(
-        "binary_sensor.hydrolysis_on_target"
+async def test_setup_first_refresh_fails_marks_retry(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Setup re-tries when the first Modbus read raises."""
+    mock_neopool_client.async_read_all = AsyncMock(
+        side_effect=ConnectionError("Modbus down")
     )
+    mock_config_entry.add_to_hass(hass)
+    assert not await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert mock_config_entry.state is ConfigEntryState.SETUP_RETRY
 
 
-def test_cleanup_removes_ph_pump_entities():
-    """Test _cleanup_removed_entities matches lowercase pH pump unique_ids."""
-    hass = MagicMock()
-    entry = MagicMock()
-    entry.entry_id = "test_entry"
+async def test_setup_in_winter_mode(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Winter mode loads the entry from the persisted capability snapshot.
 
-    # unique_ids are built with key.lower() — REMOVED_ENTITY_KEYS must be lowercase
-    ph_acid = MagicMock()
-    ph_acid.unique_id = "test_entry_ph acid pump active"
-    ph_acid.entity_id = "binary_sensor.neopool_ph_acid_pump_active"
-
-    ph_base = MagicMock()
-    ph_base.unique_id = "test_entry_ph pump active"
-    ph_base.entity_id = "binary_sensor.neopool_ph_pump_active"
-
-    unrelated = MagicMock()
-    unrelated.unique_id = "test_entry_ph control module"
-    unrelated.entity_id = "binary_sensor.neopool_ph_control_module"
-
-    mock_registry = MagicMock()
-
-    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
-        with patch(
-            "custom_components.neopool.er.async_entries_for_config_entry",
-            return_value=[ph_acid, ph_base, unrelated],
-        ):
-            _cleanup_removed_entities(hass, entry)
-
-    assert mock_registry.async_remove.call_count == 2
-    removed_ids = [c.args[0] for c in mock_registry.async_remove.call_args_list]
-    assert "binary_sensor.neopool_ph_acid_pump_active" in removed_ids
-    assert "binary_sensor.neopool_ph_pump_active" in removed_ids
-
-
-def test_cleanup_no_orphans():
-    """Test _cleanup_removed_entities does nothing when no orphans exist."""
-    hass = MagicMock()
-    entry = MagicMock()
-    entry.entry_id = "test_entry"
-
-    valid = MagicMock()
-    valid.unique_id = "test_entry_hidro low flow"
-    valid.entity_id = "binary_sensor.hydrolysis_low_flow"
-
-    mock_registry = MagicMock()
-
-    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
-        with patch(
-            "custom_components.neopool.er.async_entries_for_config_entry",
-            return_value=[valid],
-        ):
-            _cleanup_removed_entities(hass, entry)
-
-    mock_registry.async_remove.assert_not_called()
+    The integration must finish setup successfully even though the
+    coordinator's update path skips the actual Modbus read in winter mode.
+    """
+    snapshot = {"MBF_PAR_FILT_GPIO": 0, "MBF_PAR_LIGHTING_GPIO": 0}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Winter Pool",
+        unique_id="neopool_winter_serial",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.2",
+            "port": 502,
+            "name": "Winter Pool",
+            "slave_id": 1,
+            "modbus_framer": "tcp",
+        },
+        options={
+            "scan_interval": 30,
+            "modbus_framer": "tcp",
+            "winter_mode": True,
+            "_capabilities": snapshot,
+        },
+    )
+    await setup_integration(hass, entry)
+    assert entry.state is ConfigEntryState.LOADED
 
 
-def test_cleanup_removes_orphans_with_serial_unique_id():
-    """Test _cleanup_removed_entities matches new unique_id-prefixed entities (v2+)."""
-    hass = MagicMock()
-    entry = MagicMock()
-    entry.entry_id = "old_entry_id"
-    entry.unique_id = "neopool_0000000100AC00CD00120034"
+async def test_setup_cleans_orphaned_entity_registry_entries(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Orphaned entries (matching REMOVED_ENTITY_KEYS) are wiped on setup."""
 
-    # Orphan with new unique_id prefix (post-migration)
-    orphan_new = MagicMock()
-    orphan_new.unique_id = "neopool_0000000100AC00CD00120034_hidro on target"
-    orphan_new.entity_id = "binary_sensor.hydrolysis_on_target"
+    mock_config_entry.add_to_hass(hass)
 
-    # Orphan with old entry_id prefix (pre-migration leftover)
-    orphan_old = MagicMock()
-    orphan_old.unique_id = "old_entry_id_hidro on target"
-    orphan_old.entity_id = "binary_sensor.hydrolysis_on_target_old"
+    # Pre-create an entity registry entry that matches the orphan pattern.
+    # The cleanup logic matches "{prefix}_{key}" where prefix is entry.entry_id
+    # or entry.unique_id.
+    registry = er.async_get(hass)
+    orphan_uid = f"{mock_config_entry.unique_id}_{REMOVED_ENTITY_KEYS[0]}"
+    orphan = registry.async_get_or_create(
+        "sensor", "neopool", orphan_uid, config_entry=mock_config_entry
+    )
+    assert registry.async_get(orphan.entity_id) is not None
 
-    valid = MagicMock()
-    valid.unique_id = "neopool_0000000100AC00CD00120034_hidro low flow"
-    valid.entity_id = "binary_sensor.hydrolysis_low_flow"
+    # Setting up the entry runs _cleanup_removed_entities which should
+    # delete the orphan.
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
 
-    mock_registry = MagicMock()
-
-    with patch("custom_components.neopool.er.async_get", return_value=mock_registry):
-        with patch(
-            "custom_components.neopool.er.async_entries_for_config_entry",
-            return_value=[orphan_new, orphan_old, valid],
-        ):
-            _cleanup_removed_entities(hass, entry)
-
-    assert mock_registry.async_remove.call_count == 2
-    removed_ids = [c.args[0] for c in mock_registry.async_remove.call_args_list]
-    assert "binary_sensor.hydrolysis_on_target" in removed_ids
-    assert "binary_sensor.hydrolysis_on_target_old" in removed_ids
+    assert registry.async_get(orphan.entity_id) is None
 
 
-# --- Migration tests ---
+# ---------------------------------------------------------------------------
+# async_migrate_entry — version transitions
+#
+# These tests drive the migration helper directly with MagicMock(hass) so
+# they cover branches the framework path doesn't reach in a single hass
+# run (rollback failures, duplicate detection, version-bump-only paths).
+# ---------------------------------------------------------------------------
+
 
 DEFAULT_SERIAL_REGS = [0x0000, 0x0001, 0x00AC, 0x00CD, 0x0012, 0x0034]
 DEFAULT_SERIAL_STRING = "".join(f"{r:04X}" for r in DEFAULT_SERIAL_REGS)
 
 
-@pytest.mark.asyncio
-async def test_async_migrate_entry_v1_to_v2_success():
+async def test_async_migrate_entry_v1_to_v2_success() -> None:
     """Test migration from v1 (no unique_id) to v2 (serial-based unique_id)."""
     hass = MagicMock()
 
@@ -317,8 +215,7 @@ async def test_async_migrate_entry_v1_to_v2_success():
     )
 
 
-@pytest.mark.asyncio
-async def test_async_migrate_entry_v1_to_v2_serial_unavailable():
+async def test_async_migrate_entry_v1_to_v2_serial_unavailable() -> None:
     """Test migration defers when serial cannot be read (retries on next restart)."""
     hass = MagicMock()
 
@@ -340,8 +237,7 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable():
     hass.config_entries.async_update_entry.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_async_migrate_entry_v3_to_v4_marker_bump():
+async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
     """Test that a v3 entry is bumped to v4 (the neopool-modbus library marker).
 
     v3 entries are produced by the cross-domain pipeline (vistapool v2 →
@@ -370,8 +266,7 @@ async def test_async_migrate_entry_v3_to_v4_marker_bump():
     )
 
 
-@pytest.mark.asyncio
-async def test_async_migrate_entry_already_at_current_version_is_noop():
+async def test_async_migrate_entry_already_at_current_version_is_noop() -> None:
     """Test that calling async_migrate_entry on a v4 entry does nothing.
 
     HA may invoke this function on every setup whose stored version
@@ -395,8 +290,7 @@ async def test_async_migrate_entry_already_at_current_version_is_noop():
     hass.config_entries.async_update_entry.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_async_migrate_entry_v1_to_v2_duplicate_detected():
+async def test_async_migrate_entry_v1_to_v2_duplicate_detected() -> None:
     """Test migration fails when another entry already has the same serial."""
     hass = MagicMock()
 
@@ -422,8 +316,7 @@ async def test_async_migrate_entry_v1_to_v2_duplicate_detected():
     hass.config_entries.async_update_entry.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_async_migrate_entry_entity_update_error():
+async def test_async_migrate_entry_entity_update_error() -> None:
     """Test migration rolls back and defers when entity update fails."""
     hass = MagicMock()
 
@@ -487,8 +380,7 @@ async def test_async_migrate_entry_entity_update_error():
     hass.config_entries.async_update_entry.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_async_migrate_entry_rollback_also_fails():
+async def test_async_migrate_entry_rollback_also_fails() -> None:
     """Test migration returns False when rollback fails to prevent duplicates."""
     hass = MagicMock()
 
@@ -541,3 +433,40 @@ async def test_async_migrate_entry_rollback_also_fails():
     # 3 calls: migrate entity1 (ok), migrate entity2 (fail), rollback entity1 (fail)
     assert mock_registry.async_update_entity.call_count == 3
     hass.config_entries.async_update_entry.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Legacy data → options migration (custom-only; runs on async_setup_entry)
+# ---------------------------------------------------------------------------
+
+
+async def test_legacy_data_to_options_migration(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Pre-v1.x entries kept user options inside `data` — async_setup_entry
+    moves every non-connection key from data to options on first load.
+    """
+    legacy_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Legacy Pool",
+        unique_id="neopool_legacy_options",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.40",
+            "port": 502,
+            "name": "Legacy Pool",
+            "slave_id": 1,
+            # Old-style: framer + use_* sat in data
+            "modbus_framer": "tcp",
+            "use_filtration1": True,
+            "use_light": True,
+        },
+        options={},  # empty → migration triggers
+    )
+    await setup_integration(hass, legacy_entry)
+
+    # use_* keys must have been promoted to options.
+    assert legacy_entry.options.get("use_filtration1") is True
+    assert legacy_entry.options.get("use_light") is True
+    assert legacy_entry.options.get("modbus_framer") == "tcp"

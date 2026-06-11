@@ -9,7 +9,7 @@ from custom_components.neopool import config_flow
 from custom_components.neopool.config_flow import NeoPoolConfigFlow
 from custom_components.neopool.const import DEFAULT_PORT, DEFAULT_SLAVE_ID, DOMAIN
 from custom_components.neopool.options_flow import NeoPoolOptionsFlowHandler
-from homeassistant.config_entries import SOURCE_USER
+from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -206,6 +206,15 @@ async def test_reconfigure_flow_happy_path(
     assert result["reason"] == "reconfigure_successful"
     assert mock_config_entry.data[CONF_HOST] == "192.0.2.50"
     assert mock_config_entry.data[CONF_PORT] == 1502
+
+    # Reconfigure triggers an entry reload which schedules the coordinator's
+    # update_interval timer; wait for the reload to finish, then unload to
+    # cancel the timer (otherwise phacc's verify_cleanup fixture flags it
+    # as a lingering timer when this test runs alongside others).
+    while mock_config_entry.state is not ConfigEntryState.LOADED:
+        await hass.async_block_till_done()
+    await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
 
 
 async def test_reconfigure_flow_cannot_connect(
