@@ -101,7 +101,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     """Representation of a NeoPool switch entity."""
 
     def __init__(

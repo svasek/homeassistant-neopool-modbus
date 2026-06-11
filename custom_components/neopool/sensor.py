@@ -165,7 +165,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     """Representation of a NeoPool sensor."""
 
     _winter_mode_active = False  # sensors stay available during winter mode
@@ -363,7 +363,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):  # type: ignore[reportIncompat
         return None  # pragma: no cover
 
 
-class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
     """Cumulative energy consumed by the filtration pump (Wh).
 
     Integrates instantaneous power over time using coordinator update timestamps.

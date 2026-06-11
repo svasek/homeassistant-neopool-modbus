@@ -119,7 +119,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolSelect(NeoPoolEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     """Representation of a NeoPool select entity."""
 
     def __init__(

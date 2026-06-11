@@ -57,7 +57,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolButton(NeoPoolEntity, ButtonEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolButton(NeoPoolEntity, ButtonEntity):
     """Representation of a NeoPool button entity."""
 
     def __init__(

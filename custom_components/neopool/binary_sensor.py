@@ -181,7 +181,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     """Representation of a NeoPool binary sensor."""
 
     _winter_mode_active = False  # binary sensors stay available during winter mode

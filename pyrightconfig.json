@@ -16,5 +16,6 @@
   "reportAttributeAccessIssue": false,
   "reportOperatorIssue": false,
   "reportAssignmentType": false,
-  "reportMissingModuleSource": false
+  "reportMissingModuleSource": false,
+  "reportIncompatibleVariableOverride": false
 }
