@@ -89,7 +89,12 @@ def format_strings_style(raw: str, *, paths: tuple[str, ...] = ()) -> str:
     return format_compact(sorted_data, indent="  ") + "\n"
 
 
-def format_translations_style(raw: str, *, paths: tuple[str, ...] = ()) -> str:
+def format_translations_style(
+    raw: str,
+    *,
+    paths: tuple[str, ...] = (),
+    escape_non_ascii: bool = False,
+) -> str:
     """Reformat ``raw`` (and optionally drop ``paths``) for `translations/<lang>.json`.
 
     Style convention (HA core, same verification list as
@@ -97,18 +102,19 @@ def format_translations_style(raw: str, *, paths: tuple[str, ...] = ()) -> str:
 
     - 4-space indent
     - alphabetically sorted keys
-    - **raw** non-ASCII characters preserved (``ensure_ascii=False``)
     - **no** trailing newline
 
-    Note: upstream's `translations/en.json` is ASCII-escaped because
-    Lokalise serialises with `ensure_ascii=True` by default. Keeping
-    the raw form here makes the file readable in editors and grep,
-    and the parsed JSON is byte-equivalent either way.
+    Non-ASCII characters are emitted raw by default (readable in
+    editors and grep). Pass ``escape_non_ascii=True`` to switch to
+    ``\\uXXXX`` escapes — that's how upstream's Lokalise pipeline
+    serialises `translations/en.json`, so opt in when a byte-for-byte
+    diff against an existing upstream file matters. The parsed JSON
+    is identical either way.
     """
     return json.dumps(
         _strip_paths(raw, paths),
         indent=4,
-        ensure_ascii=False,
+        ensure_ascii=escape_non_ascii,
         sort_keys=True,
     )
 
@@ -123,7 +129,12 @@ def strip_strings_json(raw: str, *, paths: tuple[str, ...] = JSON_DROP_KEYS) -> 
 
 
 def strip_translations_en_json(
-    raw: str, *, paths: tuple[str, ...] = JSON_DROP_KEYS
+    raw: str,
+    *,
+    paths: tuple[str, ...] = JSON_DROP_KEYS,
+    escape_non_ascii: bool = False,
 ) -> str:
     """Strip HACS-only paths from `translations/en.json` and reformat to core style."""
-    return format_translations_style(raw, paths=paths)
+    return format_translations_style(
+        raw, paths=paths, escape_non_ascii=escape_non_ascii
+    )

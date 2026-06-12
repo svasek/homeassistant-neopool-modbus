@@ -36,14 +36,18 @@ above so they don't pollute the produced subtree.
 
 ### Options
 
-| flag                  | default | effect                                                              |
-| --------------------- | ------- | ------------------------------------------------------------------- |
-| `--clean`             | on      | wipe `dist/` before writing                                         |
-| `--no-clean`          | —       | overwrite existing files in place                                   |
-| `--strip-license`     | on      | drop the per-file `# Copyright … Apache 2.0` header (core convention) |
-| `--keep-license`      | —       | preserve the license header                                         |
-| `--strip-pragma`      | off     | drop `# pragma: no cover` trailing comments                         |
-| `--keep-pragma`       | —       | preserve `# pragma: no cover` markers                               |
+| flag                       | default | effect                                                                |
+| -------------------------- | ------- | --------------------------------------------------------------------- |
+| `--clean`                  | on      | wipe `dist/` before writing                                           |
+| `--no-clean`               | —       | overwrite existing files in place                                     |
+| `--strip-license`          | on      | drop the per-file `# Copyright … Apache 2.0` header (core convention) |
+| `--keep-license`           | —       | preserve the license header                                           |
+| `--strip-pragma`           | off     | drop `# pragma: no cover` trailing comments                           |
+| `--keep-pragma`            | —       | preserve `# pragma: no cover` markers                                 |
+| `--escape-translations`    | off     | emit `\uXXXX` escapes in `translations/en.json` (Lokalise style)      |
+| `--no-escape-translations` | —       | keep raw UTF-8 in `translations/en.json` (default)                    |
+| `--format`                 | on      | run `ruff check --fix` + `ruff format` over `dist/` after sync        |
+| `--no-format`              | —       | skip the ruff pass                                                    |
 
 ### What gets transformed
 

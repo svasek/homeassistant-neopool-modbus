@@ -16,6 +16,7 @@ import subprocess
 import sys
 
 from .config import (
+    DEFAULT_ESCAPE_TRANSLATIONS,
     DEFAULT_STRIP_LICENSE,
     DEFAULT_STRIP_PRAGMA,
     DEST_INTEGRATION,
@@ -101,7 +102,12 @@ def _write(dest: Path, content: str | bytes) -> None:
 
 
 def _process_integration_file(
-    src: Path, dest: Path, *, strip_license: bool, strip_pragma: bool
+    src: Path,
+    dest: Path,
+    *,
+    strip_license: bool,
+    strip_pragma: bool,
+    escape_translations: bool,
 ) -> None:
     if src.name == "manifest.json":
         _write(dest, transform_manifest(src.read_text(encoding="utf-8")))
@@ -115,7 +121,13 @@ def _process_integration_file(
         _write(dest, strip_strings_json(src.read_text(encoding="utf-8")))
         return
     if src.parent.name == "translations" and src.suffix == ".json":
-        _write(dest, strip_translations_en_json(src.read_text(encoding="utf-8")))
+        _write(
+            dest,
+            strip_translations_en_json(
+                src.read_text(encoding="utf-8"),
+                escape_non_ascii=escape_translations,
+            ),
+        )
         return
     # Other JSON files in the integration root (`icons.json`, future
     # `quality_scale.yaml` siblings) — no key stripping needed, but
@@ -176,6 +188,7 @@ def sync(
     clean: bool,
     strip_license: bool,
     strip_pragma: bool,
+    escape_translations: bool,
 ) -> None:
     """Build the dist/ tree from the current custom HACS sources."""
     if clean and DIST_ROOT.exists():
@@ -194,7 +207,11 @@ def sync(
         rel = src.relative_to(SOURCE_INTEGRATION)
         dest = DEST_INTEGRATION / rel
         _process_integration_file(
-            src, dest, strip_license=strip_license, strip_pragma=strip_pragma
+            src,
+            dest,
+            strip_license=strip_license,
+            strip_pragma=strip_pragma,
+            escape_translations=escape_translations,
         )
         integration_count += 1
 
@@ -342,6 +359,23 @@ def _build_parser() -> argparse.ArgumentParser:
         help='Preserve "# pragma: no cover" markers.',
     )
     parser.add_argument(
+        "--escape-translations",
+        dest="escape_translations",
+        action="store_true",
+        default=DEFAULT_ESCAPE_TRANSLATIONS,
+        help=(
+            "Emit `\\uXXXX` escapes for non-ASCII characters in "
+            "translations/en.json (Lokalise serialisation style). "
+            "Default: off — keep raw UTF-8 for editor / grep readability."
+        ),
+    )
+    parser.add_argument(
+        "--no-escape-translations",
+        dest="escape_translations",
+        action="store_false",
+        help="Keep raw UTF-8 in translations/en.json (default).",
+    )
+    parser.add_argument(
         "--format",
         dest="format_dist",
         action="store_true",
@@ -364,12 +398,14 @@ def main(argv: list[str] | None = None) -> int:
         f"  clean={args.clean}  "
         f"strip_license={args.strip_license}  "
         f"strip_pragma={args.strip_pragma}  "
+        f"escape_translations={args.escape_translations}  "
         f"format={args.format_dist}"
     )
     sync(
         clean=args.clean,
         strip_license=args.strip_license,
         strip_pragma=args.strip_pragma,
+        escape_translations=args.escape_translations,
     )
     if args.format_dist:
         _run_ruff_format(quiet=True)

@@ -129,6 +129,13 @@ JSON_DROP_KEYS: tuple[str, ...] = (
 DEFAULT_STRIP_LICENSE = True
 DEFAULT_STRIP_PRAGMA = False
 
+# Default: emit raw UTF-8 in `translations/en.json` — readable in
+# editors and grep. Opt in to `\uXXXX` escapes via `--escape-translations`
+# when matching upstream's Lokalise serialisation byte-for-byte matters
+# (e.g. for a clean diff against an existing en.json that was written
+# by the translation pipeline).
+DEFAULT_ESCAPE_TRANSLATIONS = False
+
 # License header detection: the first non-empty line starts with this
 # prefix, and the contiguous comment block that follows is the header.
 LICENSE_HEADER_PREFIX = "# Copyright"
