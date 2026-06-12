@@ -9,10 +9,10 @@ core repo manually.
 from __future__ import annotations
 
 import argparse
-import shutil
-import sys
 from collections.abc import Iterable
 from pathlib import Path
+import shutil
+import sys
 
 from .config import (
     DEFAULT_STRIP_LICENSE,
@@ -29,8 +29,7 @@ from .config import (
     SOURCE_TESTS,
 )
 from .manifest import transform_manifest
-from .transformers import transform_python
-
+from .transformers import transform_python, transform_yaml
 
 # ---------------------------------------------------------------------------
 # Walk helpers
@@ -85,9 +84,16 @@ def _process_integration_file(
         )
         _write(dest, transformed)
         return
-    # Everything else (icons.json, services.yaml, strings.json) is
-    # copied verbatim — we may add transforms later, but for now the
-    # custom and core versions are intended to match.
+    if src.suffix in (".yaml", ".yml"):
+        transformed = transform_yaml(
+            src.read_text(encoding="utf-8"),
+            strip_license=strip_license,
+        )
+        _write(dest, transformed)
+        return
+    # Everything else (icons.json, strings.json) is copied verbatim — we
+    # may add transforms later, but for now the custom and core versions
+    # are intended to match.
     shutil.copy2(src, dest)
 
 

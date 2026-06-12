@@ -9,10 +9,7 @@ from __future__ import annotations
 
 import re
 
-from .config import (
-    LICENSE_HEADER_PREFIX,
-    PYTHON_REPLACEMENTS,
-)
+from .config import LICENSE_HEADER_PREFIX, PYTHON_REPLACEMENTS
 
 # Match `# CUSTOM-ONLY START` ... `# CUSTOM-ONLY END` (and the trailing
 # newline of the END line) anywhere in the file. DOTALL so `.` spans
@@ -86,5 +83,18 @@ def transform_python(
         source = strip_license_header(source)
     if strip_pragma:
         source = strip_pragma_no_cover(source)
-    source = apply_python_replacements(source)
+    return apply_python_replacements(source)
+
+
+def transform_yaml(source: str, *, strip_license: bool) -> str:
+    """Run YAML-safe transforms on a single yaml source string.
+
+    Only the license header and `CUSTOM-ONLY` marker blocks are touched
+    here — both rely on `#` line comments, which YAML and Python share.
+    The Python import replacements would be wrong inside YAML strings,
+    so they are deliberately skipped.
+    """
+    source = strip_custom_only_blocks(source)
+    if strip_license:
+        source = strip_license_header(source)
     return source
