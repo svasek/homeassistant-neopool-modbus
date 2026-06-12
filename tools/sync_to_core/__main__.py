@@ -228,9 +228,47 @@ def sync(
         )
         test_count += 1
 
+    _write_tests_package_markers()
+
     print(f"  integration files written: {integration_count}")
     print(f"  test files written:        {test_count}")
     print(f"  output:                    {DIST_ROOT}")
+
+
+def _write_tests_package_markers() -> None:
+    """Drop ``__init__.py`` markers into the dist tree's ancestor test dirs.
+
+    In a real core checkout ``tests/`` and ``tests/components/`` are
+    full Python packages — each has an ``__init__.py`` whose only
+    content is a one-line docstring. Producing the same markers in
+    the dist tree keeps the on-disk structure aligned: a copy-paste
+    into a real checkout overwrites them with byte-identical content,
+    and a developer inspecting ``dist/`` sees the same package layout
+    pytest / ruff / IDEs would see in core.
+
+    Note that this does NOT make ruff's isort classification of
+    ``tests.*`` imports identical between the dist tree and a real
+    core checkout — core ships a much larger ``tests/`` ecosystem
+    (real ``tests/common.py``, ``tests/conftest.py``, every other
+    integration's tests, …) which subtly affects when blank lines
+    are inserted between the ``homeassistant.*`` and ``tests.*``
+    isort sections. Reproducing that layout fully would require
+    shipping a stub for every reachable ``tests`` submodule, which
+    creates more drift than it removes. Instead we accept that a
+    one-off ``ruff check --fix`` pass inside the core checkout adds
+    those blank lines after copy-paste — the dist tree itself stays
+    lint-clean under our own ``ruff_dist.toml`` snapshot.
+    """
+    markers: tuple[tuple[Path, str], ...] = (
+        (DIST_ROOT / "tests" / "__init__.py", '"""Tests for Home Assistant."""\n'),
+        (
+            DIST_ROOT / "tests" / "components" / "__init__.py",
+            '"""The tests for components."""\n',
+        ),
+    )
+    for path, content in markers:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
 
 
 def _run_ruff_format(*, quiet: bool) -> None:

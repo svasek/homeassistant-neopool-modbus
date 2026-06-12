@@ -21,6 +21,14 @@
 
 required-version = ">=0.15.15"
 
+# Pin to Python 3.14 so the formatter applies PEP 758 (drop redundant
+# `except (X, Y):` parentheses). Core gets this implicitly from
+# `requires-python = ">=3.14.2"` in its pyproject.toml; a stand-alone
+# ruff.toml has no such hint, so without this line ruff defaults to
+# its lowest supported target and re-introduces the parentheses on
+# every sync run.
+target-version = "py314"
+
 [lint]
 select = [
     "A001",   # Variable {name} is shadowing a Python builtin
@@ -191,14 +199,13 @@ split-on-trailing-comma = false
 # parity so we don't surface PTH violations the core repo also defers.
 "neopool/homeassistant/**" = ["PTH"]
 
-# In a real core checkout `tests/` is itself a package (has __init__.py)
-# so `from tests.common import …` resolves as a first-party import and
-# the banned-api rule TID251 does not fire. Our dist tree only contains
-# the integration's tests/, not the surrounding scaffolding, so without
-# a tests/__init__.py marker ruff sees those imports as external.
-# Disabling TID251 in the test tree keeps the dist tree lint-clean
-# either way; once it lands in a real core checkout the surrounding
-# scaffolding takes over and the rule self-mutes naturally.
+# `tests` is a first-party package in a real core checkout (its top-level
+# tests/__init__.py marks it as such); see the isort comment above for
+# why we declare the same here. The TID251 banned-api rule still fires
+# in tests because `[lint.flake8-tidy-imports.banned-api]` lists
+# `"tests"` explicitly — that ban is meant for *production* code, so we
+# disable it inside the test tree (real core CI does the same via its
+# tests/components/* per-file scope).
 #
 # SLF001 (private member access) is disabled in tests because several
 # unit tests deliberately exercise private decoder helpers

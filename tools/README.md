@@ -25,6 +25,8 @@ Output layout:
 dist/
 ├── neopool/                            # ← copy this into a core checkout
 │   ├── homeassistant/components/neopool/   # production code
+│   ├── tests/__init__.py                   # core tests-package marker
+│   ├── tests/components/__init__.py        # core tests/components marker
 │   └── tests/components/neopool/           # tests + snapshots
 ├── ruff.toml                           # core ruff config snapshot (helper)
 └── .ruff_cache/                        # ruff cache (helper)
@@ -33,6 +35,11 @@ dist/
 `dist/neopool/` contains exactly what's meant to land in a core
 checkout — the lint helpers (`ruff.toml`, `.ruff_cache`) sit one level
 above so they don't pollute the produced subtree.
+
+The two `__init__.py` markers in `tests/` and `tests/components/` are
+byte-identical to what core ships, so a `cp -r dist/neopool/* <core>/`
+overwrite is a no-op there. They exist in dist so the on-disk layout
+matches what pytest, ruff, and IDEs see in a real checkout.
 
 ### Options
 
