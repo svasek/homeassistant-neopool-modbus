@@ -221,9 +221,11 @@ async def test_masked_number_native_value_decodes_via_mask_shift(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Masked compound numbers (HIDRO_COVER_REDUCTION / SHUTDOWN_TEMPERATURE)
-    share register 0x042D — lower byte holds cover reduction %, upper byte
-    the shutdown temperature. native_value must isolate each via _mask/_shift.
+    """Test that masked compound numbers decode via _mask/_shift.
+
+    HIDRO_COVER_REDUCTION / SHUTDOWN_TEMPERATURE share register 0x042D —
+    lower byte holds cover reduction %, upper byte the shutdown
+    temperature. native_value must isolate each via _mask/_shift.
     """
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
