@@ -16,6 +16,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 DOMAIN = "neopool"
 
+# Snapshot of the ruff config from home-assistant/core@dev/pyproject.toml
+# — used to lint the generated dist/ tree exactly the way core's CI would.
+# Keeps the custom repo's lighter ruff config (in the root pyproject.toml)
+# untouched.
+RUFF_DIST_CONFIG = Path(__file__).resolve().parent / "ruff_dist.toml"
+
 SOURCE_INTEGRATION = REPO_ROOT / "custom_components" / DOMAIN
 SOURCE_TESTS = REPO_ROOT / "tests"
 

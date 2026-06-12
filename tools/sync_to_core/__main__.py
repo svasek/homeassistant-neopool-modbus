@@ -26,6 +26,7 @@ from .config import (
     EXCLUDE_INTEGRATION_FILES,
     EXCLUDE_TEST_DIRS,
     EXCLUDE_TEST_FILES,
+    RUFF_DIST_CONFIG,
     SOURCE_INTEGRATION,
     SOURCE_TESTS,
 )
@@ -174,11 +175,28 @@ def _run_ruff_format(*, quiet: bool) -> None:
     site was stripped (e.g. ``CONF_HOST`` after the legacy data→options
     block disappears) and to re-sort the import block.
 
+    Both passes run with ``ruff_dist.toml`` (a snapshot of HA core's
+    ruff config) copied next to the dist tree as ``ruff.toml`` —
+    discovered automatically by ruff. That way the per-file-ignores
+    globs (``homeassistant/components/*/*``, ``tests/**``) resolve
+    against the on-disk layout below ``dist/neopool/``, exactly mirroring
+    how core's CI views its own repo.
+
+    A final non-fixing ``ruff check`` is run with output visible so any
+    remaining violations surface as actionable feedback rather than
+    silently passing through.
+
     If ruff isn't installed we just skip; the dist tree is still valid
     Python, just less tidy.
     """
     if not DIST_ROOT.exists():
         return
+    # Drop the snapshot config in place so ruff picks it up via the
+    # default `ruff.toml` discovery — keeps the per-file-ignores globs
+    # short and human-readable.
+    dist_config = DIST_ROOT / "ruff.toml"
+    shutil.copyfile(RUFF_DIST_CONFIG, dist_config)
+
     stdout = subprocess.DEVNULL if quiet else None
     stderr = subprocess.DEVNULL if quiet else None
     try:
@@ -205,6 +223,16 @@ def _run_ruff_format(*, quiet: bool) -> None:
             stdout=stdout,
             stderr=stderr,
         )
+        # Final lint pass: surfaces anything --fix couldn't auto-resolve
+        # so the user sees what's left to clean up. Always visible.
+        result = subprocess.run(
+            ["ruff", "check", str(DIST_ROOT)],
+            check=False,
+        )
+        if result.returncode == 0:
+            print("  ruff check (core config):  clean")
+        else:
+            print(f"  ruff check (core config):  {result.returncode} issues remain")
     except FileNotFoundError:
         print("  (ruff not on PATH — skipping format pass)")
     except subprocess.CalledProcessError as exc:  # pragma: no cover

@@ -42,18 +42,27 @@ dist/neopool/
 
 - **Imports & `patch()` strings:** `custom_components.neopool` →
   `homeassistant.components.neopool` everywhere.
-- **Test imports:** `from pytest_homeassistant_custom_component.common`
-  → `from tests.common`.
+- **Test imports:** `from pytest_homeassistant_custom_component`
+  → `from tests` (covers `.common`, `.components.diagnostics`,
+  `.typing`, `.syrupy`).
 - **`manifest.json`:** drops `version` and `issue_tracker` (HACS-only),
   re-emits keys alphabetically (matches `hassfest`).
 - **`# CUSTOM-ONLY START` … `# CUSTOM-ONLY END` blocks:** removed
   wholesale — used in custom sources to fence sections that don't apply
-  to core (vistapool import flow, v1 migration scenarios, legacy
-  data→options migration).
+  to core (legacy data→options migration, vistapool offer/abort,
+  `async_step_import_from_vistapool`).
+- **`from .migration import …` blocks:** stripped automatically based
+  on `EXCLUDE_INTEGRATION_FILES` — adding a new HACS-only module to
+  that list also makes its imports disappear.
 - **License header (optional, on by default):** the leading
   `# Copyright …` comment block plus its trailing blank line is removed.
 - **`# pragma: no cover` (optional, off by default):** the trailing
   comment is stripped while the code on that line is preserved.
+- **Final `ruff` pass:** `ruff check --fix --unsafe-fixes` then `ruff
+  format` is run over `dist/` using a snapshot of HA core's ruff config
+  (`tools/sync_to_core/ruff_dist.toml`, copied into `dist/neopool/` as
+  `ruff.toml`). The result lints clean under core's CI rules without
+  changing the custom repo's own (lighter) ruff config.
 
 ### What stays HACS-only
 
@@ -65,5 +74,22 @@ dist/neopool/
 - `custom_components/neopool/translations/` — core regenerates these
   from `strings.json` via Lokalise.
 - `tests/test_migration.py` — paired with `migration.py`.
+- `tests/test_init_custom.py` — v1→v4 migration + legacy data→options
+  test scenarios that have no core counterpart.
+- `tests/test_config_flow_custom.py` — vistapool import flow + v1
+  duplicate abort test scenarios.
 
 These paths are excluded by `tools/sync_to_core/config.py`.
+
+### Updating the core ruff snapshot
+
+`tools/sync_to_core/ruff_dist.toml` is a snapshot of the
+`[tool.ruff*]` sections from `home-assistant/core@dev/pyproject.toml`,
+saved 2026-06-12. To refresh:
+
+1. Diff against the live core pyproject.
+2. Copy the `[tool.ruff*]` sections verbatim, dropping the `tool.`
+   prefix (the file is loaded as a stand-alone `ruff.toml`).
+3. Update the snapshot date in the file's header comment.
+4. Re-run `python -m tools.sync_to_core` and verify `ruff check
+   (core config):  clean`.
