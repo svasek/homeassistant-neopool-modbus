@@ -95,15 +95,13 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step of the configuration flow.
-
-        If a legacy `vistapool` config entry is present (left over from the
-        v2.x release before the domain rename), offer the user a one-click
-        import step that migrates the entry, its entities and device-level
-        customizations to the new `neopool` domain. Otherwise fall through
-        to the regular new-entry form.
-        """
+        """Handle the initial step of the configuration flow."""
         # CUSTOM-ONLY START — vistapool→neopool import detection.
+        # If a legacy `vistapool` config entry is present (left over from the
+        # v2.x release before the domain rename), offer the user a one-click
+        # import step that migrates the entry, its entities and device-level
+        # customizations to the new `neopool` domain. Otherwise fall through
+        # to the regular new-entry form.
         # Detect a legacy vistapool entry the user hasn't dealt with yet.
         # We only offer the import on the first form display (user_input None);
         # if they already started typing a fresh config we don't interrupt.
