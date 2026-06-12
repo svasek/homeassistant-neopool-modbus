@@ -107,6 +107,19 @@ PYTHON_REPLACEMENTS: tuple[tuple[str, str], ...] = (
 # HACS-only top-level keys to drop from manifest.json.
 MANIFEST_DROP_KEYS: frozenset[str] = frozenset({"version", "issue_tracker"})
 
+# Manifest fields where the custom value differs from what core expects.
+# Applied verbatim to the parsed manifest.json before re-emitting, so the
+# custom repo can keep its HACS-shaped value (e.g. the GitHub repo URL
+# under `documentation`) while the core mirror gets the canonical form.
+MANIFEST_OVERRIDES: dict[str, object] = {
+    "documentation": f"https://www.home-assistant.io/integrations/{DOMAIN}",
+    # Quality scale tier the integration targets in core. The custom
+    # manifest omits this key (HACS doesn't surface it), but core
+    # integrations declare it explicitly so hassfest can validate the
+    # corresponding `quality_scale.yaml` rules.
+    "quality_scale": "gold",
+}
+
 # JSON key paths to delete from `strings.json` and `translations/en.json`.
 # Each entry is a dot-separated path through the nested JSON object —
 # `config.step.import_from_vistapool` removes that whole subtree.

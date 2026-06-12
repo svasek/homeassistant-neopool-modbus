@@ -57,7 +57,11 @@ above so they don't pollute the produced subtree.
   → `from tests` (covers `.common`, `.components.diagnostics`,
   `.typing`, `.syrupy`).
 - **`manifest.json`:** drops `version` and `issue_tracker` (HACS-only),
-  re-emits keys alphabetically (matches `hassfest`).
+  rewrites `documentation` to the canonical
+  `https://www.home-assistant.io/integrations/<domain>` URL, injects
+  `"quality_scale": "gold"` (the tier the integration targets in core),
+  and re-emits keys alphabetically (matches `hassfest`). The override
+  table lives in `MANIFEST_OVERRIDES` in `tools/sync_to_core/config.py`.
 - **`strings.json` and `translations/en.json`:** strip the vistapool /
   migration UI key paths (`config.step.import_from_vistapool`,
   `config.abort.migration_complete`, etc.) so the generated tree has
