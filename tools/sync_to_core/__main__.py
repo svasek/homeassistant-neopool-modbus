@@ -31,7 +31,11 @@ from .config import (
     SOURCE_INTEGRATION,
     SOURCE_TESTS,
 )
-from .json_strip import strip_strings_json, strip_translations_en_json
+from .json_strip import (
+    format_strings_style,
+    strip_strings_json,
+    strip_translations_en_json,
+)
 from .manifest import transform_manifest
 from .transformers import transform_python, transform_yaml
 
@@ -111,6 +115,14 @@ def _process_integration_file(
         return
     if src.parent.name == "translations" and src.suffix == ".json":
         _write(dest, strip_translations_en_json(src.read_text(encoding="utf-8")))
+        return
+    # Other JSON files in the integration root (`icons.json`, future
+    # `quality_scale.yaml` siblings) — no key stripping needed, but
+    # reformat anyway so an ad-hoc edit (mixed indent, IDE-reordered
+    # keys) gets normalised to the core convention here. Cheap defence
+    # against the source drifting silently.
+    if src.suffix == ".json":
+        _write(dest, format_strings_style(src.read_text(encoding="utf-8")))
         return
     if src.suffix == ".py":
         transformed = transform_python(

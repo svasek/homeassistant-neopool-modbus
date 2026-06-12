@@ -1,18 +1,22 @@
-"""Strip a configurable list of dotted-path keys from a JSON document.
+"""Strip and reformat JSON files to match HA core's two conventions.
 
-Used for ``strings.json`` and ``translations/en.json`` — the same
-vistapool / migration UI strings need to disappear from both, and
-they're easier to manage as a flat list of paths than as scattered
-markers inside JSON (which has no comment syntax).
+Two helpers cover both styles core uses (verified against esphome,
+peblar, mqtt, shelly, hue, tplink — all six match):
 
-Each output style is its own helper because HA core uses two distinct
-formatting conventions for these files (verified against esphome,
-peblar, mqtt, shelly, hue, tplink):
+- :func:`format_strings_style` — for ``strings.json`` and ``icons.json``:
+  2-space indent, sorted keys, raw Unicode, trailing newline. Files
+  authors edit by hand.
+- :func:`format_translations_style` — for ``translations/<lang>.json``:
+  4-space indent, sorted keys, ASCII-escaped Unicode, no trailing
+  newline. Lokalise build artefacts.
 
-- ``strings.json`` is human-edited → 2-space indent, raw Unicode,
-  trailing newline
-- ``translations/en.json`` is a Lokalise build artefact → 4-space
-  indent, ASCII-escaped Unicode, no trailing newline
+Each helper accepts a ``paths`` argument — a list of dotted paths to
+delete before re-emitting — so the same call can both strip the
+HACS-only vistapool / migration keys and normalise the formatting.
+Reformatting always runs even when ``paths`` is empty: that way an
+ad-hoc edit in the custom repo (extra blank line, mixed indent, IDE
+reordering) gets normalised on the next sync without touching the
+source file.
 """
 
 from __future__ import annotations
@@ -52,20 +56,19 @@ def _strip_paths(raw: str, paths: tuple[str, ...]) -> Any:
     return data
 
 
-def strip_strings_json(raw: str, *, paths: tuple[str, ...] = JSON_DROP_KEYS) -> str:
-    """Return ``raw`` with ``paths`` stripped, formatted for `strings.json`.
+def format_strings_style(raw: str, *, paths: tuple[str, ...] = ()) -> str:
+    """Reformat ``raw`` (and optionally drop ``paths``) for `strings.json` / `icons.json`.
 
-    Convention used by HA core's `strings.json` (verified 2026-06-12
-    against esphome, peblar, mqtt, shelly, hue, tplink — all match):
+    Style convention (HA core, verified 2026-06-12 against esphome,
+    peblar, mqtt, shelly, hue, tplink):
 
     - 2-space indent
     - alphabetically sorted keys
     - **raw** non-ASCII characters preserved (``ensure_ascii=False``)
     - trailing newline
 
-    `strings.json` is the source of truth that the integration author
-    edits by hand, so it stays human-readable: shallow indent, native
-    Unicode, line-final newline that POSIX text editors expect.
+    These are human-edited files, so the output stays readable: shallow
+    indent, native Unicode, line-final newline.
     """
     return (
         json.dumps(
@@ -78,23 +81,35 @@ def strip_strings_json(raw: str, *, paths: tuple[str, ...] = JSON_DROP_KEYS) -> 
     )
 
 
-def strip_translations_en_json(
-    raw: str, *, paths: tuple[str, ...] = JSON_DROP_KEYS
-) -> str:
-    """Return ``raw`` with ``paths`` stripped, formatted for `translations/en.json`.
+def format_translations_style(raw: str, *, paths: tuple[str, ...] = ()) -> str:
+    """Reformat ``raw`` (and optionally drop ``paths``) for `translations/<lang>.json`.
 
-    Convention used by HA core's `translations/en.json` (verified
-    2026-06-12 against esphome, peblar, mqtt, shelly, hue, tplink —
-    all match):
+    Style convention (HA core, same verification list as
+    :func:`format_strings_style`):
 
     - 4-space indent
     - alphabetically sorted keys
-    - ASCII-escaped non-ASCII characters (``ensure_ascii=True``, the
-      json default) — so ``→`` becomes ``\\u2192`` etc.
+    - ASCII-escaped non-ASCII characters (``ensure_ascii=True``) —
+      so ``→`` becomes ``\\u2192`` etc.
     - **no** trailing newline
 
-    `translations/en.json` is a build artefact written by Lokalise
-    (and our sync script for the English locale), so it follows the
-    machine-friendly defaults Lokalise uses.
+    These are Lokalise build artefacts, so the output follows the
+    machine-friendly defaults the translation pipeline uses.
     """
     return json.dumps(_strip_paths(raw, paths), indent=4, sort_keys=True)
+
+
+# Backwards-compatible aliases that keep the original strip-+-format
+# call sites readable. They each pass `JSON_DROP_KEYS` as the default,
+# which is the HACS-only paths to delete from `strings.json` and
+# `translations/en.json`.
+def strip_strings_json(raw: str, *, paths: tuple[str, ...] = JSON_DROP_KEYS) -> str:
+    """Strip HACS-only paths from `strings.json` and reformat to core style."""
+    return format_strings_style(raw, paths=paths)
+
+
+def strip_translations_en_json(
+    raw: str, *, paths: tuple[str, ...] = JSON_DROP_KEYS
+) -> str:
+    """Strip HACS-only paths from `translations/en.json` and reformat to core style."""
+    return format_translations_style(raw, paths=paths)
