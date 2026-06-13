@@ -23,7 +23,13 @@ from neopool_modbus.registers import TIMER_BLOCKS
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    ServiceResponse,
+    SupportsResponse,
+    callback,
+)
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 
@@ -35,6 +41,7 @@ _LOGGER = logging.getLogger(__name__)
 
 SERVICE_SET_TIMER = "set_timer"
 SERVICE_WRITE_REGISTER = "write_register"
+SERVICE_READ_REGISTER = "read_register"
 
 ATTR_ENTRY_ID = "entry_id"
 ATTR_TIMER = "timer"
@@ -45,6 +52,7 @@ ATTR_ENABLE = "enable"
 ATTR_ADDRESS = "address"
 ATTR_VALUE = "value"
 ATTR_APPLY = "apply"
+ATTR_COUNT = "count"
 
 SERVICE_SET_TIMER_SCHEMA = vol.Schema(
     {
@@ -65,6 +73,17 @@ SERVICE_WRITE_REGISTER_SCHEMA = vol.Schema(
         vol.Required(ATTR_ADDRESS): cv.string,
         vol.Required(ATTR_VALUE): cv.string,
         vol.Optional(ATTR_APPLY, default=True): cv.boolean,
+    }
+)
+
+# `count` capped at 31 — the device firmware refuses larger reads (the
+# library raises ValueError if we ignore the cap, so we surface the same
+# limit at the schema layer for a clean YAML-side error).
+SERVICE_READ_REGISTER_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_ENTRY_ID): cv.string,
+        vol.Required(ATTR_ADDRESS): cv.string,
+        vol.Optional(ATTR_COUNT, default=1): vol.All(int, vol.Range(min=1, max=31)),
     }
 )
 
@@ -230,6 +249,57 @@ async def _async_write_register(call: ServiceCall) -> None:
     coordinator.request_refresh_with_followup()
 
 
+async def _async_read_register(call: ServiceCall) -> ServiceResponse:
+    """Read one or more Modbus registers and return the raw u16 values.
+
+    The library picks Read Input Registers (FC 0x04) for any address on
+    the 0x01 page (MEASURE) and Read Holding Registers (FC 0x03) elsewhere
+    — see ``neopool_modbus.registers.is_input_register``. Decoding the
+    raw u16 into a meaningful value (e.g. dividing pH by 100) is the
+    caller's responsibility; the service deliberately returns the raw
+    transport so users can build their own templates.
+    """
+    address = parse_register_int(call.data[ATTR_ADDRESS], "address")
+    count = call.data[ATTR_COUNT]
+    coordinator = _get_coordinator(call.hass, call)
+
+    try:
+        registers = await coordinator.client.async_read_register(address, count)
+    except (NeoPoolError, OSError, ValueError) as err:
+        _LOGGER.error(
+            "Failed to read register 0x%04X (count=%d): %s (%s)",
+            address,
+            count,
+            err,
+            type(err).__name__,
+        )
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="register_read_failed",
+            translation_placeholders={
+                "address": f"0x{address:04X}",
+                "error": str(err),
+            },
+        ) from err
+
+    _LOGGER.info(
+        "Service read_register: 0x%04X (count=%d) -> %s",
+        address,
+        count,
+        registers,
+    )
+    response: dict[str, Any] = {
+        "address": f"0x{address:04X}",
+        "count": count,
+        "values": registers,
+    }
+    # Single-register reads expose `value` as a scalar so templates can
+    # reference {{ response.value }} without indexing into a list.
+    if count == 1:
+        response["value"] = registers[0]
+    return response
+
+
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     """Register the NeoPool services."""
@@ -244,4 +314,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_WRITE_REGISTER,
         _async_write_register,
         schema=SERVICE_WRITE_REGISTER_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_READ_REGISTER,
+        _async_read_register,
+        schema=SERVICE_READ_REGISTER_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
     )

@@ -496,6 +496,7 @@
     "no_coordinator": {"message": "No NeoPool coordinator found for entry_id {entry_id}"},
     "no_loaded_entry": {"message": "No loaded NeoPool config entry available"},
     "register_out_of_range": {"message": "{name} {value} out of range (0-65535)"},
+    "register_read_failed": {"message": "Register read failed at {address}: {error}"},
     "register_write_failed": {"message": "Register write failed at {address}: {error}"},
     "timer_failed": {"message": "Timer setting failed: {error}"},
     "write_failed": {"message": "Write to register {address} failed"},
@@ -628,6 +629,24 @@
         }
       },
       "name": "Write register"
+    },
+    "read_register": {
+      "description": "Read one or more Modbus registers and return the raw u16 values. Picks Read Input Registers (FC04) for MEASURE-page addresses (0x0100-0x01FF) and Read Holding Registers (FC03) elsewhere.",
+      "fields": {
+        "address": {
+          "description": "Modbus register address (decimal or hex, e.g. 258 or 0x0102).",
+          "name": "Register address"
+        },
+        "count": {
+          "description": "Number of consecutive registers to read (1-31; the firmware refuses larger requests).",
+          "name": "Count"
+        },
+        "entry_id": {
+          "description": "The unique ID of the integration entry. Optional.",
+          "name": "Entry ID"
+        }
+      },
+      "name": "Read register"
     }
   }
 }

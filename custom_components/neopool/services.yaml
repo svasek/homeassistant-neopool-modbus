@@ -87,3 +87,32 @@ write_register:
       selector:
         boolean:
       description: "Save to EEPROM and execute after write (default: true)"
+
+read_register:
+  name: Read Register
+  description: >
+    Read one or more Modbus registers and return the raw u16 values. The
+    integration picks Read Input Registers (FC04) for any address on the
+    0x01 page (MEASURE) and Read Holding Registers (FC03) elsewhere; the
+    caller does not need to know which is which.
+  fields:
+    entry_id:
+      example: "your-entry-id"
+      selector:
+        text:
+      description: "Entry ID of the integration instance"
+    address:
+      required: true
+      example: "0x0102"
+      selector:
+        text:
+      description: "Modbus register address (decimal or hex, e.g. 258 or 0x0102)"
+    count:
+      example: 1
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 31
+          step: 1
+      description: "Number of consecutive registers to read (1-31; the device firmware refuses larger requests)"
