@@ -178,6 +178,9 @@
             "escape": {
                 "name": "Effacer les messages d'erreur"
             },
+            "reset_cell_partial": {
+                "name": "Réinitialiser la durée de fonctionnement de la cellule"
+            },
             "sync_time": {
                 "name": "Synchroniser l’heure de l’appareil"
             }
@@ -597,6 +600,21 @@
             },
             "filtvalve_remaining": {
                 "name": "Temps restant du rétrolavage"
+            },
+            "cell_runtime_total": {
+                "name": "Durée totale de fonctionnement de la cellule"
+            },
+            "cell_runtime_part": {
+                "name": "Durée de fonctionnement de la cellule depuis la réinitialisation"
+            },
+            "cell_runtime_pola": {
+                "name": "Durée de la cellule en polarité 1"
+            },
+            "cell_runtime_polb": {
+                "name": "Durée de la cellule en polarité 2"
+            },
+            "cell_runtime_pol_changes": {
+                "name": "Nombre de changements de polarité"
             },
             "hidro_current": {
                 "name": "Intensité d’hydrolyse"

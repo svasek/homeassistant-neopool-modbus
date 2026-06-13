@@ -179,7 +179,7 @@
                 "name": "Clear Error Messages"
             },
             "reset_cell_partial": {
-                "name": "Reset Partial Cell Runtime"
+                "name": "Reset Cell Runtime"
             },
             "sync_time": {
                 "name": "Synchronize Device Time"
@@ -605,7 +605,7 @@
                 "name": "Cell Runtime Total"
             },
             "cell_runtime_part": {
-                "name": "Cell Runtime Partial"
+                "name": "Cell Runtime Since Reset"
             },
             "cell_runtime_pola": {
                 "name": "Cell Runtime Polarity 1"

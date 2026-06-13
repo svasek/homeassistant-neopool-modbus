@@ -178,6 +178,9 @@
             "escape": {
                 "name": "Wyczyść komunikaty o błędach"
             },
+            "reset_cell_partial": {
+                "name": "Wyzeruj czas pracy ogniwa"
+            },
             "sync_time": {
                 "name": "Synchronizuj czas urządzenia"
             }
@@ -597,6 +600,21 @@
             },
             "filtvalve_remaining": {
                 "name": "Pozostały czas płukania wstecznego"
+            },
+            "cell_runtime_total": {
+                "name": "Całkowity czas pracy ogniwa"
+            },
+            "cell_runtime_part": {
+                "name": "Czas pracy ogniwa od zerowania"
+            },
+            "cell_runtime_pola": {
+                "name": "Czas pracy ogniwa w polaryzacji 1"
+            },
+            "cell_runtime_polb": {
+                "name": "Czas pracy ogniwa w polaryzacji 2"
+            },
+            "cell_runtime_pol_changes": {
+                "name": "Liczba zmian polaryzacji"
             },
             "hidro_current": {
                 "name": "Intensywność elektrolizy"

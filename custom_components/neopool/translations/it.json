@@ -178,6 +178,9 @@
             "escape": {
                 "name": "Cancella messaggi di errore"
             },
+            "reset_cell_partial": {
+                "name": "Azzera tempo di funzionamento cella"
+            },
             "sync_time": {
                 "name": "Sincronizza orario dispositivo"
             }
@@ -597,6 +600,21 @@
             },
             "filtvalve_remaining": {
                 "name": "Tempo rimanente di controlavaggio"
+            },
+            "cell_runtime_total": {
+                "name": "Tempo totale di funzionamento cella"
+            },
+            "cell_runtime_part": {
+                "name": "Tempo di funzionamento cella dall'azzeramento"
+            },
+            "cell_runtime_pola": {
+                "name": "Tempo cella in polarità 1"
+            },
+            "cell_runtime_polb": {
+                "name": "Tempo cella in polarità 2"
+            },
+            "cell_runtime_pol_changes": {
+                "name": "Numero di cambi di polarità"
             },
             "hidro_current": {
                 "name": "Intensità di idrolisi"

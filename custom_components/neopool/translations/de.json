@@ -178,6 +178,9 @@
             "escape": {
                 "name": "Fehlermeldungen löschen"
             },
+            "reset_cell_partial": {
+                "name": "Zellenlaufzeit zurücksetzen"
+            },
             "sync_time": {
                 "name": "Gerätezeit synchronisieren"
             }
@@ -597,6 +600,21 @@
             },
             "filtvalve_remaining": {
                 "name": "Verbleibende Rückspülzeit"
+            },
+            "cell_runtime_total": {
+                "name": "Gesamte Zellenlaufzeit"
+            },
+            "cell_runtime_part": {
+                "name": "Zellenlaufzeit seit Reset"
+            },
+            "cell_runtime_pola": {
+                "name": "Zellenlaufzeit Polarität 1"
+            },
+            "cell_runtime_polb": {
+                "name": "Zellenlaufzeit Polarität 2"
+            },
+            "cell_runtime_pol_changes": {
+                "name": "Anzahl Polaritätswechsel"
             },
             "hidro_current": {
                 "name": "Hydrolyse-Intensität"

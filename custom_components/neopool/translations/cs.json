@@ -178,6 +178,9 @@
             "escape": {
                 "name": "Vymazat chybová hlášení"
             },
+            "reset_cell_partial": {
+                "name": "Vynulovat provoz článku"
+            },
             "sync_time": {
                 "name": "Synchronizovat čas zařízení"
             }
@@ -597,6 +600,21 @@
             },
             "filtvalve_remaining": {
                 "name": "Zbývající čas proplachování"
+            },
+            "cell_runtime_total": {
+                "name": "Celkový provoz článku"
+            },
+            "cell_runtime_part": {
+                "name": "Provoz článku od resetu"
+            },
+            "cell_runtime_pola": {
+                "name": "Provoz článku v polaritě 1"
+            },
+            "cell_runtime_polb": {
+                "name": "Provoz článku v polaritě 2"
+            },
+            "cell_runtime_pol_changes": {
+                "name": "Počet změn polarity článku"
             },
             "hidro_current": {
                 "name": "Intenzita hydrolýzy"
