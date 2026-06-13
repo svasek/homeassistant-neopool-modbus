@@ -179,7 +179,7 @@
                 "name": "Vymazat chybová hlášení"
             },
             "reset_cell_partial": {
-                "name": "Vynulovat provoz článku"
+                "name": "Vynulovat provoz komory"
             },
             "sync_time": {
                 "name": "Synchronizovat čas zařízení"
@@ -602,19 +602,19 @@
                 "name": "Zbývající čas proplachování"
             },
             "cell_runtime_total": {
-                "name": "Celkový provoz článku"
+                "name": "Celkový provoz komory"
             },
             "cell_runtime_part": {
-                "name": "Provoz článku od resetu"
+                "name": "Provoz komory od resetu"
             },
             "cell_runtime_pola": {
-                "name": "Provoz článku v polaritě 1"
+                "name": "Provoz komory v polaritě 1"
             },
             "cell_runtime_polb": {
-                "name": "Provoz článku v polaritě 2"
+                "name": "Provoz komory v polaritě 2"
             },
             "cell_runtime_pol_changes": {
-                "name": "Počet změn polarity článku"
+                "name": "Počet změn polarity komory"
             },
             "hidro_current": {
                 "name": "Intenzita hydrolýzy"
