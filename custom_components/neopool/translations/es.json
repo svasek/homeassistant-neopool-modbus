@@ -743,6 +743,9 @@
         "register_write_failed": {
             "message": "Error de escritura en registro en {address}: {error}"
         },
+        "register_read_failed": {
+            "message": "Error de lectura del registro en {address}: {error}"
+        },
         "timer_failed": {
             "message": "Error al configurar el temporizador: {error}"
         },
@@ -878,6 +881,24 @@
                 }
             },
             "name": "Escribir registro"
+        },
+        "read_register": {
+            "description": "Lee uno o varios registros Modbus y devuelve los valores u16 sin procesar. Usa Read Input Registers (FC04) para las direcciones de la página MEASURE (0x0100-0x01FF) y Read Holding Registers (FC03) en el resto.",
+            "fields": {
+                "address": {
+                    "description": "Dirección del registro Modbus (decimal o hexadecimal, p. ej. 258 o 0x0102).",
+                    "name": "Dirección del registro"
+                },
+                "count": {
+                    "description": "Número de registros consecutivos a leer (1-31; el firmware rechaza solicitudes mayores).",
+                    "name": "Cantidad"
+                },
+                "entry_id": {
+                    "description": "El ID único de la entrada de integración. Opcional.",
+                    "name": "ID de entrada"
+                }
+            },
+            "name": "Leer registro"
         }
     }
 }
