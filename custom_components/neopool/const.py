@@ -269,6 +269,67 @@ SENSOR_DEFINITIONS: dict[str, dict[str, Any]] = {
         "display_precision": 0,
         "entity_registry_enabled_default": False,
     },
+    # Hydrolysis cell runtime counters. The firmware exposes these as 32-bit
+    # values split across two 16-bit register pairs (``*_LOW``/``*_HIGH``);
+    # NeoPoolSensor.native_value combines them via combine_u32(). Resetting the
+    # partial counter is wired through the RESET_CELL_PARTIAL button.
+    "CELL_RUNTIME_TOTAL": {
+        "name": "Cell Runtime Total",
+        "unit": "s",
+        "suggested_unit_of_measurement": "h",
+        "device_class": SensorDeviceClass.DURATION,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "display_precision": 0,
+        "entity_category": EntityCategory.DIAGNOSTIC,
+        "entity_registry_enabled_default": False,
+        "register_pair": ("MBF_CELL_RUNTIME_LOW", "MBF_CELL_RUNTIME_HIGH"),
+    },
+    "CELL_RUNTIME_PART": {
+        "name": "Cell Runtime Since Reset",
+        "unit": "s",
+        "suggested_unit_of_measurement": "h",
+        "device_class": SensorDeviceClass.DURATION,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "display_precision": 0,
+        "entity_category": EntityCategory.DIAGNOSTIC,
+        "entity_registry_enabled_default": False,
+        "register_pair": ("MBF_CELL_RUNTIME_PART_LOW", "MBF_CELL_RUNTIME_PART_HIGH"),
+    },
+    "CELL_RUNTIME_POLA": {
+        "name": "Cell Runtime Polarity 1",
+        "unit": "s",
+        "suggested_unit_of_measurement": "h",
+        "device_class": SensorDeviceClass.DURATION,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "display_precision": 0,
+        "entity_category": EntityCategory.DIAGNOSTIC,
+        "entity_registry_enabled_default": False,
+        "register_pair": ("MBF_CELL_RUNTIME_POLA_LOW", "MBF_CELL_RUNTIME_POLA_HIGH"),
+    },
+    "CELL_RUNTIME_POLB": {
+        "name": "Cell Runtime Polarity 2",
+        "unit": "s",
+        "suggested_unit_of_measurement": "h",
+        "device_class": SensorDeviceClass.DURATION,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "display_precision": 0,
+        "entity_category": EntityCategory.DIAGNOSTIC,
+        "entity_registry_enabled_default": False,
+        "register_pair": ("MBF_CELL_RUNTIME_POLB_LOW", "MBF_CELL_RUNTIME_POLB_HIGH"),
+    },
+    "CELL_RUNTIME_POL_CHANGES": {
+        "name": "Cell Polarity Changes",
+        "unit": None,
+        "device_class": None,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "display_precision": 0,
+        "entity_category": EntityCategory.DIAGNOSTIC,
+        "entity_registry_enabled_default": False,
+        "register_pair": (
+            "MBF_CELL_RUNTIME_POL_CHANGES_LOW",
+            "MBF_CELL_RUNTIME_POL_CHANGES_HIGH",
+        ),
+    },
     CONF_FILTRATION_PUMP_POWER: {
         "name": "Filtration Pump Power",
         "unit": "W",
@@ -627,6 +688,11 @@ BUTTON_DEFINITIONS: dict[str, dict[str, Any]] = {
     },
     "BACKWASH": {
         "name": "Start Backwash",
+    },
+    "RESET_CELL_PARTIAL": {
+        "name": "Reset Partial Cell Runtime",
+        "entity_category": EntityCategory.CONFIG,
+        "entity_registry_enabled_default": False,
     },
 }
 

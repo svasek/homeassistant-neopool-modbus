@@ -97,6 +97,19 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "relay_aux2_enable": 4,
     "relay_aux3_enable": 4,
     "relay_aux4_enable": 4,
+    # Cell-runtime 32-bit counters (LOW/HIGH word pairs).
+    # Total = 0x0001_0000 s = 65536 s; Partial = 0x0000_0E10 s = 3600 s (1 hour);
+    # Pol1/Pol2 split the partial roughly in half; pol-changes count = 7.
+    "MBF_CELL_RUNTIME_LOW": 0x0000,
+    "MBF_CELL_RUNTIME_HIGH": 0x0001,
+    "MBF_CELL_RUNTIME_PART_LOW": 0x0E10,
+    "MBF_CELL_RUNTIME_PART_HIGH": 0x0000,
+    "MBF_CELL_RUNTIME_POLA_LOW": 0x0708,
+    "MBF_CELL_RUNTIME_POLA_HIGH": 0x0000,
+    "MBF_CELL_RUNTIME_POLB_LOW": 0x0708,
+    "MBF_CELL_RUNTIME_POLB_HIGH": 0x0000,
+    "MBF_CELL_RUNTIME_POL_CHANGES_LOW": 0x0007,
+    "MBF_CELL_RUNTIME_POL_CHANGES_HIGH": 0x0000,
 }
 
 

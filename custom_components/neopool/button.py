@@ -17,7 +17,11 @@
 import logging
 from typing import Any
 
-from neopool_modbus.registers import COPY_TO_RTC_REGISTER
+from neopool_modbus.registers import (
+    COPY_TO_RTC_REGISTER,
+    EEPROM_SAVE_REGISTER,
+    RESET_USER_COUNTERS_REGISTER,
+)
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
@@ -53,6 +57,11 @@ async def async_setup_entry(
         # BACKWASH button is only available when a Besgo filter valve is configured
         if key == "BACKWASH" and not has_filtvalve(coordinator.data):
             continue
+        # RESET_CELL_PARTIAL only makes sense on units with a hydrolysis cell
+        if key == "RESET_CELL_PARTIAL" and not coordinator.data.get(
+            "Hydrolysis module detected"
+        ):
+            continue
         entities.append(NeoPoolButton(coordinator, entry_id, key, props))
     async_add_entities(entities)
 
@@ -79,6 +88,11 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._attr_entity_category = props.get("entity_category") or None
+
+        # Disable some entities by default (e.g. destructive actions like
+        # RESET_CELL_PARTIAL that the user has to opt into explicitly).
+        if props.get("entity_registry_enabled_default") is False:
+            self._attr_entity_registry_enabled_default = False
 
         _LOGGER.debug(
             "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
@@ -122,6 +136,20 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
             # The device opens the configured Besgo valve and runs the filter
             # cleaning cycle for the duration stored in MBF_PAR_FILTVALVE_INTERVAL.
             await client.async_write_register(0x0411, 13)
+            await self.coordinator.async_request_refresh()
+        elif self._key == "RESET_CELL_PARTIAL":
+            client = self.coordinator.client
+            _LOGGER.info(
+                "Resetting partial cell runtime counter on device '%s'",
+                self.coordinator.device_name,
+            )
+            # MBF_RESET_USER_COUNTERS: writing any value resets the user-level
+            # partial counters (cell partial runtime + ION/UV partial work-time,
+            # although only the cell partial counter is exposed today). Per the
+            # v10.23 spec the operation is volatile, so chain a write to
+            # MBF_SAVE_TO_EEPROM to make it persistent.
+            await client.async_write_register(RESET_USER_COUNTERS_REGISTER, 1)
+            await client.async_write_register(EEPROM_SAVE_REGISTER, 1)
             await self.coordinator.async_request_refresh()
 
     async def async_added_to_hass(self) -> None:  # pragma: no cover

@@ -38,6 +38,23 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
+def combine_u32(data: dict[str, Any], low_key: str, high_key: str) -> int | None:
+    """Combine two consecutive 16-bit Modbus registers into one 32-bit unsigned value.
+
+    NeoPool firmware exposes 32-bit counters (cell runtime, system time, work-time
+    counters, etc.) as two 16-bit register pairs labelled ``*_LOW`` and ``*_HIGH``.
+    This helper rebuilds the 32-bit value as ``(high << 16) | low``.
+
+    Returns ``None`` if either half is missing from the coordinator data; the
+    caller treats this the same as ``coordinator.data.get(key)`` returning ``None``.
+    """
+    low = data.get(low_key)
+    high = data.get(high_key)
+    if low is None or high is None:
+        return None
+    return (high << 16) | low
+
+
 # This function takes a dictionary of data and returns the device time as a datetime object
 # It extracts the low and high parts of the time from the dictionary, combines them into a single timestamp,
 # and converts it to a datetime object in UTC timezone

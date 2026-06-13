@@ -36,7 +36,7 @@ from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import calculate_next_interval_time, has_filtvalve
+from .helpers import calculate_next_interval_time, combine_u32, has_filtvalve
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,6 +107,8 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
         "MBF_HIDRO_VOLTAGE",
         "HIDRO_POLARITY",
     ) and not data.get("Hydrolysis module detected"):
+        return True
+    if key.startswith("CELL_RUNTIME") and not data.get("Hydrolysis module detected"):
         return True
     if key == "ION_POLARITY" and not bool((data.get("MBF_PAR_MODEL") or 0) & 0x0001):
         return True
@@ -189,6 +191,9 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._attr_native_unit_of_measurement = props.get("unit") or None
+        self._attr_suggested_unit_of_measurement = (
+            props.get("suggested_unit_of_measurement") or None
+        )
         self._attr_device_class = props.get("device_class") or None
         self._attr_state_class = props.get("state_class") or None
         self._attr_entity_category = props.get("entity_category") or None
@@ -197,6 +202,11 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         # Disable some entities by default.
         if props.get("entity_registry_enabled_default") is False:
             self._attr_entity_registry_enabled_default = False
+
+        # Synthetic 32-bit counters (e.g. CELL_RUNTIME_*) declare the
+        # ``*_LOW`` / ``*_HIGH`` register pair they should be combined from.
+        # native_value() rebuilds the 32-bit value via combine_u32().
+        self._register_pair: tuple[str, str] | None = props.get("register_pair")
 
         _LOGGER.debug(
             "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
@@ -327,6 +337,8 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Return the actual sensor value from coordinator data."""
         if self._is_measurement_suppressed():
             return None
+        if self._register_pair is not None:
+            return combine_u32(self.coordinator.data, *self._register_pair)
         if self._key == "PH_PUMP_STATUS":
             return self._compute_ph_pump_status()
         if self._key == "HIDRO_POLARITY":

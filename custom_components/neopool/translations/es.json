@@ -178,6 +178,9 @@
             "escape": {
                 "name": "Borrar mensajes de error"
             },
+            "reset_cell_partial": {
+                "name": "Reiniciar tiempo de uso de la celda"
+            },
             "sync_time": {
                 "name": "Sincronizar hora del dispositivo"
             }
@@ -597,6 +600,21 @@
             },
             "filtvalve_remaining": {
                 "name": "Tiempo restante de retrolavado"
+            },
+            "cell_runtime_total": {
+                "name": "Tiempo total de uso de la celda"
+            },
+            "cell_runtime_part": {
+                "name": "Tiempo de uso de la celda desde el reinicio"
+            },
+            "cell_runtime_pola": {
+                "name": "Tiempo de la celda en polaridad 1"
+            },
+            "cell_runtime_polb": {
+                "name": "Tiempo de la celda en polaridad 2"
+            },
+            "cell_runtime_pol_changes": {
+                "name": "Número de cambios de polaridad"
             },
             "hidro_current": {
                 "name": "Intensidad de hidrólisis"

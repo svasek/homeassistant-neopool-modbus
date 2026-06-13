@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool.const import CURRENT_VERSION
+from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
-from .conftest import MOCK_POOL_DATA
+from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
 
 
 def _sensor_by_key(hass: HomeAssistant, key: str):
@@ -479,3 +479,142 @@ async def test_hidro_current_g_per_hour_mode(
         pytest.skip("MBF_HIDRO_CURRENT entity not registered on this fixture")
     assert entity.suggested_display_precision == 1
     assert entity.native_unit_of_measurement == "g/h"
+
+
+# ---------------------------------------------------------------------------
+# Cell runtime 32-bit counters (issue #177)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("key", "expected_seconds"),
+    [
+        # Total = (0x0001 << 16) | 0x0000 = 65 536 s (~18.2 h)
+        ("CELL_RUNTIME_TOTAL", 65536),
+        # Partial = (0x0000 << 16) | 0x0E10 = 3600 s (1 h)
+        ("CELL_RUNTIME_PART", 3600),
+        # Polarity 1 = (0x0000 << 16) | 0x0708 = 1800 s
+        ("CELL_RUNTIME_POLA", 1800),
+        # Polarity 2 = (0x0000 << 16) | 0x0708 = 1800 s
+        ("CELL_RUNTIME_POLB", 1800),
+        # Polarity changes = 7
+        ("CELL_RUNTIME_POL_CHANGES", 7),
+    ],
+)
+async def test_cell_runtime_sensor_combines_low_and_high_words(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    key: str,
+    expected_seconds: int,
+) -> None:
+    """Each CELL_RUNTIME_* sensor decodes its (low, high) register pair via combine_u32.
+
+    All five sensors have ``entity_registry_enabled_default=False`` (CELL_RUNTIME_TOTAL
+    and CELL_RUNTIME_PART because the user opted into the diagnostic level
+    consciously, POLA/POLB/POL_CHANGES because they're advanced internals);
+    HA skips constructing entity objects for disabled-by-default keys, so we
+    pre-register them as enabled in the entity_registry and let the platform
+    setup pick that up.
+    """
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"neopool_{MOCK_SERIAL}_{key.lower()}",
+        config_entry=mock_config_entry,
+        disabled_by=None,
+    )
+
+    await setup_integration(hass, mock_config_entry)
+    entity = _sensor_by_key(hass, key)
+    assert entity is not None, f"{key} sensor was not registered"
+    assert entity.native_value == expected_seconds
+
+
+async def test_cell_runtime_sensors_skipped_without_hydrolysis(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """No CELL_RUNTIME_* entity is registered on a unit without hydrolysis."""
+    no_hidro = dict(MOCK_POOL_DATA)
+    no_hidro["Hydrolysis module detected"] = False
+    mock_neopool_client.async_read_all.return_value = no_hidro
+
+    entry = MockConfigEntry(
+        domain="neopool",
+        title="Test Pool",
+        unique_id="neopool_no_hidro",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.1",
+            "port": 502,
+            "name": "Test Pool",
+            "slave_id": 1,
+            "modbus_framer": "tcp",
+        },
+        options={"scan_interval": 30, "modbus_framer": "tcp"},
+    )
+    await setup_integration(hass, entry)
+
+    registry = er.async_get(hass)
+    cell_entities = [
+        e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.domain == "sensor" and "cell_runtime" in e.unique_id
+    ]
+    assert cell_entities == []
+
+
+async def test_cell_runtime_sensor_returns_none_when_register_pair_missing(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """combine_u32 returns None when either half is missing — the sensor too."""
+    # CELL_RUNTIME_PART is disabled-by-default; pre-enable it so the platform
+    # constructs the entity object whose native_value we can inspect.
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"neopool_{MOCK_SERIAL}_cell_runtime_part",
+        config_entry=mock_config_entry,
+        disabled_by=None,
+    )
+    await setup_integration(hass, mock_config_entry)
+    coordinator = mock_config_entry.runtime_data
+    # Drop the high word; combine_u32 must short-circuit to None.
+    coordinator.data["MBF_CELL_RUNTIME_PART_HIGH"] = None
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    entity = _sensor_by_key(hass, "CELL_RUNTIME_PART")
+    assert entity is not None
+    assert entity.native_value is None
+
+
+async def test_cell_runtime_default_enabled_state(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """All five cell-runtime sensors default to disabled.
+
+    Cell-life metrics are diagnostic information rather than headline state;
+    surfacing them silently in every install would clutter dashboards. Users
+    who care about cell-life can enable the sensors explicitly in the entity
+    registry.
+    """
+    from custom_components.neopool.const import SENSOR_DEFINITIONS
+
+    for key in (
+        "CELL_RUNTIME_TOTAL",
+        "CELL_RUNTIME_PART",
+        "CELL_RUNTIME_POLA",
+        "CELL_RUNTIME_POLB",
+        "CELL_RUNTIME_POL_CHANGES",
+    ):
+        assert SENSOR_DEFINITIONS[key]["entity_registry_enabled_default"] is False

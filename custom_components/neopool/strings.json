@@ -108,6 +108,7 @@
     "button": {
       "backwash": {"name": "Start Backwash"},
       "escape": {"name": "Clear Error Messages"},
+      "reset_cell_partial": {"name": "Reset Cell Runtime"},
       "sync_time": {"name": "Synchronize Device Time"}
     },
     "light": {"light": {"name": "Pool Light"}},
@@ -416,6 +417,11 @@
         "state": {"high": "High", "low": "Low", "mid": "Medium", "off": "Off"}
       },
       "filtvalve_remaining": {"name": "Backwash Time Remaining"},
+      "cell_runtime_total": {"name": "Cell Runtime Total"},
+      "cell_runtime_part": {"name": "Cell Runtime Since Reset"},
+      "cell_runtime_pola": {"name": "Cell Runtime Polarity 1"},
+      "cell_runtime_polb": {"name": "Cell Runtime Polarity 2"},
+      "cell_runtime_pol_changes": {"name": "Cell Polarity Changes"},
       "hidro_current": {"name": "Hydrolysis Intensity"},
       "hidro_polarity": {
         "name": "Hydrolysis Polarity",

@@ -5,12 +5,14 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.neopool.const import DOMAIN
 from homeassistant.components.button.const import SERVICE_PRESS
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
+from .conftest import MOCK_SERIAL
 
 
 def _button_entity_id(
@@ -134,3 +136,76 @@ async def test_backwash_button_aborts_when_valve_disappears(
     await _press(hass, entity_id)
     assert "Backwash valve not configured" in caplog.text
     mock_neopool_client.async_write_register.assert_not_called()
+
+
+async def test_reset_cell_partial_button_writes_reset_and_save(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """RESET_CELL_PARTIAL writes 0x02F2 (reset) then 0x02F0 (save) and refreshes."""
+    # The reset button is destructive (clears partial counters) so it ships
+    # disabled-by-default. Pre-enable it in the registry before setup so the
+    # platform constructs the entity object.
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    registry.async_get_or_create(
+        "button",
+        DOMAIN,
+        f"neopool_{MOCK_SERIAL}_reset_cell_partial",
+        config_entry=mock_config_entry,
+        disabled_by=None,
+    )
+    await setup_integration(hass, mock_config_entry)
+
+    entity_id = _button_entity_id(hass, mock_config_entry, "reset_cell_partial")
+    mock_neopool_client.async_write_register.reset_mock()
+    await _press(hass, entity_id)
+
+    addresses = [
+        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
+    ]
+    # Reset must come before the EEPROM save so the device flushes the new
+    # zeroed counters, not the stale ones.
+    assert addresses == [0x02F2, 0x02F0]
+    mock_neopool_client.async_write_register.assert_any_await(0x02F2, 1)
+    mock_neopool_client.async_write_register.assert_any_await(0x02F0, 1)
+
+
+async def test_reset_cell_partial_button_disabled_by_default(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Reset button registers but is disabled-by-default (destructive action)."""
+    await setup_integration(hass, mock_config_entry)
+
+    registry = er.async_get(hass)
+    matches = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "button" and e.unique_id.endswith("_reset_cell_partial")
+    ]
+    assert len(matches) == 1
+    assert matches[0].disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+
+async def test_reset_cell_partial_button_skipped_without_hydrolysis(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """No RESET_CELL_PARTIAL entity is registered when hydrolysis isn't detected."""
+    no_hidro_data = dict(mock_neopool_client.async_read_all.return_value)
+    no_hidro_data["Hydrolysis module detected"] = False
+    mock_neopool_client.async_read_all.return_value = no_hidro_data
+
+    await setup_integration(hass, mock_config_entry)
+
+    registry = er.async_get(hass)
+    matches = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "button" and e.unique_id.endswith("_reset_cell_partial")
+    ]
+    assert matches == []

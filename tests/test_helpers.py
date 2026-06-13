@@ -12,6 +12,7 @@ from custom_components.neopool.config_flow import is_host_port_open
 from custom_components.neopool.helpers import (
     async_get_device_serial,
     calculate_next_interval_time,
+    combine_u32,
     get_device_time,
     has_filtvalve,
     is_device_time_out_of_sync,
@@ -20,6 +21,44 @@ from custom_components.neopool.helpers import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
+
+# ---------------------------------------------------------------------------
+# combine_u32
+# ---------------------------------------------------------------------------
+
+
+def test_combine_u32_combines_low_and_high_words() -> None:
+    """combine_u32 returns (high << 16) | low."""
+    data = {"foo_low": 0x1234, "foo_high": 0x5678}
+    assert combine_u32(data, "foo_low", "foo_high") == 0x56781234
+
+
+def test_combine_u32_handles_zero_values() -> None:
+    """Both halves at 0 → 0; not None."""
+    data = {"foo_low": 0, "foo_high": 0}
+    assert combine_u32(data, "foo_low", "foo_high") == 0
+
+
+def test_combine_u32_handles_max_32bit() -> None:
+    """0xFFFF / 0xFFFF → 0xFFFFFFFF (full 32-bit range)."""
+    data = {"foo_low": 0xFFFF, "foo_high": 0xFFFF}
+    assert combine_u32(data, "foo_low", "foo_high") == 0xFFFFFFFF
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {},
+        {"foo_low": 1},
+        {"foo_high": 1},
+        {"foo_low": None, "foo_high": 1},
+        {"foo_low": 1, "foo_high": None},
+    ],
+)
+def test_combine_u32_missing_or_none_returns_none(data: dict) -> None:
+    """Either half missing or None yields None."""
+    assert combine_u32(data, "foo_low", "foo_high") is None
+
 
 # ---------------------------------------------------------------------------
 # get_device_time
