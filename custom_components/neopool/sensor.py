@@ -434,6 +434,6 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
         super()._handle_coordinator_update()
 
     @property
-    def native_value(self) -> float:  # type: ignore[override]
+    def native_value(self) -> float:
         """Return accumulated energy in Wh."""
         return round(self._total_wh, 3)

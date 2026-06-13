@@ -117,7 +117,7 @@ MANIFEST_OVERRIDES: dict[str, object] = {
     # manifest omits this key (HACS doesn't surface it), but core
     # integrations declare it explicitly so hassfest can validate the
     # corresponding `quality_scale.yaml` rules.
-    "quality_scale": "gold",
+    "quality_scale": "platinum",
 }
 
 # JSON key paths to delete from `strings.json` and `translations/en.json`.
