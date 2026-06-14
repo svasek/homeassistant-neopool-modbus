@@ -122,14 +122,14 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     "modbus_framer",
                     default=DEFAULT_MODBUS_FRAMER,
-                ): vol.In(["tcp", "rtu"]),
+                ): vol.In(("tcp", "rtu")),
                 vol.Optional(
                     "scan_interval",
                     default=str(DEFAULT_SCAN_INTERVAL),
                 ): SelectSelector(
                     SelectSelectorConfig(
                         options=[
-                            str(v) for v in [5, 10, 15, 20, 30, 45, 60, 120, 180, 300]
+                            str(v) for v in (5, 10, 15, 20, 30, 45, 60, 120, 180, 300)
                         ]
                     )
                 ),
@@ -272,7 +272,7 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     "modbus_framer",
                     default=current.get("modbus_framer", DEFAULT_MODBUS_FRAMER),
-                ): vol.In(["tcp", "rtu"]),
+                ): vol.In(("tcp", "rtu")),
             }
         )
 

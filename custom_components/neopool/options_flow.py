@@ -65,14 +65,14 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
                 default=str(options.get("scan_interval", DEFAULT_SCAN_INTERVAL)),
             ): SelectSelector(
                 SelectSelectorConfig(
-                    options=[str(v) for v in [5, 10, 15, 20, 30, 45, 60, 120, 180, 300]]
+                    options=[str(v) for v in (5, 10, 15, 20, 30, 45, 60, 120, 180, 300)]
                 )
             ),
             vol.Optional(
                 "timer_resolution",
                 default=str(options.get("timer_resolution", DEFAULT_TIMER_RESOLUTION)),
             ): SelectSelector(
-                SelectSelectorConfig(options=[str(v) for v in [1, 5, 10, 15, 30, 60]])
+                SelectSelectorConfig(options=[str(v) for v in (1, 5, 10, 15, 30, 60)])
             ),
             vol.Optional(
                 "measure_when_filtration_off",
