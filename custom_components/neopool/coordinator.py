@@ -368,7 +368,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data = await self.client.async_read_all()
         except (NeoPoolError, OSError, TimeoutError) as err:
             await self._handle_modbus_failure(err)
-            raise UpdateFailed(f"Modbus communication error: {err}") from err
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="modbus_communication_error",
+                translation_placeholders={"error": str(err)},
+            ) from err
 
         self._consecutive_errors = 0
 

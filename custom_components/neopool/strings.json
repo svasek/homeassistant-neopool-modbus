@@ -499,6 +499,9 @@
       "message": "Invalid timer time format (start: {start}, stop: {stop}). Use HH:MM (e.g. 08:30)."
     },
     "missing_parameter": {"message": "Missing required parameter {parameter}"},
+    "modbus_communication_error": {
+      "message": "An error occurred while communicating with the NeoPool controller: {error}"
+    },
     "no_coordinator": {"message": "No NeoPool coordinator found for entry_id {entry_id}"},
     "no_loaded_entry": {"message": "No loaded NeoPool config entry available"},
     "register_out_of_range": {"message": "{name} {value} out of range (0-65535)"},

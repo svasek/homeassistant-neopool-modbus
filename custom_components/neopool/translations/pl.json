@@ -749,6 +749,9 @@
         "missing_parameter": {
             "message": "Brak wymaganego parametru {parameter}"
         },
+        "modbus_communication_error": {
+            "message": "Wystąpił błąd podczas komunikacji ze sterownikiem NeoPool: {error}"
+        },
         "no_coordinator": {
             "message": "Nie znaleziono koordynatora NeoPool dla entry_id {entry_id}"
         },

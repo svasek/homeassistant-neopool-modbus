@@ -749,6 +749,9 @@
         "missing_parameter": {
             "message": "Chybí povinný parametr {parameter}"
         },
+        "modbus_communication_error": {
+            "message": "Při komunikaci s řadičem NeoPool došlo k chybě: {error}"
+        },
         "no_coordinator": {
             "message": "Nebyl nalezen koordinátor NeoPool pro entry_id {entry_id}"
         },
