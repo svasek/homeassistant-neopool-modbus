@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.1.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.1.0...v4.1.1) (2026-06-14)
+
+
+### 🐛 Bug Fixes
+
+* 🐛 import platform constants from public API ([#184](https://github.com/svasek/homeassistant-neopool-modbus/issues/184)) ([9b7fd4f](https://github.com/svasek/homeassistant-neopool-modbus/commit/9b7fd4f1010fabac1ec49c53c1cdc6241da95aa9))
+
+
+### ♻️ Refactoring
+
+* **strings:** ♻️ adopt shared common strings and trim services.yaml ([#182](https://github.com/svasek/homeassistant-neopool-modbus/issues/182)) ([7106dfd](https://github.com/svasek/homeassistant-neopool-modbus/commit/7106dfda59041bdc737f56d11e4fa5044c305735))
+
 ## [4.1.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.0.1...v4.1.0) (2026-06-14)
 
 
