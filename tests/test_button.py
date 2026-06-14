@@ -6,7 +6,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import DOMAIN
-from homeassistant.components.button.const import SERVICE_PRESS
+from homeassistant.components.button import SERVICE_PRESS
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er

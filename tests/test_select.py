@@ -6,8 +6,7 @@ from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from homeassistant.components.select.const import ATTR_OPTION, SERVICE_SELECT_OPTION
-from homeassistant.const import Platform
+from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
