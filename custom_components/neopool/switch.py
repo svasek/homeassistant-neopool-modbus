@@ -114,9 +114,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         """Initialize the NeoPool switch entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -139,13 +136,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         # Initialize properties for bitmask switches
         self._mask_bit: int | None = props.get("mask_bit")
         self._data_key = props.get("data_key") or self._key
-
-        _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch ON."""
@@ -299,7 +289,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             await self.coordinator.async_request_refresh()
             self.async_write_ha_state()
 
-    async def async_added_to_hass(self) -> None:  # pragma: no cover
+    async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to hass."""
         _LOGGER.debug(
             "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",

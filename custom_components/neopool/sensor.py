@@ -182,9 +182,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Initialize the NeoPool sensor entity."""
         super().__init__(coordinator, entry_id)  # Pass entry_id to the parent class
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -207,13 +204,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         # ``*_LOW`` / ``*_HIGH`` register pair they should be combined from.
         # native_value() rebuilds the 32-bit value via combine_u32().
         self._register_pair: tuple[str, str] | None = props.get("register_pair")
-
-        _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
@@ -409,9 +399,6 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
         """Initialise the filtration-pump energy sensor."""
         super().__init__(coordinator, entry_id)
         self._pump_power_w = pump_power_w
-        self._attr_suggested_object_id = (
-            f"{coordinator.device_slug}_filtration_pump_energy"
-        )
         device_id = coordinator.entry.unique_id or entry_id
         self._attr_unique_id = f"{device_id}_filtration_pump_energy"
         self._total_wh: float = 0.0
@@ -420,6 +407,12 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
 
     async def async_added_to_hass(self) -> None:
         """Restore last known energy value from sensor extra data after restart."""
+        _LOGGER.debug(
+            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
+            self.entity_id,
+            self._attr_translation_key,
+            getattr(self, "has_entity_name", None),
+        )
         await super().async_added_to_hass()
         last_data = await self.async_get_last_sensor_data()
         if last_data is None:  # pragma: no cover

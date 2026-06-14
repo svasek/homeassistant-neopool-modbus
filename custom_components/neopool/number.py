@@ -148,9 +148,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._shift: int = props.get("shift", 0)
         self._data_key: str = props.get("data_key", key)
 
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -169,13 +166,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._pending_write_task: asyncio.Task[None] | None = None
         self._pending_value: float | None = None
         self._debounce_delay = 2.0
-
-        _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
