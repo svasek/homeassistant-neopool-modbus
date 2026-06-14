@@ -22,6 +22,7 @@ from typing import Any
 from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from homeassistant.components.sensor import (
+    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
@@ -29,7 +30,6 @@ from homeassistant.components.sensor import (
 from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
 from . import NeoPoolConfigEntry
@@ -385,7 +385,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         return None  # pragma: no cover
 
 
-class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
+class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     """Cumulative energy consumed by the filtration pump (Wh).
 
     Integrates instantaneous power over time using coordinator update timestamps.
@@ -419,21 +419,22 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
         self._last_pump_on: bool = False
 
     async def async_added_to_hass(self) -> None:
-        """Restore last known energy value from entity state after restart."""
+        """Restore last known energy value from sensor extra data after restart."""
         await super().async_added_to_hass()
-        if (
-            last_state := await self.async_get_last_state()
-        ) and last_state.state not in (
-            None,
-            "unavailable",
-            "unknown",
-        ):  # pragma: no cover
-            try:
-                restored = float(last_state.state)
-                if math.isfinite(restored) and restored >= 0:
-                    self._total_wh = restored
-            except ValueError:
-                pass
+        last_data = await self.async_get_last_sensor_data()
+        if last_data is None:  # pragma: no cover
+            return
+        # native_value is typed `StateType | date | datetime | Decimal`; only the
+        # numeric / numeric-string variants make sense for an energy counter.
+        value = last_data.native_value
+        if not isinstance(value, (int, float, str)):  # pragma: no cover
+            return
+        try:
+            restored = float(value)
+        except (TypeError, ValueError):  # pragma: no cover
+            return
+        if math.isfinite(restored) and restored >= 0:  # pragma: no cover
+            self._total_wh = restored
 
     def _handle_coordinator_update(self) -> None:
         """Accumulate energy on each coordinator update."""
