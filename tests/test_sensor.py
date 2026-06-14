@@ -4,6 +4,7 @@ from datetime import timedelta as _td
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
+from freezegun.api import FrozenDateTimeFactory
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -383,7 +384,7 @@ async def test_filtration_pump_energy_sensor_registers_when_power_set(
 async def test_filtration_pump_energy_accumulates_while_pump_runs(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Energy accumulates power x elapsed-hours when the pump is running."""
 

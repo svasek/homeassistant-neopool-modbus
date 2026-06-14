@@ -2,6 +2,7 @@
 
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import LIGHT_DEFINITIONS
@@ -126,7 +127,7 @@ async def test_light_winter_mode_guard_when_called_directly(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """async_turn_on/off short-circuits when winter_mode is on.
 
