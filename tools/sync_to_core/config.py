@@ -107,6 +107,15 @@ PYTHON_REPLACEMENTS: tuple[tuple[str, str], ...] = (
 # HACS-only top-level keys to drop from manifest.json.
 MANIFEST_DROP_KEYS: frozenset[str] = frozenset({"version", "issue_tracker"})
 
+# Whether to rewrite `>=X.Y.Z` requirement specifiers to the equivalent
+# exact pin `==X.Y.Z` when emitting the core-shaped manifest. The custom
+# HACS package keeps `>=` so HACS users pip-install any compatible
+# upstream release; core integrations pin the requirement exactly so
+# every Home Assistant release ships against a known, audited library
+# version. Verified against platinum/gold integrations (peblar,
+# airgradient, elgato, wled, aiohue, aioshelly, zha) — all use `==`.
+MANIFEST_PIN_REQUIREMENTS: bool = True
+
 # Manifest fields where the custom value differs from what core expects.
 # Applied verbatim to the parsed manifest.json before re-emitting, so the
 # custom repo can keep its HACS-shaped value (e.g. the GitHub repo URL

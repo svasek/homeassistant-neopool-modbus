@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
-from .config import MANIFEST_DROP_KEYS, MANIFEST_OVERRIDES
+from .config import MANIFEST_DROP_KEYS, MANIFEST_OVERRIDES, MANIFEST_PIN_REQUIREMENTS
 from .json_format import format_compact
 
 # Hassfest convention (verified against esphome, peblar, mqtt, shelly,
@@ -14,6 +15,27 @@ from .json_format import format_compact
 # transform is a no-op on key order — only the HACS-only keys (version,
 # issue_tracker) are dropped.
 _LEADING_KEYS: tuple[str, ...] = ("domain", "name")
+
+# Match a leading `>=` (and only `>=`) on a single requirement string.
+# Anchored at the start so we don't touch composite specifiers like
+# `foo>=1.0,<2.0` mid-string — those are intentional and shouldn't be
+# silently rewritten to a pin.
+_GTE_PIN_RE = re.compile(r"^([A-Za-z0-9._\-]+)>=([0-9][0-9A-Za-z.\-+]*)$")
+
+
+def _pin_requirement(spec: str) -> str:
+    """Rewrite a `pkg>=X.Y.Z` requirement string to `pkg==X.Y.Z`.
+
+    Leaves any other shape (already-pinned, composite, extras, URL
+    requirements) untouched — core convention is exact pin, but a
+    composite specifier carrying an upper bound is the author's
+    deliberate choice and not ours to overwrite.
+    """
+    match = _GTE_PIN_RE.match(spec)
+    if match is None:
+        return spec
+    pkg, version = match.group(1), match.group(2)
+    return f"{pkg}=={version}"
 
 
 def transform_manifest(raw: str) -> str:
@@ -24,6 +46,11 @@ def transform_manifest(raw: str) -> str:
       HACS and core packaging (``documentation`` URL, ``quality_scale``
       tier) get rewritten to their core-canonical values without
       touching the custom source manifest.
+    - When ``MANIFEST_PIN_REQUIREMENTS`` is set, rewrites every
+      ``pkg>=X.Y.Z`` entry under ``requirements`` to ``pkg==X.Y.Z``.
+      Core integrations pin their library requirements to exact
+      versions; the HACS source uses ``>=`` so HACS users pick up
+      compatible upstream releases automatically.
     - Re-emits keys in hassfest order: ``domain`` and ``name`` first,
       then every remaining key alphabetically.
     - 2-space indent + trailing newline (core convention).
@@ -35,6 +62,12 @@ def transform_manifest(raw: str) -> str:
     manifest: dict[str, Any] = json.loads(raw)
     cleaned = {k: v for k, v in manifest.items() if k not in MANIFEST_DROP_KEYS}
     cleaned.update(MANIFEST_OVERRIDES)
+    if MANIFEST_PIN_REQUIREMENTS:
+        reqs = cleaned.get("requirements")
+        if isinstance(reqs, list):
+            cleaned["requirements"] = [
+                _pin_requirement(r) if isinstance(r, str) else r for r in reqs
+            ]
     ordered: dict[str, Any] = {}
     for k in _LEADING_KEYS:
         if k in cleaned:
