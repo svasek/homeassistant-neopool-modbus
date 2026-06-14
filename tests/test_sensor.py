@@ -6,10 +6,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 from freezegun.api import FrozenDateTimeFactory
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    mock_restore_cache_with_extra_data,
+)
 
 from custom_components.neopool.const import CURRENT_VERSION, DOMAIN, SENSOR_DEFINITIONS
-from homeassistant.core import HomeAssistant
+from homeassistant.const import STATE_UNKNOWN
+from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
@@ -437,6 +441,109 @@ async def test_filtration_pump_energy_accumulates_while_pump_runs(
     later_wh = entity_obj.native_value
     # 1 kW for 1 h → ~1000 Wh delta (allow rounding slack).
     assert later_wh - initial_wh >= 900
+
+
+async def test_filtration_pump_energy_restores_native_value_after_restart(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """RestoreSensor recovers the previous Wh counter after a HA restart."""
+    fake_state = State(
+        "sensor.pool_filtration_pump_energy",
+        STATE_UNKNOWN,
+    )
+    fake_extra_data = {
+        "native_value": 12345.6,
+        "native_unit_of_measurement": "Wh",
+    }
+    mock_restore_cache_with_extra_data(hass, ((fake_state, fake_extra_data),))
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_pump_restore",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.32",
+            "port": 502,
+            "name": "Pool",
+            "slave_id": 1,
+            "modbus_framer": "tcp",
+        },
+        options={
+            "scan_interval": 30,
+            "modbus_framer": "tcp",
+            "filtration_pump_power": 1000,
+        },
+    )
+    await setup_integration(hass, entry)
+
+    entity_obj = None
+    for platforms in ep.async_get_platforms(hass, "neopool"):
+        for ent in platforms.entities.values():
+            if ent.entity_id.startswith("sensor.") and "filtration_pump_energy" in (
+                getattr(ent, "_attr_unique_id", "") or ""
+            ):
+                entity_obj = ent
+                break
+        if entity_obj is not None:
+            break
+    assert entity_obj is not None
+    # The persisted Wh counter is the starting point for further accumulation.
+    assert entity_obj.native_value == pytest.approx(12345.6)
+
+
+async def test_filtration_pump_energy_ignores_non_numeric_restore(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A non-numeric restored native_value does not corrupt the counter."""
+    fake_state = State(
+        "sensor.pool_filtration_pump_energy",
+        STATE_UNKNOWN,
+    )
+    # `native_value` typed as Decimal/datetime/date isn't valid for an energy
+    # counter — the entity must reject it and start at 0 instead of crashing
+    # the float() conversion.
+    fake_extra_data = {
+        "native_value": {"__type": "<class 'datetime.datetime'>", "isoformat": "..."},
+        "native_unit_of_measurement": "Wh",
+    }
+    mock_restore_cache_with_extra_data(hass, ((fake_state, fake_extra_data),))
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_pump_bad_restore",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.33",
+            "port": 502,
+            "name": "Pool",
+            "slave_id": 1,
+            "modbus_framer": "tcp",
+        },
+        options={
+            "scan_interval": 30,
+            "modbus_framer": "tcp",
+            "filtration_pump_power": 1000,
+        },
+    )
+    await setup_integration(hass, entry)
+
+    entity_obj = None
+    for platforms in ep.async_get_platforms(hass, "neopool"):
+        for ent in platforms.entities.values():
+            if ent.entity_id.startswith("sensor.") and "filtration_pump_energy" in (
+                getattr(ent, "_attr_unique_id", "") or ""
+            ):
+                entity_obj = ent
+                break
+        if entity_obj is not None:
+            break
+    assert entity_obj is not None
+    # Restore was rejected — counter starts at 0.
+    assert entity_obj.native_value == 0
 
 
 async def test_ph_pump_status_options_per_relay_config(

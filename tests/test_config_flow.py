@@ -58,6 +58,27 @@ async def test_user_flow(
     assert mock_setup_entry.call_count == 1
 
 
+async def test_user_flow_falls_back_to_brand_name_on_translation_error(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    mock_setup_entry: AsyncMock,
+) -> None:
+    """If translation lookup fails, the entry title falls back to the brand name."""
+    with patch(
+        "custom_components.neopool.config_flow.ha_translation.async_get_translations",
+        side_effect=RuntimeError("translations unavailable"),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], USER_INPUT
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["title"] == "NeoPool"
+
+
 async def test_user_flow_cannot_connect(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
