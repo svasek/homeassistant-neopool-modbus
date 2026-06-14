@@ -21,6 +21,7 @@ from custom_components.neopool.helpers import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.util import dt as dt_util
 
 # ---------------------------------------------------------------------------
 # combine_u32
@@ -136,7 +137,7 @@ def test_prepare_device_time_no_hass() -> None:
 
 def test_is_device_time_out_of_sync_within_threshold() -> None:
     """A small drift between device and HA returns False."""
-    now = int(datetime.now(UTC).timestamp())
+    now = int(dt_util.utcnow().timestamp())
     data = {
         "MBF_PAR_TIME_LOW": now & 0xFFFF,
         "MBF_PAR_TIME_HIGH": (now >> 16) & 0xFFFF,
@@ -150,7 +151,7 @@ def test_is_device_time_out_of_sync_within_threshold() -> None:
 
 def test_is_device_time_out_of_sync_above_threshold() -> None:
     """A drift larger than threshold returns True."""
-    now = int(datetime.now(UTC).timestamp())
+    now = int(dt_util.utcnow().timestamp())
     device_time = now - 7200  # 2 hours ago
     data = {
         "MBF_PAR_TIME_LOW": device_time & 0xFFFF,
@@ -182,7 +183,7 @@ def test_calculate_next_interval_time_with_hass(hass: HomeAssistant) -> None:
     assert result.second == 0
     assert result.microsecond == 0
     expected = (
-        datetime.now(ZoneInfo("Europe/Prague")) + timedelta(seconds=3600)
+        dt_util.now(ZoneInfo("Europe/Prague")) + timedelta(seconds=3600)
     ).replace(second=0, microsecond=0)
     assert abs((result - expected).total_seconds()) < 60
 
@@ -193,7 +194,7 @@ def test_calculate_next_interval_time_without_hass() -> None:
     assert result is not None
     assert result.tzinfo == UTC
     assert result.second == 0
-    expected = (datetime.now(UTC) + timedelta(seconds=7200)).replace(
+    expected = (dt_util.utcnow() + timedelta(seconds=7200)).replace(
         second=0, microsecond=0
     )
     assert abs((result - expected).total_seconds()) < 60
