@@ -94,7 +94,7 @@ If you find this integration useful, consider supporting its development:
 - **Reliable single Modbus TCP connection per device/hub** (improves stability, avoids connection issues).
 - **Multi-hub support**: Add multiple NeoPool devices, each with a custom prefix (used in entity IDs).
 - **Sensors**:
-  pH, Redox (ORP), Salt, Conductivity, Water Temperature, Ionization, Hydrolysis Intensity/Voltage, Device Time, Status/Alarm bits, Filtration speed _(if supported)_, Backwash remaining time _(if Besgo automatic filter valve is configured)_, **Filtration pump power & energy** _(if pump wattage is configured in Options)_.
+  pH, Redox (ORP), Salt, Conductivity, Water Temperature, Ionization, Hydrolysis Intensity/Voltage, Device Time, Status/Alarm bits, Filtration speed _(if supported)_, Backwash remaining time _(if Besgo automatic filter valve is configured)_, **Filtration pump power & energy** _(if pump wattage is configured in Options)_, **Hydrolysis cell runtime** counters (since-reset; total/per-polarity/polarity-changes are diagnostic, disabled by default).
 - **Energy Dashboard support**: when the filtration pump wattage is configured in Options, the integration provides instantaneous power (W) and a cumulative energy (Wh / kWh) sensor that can be added to the Home Assistant Energy Dashboard under _Individual devices_ to track pool consumption alongside the rest of your home.
 - **Binary sensors** (~50 entities): relay states (Filtration, Light, AUX1–AUX4, pH acid pump), module detection and regulation status (pH, Redox, Chlorine, Conductivity, Hydrolysis), problem indicators (low flow, sensor faults, time-sync drift), Heating, UV Lamp, and Pool Cover _(if cover sensor enabled)_.
 - **Numbers**:
@@ -104,9 +104,11 @@ If you find this integration useful, consider supporting its development:
 - **Selects**:
   Filtration mode (Manual, Auto, Heating, Smart, Intelligent, **Backwash** _(auto-enabled if Besgo valve configured)_), timers for automatic filtration, filtration speed _(if supported)_, boost control _(if Hydro/Electrolysis module is present)_, pH pump activation delay, **Intelligent mode minimum filtration time** _(if heating + temperature sensor)_, **Backwash Repeat Interval** _(if Besgo valve configured)_, **Backwash Valve Mode** _(if Besgo valve configured)_, plus per-relay timer/period/mode controls for AUX and Light relays.
 - **Buttons**:
-  Manual time sync, reset alarm/error states, **Start Backwash** _(only if Besgo automatic filter valve is configured on the device)_.
+  Manual time sync, reset alarm/error states, **Start Backwash** _(only if Besgo automatic filter valve is configured on the device)_, **Reset cell runtime counter** _(if hydrolysis module is present, disabled by default; the controller resets all user counters — cell partial, ION, UV — in one atomic operation)_.
+- **Modbus diagnostic services**:
+  `neopool.write_register` for direct register writes, `neopool.read_register` for reading raw register values (input or holding registers, auto-selected from the address).
 - **Diagnostic entities** (disabled by default — enable per-entity in Settings → Devices & Services if needed):
-  Hydrolysis voltage, ionizer / hydrolysis polarity, pH pump status, pH alarm state, intelligent-mode intervals and next-interval timestamp, filtration time remaining.
+  Hydrolysis voltage, ionizer / hydrolysis polarity, pH pump status, pH alarm state, intelligent-mode intervals and next-interval timestamp, filtration time remaining, **cell runtime totals and per-polarity counters** _(useful for tracking electrolytic cell wear)_.
 
 ---
 
@@ -248,7 +250,8 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
   `sensor.<name>_measure_ph`, `sensor.<name>_measure_temperature`, `sensor.<name>_filt_mode`,
   `sensor.<name>_filtration_speed` _(if supported)_,
   `sensor.<name>_filtvalve_remaining` _(if Besgo valve configured)_,
-  `sensor.<name>_filtration_pump_power`, `sensor.<name>_filtration_pump_energy` _(if pump wattage configured in Options)_
+  `sensor.<name>_filtration_pump_power`, `sensor.<name>_filtration_pump_energy` _(if pump wattage configured in Options)_,
+  `sensor.<name>_cell_runtime_part` _(hydrolysis cell runtime since last reset; total/per-polarity/polarity-changes counterparts available as disabled-by-default diagnostic entities)_
 - **Numbers**:
   `number.<name>_hidro`, `number.<name>_ph1`,
   `number.<name>_heating_temp` _(if supported)_,
@@ -266,7 +269,8 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
   `select.<name>_filtvalve_period_minutes`, `select.<name>_filtvalve_mode` _(if Besgo valve configured)_
 - **Buttons**:
   `button.<name>_sync_time`, `button.<name>_escape`,
-  `button.<name>_backwash` _(if Besgo automatic filter valve is configured)_
+  `button.<name>_backwash` _(if Besgo automatic filter valve is configured)_,
+  `button.<name>_reset_cell_partial` _(if hydrolysis module is present, disabled by default)_
 
 ---
 
@@ -356,6 +360,28 @@ data:
   address: 0x0411 # MBF_PAR_FILT_MODE
   value: 1 # Auto
   apply: true # commit to EEPROM (false = volatile only)
+```
+
+### Read raw register values via the `read_register` service
+
+A read-only counterpart to `write_register`. Useful for diagnostics, prototyping a new entity, or watching a register the integration does not yet expose. The integration auto-selects the right Modbus function: input registers (FC04) for the MEASURE page (`0x0100`-`0x01FF`), holding registers (FC03) elsewhere.
+
+```yaml
+# Read a single register (the response includes both `values: [...]` and a
+# scalar `value: ...` for ergonomic templating).
+action: neopool.read_register
+data:
+  address: 0x0102 # MBF_MEASURE_PH (raw u16; pH is the value / 100)
+response_variable: ph_raw
+```
+
+```yaml
+# Read 31 consecutive registers in one go (max per request, firmware limit).
+action: neopool.read_register
+data:
+  address: 0x0500 # MBF_PAR_ION (USER page)
+  count: 31
+response_variable: user_dump
 ```
 
 ---
