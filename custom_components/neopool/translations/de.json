@@ -761,6 +761,9 @@
         "register_write_failed": {
             "message": "Registerschreiben bei {address} fehlgeschlagen: {error}"
         },
+        "register_read_failed": {
+            "message": "Registerlesen bei {address} fehlgeschlagen: {error}"
+        },
         "timer_failed": {
             "message": "Timer-Einstellung fehlgeschlagen: {error}"
         },
@@ -896,6 +899,24 @@
                 }
             },
             "name": "Register schreiben"
+        },
+        "read_register": {
+            "description": "Liest ein oder mehrere Modbus-Register und gibt die rohen u16-Werte zurück. Verwendet Read Input Registers (FC04) für Adressen auf der MEASURE-Seite (0x0100-0x01FF) und Read Holding Registers (FC03) sonst.",
+            "fields": {
+                "address": {
+                    "description": "Modbus-Registeradresse (dezimal oder hexadezimal, z. B. 258 oder 0x0102).",
+                    "name": "Registeradresse"
+                },
+                "count": {
+                    "description": "Anzahl aufeinanderfolgender Register zum Lesen (1-31; die Firmware lehnt größere Anfragen ab).",
+                    "name": "Anzahl"
+                },
+                "entry_id": {
+                    "description": "Die eindeutige ID des Integrationseintrags. Optional.",
+                    "name": "Entry ID"
+                }
+            },
+            "name": "Register lesen"
         }
     }
 }

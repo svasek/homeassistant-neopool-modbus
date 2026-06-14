@@ -761,6 +761,9 @@
         "register_write_failed": {
             "message": "Zápis do registru na adrese {address} selhal: {error}"
         },
+        "register_read_failed": {
+            "message": "Čtení registru na adrese {address} selhalo: {error}"
+        },
         "timer_failed": {
             "message": "Nastavení časovače selhalo: {error}"
         },
@@ -896,6 +899,24 @@
                 }
             },
             "name": "Zápis registru"
+        },
+        "read_register": {
+            "description": "Přečte jeden nebo více Modbus registrů a vrátí surové u16 hodnoty. Pro adresy na stránce MEASURE (0x0100-0x01FF) použije Read Input Registers (FC04), jinak Read Holding Registers (FC03).",
+            "fields": {
+                "address": {
+                    "description": "Adresa Modbus registru (dekadicky nebo hexadecimálně, např. 258 nebo 0x0102).",
+                    "name": "Adresa registru"
+                },
+                "count": {
+                    "description": "Počet po sobě jdoucích registrů ke čtení (1-31; firmware větší požadavky odmítá).",
+                    "name": "Počet"
+                },
+                "entry_id": {
+                    "description": "Jedinečný identifikátor záznamu integrace. Volitelné.",
+                    "name": "ID záznamu"
+                }
+            },
+            "name": "Čtení registru"
         }
     }
 }

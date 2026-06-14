@@ -761,6 +761,9 @@
         "register_write_failed": {
             "message": "Échec d'écriture du registre à {address} : {error}"
         },
+        "register_read_failed": {
+            "message": "Échec de lecture du registre à {address} : {error}"
+        },
         "timer_failed": {
             "message": "Échec du réglage du minuteur : {error}"
         },
@@ -896,6 +899,24 @@
                 }
             },
             "name": "Écrire registre"
+        },
+        "read_register": {
+            "description": "Lit un ou plusieurs registres Modbus et renvoie les valeurs u16 brutes. Utilise Read Input Registers (FC04) pour les adresses de la page MEASURE (0x0100-0x01FF) et Read Holding Registers (FC03) ailleurs.",
+            "fields": {
+                "address": {
+                    "description": "Adresse du registre Modbus (décimal ou hexadécimal, par ex. 258 ou 0x0102).",
+                    "name": "Adresse du registre"
+                },
+                "count": {
+                    "description": "Nombre de registres consécutifs à lire (1-31 ; le firmware refuse les requêtes plus grandes).",
+                    "name": "Nombre"
+                },
+                "entry_id": {
+                    "description": "Identifiant unique de l'entrée d'intégration. Optionnel.",
+                    "name": "ID d'entrée"
+                }
+            },
+            "name": "Lire registre"
         }
     }
 }

@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+import voluptuous as vol
 
 from custom_components.neopool.const import DOMAIN
 from custom_components.neopool.services import (
@@ -418,3 +419,150 @@ async def test_write_register_client_failure_raises(
             blocking=True,
         )
     assert exc_info.value.translation_key == "register_write_failed"
+
+
+# ---------------------------------------------------------------------------
+# read_register
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("address", "expected_addr"),
+    [
+        ("258", 0x0102),  # decimal MEASURE_PH
+        ("0x0102", 0x0102),
+        ("0x0500", 0x0500),  # USER MBF_PAR_ION
+    ],
+)
+async def test_read_register_returns_single_value(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    address: str,
+    expected_addr: int,
+) -> None:
+    """count=1 (default) returns both `values` list and `value` scalar in the response."""
+    await setup_integration(hass, mock_config_entry)
+    mock_neopool_client.async_read_register = AsyncMock(return_value=[720])
+
+    response = await hass.services.async_call(
+        DOMAIN,
+        "read_register",
+        {"entry_id": mock_config_entry.entry_id, "address": address},
+        blocking=True,
+        return_response=True,
+    )
+
+    mock_neopool_client.async_read_register.assert_awaited_once_with(expected_addr, 1)
+    assert response == {
+        "address": f"0x{expected_addr:04X}",
+        "count": 1,
+        "values": [720],
+        "value": 720,
+    }
+
+
+async def test_read_register_count_returns_full_list(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """count>1 returns `values` but no scalar `value`."""
+    await setup_integration(hass, mock_config_entry)
+    mock_neopool_client.async_read_register = AsyncMock(
+        return_value=[100, 200, 300, 400]
+    )
+
+    response = await hass.services.async_call(
+        DOMAIN,
+        "read_register",
+        {
+            "entry_id": mock_config_entry.entry_id,
+            "address": "0x0500",
+            "count": 4,
+        },
+        blocking=True,
+        return_response=True,
+    )
+
+    mock_neopool_client.async_read_register.assert_awaited_once_with(0x0500, 4)
+    assert response == {
+        "address": "0x0500",
+        "count": 4,
+        "values": [100, 200, 300, 400],
+    }
+    assert "value" not in response
+
+
+@pytest.mark.parametrize("count", [0, -1, 32, 100])
+async def test_read_register_count_out_of_range_rejected_by_schema(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    count: int,
+) -> None:
+    """Schema vol.Range(min=1, max=31) rejects bad counts before we touch the client."""
+    await setup_integration(hass, mock_config_entry)
+    mock_neopool_client.async_read_register = AsyncMock()
+
+    with pytest.raises(vol.Invalid):
+        await hass.services.async_call(
+            DOMAIN,
+            "read_register",
+            {
+                "entry_id": mock_config_entry.entry_id,
+                "address": "0x0500",
+                "count": count,
+            },
+            blocking=True,
+            return_response=True,
+        )
+    mock_neopool_client.async_read_register.assert_not_awaited()
+
+
+async def test_read_register_library_error_translates(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """NeoPoolError from the library surfaces as ServiceValidationError."""
+    await setup_integration(hass, mock_config_entry)
+    mock_neopool_client.async_read_register = AsyncMock(
+        side_effect=ConnectionError("Modbus down")
+    )
+
+    with pytest.raises(ServiceValidationError) as exc_info:
+        await hass.services.async_call(
+            DOMAIN,
+            "read_register",
+            {"entry_id": mock_config_entry.entry_id, "address": "0x0102"},
+            blocking=True,
+            return_response=True,
+        )
+    assert exc_info.value.translation_key == "register_read_failed"
+
+
+async def test_read_register_value_error_translates(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """ValueError raised by the library (e.g. boundary cross) is also handled."""
+    await setup_integration(hass, mock_config_entry)
+    mock_neopool_client.async_read_register = AsyncMock(
+        side_effect=ValueError("boundary")
+    )
+
+    with pytest.raises(ServiceValidationError) as exc_info:
+        await hass.services.async_call(
+            DOMAIN,
+            "read_register",
+            {
+                "entry_id": mock_config_entry.entry_id,
+                "address": "0x01F0",
+                "count": 20,
+            },
+            blocking=True,
+            return_response=True,
+        )
+    assert exc_info.value.translation_key == "register_read_failed"

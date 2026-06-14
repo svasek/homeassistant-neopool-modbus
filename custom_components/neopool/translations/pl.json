@@ -761,6 +761,9 @@
         "register_write_failed": {
             "message": "Zapis rejestru pod adresem {address} nie powiódł się: {error}"
         },
+        "register_read_failed": {
+            "message": "Odczyt rejestru pod adresem {address} nie powiódł się: {error}"
+        },
         "timer_failed": {
             "message": "Ustawienie timera nie powiodło się: {error}"
         },
@@ -896,6 +899,24 @@
                 }
             },
             "name": "Zapis rejestru"
+        },
+        "read_register": {
+            "description": "Odczytuje jeden lub więcej rejestrów Modbus i zwraca surowe wartości u16. Używa Read Input Registers (FC04) dla adresów na stronie MEASURE (0x0100-0x01FF), a Read Holding Registers (FC03) w pozostałych przypadkach.",
+            "fields": {
+                "address": {
+                    "description": "Adres rejestru Modbus (dziesiętnie lub szesnastkowo, np. 258 lub 0x0102).",
+                    "name": "Adres rejestru"
+                },
+                "count": {
+                    "description": "Liczba kolejnych rejestrów do odczytu (1-31; firmware odrzuca większe żądania).",
+                    "name": "Liczba"
+                },
+                "entry_id": {
+                    "description": "Unikalny identyfikator wpisu integracji. Opcjonalne.",
+                    "name": "ID wpisu"
+                }
+            },
+            "name": "Odczyt rejestru"
         }
     }
 }
