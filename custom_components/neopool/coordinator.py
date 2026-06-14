@@ -291,7 +291,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Both changed this cycle; revert both to previous values
             _LOGGER.warning(
                 "Both heating and intelligent setpoints changed simultaneously "
-                "(heating: %s→%s, intelligent: %s→%s). Reverting both to previous values to prevent conflict.",
+                "(heating: %s→%s, intelligent: %s→%s). Reverting both to previous values to prevent conflict",
                 h_old,
                 heat,
                 i_old,
@@ -403,7 +403,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
         if self.auto_time_sync and is_device_time_out_of_sync(data, self.hass):
-            _LOGGER.debug("Device time is out of sync, updating...")
+            _LOGGER.debug("Device time is out of sync, updating")
             await self.client.async_write_register(
                 0x0408, prepare_device_time(self.hass)
             )

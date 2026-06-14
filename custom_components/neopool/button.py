@@ -108,13 +108,13 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
             return
         if self._key == "SYNC_TIME":
             client = self.coordinator.client
-            _LOGGER.debug("Syncing time with device...")
+            _LOGGER.debug("Syncing time with device")
             await client.async_write_register(0x0408, prepare_device_time(self.hass))
             await client.async_write_register(COPY_TO_RTC_REGISTER, 1)
             await self.coordinator.async_request_refresh()
         elif self._key == "MBF_ESCAPE":
             client = self.coordinator.client
-            _LOGGER.debug("Clearing all possible errors...")
+            _LOGGER.debug("Clearing all possible errors")
             await client.async_write_register(0x0297, 1)
             await self.coordinator.async_request_refresh()
         elif self._key == "BACKWASH":
