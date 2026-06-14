@@ -1138,7 +1138,7 @@
       'disabled_by': <RegistryEntryDisabler.INTEGRATION: 'integration'>,
       'domain': 'button',
       'entity_category': <EntityCategory.CONFIG: 'config'>,
-      'entity_id': 'button.pool_reset_cell_runtime',
+      'entity_id': 'button.pool_reset_cell_runtime_counter',
       'has_entity_name': True,
       'hidden_by': None,
       'icon': None,
@@ -1146,12 +1146,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Reset Cell Runtime',
+      'object_id_base': 'Reset cell runtime counter',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Reset Cell Runtime',
+      'original_name': 'Reset cell runtime counter',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -5989,12 +5989,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Cell Polarity Changes',
+      'object_id_base': 'Cell polarity changes',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Cell Polarity Changes',
+      'original_name': 'Cell polarity changes',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -6018,7 +6018,7 @@
       'disabled_by': <RegistryEntryDisabler.INTEGRATION: 'integration'>,
       'domain': 'sensor',
       'entity_category': <EntityCategory.DIAGNOSTIC: 'diagnostic'>,
-      'entity_id': 'sensor.pool_cell_runtime_polarity_1',
+      'entity_id': 'sensor.pool_cell_runtime_in_polarity_1',
       'has_entity_name': True,
       'hidden_by': None,
       'icon': None,
@@ -6026,7 +6026,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Cell Runtime Polarity 1',
+      'object_id_base': 'Cell runtime in polarity 1',
       'options': dict({
         'sensor.private': dict({
           'suggested_unit_of_measurement': 'h',
@@ -6034,7 +6034,7 @@
       }),
       'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
       'original_icon': None,
-      'original_name': 'Cell Runtime Polarity 1',
+      'original_name': 'Cell runtime in polarity 1',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -6058,7 +6058,7 @@
       'disabled_by': <RegistryEntryDisabler.INTEGRATION: 'integration'>,
       'domain': 'sensor',
       'entity_category': <EntityCategory.DIAGNOSTIC: 'diagnostic'>,
-      'entity_id': 'sensor.pool_cell_runtime_polarity_2',
+      'entity_id': 'sensor.pool_cell_runtime_in_polarity_2',
       'has_entity_name': True,
       'hidden_by': None,
       'icon': None,
@@ -6066,7 +6066,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Cell Runtime Polarity 2',
+      'object_id_base': 'Cell runtime in polarity 2',
       'options': dict({
         'sensor.private': dict({
           'suggested_unit_of_measurement': 'h',
@@ -6074,7 +6074,7 @@
       }),
       'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
       'original_icon': None,
-      'original_name': 'Cell Runtime Polarity 2',
+      'original_name': 'Cell runtime in polarity 2',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -6106,7 +6106,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Cell Runtime Since Reset',
+      'object_id_base': 'Cell runtime since reset',
       'options': dict({
         'sensor.private': dict({
           'suggested_unit_of_measurement': 'h',
@@ -6114,7 +6114,7 @@
       }),
       'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
       'original_icon': None,
-      'original_name': 'Cell Runtime Since Reset',
+      'original_name': 'Cell runtime since reset',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -6146,7 +6146,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Cell Runtime Total',
+      'object_id_base': 'Cell runtime total',
       'options': dict({
         'sensor.private': dict({
           'suggested_unit_of_measurement': 'h',
@@ -6154,7 +6154,7 @@
       }),
       'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
       'original_icon': None,
-      'original_name': 'Cell Runtime Total',
+      'original_name': 'Cell runtime total',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,

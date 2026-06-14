@@ -179,7 +179,7 @@
                 "name": "Vymazat chybová hlášení"
             },
             "reset_cell_partial": {
-                "name": "Vynulovat provoz komory"
+                "name": "Vynulovat čítač doby běhu komory"
             },
             "sync_time": {
                 "name": "Synchronizovat čas zařízení"
@@ -602,16 +602,16 @@
                 "name": "Zbývající čas proplachování"
             },
             "cell_runtime_total": {
-                "name": "Celkový provoz komory"
+                "name": "Celková doba běhu komory"
             },
             "cell_runtime_part": {
-                "name": "Provoz komory od resetu"
+                "name": "Doba běhu komory od resetu"
             },
             "cell_runtime_pola": {
-                "name": "Provoz komory v polaritě 1"
+                "name": "Doba běhu komory v polaritě 1"
             },
             "cell_runtime_polb": {
-                "name": "Provoz komory v polaritě 2"
+                "name": "Doba běhu komory v polaritě 2"
             },
             "cell_runtime_pol_changes": {
                 "name": "Počet změn polarity komory"

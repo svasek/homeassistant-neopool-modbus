@@ -179,7 +179,7 @@
                 "name": "Fehlermeldungen löschen"
             },
             "reset_cell_partial": {
-                "name": "Zellenlaufzeit zurücksetzen"
+                "name": "Zellenlaufzeit-Zähler zurücksetzen"
             },
             "sync_time": {
                 "name": "Gerätezeit synchronisieren"
@@ -608,13 +608,13 @@
                 "name": "Zellenlaufzeit seit Reset"
             },
             "cell_runtime_pola": {
-                "name": "Zellenlaufzeit Polarität 1"
+                "name": "Zellenlaufzeit in Polarität 1"
             },
             "cell_runtime_polb": {
-                "name": "Zellenlaufzeit Polarität 2"
+                "name": "Zellenlaufzeit in Polarität 2"
             },
             "cell_runtime_pol_changes": {
-                "name": "Anzahl Polaritätswechsel"
+                "name": "Anzahl der Polaritätswechsel der Zelle"
             },
             "hidro_current": {
                 "name": "Hydrolyse-Intensität"

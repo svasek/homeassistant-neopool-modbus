@@ -179,7 +179,7 @@
                 "name": "Cancella messaggi di errore"
             },
             "reset_cell_partial": {
-                "name": "Azzera tempo di funzionamento cella"
+                "name": "Azzera contatore di funzionamento cella"
             },
             "sync_time": {
                 "name": "Sincronizza orario dispositivo"
@@ -608,13 +608,13 @@
                 "name": "Tempo di funzionamento cella dall'azzeramento"
             },
             "cell_runtime_pola": {
-                "name": "Tempo cella in polarità 1"
+                "name": "Tempo di funzionamento cella in polarità 1"
             },
             "cell_runtime_polb": {
-                "name": "Tempo cella in polarità 2"
+                "name": "Tempo di funzionamento cella in polarità 2"
             },
             "cell_runtime_pol_changes": {
-                "name": "Numero di cambi di polarità"
+                "name": "Numero di cambi di polarità della cella"
             },
             "hidro_current": {
                 "name": "Intensità di idrolisi"

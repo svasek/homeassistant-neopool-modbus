@@ -179,7 +179,7 @@
                 "name": "Effacer les messages d'erreur"
             },
             "reset_cell_partial": {
-                "name": "Réinitialiser la durée de fonctionnement de la cellule"
+                "name": "Réinitialiser le compteur de fonctionnement de la cellule"
             },
             "sync_time": {
                 "name": "Synchroniser l’heure de l’appareil"
@@ -608,13 +608,13 @@
                 "name": "Durée de fonctionnement de la cellule depuis la réinitialisation"
             },
             "cell_runtime_pola": {
-                "name": "Durée de la cellule en polarité 1"
+                "name": "Durée de fonctionnement de la cellule en polarité 1"
             },
             "cell_runtime_polb": {
-                "name": "Durée de la cellule en polarité 2"
+                "name": "Durée de fonctionnement de la cellule en polarité 2"
             },
             "cell_runtime_pol_changes": {
-                "name": "Nombre de changements de polarité"
+                "name": "Nombre de changements de polarité de la cellule"
             },
             "hidro_current": {
                 "name": "Intensité d’hydrolyse"

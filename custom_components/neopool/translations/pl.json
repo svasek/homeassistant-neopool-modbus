@@ -179,7 +179,7 @@
                 "name": "Wyczyść komunikaty o błędach"
             },
             "reset_cell_partial": {
-                "name": "Wyzeruj czas pracy ogniwa"
+                "name": "Wyzeruj licznik czasu pracy ogniwa"
             },
             "sync_time": {
                 "name": "Synchronizuj czas urządzenia"
@@ -614,7 +614,7 @@
                 "name": "Czas pracy ogniwa w polaryzacji 2"
             },
             "cell_runtime_pol_changes": {
-                "name": "Liczba zmian polaryzacji"
+                "name": "Liczba zmian polaryzacji ogniwa"
             },
             "hidro_current": {
                 "name": "Intensywność elektrolizy"

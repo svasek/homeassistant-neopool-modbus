@@ -179,7 +179,7 @@
                 "name": "Clear Error Messages"
             },
             "reset_cell_partial": {
-                "name": "Reset Cell Runtime"
+                "name": "Reset cell runtime counter"
             },
             "sync_time": {
                 "name": "Synchronize Device Time"
@@ -602,19 +602,19 @@
                 "name": "Backwash Time Remaining"
             },
             "cell_runtime_total": {
-                "name": "Cell Runtime Total"
+                "name": "Cell runtime total"
             },
             "cell_runtime_part": {
-                "name": "Cell Runtime Since Reset"
+                "name": "Cell runtime since reset"
             },
             "cell_runtime_pola": {
-                "name": "Cell Runtime Polarity 1"
+                "name": "Cell runtime in polarity 1"
             },
             "cell_runtime_polb": {
-                "name": "Cell Runtime Polarity 2"
+                "name": "Cell runtime in polarity 2"
             },
             "cell_runtime_pol_changes": {
-                "name": "Cell Polarity Changes"
+                "name": "Cell polarity changes"
             },
             "hidro_current": {
                 "name": "Hydrolysis Intensity"
