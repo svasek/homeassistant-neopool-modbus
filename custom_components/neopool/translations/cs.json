@@ -1,14 +1,14 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Toto zařízení je již nakonfigurováno.",
+            "already_configured": "Zařízení je již nakonfigurováno",
             "entry_not_found": "Záznam integrace nebyl nalezen.",
             "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
             "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work.",
-            "reconfigure_successful": "Connection settings updated successfully."
+            "reconfigure_successful": "Změna konfigurace byla úspěšná"
         },
         "error": {
-            "cannot_connect": "Nelze se připojit k zadané IP adrese a portu.",
+            "cannot_connect": "Nepodařilo se připojit",
             "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte slave ID a nastavení rámce.",
             "name_already_used": "Tento název zařízení je již použit. Zvolte prosím jiný název.",
             "serial_mismatch": "Zařízení na této adrese má jiné sériové číslo než původně nakonfigurované."
@@ -20,15 +20,15 @@
             },
             "reconfigure": {
                 "data": {
-                    "host": "IP adresa Modbus brány",
-                    "modbus_framer": "Rámování protokolu: 'tcp' = Modbus TCP (MBAP header, pro TCP brány s konverzí), 'rtu' = RTU přes TCP (pro transparentní TCP brány)",
-                    "port": "TCP port pro Modbus (výchozí: 502).",
-                    "slave_id": "Modbus Adresa zařízení (výchozí: 1)."
+                    "host": "Hostitel",
+                    "modbus_framer": "Modbus rámec",
+                    "port": "Port",
+                    "slave_id": "Slave ID"
                 },
                 "data_description": {
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
-                    "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port.",
+                    "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
                     "slave_id": "Modbus slave adresa řadiče bazénu. Většina zařízení používá 1."
                 },
                 "description": "Aktualizujte nastavení připojení k vašemu řadiči NeoPool.",
@@ -37,13 +37,13 @@
             "user": {
                 "data": {
                     "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)",
-                    "host": "IP adresa Modbus brány",
-                    "modbus_framer": "Rámování protokolu: 'tcp' = Modbus TCP (MBAP header, pro TCP brány s konverzí), 'rtu' = RTU přes TCP (pro transparentní TCP brány)",
-                    "name": "Název zařízení (používá se jako prefix v ID entit).",
+                    "host": "Hostitel",
+                    "modbus_framer": "Modbus rámec",
+                    "name": "Název",
                     "name_default": "Bazén",
-                    "port": "TCP port pro Modbus (výchozí: 502).",
+                    "port": "Port",
                     "scan_interval": "Interval aktualizace dat (v sekundách)",
-                    "slave_id": "Modbus Adresa zařízení (výchozí: 1).",
+                    "slave_id": "Slave ID",
                     "use_cover_sensor": "Povolit senzor zakrytí bazénu",
                     "use_filtration1": "Povolit 1. časovač filtrace pro automatický režim",
                     "use_filtration2": "Povolit 2. časovač filtrace pro automatický režim",
@@ -55,7 +55,7 @@
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
                     "name": "Používá se jako prefix pro všechna ID entit. Mezery se nahradí podtržítky, např. 'Bazén Západ' → sensor.bazen_zapad_measure_ph.",
-                    "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port.",
+                    "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
                     "scan_interval": "Jak často integrace čte data z řadiče bazénu.",
                     "slave_id": "Modbus slave adresa řadiče bazénu. Většina zařízení používá 1.",
                     "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý.",

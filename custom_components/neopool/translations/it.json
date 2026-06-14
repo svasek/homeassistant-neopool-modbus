@@ -1,14 +1,14 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Questo dispositivo è già configurato.",
+            "already_configured": "Il dispositivo è già configurato",
             "entry_not_found": "Voce di integrazione non trovata.",
             "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
             "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work.",
-            "reconfigure_successful": "Connection settings updated successfully."
+            "reconfigure_successful": "La riconfigurazione è andata a buon fine"
         },
         "error": {
-            "cannot_connect": "Impossibile connettersi all'indirizzo e alla porta specificati.",
+            "cannot_connect": "Impossibile connettersi",
             "cannot_read_modbus": "Connesso, ma impossibile leggere dal dispositivo Modbus. Verificare l'ID slave e le impostazioni del frame.",
             "name_already_used": "Questo nome dispositivo è già in uso. Scegliere un nome diverso.",
             "serial_mismatch": "Il dispositivo a questo indirizzo ha un numero di serie diverso da quello configurato in origine."
@@ -20,15 +20,15 @@
             },
             "reconfigure": {
                 "data": {
-                    "host": "Indirizzo IP gateway Modbus",
-                    "modbus_framer": "Framing del protocollo: 'tcp' = Modbus TCP (intestazione MBAP, per gateway con conversione), 'rtu' = RTU su TCP (per gateway TCP trasparenti)",
-                    "port": "Porta TCP per Modbus (predefinito: 502).",
-                    "slave_id": "Indirizzo dispositivo Modbus (predefinito: 1)."
+                    "host": "Host",
+                    "modbus_framer": "Framer Modbus",
+                    "port": "Porta",
+                    "slave_id": "Slave ID"
                 },
                 "data_description": {
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
                     "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
-                    "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard.",
+                    "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
                     "slave_id": "L'indirizzo Modbus slave del controller della piscina. La maggior parte delle configurazioni usa 1."
                 },
                 "description": "Aggiorna le impostazioni di connessione al tuo controller NeoPool.",
@@ -37,13 +37,13 @@
             "user": {
                 "data": {
                     "filtration_pump_power": "Potenza della pompa di filtrazione (W, 0 = disabilitato)",
-                    "host": "Indirizzo IP gateway Modbus",
-                    "modbus_framer": "Framing del protocollo: 'tcp' = Modbus TCP (intestazione MBAP, per gateway con conversione), 'rtu' = RTU su TCP (per gateway TCP trasparenti)",
-                    "name": "Nome del dispositivo (usato come prefisso ID entità).",
+                    "host": "Host",
+                    "modbus_framer": "Framer Modbus",
+                    "name": "Nome",
                     "name_default": "Piscina",
-                    "port": "Porta TCP per Modbus (predefinito: 502).",
+                    "port": "Porta",
                     "scan_interval": "Intervallo aggiornamento dati (secondi)",
-                    "slave_id": "Indirizzo dispositivo Modbus (predefinito: 1).",
+                    "slave_id": "Slave ID",
                     "use_cover_sensor": "Abilita sensore copertura piscina",
                     "use_filtration1": "Abilita il 1° timer di filtrazione per la modalità automatica",
                     "use_filtration2": "Abilita il 2° timer di filtrazione per la modalità automatica",
@@ -55,7 +55,7 @@
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
                     "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
                     "name": "Usato come prefisso per tutti gli ID entità. Gli spazi diventano trattini bassi, es. 'Piscina Ovest' → sensor.piscina_ovest_measure_ph.",
-                    "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard.",
+                    "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
                     "scan_interval": "Quanto spesso l'integrazione legge i dati dal controller della piscina.",
                     "slave_id": "L'indirizzo Modbus slave del controller della piscina. La maggior parte delle configurazioni usa 1.",
                     "use_cover_sensor": "Crea un sensore binario che indica se la copertura della piscina è aperta o chiusa.",

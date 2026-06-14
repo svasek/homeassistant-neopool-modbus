@@ -1,14 +1,14 @@
 {
     "config": {
         "abort": {
-            "already_configured": "This device is already configured.",
+            "already_configured": "Device is already configured",
             "entry_not_found": "The integration entry could not be found.",
             "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
             "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work.",
-            "reconfigure_successful": "Connection settings updated successfully."
+            "reconfigure_successful": "Reconfiguration was successful"
         },
         "error": {
-            "cannot_connect": "Cannot connect to the specified address and port.",
+            "cannot_connect": "Failed to connect",
             "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check slave ID and framer settings.",
             "name_already_used": "This device name is already in use. Please choose a different name.",
             "serial_mismatch": "The device at this address has a different serial number than the one originally configured."
@@ -20,15 +20,15 @@
             },
             "reconfigure": {
                 "data": {
-                    "host": "Modbus gateway IP address",
-                    "modbus_framer": "Protocol framing: 'tcp' = Modbus TCP (MBAP header, for gateways with conversion), 'rtu' = RTU over TCP (for transparent TCP gateways)",
-                    "port": "TCP port for Modbus (default: 502).",
-                    "slave_id": "Modbus device address (default: 1)."
+                    "host": "Host",
+                    "modbus_framer": "Modbus framer",
+                    "port": "Port",
+                    "slave_id": "Slave ID"
                 },
                 "data_description": {
                     "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
                     "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
-                    "port": "Standard Modbus TCP port. Change only if your gateway uses a non-standard port.",
+                    "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
                     "slave_id": "The Modbus slave address of the pool controller. Most setups use 1."
                 },
                 "description": "Update the connection settings for your NeoPool controller.",
@@ -37,13 +37,13 @@
             "user": {
                 "data": {
                     "filtration_pump_power": "Filtration pump power (W, 0 = disabled)",
-                    "host": "Modbus gateway IP address",
-                    "modbus_framer": "Protocol framing: 'tcp' = Modbus TCP (MBAP header, for gateways with conversion), 'rtu' = RTU over TCP (for transparent TCP gateways)",
-                    "name": "Device name (used as entity ID prefix).",
+                    "host": "Host",
+                    "modbus_framer": "Modbus framer",
+                    "name": "Name",
                     "name_default": "Pool",
-                    "port": "TCP port for Modbus (default: 502).",
+                    "port": "Port",
                     "scan_interval": "Data update interval (seconds)",
-                    "slave_id": "Modbus device address (default: 1).",
+                    "slave_id": "Slave ID",
                     "use_cover_sensor": "Enable Pool Cover Sensor",
                     "use_filtration1": "Enable 1st filtration timer for automatic mode",
                     "use_filtration2": "Enable 2nd filtration timer for automatic mode",
@@ -55,7 +55,7 @@
                     "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
                     "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
                     "name": "Used as a prefix for all entity IDs. Spaces become underscores, e.g. 'Pool West' → sensor.pool_west_measure_ph.",
-                    "port": "Standard Modbus TCP port. Change only if your gateway uses a non-standard port.",
+                    "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
                     "scan_interval": "How often the integration reads data from the pool controller.",
                     "slave_id": "The Modbus slave address of the pool controller. Most setups use 1.",
                     "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed.",
