@@ -6,12 +6,12 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import CURRENT_VERSION, SWITCH_DEFINITIONS
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_ON,
     STATE_UNAVAILABLE,
-    Platform,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
@@ -21,7 +21,7 @@ from . import setup_integration
 
 async def _turn_on(hass: HomeAssistant, entity_id: str) -> None:
     await hass.services.async_call(
-        Platform.SWITCH,
+        SWITCH_DOMAIN,
         SERVICE_TURN_ON,
         {"entity_id": entity_id},
         blocking=True,
@@ -30,7 +30,7 @@ async def _turn_on(hass: HomeAssistant, entity_id: str) -> None:
 
 async def _turn_off(hass: HomeAssistant, entity_id: str) -> None:
     await hass.services.async_call(
-        Platform.SWITCH,
+        SWITCH_DOMAIN,
         SERVICE_TURN_OFF,
         {"entity_id": entity_id},
         blocking=True,
