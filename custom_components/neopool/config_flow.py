@@ -26,14 +26,12 @@ from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers import translation as ha_translation
-from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 from . import NeoPoolConfigEntry
 from .const import (
     CONF_FILTRATION_PUMP_POWER,
     CURRENT_VERSION,
     DEFAULT_PORT,
-    DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE_ID,
     DOMAIN,
     NAME,
@@ -124,16 +122,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     default=DEFAULT_MODBUS_FRAMER,
                 ): vol.In(("tcp", "rtu")),
                 vol.Optional(
-                    "scan_interval",
-                    default=str(DEFAULT_SCAN_INTERVAL),
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=[
-                            str(v) for v in (5, 10, 15, 20, 30, 45, 60, 120, 180, 300)
-                        ]
-                    )
-                ),
-                vol.Optional(
                     CONF_FILTRATION_PUMP_POWER,
                     default=0,
                 ): vol.All(int, vol.Range(min=0)),
@@ -198,10 +186,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ) is not None:
                 return result
             # CUSTOM-ONLY END
-
-            # Coerce types before creating entry
-            if "scan_interval" in user_input:
-                user_input["scan_interval"] = int(user_input["scan_interval"])
 
             _LOGGER.info(
                 "Creating new NeoPool config entry (serial: …%s)",
