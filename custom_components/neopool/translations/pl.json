@@ -10,7 +10,6 @@
         "error": {
             "cannot_connect": "Nie udało się połączyć",
             "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID slave i ustawienia ramki.",
-            "name_already_used": "Ta nazwa urządzenia jest już używana. Proszę wybrać inną nazwę.",
             "serial_mismatch": "Urządzenie pod tym adresem ma inny numer seryjny niż pierwotnie skonfigurowane."
         },
         "step": {
@@ -39,7 +38,6 @@
                     "filtration_pump_power": "Moc pompy filtracyjnej (W, 0 = wyłączone)",
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
-                    "name": "Nazwa",
                     "name_default": "Basen",
                     "port": "Port",
                     "scan_interval": "Interwał aktualizacji danych (sekundy)",
@@ -54,7 +52,6 @@
                     "filtration_pump_power": "Podaj nominalną moc pompy filtracyjnej. Przy wartości różnej od zera tworzone są dwa czujniki: chwilowa moc (W) i skumulowana energia (Wh), oba możliwe do użycia na panelu energetycznym.",
                     "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
                     "modbus_framer": "Wybierz 'tcp' dla bramek konwertujących między TCP a RTU. Wybierz 'rtu' dla transparentnych bramek przesyłających surowe ramki RTU przez TCP.",
-                    "name": "Używana jako prefiks dla wszystkich ID encji. Spacje zamieniane są na podkreślenia, np. 'Basen Zachodni' → sensor.basen_zachodni_measure_ph.",
                     "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
                     "scan_interval": "Jak często integracja odczytuje dane z kontrolera basenu.",
                     "slave_id": "Adres Modbus slave kontrolera basenu. Większość konfiguracji używa 1.",

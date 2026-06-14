@@ -32,7 +32,6 @@ from neopool_modbus.registers import (
 
 from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_call_later
@@ -88,7 +87,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.entry = entry
         self.entry_id = entry_id
-        self.device_name = entry.data.get(CONF_NAME, DOMAIN)
+        # Use the entry title as the device label / slug source. Users can
+        # rename the entry from Settings → Devices & services to change this.
+        self.device_name = entry.title or DOMAIN
         self.auto_time_sync = self.entry.options.get("auto_time_sync", False)
         self.winter_mode = self.entry.options.get("winter_mode", False)
         # Capability snapshot: persisted in options so platform setup survives restarts

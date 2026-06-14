@@ -10,7 +10,6 @@
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check slave ID and framer settings.",
-      "name_already_used": "This device name is already in use. Please choose a different name.",
       "serial_mismatch": "The device at this address has a different serial number than the one originally configured."
     },
     "step": {
@@ -39,7 +38,6 @@
           "filtration_pump_power": "Filtration pump power (W, 0 = disabled)",
           "host": "[%key:common::config_flow::data::host%]",
           "modbus_framer": "Modbus framer",
-          "name": "[%key:common::config_flow::data::name%]",
           "name_default": "Pool",
           "port": "[%key:common::config_flow::data::port%]",
           "scan_interval": "Data update interval (seconds)",
@@ -54,7 +52,6 @@
           "filtration_pump_power": "Set the rated wattage of the filtration pump. When non-zero, two sensors are created: instantaneous power (W) and cumulative energy (Wh), both usable in the Energy dashboard.",
           "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
           "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
-          "name": "Used as a prefix for all entity IDs. Spaces become underscores, e.g. 'Pool West' → sensor.pool_west_measure_ph.",
           "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
           "scan_interval": "How often the integration reads data from the pool controller.",
           "slave_id": "The Modbus slave address of the pool controller. Most setups use 1.",

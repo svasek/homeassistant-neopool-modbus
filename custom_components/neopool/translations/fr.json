@@ -10,7 +10,6 @@
         "error": {
             "cannot_connect": "Échec de la connexion",
             "cannot_read_modbus": "Connecté, mais impossible de lire le périphérique Modbus. Vérifiez l'ID esclave et les paramètres du cadre.",
-            "name_already_used": "Ce nom d'appareil est déjà utilisé. Veuillez choisir un nom différent.",
             "serial_mismatch": "L'appareil à cette adresse a un numéro de série différent de celui configuré à l'origine."
         },
         "step": {
@@ -39,7 +38,6 @@
                     "filtration_pump_power": "Puissance de la pompe de filtration (W, 0 = désactivé)",
                     "host": "Hôte",
                     "modbus_framer": "Framer Modbus",
-                    "name": "Nom",
                     "name_default": "Piscine",
                     "port": "Port",
                     "scan_interval": "Intervalle de mise à jour des données (secondes)",
@@ -54,7 +52,6 @@
                     "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique.",
                     "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
                     "modbus_framer": "Sélectionnez 'tcp' pour les passerelles qui convertissent entre TCP et RTU. Sélectionnez 'rtu' pour les passerelles transparentes qui transmettent les trames RTU brutes via TCP.",
-                    "name": "Utilisé comme préfixe pour tous les IDs d'entités. Les espaces deviennent des tirets bas, ex. 'Piscine Ouest' → sensor.piscine_ouest_measure_ph.",
                     "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard (par défaut : 502).",
                     "scan_interval": "À quelle fréquence l'intégration lit les données du contrôleur de piscine.",
                     "slave_id": "L'adresse Modbus esclave du contrôleur de piscine. La plupart des configurations utilisent 1.",

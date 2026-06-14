@@ -10,11 +10,11 @@ from custom_components.neopool.config_flow import NeoPoolConfigFlow
 from custom_components.neopool.const import DOMAIN
 from custom_components.neopool.options_flow import NeoPoolOptionsFlowHandler
 from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from .conftest import MOCK_HOST, MOCK_NAME, MOCK_PORT, MOCK_SERIAL
+from .conftest import MOCK_HOST, MOCK_PORT, MOCK_SERIAL
 
 # Most config-flow tests should not hit the network — opt in to the
 # is_host_port_open patch for every test in this module by default.
@@ -23,7 +23,6 @@ from .conftest import MOCK_HOST, MOCK_NAME, MOCK_PORT, MOCK_SERIAL
 pytestmark = pytest.mark.usefixtures("mock_socket_connection")
 
 USER_INPUT = {
-    CONF_NAME: MOCK_NAME,
     CONF_HOST: MOCK_HOST,
     CONF_PORT: MOCK_PORT,
 }
@@ -52,7 +51,7 @@ async def test_user_flow(
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == MOCK_NAME
+    assert result["title"] == "Pool"
     assert result["data"][CONF_HOST] == MOCK_HOST
     assert result["data"][CONF_PORT] == MOCK_PORT
     assert result["result"].unique_id == f"neopool_{MOCK_SERIAL}"
@@ -133,7 +132,6 @@ async def test_user_flow_already_configured(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {
-            CONF_NAME: "Different Name",
             CONF_HOST: MOCK_HOST,
             CONF_PORT: MOCK_PORT,
         },
@@ -141,39 +139,6 @@ async def test_user_flow_already_configured(
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
-
-
-async def test_user_flow_name_already_used(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """Test name collision (different device, same name slug) yields a form error."""
-    mock_config_entry.add_to_hass(hass)
-
-    # Make the new device's serial probe return a *different* serial so we
-    # don't trip the unique_id "already_configured" abort first.
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(
-            config_flow,
-            "async_get_device_serial",
-            AsyncMock(return_value="9999999999"),
-        )
-
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_NAME: MOCK_NAME,  # same as existing entry
-                CONF_HOST: "192.0.2.99",
-                CONF_PORT: MOCK_PORT,
-            },
-        )
-
-    assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {CONF_NAME: "name_already_used"}
 
 
 # ---------------------------------------------------------------------------

@@ -21,7 +21,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.const import CONF_NAME
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from homeassistant.util import dt as dt_util, slugify
 
@@ -54,9 +53,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         options = dict(self.config_entry.options)
         already_enabled = options.get("enable_backwash_option", False)
 
-        device_slug = slugify(
-            self.config_entry.data.get(CONF_NAME) or self.config_entry.title
-        )
+        device_slug = slugify(self.config_entry.title)
         expected = f"{device_slug}{dt_util.now().year}"
 
         schema_dict = {
