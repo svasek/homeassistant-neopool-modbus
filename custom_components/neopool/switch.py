@@ -159,7 +159,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "manual_filtration":
             await client.async_write_register(MANUAL_FILTRATION_REGISTER, 1)
@@ -239,7 +239,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "manual_filtration":
             await client.async_write_register(MANUAL_FILTRATION_REGISTER, 0)

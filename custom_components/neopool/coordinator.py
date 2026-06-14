@@ -246,7 +246,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.warning("Failed to apply dev_overrides: %s", dev_err)
             return
         if not isinstance(overrides, dict):  # pragma: no cover
-            _LOGGER.warning("dev_overrides must be a JSON object (dict)")
+            _LOGGER.warning("Developer overrides must be a JSON object (dict)")
             return
         data.update(overrides)
         _LOGGER.debug("Applied dev overrides: %s", overrides)
@@ -314,7 +314,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Neither changed but they differ: initial sync (heating wins)
             _LOGGER.info(
                 "Setpoints differ but neither changed (heating=%s, intelligent=%s). "
-                "Performing initial sync: setting intelligent to match heating.",
+                "Performing initial sync: setting intelligent to match heating",
                 heat,
                 intel,
             )
@@ -351,7 +351,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         next_interval = min(current_interval * 2, self.max_update_interval)
         if self.update_interval != next_interval:
             _LOGGER.warning(
-                "Increasing update interval to %s seconds due to communication errors.",
+                "Increasing update interval to %s seconds due to communication errors",
                 int(next_interval.total_seconds()),
             )
             self.update_interval = next_interval
@@ -375,7 +375,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Reset interval after success
         if self.update_interval != self.normal_update_interval:  # pragma: no cover
             _LOGGER.info(
-                "Communication OK, resetting update interval to %s seconds.",
+                "Communication OK, resetting update interval to %s seconds",
                 self.normal_update_interval.total_seconds(),
             )
             self.update_interval = self.normal_update_interval

@@ -110,7 +110,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "relay_timer":
             if (
@@ -147,7 +147,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "relay_timer":
             if self.timer_block_addr is None:  # pragma: no cover

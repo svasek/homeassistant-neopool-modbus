@@ -337,7 +337,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._select_type == "mapped_register":
             await self._select_mapped_register(client, option)
