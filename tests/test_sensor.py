@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
+from custom_components.neopool.const import CURRENT_VERSION, DOMAIN, SENSOR_DEFINITIONS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
@@ -608,7 +608,6 @@ async def test_cell_runtime_default_enabled_state(
     who care about cell-life can enable the sensors explicitly in the entity
     registry.
     """
-    from custom_components.neopool.const import SENSOR_DEFINITIONS
 
     for key in (
         "CELL_RUNTIME_TOTAL",
