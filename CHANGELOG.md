@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.0.1...v4.1.0) (2026-06-14)
+
+
+### ✨ Features
+
+* **sensor:** ✨ expose hydrolysis cell runtime counters and reset button ([#179](https://github.com/svasek/homeassistant-neopool-modbus/issues/179)) ([c5e53fe](https://github.com/svasek/homeassistant-neopool-modbus/commit/c5e53fe7a705c39bd8544d2fc6077b53d73f50ef)), closes [#177](https://github.com/svasek/homeassistant-neopool-modbus/issues/177)
+* **services:** ✨ add read_register service ([#180](https://github.com/svasek/homeassistant-neopool-modbus/issues/180)) ([df045f1](https://github.com/svasek/homeassistant-neopool-modbus/commit/df045f100954dd88d5ceb18d4e3aec4a6cd25e52)), closes [#178](https://github.com/svasek/homeassistant-neopool-modbus/issues/178)
+
 ## [4.0.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.0.0...v4.0.1) (2026-06-10)
 
 
