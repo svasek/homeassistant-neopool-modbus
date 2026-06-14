@@ -29,7 +29,7 @@ from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import (
@@ -100,7 +100,7 @@ def _should_skip_select(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool select entities from a config entry."""
     coordinator = entry.runtime_data

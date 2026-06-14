@@ -21,7 +21,7 @@ from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
 
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import LIGHT_DEFINITIONS
@@ -36,7 +36,7 @@ PARALLEL_UPDATES = 1
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool lights from a config entry."""
     coordinator = entry.runtime_data

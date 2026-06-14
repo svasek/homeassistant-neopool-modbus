@@ -28,7 +28,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
@@ -134,7 +134,7 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool sensors from a config entry."""
     coordinator = entry.runtime_data

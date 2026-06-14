@@ -22,7 +22,7 @@ from neopool_modbus.registers import is_valid_relay_gpio
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import BINARY_SENSOR_DEFINITIONS
@@ -147,7 +147,7 @@ def _should_skip_binary_sensor(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool binary sensors from a config entry."""
     coordinator = entry.runtime_data

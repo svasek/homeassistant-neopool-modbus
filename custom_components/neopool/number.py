@@ -28,7 +28,7 @@ from neopool_modbus.registers import (
 
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import NUMBER_DEFINITIONS
@@ -107,7 +107,7 @@ def _should_skip_number(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool number entities from a config entry."""
     coordinator = entry.runtime_data
