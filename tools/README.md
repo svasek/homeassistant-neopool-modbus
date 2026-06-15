@@ -144,14 +144,21 @@ saved 2026-06-12. To refresh:
 `tools/sync_to_core/sync.sh` runs the full 6-step recipe:
 
 1. `python -m tools.sync_to_core` — regenerate `dist/`.
-2. `rsync` the dist subtrees into the core fork (with `--delete`, so
-   removed files in custom translate to deletions in core).
+2. `rsync` the dist subtrees into the core fork (with `--delete
+   --checksum --exclude=quality_scale.yaml`, so removed files in custom
+   translate to deletions in core, but `quality_scale.yaml` — which
+   only exists in core — survives).
 3. `npx prettier --write` on `manifest.json`, `strings.json`,
    `icons.json` (run from inside the core fork so the
    `prettier-plugin-sort-json` plugin is found).
-4. **Optional:** `python -m script.gen_requirements_all` — only when
-   the integration's library version pin changed (slow; opt in with
-   `--regen-requirements`).
+4. **Auto-detect:** if the integration's `manifest.json` `requirements`
+   list changed (e.g. a library version bump), patch the matching pins
+   in `requirements_all.txt` in-place — this is what
+   `gen_requirements_all` would do for that one package, but ~1000×
+   faster (the full script regenerates the entire 4000-line file). On
+   a brand-new package not yet listed in `requirements_all.txt`, the
+   step fails loudly with instructions to run `gen_requirements_all`
+   manually.
 5. `python -m script.hassfest --action=generate` — regenerates
    `CODEOWNERS` and `mypy.ini` so core's hassfest CI passes.
 6. Print a "now: review, amend, force-push" reminder.
@@ -163,17 +170,15 @@ Usage:
 # overridable via --core-repo or HA_CORE_REPO.
 tools/sync_to_core/sync.sh
 
-# After a library version bump:
-tools/sync_to_core/sync.sh --regen-requirements
-
 # Preview what would happen without touching anything:
 tools/sync_to_core/sync.sh --dry-run
 ```
 
 The wrapper exits with a non-zero status on the first failure, leaving
 the core fork in a partially-synced state — fix the cause and re-run.
-The script is idempotent: re-running after a fix never duplicates work
-(rsync, prettier, hassfest are all idempotent by design).
+The script is idempotent: re-running after a clean sync does nothing
+(rsync `--checksum`, prettier, the requirements diff, and hassfest are
+all idempotent by design).
 
 ### Updating the prettier expectation
 

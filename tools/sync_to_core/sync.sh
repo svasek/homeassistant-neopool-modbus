@@ -6,7 +6,8 @@
 #   2. rsync dist/ → <core>/homeassistant/components/neopool/
 #                  → <core>/tests/components/neopool/
 #   3. npx prettier --write on the three integration JSONs
-#   4. (optional) python -m script.gen_requirements_all
+#   4. update requirements_all.txt in-place if the manifest's
+#      `requirements` list changed (auto-detected, no flag needed)
 #   5. python -m script.hassfest --action=generate
 #   6. print "now: review, amend, force-push" reminder
 #
@@ -17,7 +18,6 @@
 #
 # Usage:
 #   tools/sync_to_core/sync.sh [--core-repo PATH]
-#                              [--regen-requirements]
 #                              [--dry-run]
 #                              [-h|--help]
 
@@ -34,7 +34,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CUSTOM_REPO="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 CORE_REPO="${HA_CORE_REPO:-${HOME}/work/_git_repos_/home-assistant--core}"
-REGEN_REQUIREMENTS=0
 DRY_RUN=0
 
 usage() {
@@ -47,9 +46,6 @@ Options:
   --core-repo PATH       Path to the HA core fork checkout (default:
                          \$HA_CORE_REPO env var, then
                          ~/work/_git_repos_/home-assistant--core).
-  --regen-requirements   Also run \`python -m script.gen_requirements_all\`
-                         in the core fork. Slow; only needed when the
-                         integration's library version pin changed.
   --dry-run              Print every command that would run without
                          executing anything.
   -h, --help             Show this help and exit.
@@ -64,10 +60,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --core-repo=*)
             CORE_REPO="${1#--core-repo=}"
-            shift
-            ;;
-        --regen-requirements)
-            REGEN_REQUIREMENTS=1
             shift
             ;;
         --dry-run)
@@ -100,6 +92,26 @@ if [[ ! -f "${CORE_REPO}/.prettierrc.js" ]]; then
     exit 1
 fi
 
+# Resolve the Python interpreter to use *inside* the core fork. Hassfest
+# imports `homeassistant.*` and other dev deps that only exist in the
+# core fork's virtualenv, so a system `python3` is not enough. Try
+# `<core>/.venv/bin/python` first; fall back to `python3` and hope the
+# user has activated the venv themselves.
+if [[ -x "${CORE_REPO}/.venv/bin/python" ]]; then
+    CORE_PYTHON="${CORE_REPO}/.venv/bin/python"
+else
+    CORE_PYTHON="python3"
+fi
+
+# Same logic for the custom side: step 1 imports `tools.sync_to_core`,
+# which needs the custom repo's dev deps (pymodbus etc.) that live in
+# its own .venv.
+if [[ -x "${CUSTOM_REPO}/.venv/bin/python" ]]; then
+    CUSTOM_PYTHON="${CUSTOM_REPO}/.venv/bin/python"
+else
+    CUSTOM_PYTHON="python3"
+fi
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -121,12 +133,53 @@ log() {
     echo "[sync_to_core] $*"
 }
 
+# Read a manifest's `requirements` array as a newline-separated list.
+# Empty / missing manifest yields nothing. Used to detect a lib pin
+# change between pre-rsync and post-rsync state of the core manifest.
+read_requirements() {
+    local manifest="$1"
+    if [[ ! -f "${manifest}" ]]; then
+        return 0
+    fi
+    python3 -c "
+import json, sys
+m = json.load(open(sys.argv[1]))
+for r in m.get('requirements', []):
+    print(r)
+" "${manifest}"
+}
+
+# Replace the pinned version of a single `name==version` requirement
+# in-place inside the given file. Matches both bare `name==X` and
+# `name[extras]==X` forms; updates only the version after the LAST `==`
+# on the line (so `name==X==Y` weirdness, which we don't expect, would
+# be left alone). Echoes 1 if the file was modified, 0 if no match was
+# found (caller decides whether that's an error).
+replace_pin_in_file() {
+    local file="$1"
+    local new_req="$2"  # e.g. "neopool-modbus==2.1.1"
+    local pkg="${new_req%%==*}"
+
+    if ! grep -qE "^${pkg}(\[[^]]+\])?==" "${file}"; then
+        return 1
+    fi
+    if [[ ${DRY_RUN} -eq 1 ]]; then
+        log "would update ${pkg} pin in $(basename "${file}") to ${new_req}"
+        return 0
+    fi
+    # macOS sed needs `-i ''` for in-place; -E enables extended regex.
+    sed -i.bak -E "s|^${pkg}(\[[^]]+\])?==.*$|${new_req}|" "${file}"
+    rm -f "${file}.bak"
+    return 0
+}
+
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
 log "custom repo: ${CUSTOM_REPO}"
 log "core repo:   ${CORE_REPO}"
+log "core python: ${CORE_PYTHON}"
 if [[ ${DRY_RUN} -eq 1 ]]; then
     log "DRY RUN — commands will be printed, not executed"
 fi
@@ -134,19 +187,35 @@ echo
 
 # Step 1: Generate dist/ from custom sources.
 log "step 1/6: regenerate dist/ from custom sources"
-run python -m tools.sync_to_core
+run env -C "${CUSTOM_REPO}" "${CUSTOM_PYTHON}" -m tools.sync_to_core
 
-# Step 2: rsync the dist subtrees into the core fork. We deliberately
-# copy the integration and tests trees as two separate rsyncs so we can
-# use --delete on each (catching renamed/removed files) without ever
-# pointing rsync at a parent the core fork might share with other
-# integrations. quality_scale.yaml lives only in the dist tree and gets
-# copied as part of the integration subtree.
+# Capture the requirements pin from before rsync (the current state of
+# core's manifest) and the new state (the freshly-generated dist
+# manifest). This works in --dry-run too: rsync wouldn't have updated
+# the core manifest, but step 1 always regenerates dist/, so AFTER is
+# accurate regardless.
+CORE_MANIFEST="${CORE_REPO}/homeassistant/components/neopool/manifest.json"
+DIST_MANIFEST="${CUSTOM_REPO}/dist/neopool/homeassistant/components/neopool/manifest.json"
+BEFORE_REQS="$(read_requirements "${CORE_MANIFEST}" || true)"
+AFTER_REQS="$(read_requirements "${DIST_MANIFEST}" || true)"
+
+# Step 2: rsync the dist subtrees into the core fork. The custom HACS
+# tree intentionally lacks `quality_scale.yaml` (HACS doesn't read it),
+# but core needs it — the file was authored once in the core fork and
+# must survive every sync. We therefore exclude it from rsync's
+# `--delete` pass via `--exclude`. Same logic for any future
+# core-only siblings: add them to the exclude list.
+#
+# `--checksum` (-c) makes rsync compare file content rather than
+# size+mtime. Slower but accurate when the dist regeneration produces
+# byte-different output that happens to share the previous file's size
+# (e.g. a same-length version bump from `1.0.0` to `1.0.1`).
 log "step 2/6: rsync dist subtrees into core fork"
-run rsync -av --delete \
+run rsync -avc --delete \
+    --exclude=quality_scale.yaml \
     "${CUSTOM_REPO}/dist/neopool/homeassistant/components/neopool/" \
     "${CORE_REPO}/homeassistant/components/neopool/"
-run rsync -av --delete \
+run rsync -avc --delete \
     "${CUSTOM_REPO}/dist/neopool/tests/components/neopool/" \
     "${CORE_REPO}/tests/components/neopool/"
 
@@ -158,14 +227,35 @@ run env -C "${CORE_REPO}" npx --no-install prettier --write \
     homeassistant/components/neopool/strings.json \
     homeassistant/components/neopool/icons.json
 
-# Step 4: optionally regenerate requirements_all.txt. Only needed when
-# the library version pin changed, because the file is large and slow
-# to regenerate (~30s).
-if [[ ${REGEN_REQUIREMENTS} -eq 1 ]]; then
-    log "step 4/6: regenerate requirements_all.txt"
-    run env -C "${CORE_REPO}" python -m script.gen_requirements_all
+# Step 4: in-place update requirements_all.txt when the manifest's
+# `requirements` array changed. We do not regenerate the whole file
+# (slow + needs core's full venv); we just rewrite the matching pin
+# lines so they match `gen_requirements_all`'s output verbatim.
+#
+# An added requirement (a brand-new package not yet in
+# requirements_all.txt) cannot be patched in-place: we'd also need to
+# emit the `# homeassistant.components.X` comment header in the right
+# alphabetical slot, which is exactly what `gen_requirements_all`
+# does. Fail loudly with instructions in that case.
+REQ_ALL_FILE="${CORE_REPO}/requirements_all.txt"
+if [[ "${BEFORE_REQS}" == "${AFTER_REQS}" ]]; then
+    log "step 4/6: requirements unchanged, skipping requirements_all.txt"
 else
-    log "step 4/6: skip gen_requirements_all (use --regen-requirements to enable)"
+    log "step 4/6: requirements changed, patching requirements_all.txt"
+    log "  before: $(echo "${BEFORE_REQS}" | tr '\n' ' ' | sed 's/ $//')"
+    log "  after:  $(echo "${AFTER_REQS}" | tr '\n' ' ' | sed 's/ $//')"
+    while IFS= read -r req; do
+        [[ -z "${req}" ]] && continue
+        # Only rewrite if the line for the package already exists.
+        # Adding a new package needs gen_requirements_all (alphabetic
+        # placement + comment header).
+        if ! replace_pin_in_file "${REQ_ALL_FILE}" "${req}"; then
+            log "ERROR: '${req%%==*}' not found in requirements_all.txt"
+            log "  this is likely a brand-new dependency — run manually:"
+            log "    cd ${CORE_REPO} && python -m script.gen_requirements_all"
+            exit 1
+        fi
+    done <<< "${AFTER_REQS}"
 fi
 
 # Step 5: regenerate CODEOWNERS + mypy.ini. hassfest's --action=generate
@@ -173,7 +263,7 @@ fi
 # entries in those two files; without it, core CI's hassfest job will
 # fail with "General errors: ... not up to date".
 log "step 5/6: hassfest --action=generate (CODEOWNERS, mypy.ini)"
-run env -C "${CORE_REPO}" python -m script.hassfest --action=generate
+run env -C "${CORE_REPO}" "${CORE_PYTHON}" -m script.hassfest --action=generate
 
 # Step 6: human-side reminder of what's left to do.
 echo
@@ -181,5 +271,3 @@ log "step 6/6: done — next, in ${CORE_REPO}:"
 log "  • git status            (review what changed)"
 log "  • git add -A && git commit --amend --no-edit"
 log "  • git push --force-with-lease"
-echo
-log "(if --regen-requirements was off but the lib pin moved, re-run with it)"
