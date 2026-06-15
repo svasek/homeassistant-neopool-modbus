@@ -7,6 +7,7 @@ gating branch fires by counting the resulting entities.
 
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.binary_sensor import async_setup_entry as bs_setup
@@ -54,7 +55,7 @@ async def test_button_setup_short_circuits_without_data(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Button platform skips entity creation when coordinator.data is None."""
 
@@ -77,7 +78,7 @@ async def test_light_setup_short_circuits_without_data(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Light platform skips entity creation when coordinator.data is None."""
 
@@ -99,7 +100,7 @@ async def test_switch_setup_short_circuits_without_data(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Switch platform skips entity creation when coordinator.data is None."""
 
@@ -121,7 +122,7 @@ async def test_select_setup_short_circuits_without_data(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Select platform skips entity creation when coordinator.data is None."""
 
@@ -143,7 +144,7 @@ async def test_number_setup_short_circuits_without_data(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Number platform skips entity creation when coordinator.data is None."""
 
@@ -165,7 +166,7 @@ async def test_sensor_setup_short_circuits_without_data(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Sensor platform skips entity creation when coordinator.data is None."""
 
@@ -187,7 +188,7 @@ async def test_binary_sensor_setup_short_circuits_without_data(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Binary sensor platform skips entity creation when coordinator.data is None."""
 

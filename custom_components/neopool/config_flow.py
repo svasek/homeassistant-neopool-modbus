@@ -23,18 +23,15 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers import translation as ha_translation
-from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
-from homeassistant.util import slugify
 
 from . import NeoPoolConfigEntry
 from .const import (
     CONF_FILTRATION_PUMP_POWER,
     CURRENT_VERSION,
     DEFAULT_PORT,
-    DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE_ID,
     DOMAIN,
     NAME,
@@ -79,8 +76,13 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors[CONF_HOST] = "cannot_connect"
         return errors
 
-    async def _async_get_default_name(self) -> str:
-        """Return the localized default device name from translations."""
+    async def _async_get_default_title(self) -> str:
+        """Return the localized default entry title.
+
+        Reads the `name_default` translation key (e.g. "Pool" / "Bazén"
+        / "Piscine") so a fresh entry's UI label matches the user's
+        language. Falls back to the English brand name on lookup error.
+        """
         try:
             t = await ha_translation.async_get_translations(
                 self.hass, self.hass.config.language, "config", {DOMAIN}
@@ -88,8 +90,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             key = f"component.{DOMAIN}.config.step.user.data.name_default"
             return t.get(key) or NAME
         except Exception:  # noqa: BLE001
-            # Translation lookup is best-effort; on any failure we fall
-            # back to the literal English default so the form still opens.
             return NAME
 
     async def async_step_user(
@@ -112,27 +112,15 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return result
         # CUSTOM-ONLY END
 
-        default_name = await self._async_get_default_name()
         data_schema = vol.Schema(
             {
-                vol.Optional(CONF_NAME, default=default_name): str,
                 vol.Required(CONF_HOST): str,
                 vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
                 vol.Optional("slave_id", default=DEFAULT_SLAVE_ID): int,
                 vol.Optional(
                     "modbus_framer",
                     default=DEFAULT_MODBUS_FRAMER,
-                ): vol.In(["tcp", "rtu"]),
-                vol.Optional(
-                    "scan_interval",
-                    default=str(DEFAULT_SCAN_INTERVAL),
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=[
-                            str(v) for v in [5, 10, 15, 20, 30, 45, 60, 120, 180, 300]
-                        ]
-                    )
-                ),
+                ): vol.In(("tcp", "rtu")),
                 vol.Optional(
                     CONF_FILTRATION_PUMP_POWER,
                     default=0,
@@ -161,11 +149,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
         errors = {}
         if user_input is not None:
-            device_name = (
-                user_input.get(CONF_NAME) or await self._async_get_default_name()
-            )
-            user_input[CONF_NAME] = device_name
-
             # Validation 1: TCP connection
             errors = await self._async_validate_connection(user_input)
             if errors:
@@ -204,28 +187,14 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return result
             # CUSTOM-ONLY END
 
-            # Validation 4: Unique device name (compare slugified to catch case/spacing variants)
-            for entry in self.hass.config_entries.async_entries(DOMAIN):
-                existing_name = entry.data.get(CONF_NAME) or entry.title
-                if slugify(existing_name) == slugify(device_name):
-                    errors[CONF_NAME] = "name_already_used"
-                    return self.async_show_form(
-                        step_id="user",
-                        data_schema=data_schema,
-                        errors=errors,
-                    )
-
-            # Coerce types before creating entry
-            if "scan_interval" in user_input:
-                user_input["scan_interval"] = int(user_input["scan_interval"])
-
             _LOGGER.info(
-                "Creating new NeoPool config entry: %s (serial: …%s)",
-                device_name,
+                "Creating new NeoPool config entry (serial: …%s)",
                 serial_number[-6:],
             )
 
-            return self.async_create_entry(title=device_name, data=user_input)
+            return self.async_create_entry(
+                title=await self._async_get_default_title(), data=user_input
+            )
 
         return self.async_show_form(
             step_id="user",
@@ -272,7 +241,7 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     "modbus_framer",
                     default=current.get("modbus_framer", DEFAULT_MODBUS_FRAMER),
-                ): vol.In(["tcp", "rtu"]),
+                ): vol.In(("tcp", "rtu")),
             }
         )
 

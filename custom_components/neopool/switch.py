@@ -26,7 +26,7 @@ from neopool_modbus.registers import (
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import SWITCH_DEFINITIONS
@@ -80,7 +80,7 @@ def _should_skip_switch(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool switches from a config entry."""
     coordinator = entry.runtime_data
@@ -114,9 +114,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         """Initialize the NeoPool switch entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -140,13 +137,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         self._mask_bit: int | None = props.get("mask_bit")
         self._data_key = props.get("data_key") or self._key
 
-        _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch ON."""
         if (
@@ -159,7 +149,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "manual_filtration":
             await client.async_write_register(MANUAL_FILTRATION_REGISTER, 1)
@@ -239,7 +229,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "manual_filtration":
             await client.async_write_register(MANUAL_FILTRATION_REGISTER, 0)
@@ -299,7 +289,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             await self.coordinator.async_request_refresh()
             self.async_write_ha_state()
 
-    async def async_added_to_hass(self) -> None:  # pragma: no cover
+    async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to hass."""
         _LOGGER.debug(
             "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",

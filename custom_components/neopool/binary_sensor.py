@@ -22,7 +22,7 @@ from neopool_modbus.registers import is_valid_relay_gpio
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import BINARY_SENSOR_DEFINITIONS
@@ -147,7 +147,7 @@ def _should_skip_binary_sensor(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool binary sensors from a config entry."""
     coordinator = entry.runtime_data
@@ -204,9 +204,6 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
             self._base, self._bit = key.split("_STATUS_", 1)
 
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -216,13 +213,6 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
         self._attr_entity_category = props.get("entity_category") or None
 
         self._attr_entity_registry_enabled_default = props.get("enabled_default", True)
-
-        _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
@@ -252,9 +242,10 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
             return not bool(value)
 
         # Check if the filtration pump is active
-        if self._attr_suggested_object_id.endswith(
-            "_measurement_active"
-        ) or self._attr_suggested_object_id.endswith("_module_active"):
+        key_slug = NeoPoolEntity.slugify(self._key)
+        if key_slug.endswith("_measurement_active") or key_slug.endswith(
+            "_module_active"
+        ):
             filtration_state = self.coordinator.data.get("Filtration Pump")
             if filtration_state is not None and filtration_state is False:
                 return False

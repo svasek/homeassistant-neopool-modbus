@@ -6,12 +6,12 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import CURRENT_VERSION, SWITCH_DEFINITIONS
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_ON,
     STATE_UNAVAILABLE,
-    Platform,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
@@ -21,7 +21,7 @@ from . import setup_integration
 
 async def _turn_on(hass: HomeAssistant, entity_id: str) -> None:
     await hass.services.async_call(
-        Platform.SWITCH,
+        SWITCH_DOMAIN,
         SERVICE_TURN_ON,
         {"entity_id": entity_id},
         blocking=True,
@@ -30,7 +30,7 @@ async def _turn_on(hass: HomeAssistant, entity_id: str) -> None:
 
 async def _turn_off(hass: HomeAssistant, entity_id: str) -> None:
     await hass.services.async_call(
-        Platform.SWITCH,
+        SWITCH_DOMAIN,
         SERVICE_TURN_OFF,
         {"entity_id": entity_id},
         blocking=True,
@@ -118,7 +118,15 @@ async def test_io_switch_blocked_in_winter_mode(
     mock_neopool_client: MagicMock,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """While winter_mode is on, turning IO switches yields a no-op + warning."""
+    """While winter_mode is on, IO switch turn_on yields a no-op + warning.
+
+    The IO switches become HA-unavailable while winter mode pauses polling,
+    so we cannot exercise the guard via `hass.services.async_call(turn_on)`
+    (HA's service layer rejects unavailable entities before the handler
+    runs). Instead, fetch the entity instance and invoke `async_turn_on()`
+    directly so the winter-mode short-circuit at the top of the handler
+    is the code path under test.
+    """
     entry = MockConfigEntry(
         domain="neopool",
         title="Winter Pool",
@@ -140,13 +148,20 @@ async def test_io_switch_blocked_in_winter_mode(
         },
     )
     await setup_integration(hass, entry)
-    # The manual_filtration entity exists once we have a snapshot. It's
-    # available=False because winter_mode is on, but turn_on still reaches
-    # the handler and short-circuits with a warning.
-    state = hass.states.get("switch.winter_pool_3")
-    if state is not None and state.state != STATE_UNAVAILABLE:
-        await _turn_on(hass, "switch.winter_pool_3")
-        assert "Winter mode is active" in caplog.text
+    # Reach into the platform to grab the manual_filtration entity instance.
+    platform = next(
+        p for p in ep.async_get_platforms(hass, "neopool") if p.domain == "switch"
+    )
+    entity = next(
+        e
+        for e in platform.entities.values()
+        if getattr(e, "_switch_type", None) == "manual_filtration"
+    )
+    mock_neopool_client.async_write_register.reset_mock()
+    await entity.async_turn_on()
+    await entity.async_turn_off()
+    assert "Winter mode is active" in caplog.text
+    assert mock_neopool_client.async_write_register.await_count == 0
 
 
 # ---------------------------------------------------------------------------

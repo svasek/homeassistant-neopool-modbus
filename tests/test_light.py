@@ -2,16 +2,17 @@
 
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import LIGHT_DEFINITIONS
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
     STATE_UNAVAILABLE,
-    Platform,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
@@ -32,7 +33,7 @@ def _light_entity_id(hass: HomeAssistant, entry: MockConfigEntry) -> str:
 
 async def _turn_on(hass: HomeAssistant, entity_id: str) -> None:
     await hass.services.async_call(
-        Platform.LIGHT,
+        LIGHT_DOMAIN,
         SERVICE_TURN_ON,
         {"entity_id": entity_id},
         blocking=True,
@@ -41,7 +42,7 @@ async def _turn_on(hass: HomeAssistant, entity_id: str) -> None:
 
 async def _turn_off(hass: HomeAssistant, entity_id: str) -> None:
     await hass.services.async_call(
-        Platform.LIGHT,
+        LIGHT_DOMAIN,
         SERVICE_TURN_OFF,
         {"entity_id": entity_id},
         blocking=True,
@@ -126,7 +127,7 @@ async def test_light_winter_mode_guard_when_called_directly(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """async_turn_on/off short-circuits when winter_mode is on.
 

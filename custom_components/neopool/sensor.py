@@ -22,14 +22,14 @@ from typing import Any
 from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from homeassistant.components.sensor import (
+    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
 )
 from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from . import NeoPoolConfigEntry
@@ -134,7 +134,7 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool sensors from a config entry."""
     coordinator = entry.runtime_data
@@ -182,9 +182,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Initialize the NeoPool sensor entity."""
         super().__init__(coordinator, entry_id)  # Pass entry_id to the parent class
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -207,13 +204,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         # ``*_LOW`` / ``*_HIGH`` register pair they should be combined from.
         # native_value() rebuilds the 32-bit value via combine_u32().
         self._register_pair: tuple[str, str] | None = props.get("register_pair")
-
-        _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
@@ -385,7 +375,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         return None  # pragma: no cover
 
 
-class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
+class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     """Cumulative energy consumed by the filtration pump (Wh).
 
     Integrates instantaneous power over time using coordinator update timestamps.
@@ -409,9 +399,6 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
         """Initialise the filtration-pump energy sensor."""
         super().__init__(coordinator, entry_id)
         self._pump_power_w = pump_power_w
-        self._attr_suggested_object_id = (
-            f"{coordinator.device_slug}_filtration_pump_energy"
-        )
         device_id = coordinator.entry.unique_id or entry_id
         self._attr_unique_id = f"{device_id}_filtration_pump_energy"
         self._total_wh: float = 0.0
@@ -419,21 +406,28 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, SensorEntity, RestoreEntity):
         self._last_pump_on: bool = False
 
     async def async_added_to_hass(self) -> None:
-        """Restore last known energy value from entity state after restart."""
+        """Restore last known energy value from sensor extra data after restart."""
+        _LOGGER.debug(
+            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
+            self.entity_id,
+            self._attr_translation_key,
+            getattr(self, "has_entity_name", None),
+        )
         await super().async_added_to_hass()
-        if (
-            last_state := await self.async_get_last_state()
-        ) and last_state.state not in (
-            None,
-            "unavailable",
-            "unknown",
-        ):  # pragma: no cover
-            try:
-                restored = float(last_state.state)
-                if math.isfinite(restored) and restored >= 0:
-                    self._total_wh = restored
-            except ValueError:
-                pass
+        last_data = await self.async_get_last_sensor_data()
+        if last_data is None:  # pragma: no cover
+            return
+        # native_value is typed `StateType | date | datetime | Decimal`; only the
+        # numeric / numeric-string variants make sense for an energy counter.
+        value = last_data.native_value
+        if not isinstance(value, (int, float, str)):  # pragma: no cover
+            return
+        try:
+            restored = float(value)
+        except (TypeError, ValueError):  # pragma: no cover
+            return
+        if math.isfinite(restored) and restored >= 0:  # pragma: no cover
+            self._total_wh = restored
 
     def _handle_coordinator_update(self) -> None:
         """Accumulate energy on each coordinator update."""

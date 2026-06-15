@@ -6,7 +6,8 @@ from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION, Platform
+from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
+from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
@@ -36,7 +37,7 @@ def _select_entity_id(
 
 async def _select_option(hass: HomeAssistant, entity_id: str, option: str) -> None:
     await hass.services.async_call(
-        Platform.SELECT,
+        SELECT_DOMAIN,
         SERVICE_SELECT_OPTION,
         {"entity_id": entity_id, ATTR_OPTION: option},
         blocking=True,

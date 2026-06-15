@@ -21,7 +21,7 @@ from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
 
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import LIGHT_DEFINITIONS
@@ -36,7 +36,7 @@ PARALLEL_UPDATES = 1
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool lights from a config entry."""
     coordinator = entry.runtime_data
@@ -79,9 +79,6 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         """Initialize the NeoPool light entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -94,12 +91,15 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         self.function_addr: int | None = props.get("function_addr")
         self.function_code: int | None = props.get("function_code")
 
+    async def async_added_to_hass(self) -> None:
+        """Run when the entity is added to hass."""
         _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
+            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
+            self.entity_id,
             self._attr_translation_key,
             getattr(self, "has_entity_name", None),
         )
+        await super().async_added_to_hass()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light ON."""
@@ -110,7 +110,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "relay_timer":
             if (
@@ -147,7 +147,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._switch_type == "relay_timer":
             if self.timer_block_addr is None:  # pragma: no cover
@@ -174,16 +174,6 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             return
         if self._switch_type == "relay_timer":
             data["relay_light_enable"] = 3 if state else 4
-
-    async def async_added_to_hass(self) -> None:
-        """Run when the entity is added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-        await super().async_added_to_hass()
 
     @property
     def is_on(self) -> bool:

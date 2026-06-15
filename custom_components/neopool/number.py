@@ -28,7 +28,7 @@ from neopool_modbus.registers import (
 
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import NUMBER_DEFINITIONS
@@ -107,7 +107,7 @@ def _should_skip_number(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool number entities from a config entry."""
     coordinator = entry.runtime_data
@@ -148,9 +148,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._shift: int = props.get("shift", 0)
         self._data_key: str = props.get("data_key", key)
 
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -170,13 +167,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._pending_value: float | None = None
         self._debounce_delay = 2.0
 
-        _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
@@ -187,7 +177,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         )
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for reading registers.")
+            _LOGGER.error("Modbus client not available for reading registers")
             return
         await super().async_added_to_hass()
 
@@ -224,7 +214,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         """Debounced write to the Modbus register."""
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         try:
             await asyncio.sleep(self._debounce_delay)

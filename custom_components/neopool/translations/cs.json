@@ -10,7 +10,6 @@
         "error": {
             "cannot_connect": "Nepodařilo se připojit",
             "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte slave ID a nastavení rámce.",
-            "name_already_used": "Tento název zařízení je již použit. Zvolte prosím jiný název.",
             "serial_mismatch": "Zařízení na této adrese má jiné sériové číslo než původně nakonfigurované."
         },
         "step": {
@@ -39,10 +38,8 @@
                     "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)",
                     "host": "Hostitel",
                     "modbus_framer": "Modbus rámec",
-                    "name": "Název",
                     "name_default": "Bazén",
                     "port": "Port",
-                    "scan_interval": "Interval aktualizace dat (v sekundách)",
                     "slave_id": "Slave ID",
                     "use_cover_sensor": "Povolit senzor zakrytí bazénu",
                     "use_filtration1": "Povolit 1. časovač filtrace pro automatický režim",
@@ -54,9 +51,7 @@
                     "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
-                    "name": "Používá se jako prefix pro všechna ID entit. Mezery se nahradí podtržítky, např. 'Bazén Západ' → sensor.bazen_zapad_measure_ph.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "scan_interval": "Jak často integrace čte data z řadiče bazénu.",
                     "slave_id": "Modbus slave adresa řadiče bazénu. Většina zařízení používá 1.",
                     "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý.",
                     "use_filtration1": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
@@ -748,6 +743,9 @@
         },
         "missing_parameter": {
             "message": "Chybí povinný parametr {parameter}"
+        },
+        "modbus_communication_error": {
+            "message": "Při komunikaci s řadičem NeoPool došlo k chybě: {error}"
         },
         "no_coordinator": {
             "message": "Nebyl nalezen koordinátor NeoPool pro entry_id {entry_id}"

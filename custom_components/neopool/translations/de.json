@@ -10,7 +10,6 @@
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen",
             "cannot_read_modbus": "Verbunden, aber Modbus-Gerät kann nicht gelesen werden. Überprüfen Sie Slave-ID und Framer-Einstellungen.",
-            "name_already_used": "Dieser Gerätename wird bereits verwendet. Bitte wählen Sie einen anderen Namen.",
             "serial_mismatch": "Das Gerät an dieser Adresse hat eine andere Seriennummer als das ursprünglich konfigurierte."
         },
         "step": {
@@ -39,10 +38,8 @@
                     "filtration_pump_power": "Leistung der Filtrationspumpe (W, 0 = deaktiviert)",
                     "host": "Host",
                     "modbus_framer": "Modbus-Framer",
-                    "name": "Name",
                     "name_default": "Pool",
                     "port": "Port",
-                    "scan_interval": "Datenaktualisierungsintervall (Sekunden)",
                     "slave_id": "Slave-ID",
                     "use_cover_sensor": "Abdeckungssensor aktivieren",
                     "use_filtration1": "1. Filter-Timer für Automatikbetrieb aktivieren",
@@ -54,9 +51,7 @@
                     "filtration_pump_power": "Geben Sie die Nennleistung der Filtrationspumpe an. Bei einem Wert ungleich null werden zwei Sensoren erstellt: momentane Leistung (W) und kumulierter Energieverbrauch (Wh), beide nutzbar im Energie-Dashboard.",
                     "host": "Geben Sie die IP-Adresse des Modbus-TCP-Gateways ein, das mit Ihrem Pool-Controller verbunden ist.",
                     "modbus_framer": "Wählen Sie 'tcp' für Gateways, die zwischen TCP und RTU konvertieren. Wählen Sie 'rtu' für transparente Gateways, die rohe RTU-Frames über TCP weiterleiten.",
-                    "name": "Wird als Präfix für alle Entitäten-IDs verwendet. Leerzeichen werden zu Unterstrichen, z.B. 'Pool West' → sensor.pool_west_measure_ph.",
                     "port": "Standard-Modbus-TCP-Port. Ändern Sie ihn nur, wenn Ihr Gateway einen nicht standardmäßigen Port verwendet (Standard: 502).",
-                    "scan_interval": "Wie oft die Integration Daten vom Pool-Controller liest.",
                     "slave_id": "Die Modbus-Slave-Adresse des Pool-Controllers. Die meisten Setups verwenden 1.",
                     "use_cover_sensor": "Erstellt einen Binärsensor, der anzeigt, ob die Poolabdeckung geöffnet oder geschlossen ist.",
                     "use_filtration1": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
@@ -748,6 +743,9 @@
         },
         "missing_parameter": {
             "message": "Erforderlicher Parameter {parameter} fehlt"
+        },
+        "modbus_communication_error": {
+            "message": "Bei der Kommunikation mit dem NeoPool-Controller ist ein Fehler aufgetreten: {error}"
         },
         "no_coordinator": {
             "message": "Kein NeoPool-Koordinator für entry_id {entry_id} gefunden"

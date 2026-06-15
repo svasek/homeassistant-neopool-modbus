@@ -25,7 +25,7 @@ from neopool_modbus.registers import (
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import BUTTON_DEFINITIONS
@@ -41,7 +41,7 @@ PARALLEL_UPDATES = 1
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool button entities from a config entry."""
     coordinator = entry.runtime_data
@@ -79,9 +79,6 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         """Initialize the NeoPool button entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -94,12 +91,15 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         if props.get("entity_registry_enabled_default") is False:
             self._attr_entity_registry_enabled_default = False
 
+    async def async_added_to_hass(self) -> None:
+        """Run when the entity is added to hass."""
         _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
+            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
+            self.entity_id,
             self._attr_translation_key,
             getattr(self, "has_entity_name", None),
         )
+        await super().async_added_to_hass()
 
     async def async_press(self) -> None:
         """Perform button action depending on key."""
@@ -108,13 +108,13 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
             return
         if self._key == "SYNC_TIME":
             client = self.coordinator.client
-            _LOGGER.debug("Syncing time with device...")
+            _LOGGER.debug("Syncing time with device")
             await client.async_write_register(0x0408, prepare_device_time(self.hass))
             await client.async_write_register(COPY_TO_RTC_REGISTER, 1)
             await self.coordinator.async_request_refresh()
         elif self._key == "MBF_ESCAPE":
             client = self.coordinator.client
-            _LOGGER.debug("Clearing all possible errors...")
+            _LOGGER.debug("Clearing all possible errors")
             await client.async_write_register(0x0297, 1)
             await self.coordinator.async_request_refresh()
         elif self._key == "BACKWASH":
@@ -151,13 +151,3 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
             await client.async_write_register(RESET_USER_COUNTERS_REGISTER, 1)
             await client.async_write_register(EEPROM_SAVE_REGISTER, 1)
             await self.coordinator.async_request_refresh()
-
-    async def async_added_to_hass(self) -> None:  # pragma: no cover
-        """Run when the entity is added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-        await super().async_added_to_hass()

@@ -3,67 +3,79 @@
     "binary_sensor": {
       "aux1": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "aux2": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "aux3": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "aux4": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "chlorine_measurement_active": {
         "default": "mdi:scale-off",
-        "state": {"off": "mdi:scale-off", "on": "mdi:scale"}
+        "state": { "off": "mdi:scale-off", "on": "mdi:scale" }
       },
       "chlorine_pump_active": {
         "default": "mdi:pump-off",
-        "state": {"off": "mdi:pump-off", "on": "mdi:pump"}
+        "state": { "off": "mdi:pump-off", "on": "mdi:pump" }
       },
       "conductivity_measurement_active": {
         "default": "mdi:scale-off",
-        "state": {"off": "mdi:scale-off", "on": "mdi:scale"}
+        "state": { "off": "mdi:scale-off", "on": "mdi:scale" }
       },
       "conductivity_pump_active": {
         "default": "mdi:pump-off",
-        "state": {"off": "mdi:pump-off", "on": "mdi:pump"}
+        "state": { "off": "mdi:pump-off", "on": "mdi:pump" }
       },
       "device_time_out_of_sync": {
         "default": "mdi:clock-check-outline",
-        "state": {"off": "mdi:clock-check-outline", "on": "mdi:clock-alert"}
+        "state": { "off": "mdi:clock-check-outline", "on": "mdi:clock-alert" }
       },
       "filtration_pump": {
         "default": "mdi:pump-off",
-        "state": {"off": "mdi:pump-off", "on": "mdi:pump"}
+        "state": { "off": "mdi:pump-off", "on": "mdi:pump" }
       },
       "heating": {
         "default": "mdi:radiator-off",
-        "state": {"off": "mdi:radiator-off", "on": "mdi:radiator"}
+        "state": { "off": "mdi:radiator-off", "on": "mdi:radiator" }
       },
       "ph_acid_pump": {
         "default": "mdi:pump-off",
-        "state": {"off": "mdi:pump-off", "on": "mdi:pump"}
+        "state": { "off": "mdi:pump-off", "on": "mdi:pump" }
       },
       "ph_measurement_active": {
         "default": "mdi:scale-off",
-        "state": {"off": "mdi:scale-off", "on": "mdi:scale"}
+        "state": { "off": "mdi:scale-off", "on": "mdi:scale" }
       },
       "pool_light": {
         "default": "mdi:lightbulb-outline",
-        "state": {"off": "mdi:lightbulb-outline", "on": "mdi:lightbulb-on"}
+        "state": { "off": "mdi:lightbulb-outline", "on": "mdi:lightbulb-on" }
       },
       "redox_measurement_active": {
         "default": "mdi:scale-off",
-        "state": {"off": "mdi:scale-off", "on": "mdi:scale"}
+        "state": { "off": "mdi:scale-off", "on": "mdi:scale" }
       },
       "redox_pump_active": {
         "default": "mdi:pump-off",
-        "state": {"off": "mdi:pump-off", "on": "mdi:pump"}
+        "state": { "off": "mdi:pump-off", "on": "mdi:pump" }
       },
       "uv_lamp": {
         "default": "mdi:lightbulb-fluorescent-tube-outline",
@@ -74,74 +86,74 @@
       }
     },
     "button": {
-      "backwash": {"default": "mdi:waves-arrow-left"},
-      "escape": {"default": "mdi:reload-alert"},
-      "sync_time": {"default": "mdi:clock-check-outline"}
+      "backwash": { "default": "mdi:waves-arrow-left" },
+      "escape": { "default": "mdi:reload-alert" },
+      "sync_time": { "default": "mdi:clock-check-outline" }
     },
     "light": {
       "light": {
         "default": "mdi:lightbulb-off",
-        "state": {"off": "mdi:lightbulb-off", "on": "mdi:lightbulb-on"}
+        "state": { "off": "mdi:lightbulb-off", "on": "mdi:lightbulb-on" }
       }
     },
     "number": {
-      "cl1": {"default": "mdi:test-tube"},
-      "hidro": {"default": "mdi:air-humidifier"},
-      "hidro_cover_reduction": {"default": "mdi:pool"},
-      "hidro_shutdown_temperature": {"default": "mdi:thermometer-alert"},
-      "rx1": {"default": "mdi:gradient-vertical"},
-      "smart_temp_high": {"default": "mdi:thermometer-chevron-up"},
-      "smart_temp_low": {"default": "mdi:thermometer-chevron-down"}
+      "cl1": { "default": "mdi:test-tube" },
+      "hidro": { "default": "mdi:air-humidifier" },
+      "hidro_cover_reduction": { "default": "mdi:pool" },
+      "hidro_shutdown_temperature": { "default": "mdi:thermometer-alert" },
+      "rx1": { "default": "mdi:gradient-vertical" },
+      "smart_temp_high": { "default": "mdi:thermometer-chevron-up" },
+      "smart_temp_low": { "default": "mdi:thermometer-chevron-down" }
     },
     "select": {
-      "cell_boost": {"default": "mdi:flash-outline"},
-      "filt_mode": {"default": "mdi:water-sync"},
-      "filtration1_speed": {"default": "mdi:fan-speed-3"},
-      "filtration1_start": {"default": "mdi:clock-start"},
-      "filtration1_stop": {"default": "mdi:clock-end"},
-      "filtration2_speed": {"default": "mdi:fan-speed-3"},
-      "filtration2_start": {"default": "mdi:clock-start"},
-      "filtration2_stop": {"default": "mdi:clock-end"},
-      "filtration3_speed": {"default": "mdi:fan-speed-3"},
-      "filtration3_start": {"default": "mdi:clock-start"},
-      "filtration3_stop": {"default": "mdi:clock-end"},
-      "filtration_speed": {"default": "mdi:fan-speed-3"},
-      "filtvalve_mode": {"default": "mdi:valve"},
-      "filtvalve_period_minutes": {"default": "mdi:timer-refresh-outline"},
-      "intelligent_filt_min_time": {"default": "mdi:timer-lock-outline"},
-      "relay_activation_delay": {"default": "mdi:timer-plus-outline"},
-      "relay_aux1_mode": {"default": "mdi:speedometer-medium"},
-      "relay_aux1_period": {"default": "mdi:repeat-variant"},
-      "relay_aux1_start": {"default": "mdi:clock-start"},
-      "relay_aux1_stop": {"default": "mdi:clock-end"},
-      "relay_aux1b_period": {"default": "mdi:repeat-variant"},
-      "relay_aux1b_start": {"default": "mdi:clock-start"},
-      "relay_aux1b_stop": {"default": "mdi:clock-end"},
-      "relay_aux2_mode": {"default": "mdi:speedometer-medium"},
-      "relay_aux2_period": {"default": "mdi:repeat-variant"},
-      "relay_aux2_start": {"default": "mdi:clock-start"},
-      "relay_aux2_stop": {"default": "mdi:clock-end"},
-      "relay_aux2b_period": {"default": "mdi:repeat-variant"},
-      "relay_aux2b_start": {"default": "mdi:clock-start"},
-      "relay_aux2b_stop": {"default": "mdi:clock-end"},
-      "relay_aux3_mode": {"default": "mdi:speedometer-medium"},
-      "relay_aux3_period": {"default": "mdi:repeat-variant"},
-      "relay_aux3_start": {"default": "mdi:clock-start"},
-      "relay_aux3_stop": {"default": "mdi:clock-end"},
-      "relay_aux3b_period": {"default": "mdi:repeat-variant"},
-      "relay_aux3b_start": {"default": "mdi:clock-start"},
-      "relay_aux3b_stop": {"default": "mdi:clock-end"},
-      "relay_aux4_mode": {"default": "mdi:speedometer-medium"},
-      "relay_aux4_period": {"default": "mdi:repeat-variant"},
-      "relay_aux4_start": {"default": "mdi:clock-start"},
-      "relay_aux4_stop": {"default": "mdi:clock-end"},
-      "relay_aux4b_period": {"default": "mdi:repeat-variant"},
-      "relay_aux4b_start": {"default": "mdi:clock-start"},
-      "relay_aux4b_stop": {"default": "mdi:clock-end"},
-      "relay_light_mode": {"default": "mdi:speedometer-medium"},
-      "relay_light_period": {"default": "mdi:repeat-variant"},
-      "relay_light_start": {"default": "mdi:clock-start"},
-      "relay_light_stop": {"default": "mdi:clock-end"}
+      "cell_boost": { "default": "mdi:flash-outline" },
+      "filt_mode": { "default": "mdi:water-sync" },
+      "filtration1_speed": { "default": "mdi:fan-speed-3" },
+      "filtration1_start": { "default": "mdi:clock-start" },
+      "filtration1_stop": { "default": "mdi:clock-end" },
+      "filtration2_speed": { "default": "mdi:fan-speed-3" },
+      "filtration2_start": { "default": "mdi:clock-start" },
+      "filtration2_stop": { "default": "mdi:clock-end" },
+      "filtration3_speed": { "default": "mdi:fan-speed-3" },
+      "filtration3_start": { "default": "mdi:clock-start" },
+      "filtration3_stop": { "default": "mdi:clock-end" },
+      "filtration_speed": { "default": "mdi:fan-speed-3" },
+      "filtvalve_mode": { "default": "mdi:valve" },
+      "filtvalve_period_minutes": { "default": "mdi:timer-refresh-outline" },
+      "intelligent_filt_min_time": { "default": "mdi:timer-lock-outline" },
+      "relay_activation_delay": { "default": "mdi:timer-plus-outline" },
+      "relay_aux1_mode": { "default": "mdi:speedometer-medium" },
+      "relay_aux1_period": { "default": "mdi:repeat-variant" },
+      "relay_aux1_start": { "default": "mdi:clock-start" },
+      "relay_aux1_stop": { "default": "mdi:clock-end" },
+      "relay_aux1b_period": { "default": "mdi:repeat-variant" },
+      "relay_aux1b_start": { "default": "mdi:clock-start" },
+      "relay_aux1b_stop": { "default": "mdi:clock-end" },
+      "relay_aux2_mode": { "default": "mdi:speedometer-medium" },
+      "relay_aux2_period": { "default": "mdi:repeat-variant" },
+      "relay_aux2_start": { "default": "mdi:clock-start" },
+      "relay_aux2_stop": { "default": "mdi:clock-end" },
+      "relay_aux2b_period": { "default": "mdi:repeat-variant" },
+      "relay_aux2b_start": { "default": "mdi:clock-start" },
+      "relay_aux2b_stop": { "default": "mdi:clock-end" },
+      "relay_aux3_mode": { "default": "mdi:speedometer-medium" },
+      "relay_aux3_period": { "default": "mdi:repeat-variant" },
+      "relay_aux3_start": { "default": "mdi:clock-start" },
+      "relay_aux3_stop": { "default": "mdi:clock-end" },
+      "relay_aux3b_period": { "default": "mdi:repeat-variant" },
+      "relay_aux3b_start": { "default": "mdi:clock-start" },
+      "relay_aux3b_stop": { "default": "mdi:clock-end" },
+      "relay_aux4_mode": { "default": "mdi:speedometer-medium" },
+      "relay_aux4_period": { "default": "mdi:repeat-variant" },
+      "relay_aux4_start": { "default": "mdi:clock-start" },
+      "relay_aux4_stop": { "default": "mdi:clock-end" },
+      "relay_aux4b_period": { "default": "mdi:repeat-variant" },
+      "relay_aux4b_start": { "default": "mdi:clock-start" },
+      "relay_aux4b_stop": { "default": "mdi:clock-end" },
+      "relay_light_mode": { "default": "mdi:speedometer-medium" },
+      "relay_light_period": { "default": "mdi:repeat-variant" },
+      "relay_light_start": { "default": "mdi:clock-start" },
+      "relay_light_stop": { "default": "mdi:clock-end" }
     },
     "sensor": {
       "filt_mode": {
@@ -155,22 +167,24 @@
           "smart": "mdi:water-boiler-auto"
         }
       },
-      "filtration_remaining": {"default": "mdi:timer-sand"},
-      "filtration_speed": {"default": "mdi:fan"},
-      "filtvalve_remaining": {"default": "mdi:timer-sand"},
+      "filtration_remaining": { "default": "mdi:timer-sand" },
+      "filtration_speed": { "default": "mdi:fan" },
+      "filtvalve_remaining": { "default": "mdi:timer-sand" },
       "hidro_current": {
         "default": "mdi:air-humidifier-off",
-        "range": {"10": "mdi:air-humidifier"}
+        "range": { "10": "mdi:air-humidifier" }
       },
-      "hidro_polarity": {"default": "mdi:plus-minus-variant"},
-      "intelligent_intervals": {"default": "mdi:counter"},
-      "intelligent_tt_next_interval": {"default": "mdi:timeline-clock-outline"},
-      "ion_current": {"default": "mdi:atom"},
-      "ion_polarity": {"default": "mdi:plus-minus-variant"},
-      "measure_cl": {"default": "mdi:shaker-outline"},
-      "measure_ph": {"default": "mdi:ph"},
-      "measure_rx": {"default": "mdi:gradient-vertical"},
-      "ph_pump_status": {"default": "mdi:pump"},
+      "hidro_polarity": { "default": "mdi:plus-minus-variant" },
+      "intelligent_intervals": { "default": "mdi:counter" },
+      "intelligent_tt_next_interval": {
+        "default": "mdi:timeline-clock-outline"
+      },
+      "ion_current": { "default": "mdi:atom" },
+      "ion_polarity": { "default": "mdi:plus-minus-variant" },
+      "measure_cl": { "default": "mdi:shaker-outline" },
+      "measure_ph": { "default": "mdi:ph" },
+      "measure_rx": { "default": "mdi:gradient-vertical" },
+      "ph_pump_status": { "default": "mdi:pump" },
       "ph_status_alarm": {
         "default": "mdi:ph",
         "state": {
@@ -187,38 +201,50 @@
     "switch": {
       "aux1": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "aux2": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "aux3": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "aux4": {
         "default": "mdi:electric-switch",
-        "state": {"off": "mdi:electric-switch", "on": "mdi:electric-switch-closed"}
+        "state": {
+          "off": "mdi:electric-switch",
+          "on": "mdi:electric-switch-closed"
+        }
       },
       "clima_onoff": {
         "default": "mdi:hvac-off",
-        "state": {"off": "mdi:hvac-off", "on": "mdi:hvac"}
+        "state": { "off": "mdi:hvac-off", "on": "mdi:hvac" }
       },
-      "filt_manual_state": {"default": "mdi:pump"},
+      "filt_manual_state": { "default": "mdi:pump" },
       "hidro_cover_enable": {
         "default": "mdi:pool-thermometer",
-        "state": {"off": "mdi:pool-thermometer", "on": "mdi:pool"}
+        "state": { "off": "mdi:pool-thermometer", "on": "mdi:pool" }
       },
       "hidro_temp_shutdown": {
         "default": "mdi:thermometer-off",
-        "state": {"off": "mdi:thermometer-off", "on": "mdi:thermometer-alert"}
+        "state": { "off": "mdi:thermometer-off", "on": "mdi:thermometer-alert" }
       },
       "smart_anti_freeze": {
         "default": "mdi:snowflake-alert",
-        "state": {"off": "mdi:snowflake-alert", "on": "mdi:snowflake-melt"}
+        "state": { "off": "mdi:snowflake-alert", "on": "mdi:snowflake-melt" }
       },
-      "time_auto_sync": {"default": "mdi:home-clock-outline"},
+      "time_auto_sync": { "default": "mdi:home-clock-outline" },
       "uv_mode": {
         "default": "mdi:lightbulb-fluorescent-tube-outline",
         "state": {
@@ -228,13 +254,13 @@
       },
       "winter_mode": {
         "default": "mdi:weather-sunny",
-        "state": {"off": "mdi:weather-sunny", "on": "mdi:snowflake"}
+        "state": { "off": "mdi:weather-sunny", "on": "mdi:snowflake" }
       }
     }
   },
   "services": {
-    "read_register": {"service": "mdi:text-box-search"},
-    "set_timer": {"service": "mdi:timer-cog"},
-    "write_register": {"service": "mdi:pencil-box"}
+    "read_register": { "service": "mdi:text-box-search" },
+    "set_timer": { "service": "mdi:timer-cog" },
+    "write_register": { "service": "mdi:pencil-box" }
   }
 }

@@ -32,7 +32,6 @@ from neopool_modbus.registers import (
 
 from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_call_later
@@ -88,7 +87,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.entry = entry
         self.entry_id = entry_id
-        self.device_name = entry.data.get(CONF_NAME, DOMAIN)
+        # Use the entry title as the device label / slug source. Users can
+        # rename the entry from Settings → Devices & services to change this.
+        self.device_name = entry.title or DOMAIN
         self.auto_time_sync = self.entry.options.get("auto_time_sync", False)
         self.winter_mode = self.entry.options.get("winter_mode", False)
         # Capability snapshot: persisted in options so platform setup survives restarts
@@ -246,7 +247,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.warning("Failed to apply dev_overrides: %s", dev_err)
             return
         if not isinstance(overrides, dict):  # pragma: no cover
-            _LOGGER.warning("dev_overrides must be a JSON object (dict)")
+            _LOGGER.warning("Developer overrides must be a JSON object (dict)")
             return
         data.update(overrides)
         _LOGGER.debug("Applied dev overrides: %s", overrides)
@@ -290,7 +291,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Both changed this cycle; revert both to previous values
             _LOGGER.warning(
                 "Both heating and intelligent setpoints changed simultaneously "
-                "(heating: %s→%s, intelligent: %s→%s). Reverting both to previous values to prevent conflict.",
+                "(heating: %s→%s, intelligent: %s→%s). Reverting both to previous values to prevent conflict",
                 h_old,
                 heat,
                 i_old,
@@ -314,7 +315,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Neither changed but they differ: initial sync (heating wins)
             _LOGGER.info(
                 "Setpoints differ but neither changed (heating=%s, intelligent=%s). "
-                "Performing initial sync: setting intelligent to match heating.",
+                "Performing initial sync: setting intelligent to match heating",
                 heat,
                 intel,
             )
@@ -351,7 +352,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         next_interval = min(current_interval * 2, self.max_update_interval)
         if self.update_interval != next_interval:
             _LOGGER.warning(
-                "Increasing update interval to %s seconds due to communication errors.",
+                "Increasing update interval to %s seconds due to communication errors",
                 int(next_interval.total_seconds()),
             )
             self.update_interval = next_interval
@@ -368,14 +369,18 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data = await self.client.async_read_all()
         except (NeoPoolError, OSError, TimeoutError) as err:
             await self._handle_modbus_failure(err)
-            raise UpdateFailed(f"Modbus communication error: {err}") from err
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="modbus_communication_error",
+                translation_placeholders={"error": str(err)},
+            ) from err
 
         self._consecutive_errors = 0
 
         # Reset interval after success
         if self.update_interval != self.normal_update_interval:  # pragma: no cover
             _LOGGER.info(
-                "Communication OK, resetting update interval to %s seconds.",
+                "Communication OK, resetting update interval to %s seconds",
                 self.normal_update_interval.total_seconds(),
             )
             self.update_interval = self.normal_update_interval
@@ -398,7 +403,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
         if self.auto_time_sync and is_device_time_out_of_sync(data, self.hass):
-            _LOGGER.debug("Device time is out of sync, updating...")
+            _LOGGER.debug("Device time is out of sync, updating")
             await self.client.async_write_register(
                 0x0408, prepare_device_time(self.hass)
             )

@@ -76,8 +76,11 @@ def get_device_time(
     return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.UTC)
 
 
-# This function prepares the device time for writing to the device
-# It takes the current time in the local timezone and converts it to a format suitable for the device
+# This function prepares the device time for writing to the device.
+# The NeoPool controller stores time as a single 32-bit unix-style counter
+# but is timezone-naive — it just shows the value back through its display
+# as a wall-clock time. To get the display to match the user's local clock,
+# we anchor the "epoch" at 1970-01-01 in the user's timezone instead of UTC.
 def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
     """Prepare device time for writing to the device.
 
@@ -85,12 +88,15 @@ def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
     """
     if hass:
         ha_tz = dt_util.get_time_zone(hass.config.time_zone)
-        now_local = datetime.datetime.now(ha_tz)
-        # WORKAROUND: This is the naive datetime object, without timezone info
+        now_local = dt_util.now(ha_tz)
+        # The device displays this counter as a naive wall-clock time, so we
+        # measure seconds from a 1970 epoch anchored in the same local timezone
+        # as `now_local`. The subtraction cancels the timezone offset out and
+        # yields the local-clock seconds the device's display expects.
         epoch_local = datetime.datetime(1970, 1, 1, tzinfo=ha_tz)
         unix_time_local = int((now_local - epoch_local).total_seconds())
     else:  # pragma: no cover
-        unix_time_local = int(datetime.datetime.now().timestamp())
+        unix_time_local = int(dt_util.now().timestamp())
     low = unix_time_local & 0xFFFF
     high = (unix_time_local >> 16) & 0xFFFF
     return [low, high]
@@ -130,12 +136,12 @@ def calculate_next_interval_time(
     if hass:
         # Get current time in HA's local timezone
         ha_tz = dt_util.get_time_zone(hass.config.time_zone)
-        now_local = datetime.datetime.now(ha_tz)
+        now_local = dt_util.now(ha_tz)
         # Add seconds using timedelta
         target_time = now_local + datetime.timedelta(seconds=seconds)
     else:
         # Fallback to UTC if hass is not available
-        now_utc = datetime.datetime.now(datetime.UTC)
+        now_utc = dt_util.utcnow()
         target_time = now_utc + datetime.timedelta(seconds=seconds)
 
     # Round to nearest minute (set seconds and microseconds to 0)

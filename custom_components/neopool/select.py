@@ -29,7 +29,7 @@ from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
 from .const import (
@@ -100,7 +100,7 @@ def _should_skip_select(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up NeoPool select entities from a config entry."""
     coordinator = entry.runtime_data
@@ -132,9 +132,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         """Initialize the NeoPool select entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        self._attr_suggested_object_id = (
-            f"{self.coordinator.device_slug}_{NeoPoolEntity.slugify(self._key)}"
-        )
         # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
@@ -154,12 +151,15 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         ) or self._key.startswith("MBF_CELL_BOOST"):
             self._attr_entity_registry_enabled_default = False
 
+    async def async_added_to_hass(self) -> None:
+        """Run when the entity is added to hass."""
         _LOGGER.debug(
-            "INIT: suggested_object_id=%s, translation_key=%s, has_entity_name=%s",
-            self._attr_suggested_object_id,
+            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
+            self.entity_id,
             self._attr_translation_key,
             getattr(self, "has_entity_name", None),
         )
+        await super().async_added_to_hass()
 
     async def _select_mapped_register(self, client: Any, option: str) -> None:
         """Reverse-lookup the option label and write to a register.
@@ -337,7 +337,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers.")
+            _LOGGER.error("Modbus client not available for writing registers")
             return
         if self._select_type == "mapped_register":
             await self._select_mapped_register(client, option)
@@ -358,16 +358,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             await self._select_filtration_speed(client, option)
             return
         await self._select_default_register(client, option)
-
-    async def async_added_to_hass(self) -> None:
-        """Run when the entity is added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self._attr_translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-        await super().async_added_to_hass()
 
     @property
     def options(self) -> list[str]:

@@ -10,7 +10,6 @@
         "error": {
             "cannot_connect": "Impossibile connettersi",
             "cannot_read_modbus": "Connesso, ma impossibile leggere dal dispositivo Modbus. Verificare l'ID slave e le impostazioni del frame.",
-            "name_already_used": "Questo nome dispositivo è già in uso. Scegliere un nome diverso.",
             "serial_mismatch": "Il dispositivo a questo indirizzo ha un numero di serie diverso da quello configurato in origine."
         },
         "step": {
@@ -39,10 +38,8 @@
                     "filtration_pump_power": "Potenza della pompa di filtrazione (W, 0 = disabilitato)",
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
-                    "name": "Nome",
                     "name_default": "Piscina",
                     "port": "Porta",
-                    "scan_interval": "Intervallo aggiornamento dati (secondi)",
                     "slave_id": "Slave ID",
                     "use_cover_sensor": "Abilita sensore copertura piscina",
                     "use_filtration1": "Abilita il 1° timer di filtrazione per la modalità automatica",
@@ -54,9 +51,7 @@
                     "filtration_pump_power": "Specificare la potenza nominale della pompa di filtrazione. Con un valore diverso da zero vengono creati due sensori: potenza istantanea (W) ed energia cumulata (Wh), entrambi utilizzabili nel pannello energetico.",
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
                     "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
-                    "name": "Usato come prefisso per tutti gli ID entità. Gli spazi diventano trattini bassi, es. 'Piscina Ovest' → sensor.piscina_ovest_measure_ph.",
                     "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "scan_interval": "Quanto spesso l'integrazione legge i dati dal controller della piscina.",
                     "slave_id": "L'indirizzo Modbus slave del controller della piscina. La maggior parte delle configurazioni usa 1.",
                     "use_cover_sensor": "Crea un sensore binario che indica se la copertura della piscina è aperta o chiusa.",
                     "use_filtration1": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
@@ -748,6 +743,9 @@
         },
         "missing_parameter": {
             "message": "Parametro obbligatorio {parameter} mancante"
+        },
+        "modbus_communication_error": {
+            "message": "Si è verificato un errore durante la comunicazione con il controller NeoPool: {error}"
         },
         "no_coordinator": {
             "message": "Nessun coordinatore NeoPool trovato per entry_id {entry_id}"

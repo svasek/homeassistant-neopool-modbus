@@ -6,8 +6,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import DOMAIN
-from homeassistant.components.button import SERVICE_PRESS
-from homeassistant.const import Platform
+from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
@@ -31,7 +30,7 @@ def _button_entity_id(
 
 async def _press(hass: HomeAssistant, entity_id: str) -> None:
     await hass.services.async_call(
-        Platform.BUTTON,
+        BUTTON_DOMAIN,
         SERVICE_PRESS,
         {"entity_id": entity_id},
         blocking=True,

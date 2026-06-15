@@ -10,8 +10,11 @@ from neopool_modbus.registers import (
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from homeassistant.components.number import ATTR_VALUE, SERVICE_SET_VALUE
-from homeassistant.const import Platform
+from homeassistant.components.number import (
+    ATTR_VALUE,
+    DOMAIN as NUMBER_DOMAIN,
+    SERVICE_SET_VALUE,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
@@ -40,7 +43,7 @@ def _number_entity_id(
 
 async def _set_value(hass: HomeAssistant, entity_id: str, value: float) -> None:
     await hass.services.async_call(
-        Platform.NUMBER,
+        NUMBER_DOMAIN,
         SERVICE_SET_VALUE,
         {"entity_id": entity_id, ATTR_VALUE: value},
         blocking=True,

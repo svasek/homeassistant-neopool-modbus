@@ -10,6 +10,7 @@ from neopool_modbus.registers import (
     INTELLIGENT_SETPOINT_REGISTER,
     MAX_RELAY_GPIO,
 )
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
@@ -235,7 +236,7 @@ async def test_dev_overrides_applied_when_enabled(
 async def test_dev_overrides_invalid_json_ignored(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Malformed dev_overrides JSON logs a warning but does not crash setup."""
     entry = MockConfigEntry(
