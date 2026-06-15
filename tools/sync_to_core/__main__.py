@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Iterable
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -310,6 +311,87 @@ def _run_ruff_format(*, quiet: bool) -> None:
         print(f"  (ruff exited with {exc.returncode} — see output above)")
 
 
+def _run_prettier_check(*, core_repo: Path, quiet: bool) -> None:
+    """Verify dist JSON files match HA core's prettier formatting.
+
+    Core's prettier setup uses ``prettier-plugin-sort-json`` to enforce
+    recursive numeric key sorting (with ``domain``/``name`` pinned to the
+    top in ``manifest.json``). Our in-house :mod:`json_format` module
+    produces inline-when-fits output that empirically matches today, but
+    it does not sort keys — so a hand-edited custom JSON with an
+    out-of-order key would silently slip through and only fail in core
+    CI. This step catches that drift at sync time.
+
+    Runs ``npx --no-install prettier --config <core>/.prettierrc.js
+    --check <dist>/...*.json`` against the produced dist tree, using the
+    plugin from the core fork's own ``node_modules`` (this repo
+    deliberately stays Node.js-free). Skips ``translations/en.json`` —
+    core's ``.prettierignore`` excludes the whole
+    ``homeassistant/components/*/translations/*.json`` glob, so checking
+    it would just spam a "matched no files" warning.
+
+    On drift, prints an actionable hint to run ``prettier --write`` in
+    the core fork after rsyncing — fixing dist/ in place is theatre,
+    since the user still has to copy it into the core fork where the
+    plugin lives.
+
+    Silently skips when ``npx`` isn't on PATH or the resolved core repo
+    doesn't have a ``.prettierrc.js`` — same convention as
+    :func:`_run_ruff_format` (best-effort, not a hard dependency).
+    """
+    if not DIST_ROOT.exists():
+        return
+    prettierrc = core_repo / ".prettierrc.js"
+    if not prettierrc.is_file():
+        print(f"  (no .prettierrc.js at {core_repo} — skipping prettier check)")
+        return
+    targets = [
+        DEST_INTEGRATION / "manifest.json",
+        DEST_INTEGRATION / "strings.json",
+        DEST_INTEGRATION / "icons.json",
+    ]
+    missing = [str(t) for t in targets if not t.is_file()]
+    if missing:  # pragma: no cover - defensive; sync always writes these
+        print(f"  (prettier check: missing dist JSONs: {', '.join(missing)})")
+        return
+
+    stdout = subprocess.DEVNULL if quiet else None
+    stderr = subprocess.DEVNULL if quiet else None
+    try:
+        result = subprocess.run(
+            [
+                "npx",
+                "--no-install",
+                "prettier",
+                "--config",
+                str(prettierrc),
+                "--check",
+                *(str(t) for t in targets),
+            ],
+            check=False,
+            stdout=stdout,
+            stderr=stderr,
+            cwd=core_repo,
+        )
+    except FileNotFoundError:
+        print("  (npx not on PATH — skipping prettier check)")
+        return
+    if result.returncode == 0:
+        print("  prettier check (core config):  clean")
+    else:
+        print(
+            f"  prettier check (core config):  drift detected "
+            f"(exit {result.returncode})"
+        )
+        print(
+            "    after rsyncing into the core fork, run:\n"
+            f"      cd {core_repo} && npx prettier --write \\\n"
+            "        homeassistant/components/neopool/manifest.json \\\n"
+            "        homeassistant/components/neopool/strings.json \\\n"
+            "        homeassistant/components/neopool/icons.json"
+        )
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -388,6 +470,29 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_false",
         help="Skip the ruff format pass.",
     )
+    parser.add_argument(
+        "--prettier-check",
+        dest="prettier_check",
+        action="store_true",
+        default=False,
+        help=(
+            "Verify dist JSONs match HA core's prettier formatting. "
+            "Requires `npx` on PATH and a core fork via --core-repo or "
+            "the HA_CORE_REPO env var. Default: off (opt-in)."
+        ),
+    )
+    parser.add_argument(
+        "--core-repo",
+        dest="core_repo",
+        type=Path,
+        default=None,
+        help=(
+            "Path to a HA core fork checkout (used by --prettier-check "
+            "to locate .prettierrc.js and the prettier-plugin-sort-json "
+            "plugin in node_modules). Falls back to the HA_CORE_REPO "
+            "env var when omitted."
+        ),
+    )
     return parser
 
 
@@ -409,6 +514,19 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.format_dist:
         _run_ruff_format(quiet=True)
+    if args.prettier_check:
+        # CLI flag wins over env var when both are set; falls through to
+        # an early skip if neither is provided.
+        core_repo_arg = args.core_repo or (
+            Path(os.environ["HA_CORE_REPO"]) if os.environ.get("HA_CORE_REPO") else None
+        )
+        if core_repo_arg is None:
+            print(
+                "  (--prettier-check needs --core-repo or HA_CORE_REPO env "
+                "var — skipping)"
+            )
+        else:
+            _run_prettier_check(core_repo=core_repo_arg.resolve(), quiet=True)
     print("done.")
     return 0
 
