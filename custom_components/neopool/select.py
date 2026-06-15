@@ -107,10 +107,6 @@ async def async_setup_entry(
     entry_id = entry.entry_id
     entities = []
 
-    if coordinator.data is None:
-        _LOGGER.warning("No data from Modbus, skipping select setup!")
-        return
-
     for key, props in SELECT_DEFINITIONS.items():
         if _should_skip_select(key, props, coordinator.data, entry.options):
             continue
@@ -137,7 +133,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
-        self._options_map = dict(props.get("options_map") or {})
+        self._options_map: dict[int, str] = dict(props.get("options_map") or {})
         self._attr_entity_category = props.get("entity_category") or None
         self._select_type = props.get("select_type") or None
         self._register = props.get("register") or None
@@ -180,8 +176,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         await client.async_write_register(self._register, max(0, write_val))
         await asyncio.sleep(0.2)
         self._optimistic_update(value)
-        if self.coordinator.data is not None:
-            self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
     async def _select_timer_time(self, option: str) -> None:
@@ -245,8 +240,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             },
         )
         self._optimistic_update(value)
-        if self.coordinator.data is not None:
-            self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.async_set_updated_data(self.coordinator.data)
 
     async def _select_cell_boost(self, client: Any, option: str) -> None:
         """Encode the cell boost mode into the composite cell-status register."""
@@ -306,7 +300,11 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             return
         if self._key == "MBF_PAR_FILT_MODE":
             current_mode = self.coordinator.data.get(self._key)
-            current_name = self._options_map.get(current_mode)
+            current_name = (
+                self._options_map.get(int(current_mode))
+                if current_mode is not None
+                else None
+            )
             has_auto_valve = has_filtvalve(self.coordinator.data)
             # When leaving manual mode, stop the pump first - EXCEPT when
             # switching to backwash on a device WITH an automatic valve (Besgo).
@@ -324,8 +322,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                 NeoPoolEntity.slugify(self.coordinator.device_name),
             )
         self._optimistic_update(value)
-        if self.coordinator.data is not None:
-            self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
     async def async_select_option(self, option: str) -> None:
@@ -469,9 +466,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
     def _optimistic_update(self, value: int | None) -> None:
         """Apply an optimistic state update to coordinator data."""
-        data = self.coordinator.data
-        if data is None or value is None:  # pragma: no cover
+        if value is None:  # pragma: no cover
             return
+        data = self.coordinator.data
         if self._select_type == "relay_mode":
             timer_field = self._props.get("timer_field", "enable")
             timer_name = self._key.rsplit("_", 1)[0]
@@ -509,7 +506,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                 return None
             if self._attr_mask is None or self._attr_shift is None:  # pragma: no cover
                 return None
-            value = (raw & self._attr_mask) >> self._attr_shift
+            value = (int(raw) & self._attr_mask) >> self._attr_shift
             return self._options_map.get(value)
 
         if self._select_type == "timer_period":
@@ -526,7 +523,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                 return "disabled"
             if value == 2:  # pragma: no cover
                 return "auto_linked"
-            return self._options_map.get(value)  # pragma: no cover
+            if value is None:  # pragma: no cover
+                return None
+            return self._options_map.get(int(value))  # pragma: no cover
 
         # Mapped register selects: return label from options_map or raw fallback
         if self._select_type == "mapped_register":
@@ -538,7 +537,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
         if self._key == "MBF_PAR_FILTVALVE_MODE":
             value = self.coordinator.data.get(self._key)
-            return self._options_map.get(value)
+            if value is None:
+                return None
+            return self._options_map.get(int(value))
 
         value = self.coordinator.data.get(self._key)
         if value is None:  # pragma: no cover
@@ -554,5 +555,5 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if self._key == "MBF_PAR_FILTRATION_SPEED":
             if not super().available:
                 return False
-            return self.coordinator.data.get("MBF_PAR_FILT_MODE", 0) == 0
+            return bool(self.coordinator.data.get("MBF_PAR_FILT_MODE", 0) == 0)
         return super().available

@@ -52,7 +52,7 @@ def combine_u32(data: dict[str, Any], low_key: str, high_key: str) -> int | None
     high = data.get(high_key)
     if low is None or high is None:
         return None
-    return (high << 16) | low
+    return (int(high) << 16) | int(low)
 
 
 # This function takes a dictionary of data and returns the device time as a datetime object
