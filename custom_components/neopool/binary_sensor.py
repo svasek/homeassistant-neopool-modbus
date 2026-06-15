@@ -153,10 +153,6 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities = []
 
-    if coordinator.data is None:
-        _LOGGER.warning("No data from Modbus, skipping binary_sensor setup!")
-        return
-
     for key, props in BINARY_SENSOR_DEFINITIONS.items():
         if _should_skip_binary_sensor(key, props, coordinator.data, entry.options):
             continue

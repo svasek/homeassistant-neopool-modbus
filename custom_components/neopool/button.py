@@ -49,10 +49,6 @@ async def async_setup_entry(
 
     entities = []
 
-    if coordinator.data is None:
-        _LOGGER.warning("No data from Modbus, skipping button setup!")
-        return
-
     for key, props in BUTTON_DEFINITIONS.items():
         # BACKWASH button is only available when a Besgo filter valve is configured
         if key == "BACKWASH" and not has_filtvalve(coordinator.data):

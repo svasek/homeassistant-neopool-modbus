@@ -88,10 +88,6 @@ async def async_setup_entry(
 
     entities = []
 
-    if coordinator.data is None:
-        _LOGGER.warning("No data from Modbus, skipping switch setup!")
-        return
-
     for key, props in SWITCH_DEFINITIONS.items():
         if _should_skip_switch(key, props, coordinator.data, entry.options):
             continue
@@ -210,8 +206,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         # Optimistic update + schedule follow-up for IO switch types
         if self._switch_type not in ("auto_time_sync", "winter_mode"):
             self._optimistic_update(True)
-            if self.coordinator.data is not None:
-                self.coordinator.async_set_updated_data(self.coordinator.data)
+            self.coordinator.async_set_updated_data(self.coordinator.data)
             self.coordinator.request_refresh_with_followup()
         else:
             await self.coordinator.async_request_refresh()
@@ -282,8 +277,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         # Optimistic update + schedule follow-up for IO switch types
         if self._switch_type not in ("auto_time_sync", "winter_mode"):
             self._optimistic_update(False)
-            if self.coordinator.data is not None:
-                self.coordinator.async_set_updated_data(self.coordinator.data)
+            self.coordinator.async_set_updated_data(self.coordinator.data)
             self.coordinator.request_refresh_with_followup()
         else:
             await self.coordinator.async_request_refresh()
@@ -302,8 +296,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     def _optimistic_update(self, state: bool) -> None:
         """Apply an optimistic state update to coordinator data."""
         data = self.coordinator.data
-        if data is None:  # pragma: no cover
-            return
         if self._switch_type == "manual_filtration":
             data["MBF_PAR_FILT_MANUAL_STATE"] = 1 if state else 0
         elif self._switch_type == "aux":  # pragma: no cover
