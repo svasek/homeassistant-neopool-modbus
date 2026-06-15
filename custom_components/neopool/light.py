@@ -44,10 +44,6 @@ async def async_setup_entry(
 
     entities = []
 
-    if coordinator.data is None:
-        _LOGGER.warning("No data from Modbus, skipping light setup!")
-        return
-
     for key, props in LIGHT_DEFINITIONS.items():
         # Only create light if enabled in options
         option_key = props.get("option")
@@ -134,8 +130,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
 
         # Optimistic update + schedule follow-up
         self._optimistic_update(True)
-        if self.coordinator.data is not None:
-            self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -163,15 +158,12 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
 
         # Optimistic update + schedule follow-up
         self._optimistic_update(False)
-        if self.coordinator.data is not None:
-            self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
     def _optimistic_update(self, state: bool) -> None:
         """Apply an optimistic state update to coordinator data."""
         data = self.coordinator.data
-        if data is None:  # pragma: no cover
-            return
         if self._switch_type == "relay_timer":
             data["relay_light_enable"] = 3 if state else 4
 

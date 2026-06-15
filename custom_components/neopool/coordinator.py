@@ -423,7 +423,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._persist_capability_snapshot(data)
         return data
 
-    async def set_auto_time_sync(self, enabled: bool):
+    async def set_auto_time_sync(self, enabled: bool) -> None:
         """Persist the auto_time_sync flag and refresh the entry options."""
         self.auto_time_sync = enabled
         # Update the entry options to reflect the change
@@ -434,7 +434,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         options["auto_time_sync"] = enabled
         self.hass.config_entries.async_update_entry(self.entry, options=options)
 
-    async def set_winter_mode(self, enabled: bool):
+    async def set_winter_mode(self, enabled: bool) -> None:
         """Toggle winter mode and persist the capability snapshot."""
         self.winter_mode = enabled
         options = dict(self.entry.options)

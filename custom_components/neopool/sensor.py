@@ -140,10 +140,6 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities: list[SensorEntity] = []
 
-    if coordinator.data is None:
-        _LOGGER.warning("No data from Modbus, skipping sensor setup!")
-        return
-
     options = dict(entry.options)
     for key, props in SENSOR_DEFINITIONS.items():
         if _should_skip_sensor(key, coordinator.data, options):

@@ -115,10 +115,6 @@ async def async_setup_entry(
 
     entities = []
 
-    if coordinator.data is None:
-        _LOGGER.warning("No data from Modbus, skipping number setup!")
-        return
-
     for key, props in NUMBER_DEFINITIONS.items():
         if _should_skip_number(key, props, coordinator.data, entry.options):
             continue
@@ -266,10 +262,10 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         if (
             self.suggested_display_precision == 0 and raw is not None
         ):  # pragma: no cover
-            return round(raw)
+            return float(round(raw))
         if raw is None:
             return self._attr_native_value  # fallback if coordinator is not updated yet
-        return round(raw, 2)
+        return round(float(raw), 2)
 
     # Property to set correct native value for hydrolysis
     @property
@@ -287,7 +283,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         if self._key == "MBF_PAR_HIDRO":
             hidro_nom = self.coordinator.data.get("MBF_PAR_HIDRO_NOM")
             if hidro_nom is not None:
-                return hidro_nom
+                return float(hidro_nom)
         return self._attr_native_max_value
 
     @property
