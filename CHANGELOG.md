@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.1.2](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.1.1...v4.1.2) (2026-06-15)
+
+
+### 🐛 Bug Fixes
+
+* 🐛 align with HA core pylint rules + RestoreSensor + i18n ([#185](https://github.com/svasek/homeassistant-neopool-modbus/issues/185)) ([cbb1bfb](https://github.com/svasek/homeassistant-neopool-modbus/commit/cbb1bfbcd162e6138ca6b192679daac7d5a85901))
+
+
+### ♻️ Refactoring
+
+* ♻️ tighten typing for HA core mypy strict (platinum tier) ([#187](https://github.com/svasek/homeassistant-neopool-modbus/issues/187)) ([8a76be0](https://github.com/svasek/homeassistant-neopool-modbus/commit/8a76be04f57e3c782c66c2c9754d13aca0c54e1b))
+
 ## [4.1.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.1.0...v4.1.1) (2026-06-14)
 
 
