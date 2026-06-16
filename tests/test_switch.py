@@ -136,7 +136,7 @@ async def test_io_switch_blocked_in_winter_mode(
             "host": "192.0.2.7",
             "port": 502,
             "name": "Winter Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             "modbus_framer": "tcp",
         },
         options={

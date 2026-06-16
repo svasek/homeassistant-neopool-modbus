@@ -32,7 +32,7 @@ from .const import (
     CONF_FILTRATION_PUMP_POWER,
     CURRENT_VERSION,
     DEFAULT_PORT,
-    DEFAULT_SLAVE_ID,
+    DEFAULT_UNIT_ID,
     DOMAIN,
     NAME,
 )
@@ -116,7 +116,7 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             {
                 vol.Required(CONF_HOST): str,
                 vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
-                vol.Optional("slave_id", default=DEFAULT_SLAVE_ID): int,
+                vol.Optional("unit_id", default=DEFAULT_UNIT_ID): int,
                 vol.Optional(
                     "modbus_framer",
                     default=DEFAULT_MODBUS_FRAMER,
@@ -236,7 +236,10 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)
                 ): int,
                 vol.Optional(
-                    "slave_id", default=current.get("slave_id", DEFAULT_SLAVE_ID)
+                    "unit_id",
+                    default=current.get(
+                        "unit_id", current.get("slave_id", DEFAULT_UNIT_ID)
+                    ),
                 ): int,
                 vol.Optional(
                     "modbus_framer",

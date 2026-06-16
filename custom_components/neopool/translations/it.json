@@ -9,12 +9,12 @@
         },
         "error": {
             "cannot_connect": "Impossibile connettersi",
-            "cannot_read_modbus": "Connesso, ma impossibile leggere dal dispositivo Modbus. Verificare l'ID slave e le impostazioni del frame.",
+            "cannot_read_modbus": "Connesso, ma impossibile leggere dal dispositivo Modbus. Verificare l'ID unità e le impostazioni del frame.",
             "serial_mismatch": "Il dispositivo a questo indirizzo ha un numero di serie diverso da quello configurato in origine."
         },
         "step": {
             "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
                 "title": "Import from existing VistaPool integration"
             },
             "reconfigure": {
@@ -22,13 +22,13 @@
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
                     "port": "Porta",
-                    "slave_id": "Slave ID"
+                    "unit_id": "Unit ID"
                 },
                 "data_description": {
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
                     "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
                     "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "slave_id": "L'indirizzo Modbus slave del controller della piscina. La maggior parte delle configurazioni usa 1."
+                    "unit_id": "L'ID unità (server) Modbus del controller della piscina. La maggior parte delle configurazioni usa 1."
                 },
                 "description": "Aggiorna le impostazioni di connessione al tuo controller NeoPool.",
                 "title": "Riconfigura connessione NeoPool"
@@ -40,7 +40,7 @@
                     "modbus_framer": "Framer Modbus",
                     "name_default": "Piscina",
                     "port": "Porta",
-                    "slave_id": "Slave ID",
+                    "unit_id": "Unit ID",
                     "use_cover_sensor": "Abilita sensore copertura piscina",
                     "use_filtration1": "Abilita il 1° timer di filtrazione per la modalità automatica",
                     "use_filtration2": "Abilita il 2° timer di filtrazione per la modalità automatica",
@@ -52,7 +52,7 @@
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
                     "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
                     "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "slave_id": "L'indirizzo Modbus slave del controller della piscina. La maggior parte delle configurazioni usa 1.",
+                    "unit_id": "L'ID unità (server) Modbus del controller della piscina. La maggior parte delle configurazioni usa 1.",
                     "use_cover_sensor": "Crea un sensore binario che indica se la copertura della piscina è aperta o chiusa.",
                     "use_filtration1": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
                     "use_filtration2": "Crea entità timer per configurare la programmazione automatica della filtrazione.",

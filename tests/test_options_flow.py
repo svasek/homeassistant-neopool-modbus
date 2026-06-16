@@ -194,7 +194,7 @@ async def test_options_flow_init_form_when_backwash_already_enabled(
             "host": "192.0.2.20",
             "port": 502,
             "name": "Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             "modbus_framer": "tcp",
         },
         options={

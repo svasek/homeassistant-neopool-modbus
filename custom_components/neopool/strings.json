@@ -7,7 +7,7 @@
     },
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check slave ID and framer settings.",
+      "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check unit ID and framer settings.",
       "serial_mismatch": "The device at this address has a different serial number than the one originally configured."
     },
     "step": {
@@ -16,13 +16,13 @@
           "host": "[%key:common::config_flow::data::host%]",
           "modbus_framer": "[%key:component::neopool::config::step::user::data::modbus_framer%]",
           "port": "[%key:common::config_flow::data::port%]",
-          "slave_id": "[%key:component::neopool::config::step::user::data::slave_id%]"
+          "unit_id": "[%key:component::neopool::config::step::user::data::unit_id%]"
         },
         "data_description": {
           "host": "[%key:component::neopool::config::step::user::data_description::host%]",
           "modbus_framer": "[%key:component::neopool::config::step::user::data_description::modbus_framer%]",
           "port": "[%key:component::neopool::config::step::user::data_description::port%]",
-          "slave_id": "[%key:component::neopool::config::step::user::data_description::slave_id%]"
+          "unit_id": "[%key:component::neopool::config::step::user::data_description::unit_id%]"
         },
         "description": "Update the connection settings for your NeoPool controller.",
         "title": "Reconfigure NeoPool Connection"
@@ -34,7 +34,7 @@
           "modbus_framer": "Modbus framer",
           "name_default": "Pool",
           "port": "[%key:common::config_flow::data::port%]",
-          "slave_id": "Slave ID",
+          "unit_id": "Unit ID",
           "use_cover_sensor": "Enable Pool Cover Sensor",
           "use_filtration1": "Enable 1st filtration timer for automatic mode",
           "use_filtration2": "Enable 2nd filtration timer for automatic mode",
@@ -46,7 +46,7 @@
           "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
           "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
           "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
-          "slave_id": "The Modbus slave address of the pool controller. Most setups use 1.",
+          "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1.",
           "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed.",
           "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
           "use_filtration2": "[%key:component::neopool::config::step::user::data_description::use_filtration1%]",

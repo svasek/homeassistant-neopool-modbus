@@ -43,7 +43,7 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     hass.config_entries.async_entries.return_value = []
 
@@ -134,7 +134,7 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     with patch(
         "custom_components.neopool.migration.async_get_device_serial",
@@ -164,7 +164,7 @@ async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
     config_entry.unique_id = "neopool_AABBCCDD11223344EEFF0011"
     config_entry.version = 3
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     result = await async_migrate_entry(hass, config_entry)
 
@@ -192,7 +192,7 @@ async def test_async_migrate_entry_already_at_current_version_is_noop() -> None:
     config_entry.unique_id = "neopool_AABBCCDD11223344EEFF0011"
     config_entry.version = 4
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     result = await async_migrate_entry(hass, config_entry)
 
@@ -209,7 +209,7 @@ async def test_async_migrate_entry_v1_to_v2_duplicate_detected() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     existing_entry = MagicMock()
     existing_entry.entry_id = "entry_bbb"
@@ -235,7 +235,7 @@ async def test_async_migrate_entry_entity_update_error() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     hass.config_entries.async_entries.return_value = []
 
@@ -299,7 +299,7 @@ async def test_async_migrate_entry_rollback_also_fails() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     hass.config_entries.async_entries.return_value = []
 
@@ -366,7 +366,7 @@ async def test_legacy_data_to_options_migration(
             "host": "192.0.2.40",
             "port": 502,
             "name": "Legacy Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             # Old-style: framer + use_* sat in data
             "modbus_framer": "tcp",
             "use_filtration1": True,

@@ -184,7 +184,7 @@ async def test_reconfigure_flow_happy_path(
         {
             CONF_HOST: "192.0.2.50",
             CONF_PORT: 1502,
-            "slave_id": 2,
+            "unit_id": 2,
             "modbus_framer": "tcp",
         },
     )
@@ -219,7 +219,7 @@ async def test_reconfigure_flow_cannot_connect(
             {
                 CONF_HOST: "192.0.2.99",
                 CONF_PORT: 502,
-                "slave_id": 1,
+                "unit_id": 1,
                 "modbus_framer": "tcp",
             },
         )
@@ -248,7 +248,7 @@ async def test_reconfigure_flow_serial_mismatch(
             {
                 CONF_HOST: "192.0.2.50",
                 CONF_PORT: 502,
-                "slave_id": 1,
+                "unit_id": 1,
                 "modbus_framer": "tcp",
             },
         )
@@ -276,7 +276,7 @@ async def test_reconfigure_flow_cannot_read_modbus(
             {
                 CONF_HOST: "192.0.2.50",
                 CONF_PORT: 502,
-                "slave_id": 1,
+                "unit_id": 1,
                 "modbus_framer": "tcp",
             },
         )
