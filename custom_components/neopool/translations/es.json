@@ -9,12 +9,12 @@
         },
         "error": {
             "cannot_connect": "Error al conectar",
-            "cannot_read_modbus": "Conectado, pero no se puede leer del dispositivo Modbus. Verifique el ID de esclavo y la configuración del marco.",
+            "cannot_read_modbus": "Conectado, pero no se puede leer del dispositivo Modbus. Verifique el ID de unidad y la configuración del marco.",
             "serial_mismatch": "El dispositivo en esta dirección tiene un número de serie diferente al configurado originalmente."
         },
         "step": {
             "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
                 "title": "Import from existing VistaPool integration"
             },
             "reconfigure": {
@@ -22,13 +22,13 @@
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
                     "port": "Puerto",
-                    "slave_id": "Slave ID"
+                    "unit_id": "Unit ID"
                 },
                 "data_description": {
                     "host": "Introduzca la dirección IP de la pasarela Modbus TCP conectada a su controlador de piscina.",
                     "modbus_framer": "Seleccione 'tcp' para pasarelas que convierten entre TCP y RTU. Seleccione 'rtu' para pasarelas transparentes que reenvían tramas RTU sin procesar por TCP.",
                     "port": "Puerto estándar de Modbus TCP. Cámbielo solo si su pasarela usa un puerto no estándar (por defecto: 502).",
-                    "slave_id": "La dirección Modbus esclava del controlador de piscina. La mayoría de las configuraciones usan 1."
+                    "unit_id": "El ID de unidad (servidor) Modbus del controlador de piscina. La mayoría de las configuraciones usan 1."
                 },
                 "description": "Actualiza la configuración de conexión a tu controlador NeoPool.",
                 "title": "Reconfigurar conexión NeoPool"
@@ -40,7 +40,7 @@
                     "modbus_framer": "Framer Modbus",
                     "name_default": "Piscina",
                     "port": "Puerto",
-                    "slave_id": "Slave ID",
+                    "unit_id": "Unit ID",
                     "use_cover_sensor": "Activar sensor de cubierta de piscina",
                     "use_filtration1": "Activar el 1º temporizador de filtración para modo automático",
                     "use_filtration2": "Activar el 2º temporizador de filtración para modo automático",
@@ -52,7 +52,7 @@
                     "host": "Introduzca la dirección IP de la pasarela Modbus TCP conectada a su controlador de piscina.",
                     "modbus_framer": "Seleccione 'tcp' para pasarelas que convierten entre TCP y RTU. Seleccione 'rtu' para pasarelas transparentes que reenvían tramas RTU sin procesar por TCP.",
                     "port": "Puerto estándar de Modbus TCP. Cámbielo solo si su pasarela usa un puerto no estándar (por defecto: 502).",
-                    "slave_id": "La dirección Modbus esclava del controlador de piscina. La mayoría de las configuraciones usan 1.",
+                    "unit_id": "El ID de unidad (servidor) Modbus del controlador de piscina. La mayoría de las configuraciones usan 1.",
                     "use_cover_sensor": "Crea un sensor binario que indica si la cubierta de la piscina está abierta o cerrada.",
                     "use_filtration1": "Crea entidades de temporizador para configurar el horario automático de filtración.",
                     "use_filtration2": "Crea entidades de temporizador para configurar el horario automático de filtración.",

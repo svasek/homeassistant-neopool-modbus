@@ -9,12 +9,12 @@
         },
         "error": {
             "cannot_connect": "Nepodařilo se připojit",
-            "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte slave ID a nastavení rámce.",
+            "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte unit ID a nastavení rámce.",
             "serial_mismatch": "Zařízení na této adrese má jiné sériové číslo než původně nakonfigurované."
         },
         "step": {
             "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
                 "title": "Import from existing VistaPool integration"
             },
             "reconfigure": {
@@ -22,13 +22,13 @@
                     "host": "Hostitel",
                     "modbus_framer": "Modbus rámec",
                     "port": "Port",
-                    "slave_id": "Slave ID"
+                    "unit_id": "Unit ID"
                 },
                 "data_description": {
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "slave_id": "Modbus slave adresa řadiče bazénu. Většina zařízení používá 1."
+                    "unit_id": "Modbus unit (server) ID řadiče bazénu. Většina zařízení používá 1."
                 },
                 "description": "Aktualizujte nastavení připojení k vašemu řadiči NeoPool.",
                 "title": "Překonfigurovat připojení NeoPool"
@@ -40,7 +40,7 @@
                     "modbus_framer": "Modbus rámec",
                     "name_default": "Bazén",
                     "port": "Port",
-                    "slave_id": "Slave ID",
+                    "unit_id": "Unit ID",
                     "use_cover_sensor": "Povolit senzor zakrytí bazénu",
                     "use_filtration1": "Povolit 1. časovač filtrace pro automatický režim",
                     "use_filtration2": "Povolit 2. časovač filtrace pro automatický režim",
@@ -52,7 +52,7 @@
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "slave_id": "Modbus slave adresa řadiče bazénu. Většina zařízení používá 1.",
+                    "unit_id": "Modbus unit (server) ID řadiče bazénu. Většina zařízení používá 1.",
                     "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý.",
                     "use_filtration1": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
                     "use_filtration2": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",

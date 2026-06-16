@@ -206,7 +206,9 @@ async def async_get_device_serial(
     a missing serial is an expected outcome rather than an error.
 
     Args:
-        config: Configuration dict with host, port, slave_id, modbus_framer.
+        config: Configuration dict with host, port, unit_id, modbus_framer.
+            The legacy ``slave_id`` key is still accepted as a fallback when
+            ``unit_id`` is not present.
         timeout: Timeout in seconds for the Modbus probe (connect + read).
 
     Returns:
@@ -216,14 +218,14 @@ async def async_get_device_serial(
     """
     host = config.get(CONF_HOST, "")
     port = config.get(CONF_PORT, 502)
-    slave_id = config.get("slave_id", 1)
+    unit_id = config.get("unit_id", config.get("slave_id", 1))
     framer = config.get("modbus_framer", DEFAULT_MODBUS_FRAMER)
 
     try:
         return await async_probe_serial(
             host,
             port=port,
-            slave_id=slave_id,
+            unit_id=unit_id,
             framer=framer,
             timeout=timeout,
         )

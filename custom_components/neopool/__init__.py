@@ -80,7 +80,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
     # the core integration writes options correctly from day one.
     # --- MIGRATE CONFIG FLOW DATA TO OPTIONS IF NEEDED ---
     # Copy all keys except connection settings from data to options
-    connection_keys = [CONF_HOST, CONF_PORT, CONF_NAME, "slave_id"]
+    connection_keys = [CONF_HOST, CONF_PORT, CONF_NAME, "unit_id", "slave_id"]
     candidate_keys = [k for k in entry.data if k not in connection_keys]
     if not entry.options or not any(k in entry.options for k in candidate_keys):
         new_options = {k: entry.data[k] for k in candidate_keys}

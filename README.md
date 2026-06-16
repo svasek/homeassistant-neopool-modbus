@@ -81,7 +81,7 @@ If you find this integration useful, consider supporting its development:
     5 |*__|– GND
   ```
 
-- **The NeoPool device acts as a Modbus _server_ (slave), this integration is a Modbus _client_ (master).**
+- **The NeoPool device acts as a Modbus _server_, this integration is a Modbus _client_.**
 - **Only one Modbus client can be connected to a Modbus connector with the same label**. It is not possible to operate multiple clients on connectors that share the same name.
 - **Modbus connectors with different labels represent independent physical interfaces.** Data traffic on one connector is **not visible** on others.
 - The **DISPLAY** connector is present **twice** and is usually used by the built-in LCD.
@@ -152,7 +152,7 @@ Or add manually:
   _(e.g., entering “Pool West” becomes `pool_west`, and your entity will be `sensor.pool_west_measure_ph`)_.
 - **Host**: IP address of your Modbus TCP gateway
 - **Port**: _(default: 502)_
-- **Slave ID**: _(default: 1)_
+- **Unit ID**: _(default: 1)_
 - **Scan interval**: _(default: 30s)_
 
 ### 3. Adjust Integration Options (Optional)
@@ -410,7 +410,7 @@ If the integration does not work as expected, work through these checks before o
 ### "Cannot connect" or "Cannot read Modbus" during setup
 
 - Verify the **gateway IP and port** are reachable from the Home Assistant host (`ping`, `nc -vz <host> <port>`).
-- Check that the **slave ID** (default `1`) matches the controller. Some firmwares use `2`.
+- Check that the **unit ID** (default `1`) matches the controller. Some firmwares use `2`.
 - Try switching the **Modbus framer** between `tcp` and `rtu` in the setup form. Some Wi-Fi gateways require `rtu` even when used over TCP — see the [Modbus Connection Guide](docs/modbus-connection-guide.md).
 - Confirm you are using the correct RS485 connector — **`WIFI` or `EXTERNAL`**, not `DISPLAY` (unless the internal LCD is physically disconnected).
 - Make sure no other Modbus client is connected to the same connector at the same time. The NeoPool RS485 bus accepts only one master per labelled connector.

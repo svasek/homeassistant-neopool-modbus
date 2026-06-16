@@ -55,7 +55,7 @@ def _make_old_entry(
     entry.minor_version = 1
     entry.unique_id = unique_id
     entry.title = title
-    entry.data = data or {"host": "192.168.1.100", "port": 502, "slave_id": 1}
+    entry.data = data or {"host": "192.168.1.100", "port": 502, "unit_id": 1}
     entry.options = options or {}
     entry.state = state
     entry.source = source
@@ -1178,13 +1178,27 @@ async def test_detect_legacy_vistapool_entry_returns_none_when_empty():
 # ---------------------------------------------------------------------------
 
 
-def _v1_entry(host: str, port: int, slave_id: int, framer: str) -> MagicMock:
+def _v1_entry(host: str, port: int, unit_id: int, framer: str) -> MagicMock:
+    """Build a v1-shaped entry with the legacy ``slave_id`` data key."""
     entry = MagicMock()
     entry.unique_id = None
     entry.data = {
         "host": host,
         "port": port,
-        "slave_id": slave_id,
+        "slave_id": unit_id,
+        "modbus_framer": framer,
+    }
+    return entry
+
+
+def _entry_with_unit_id(host: str, port: int, unit_id: int, framer: str) -> MagicMock:
+    """Build a freshly-shaped entry with the new ``unit_id`` data key."""
+    entry = MagicMock()
+    entry.unique_id = None
+    entry.data = {
+        "host": host,
+        "port": port,
+        "unit_id": unit_id,
         "modbus_framer": framer,
     }
     return entry
@@ -1217,3 +1231,23 @@ def test_find_unmigrated_v1_entry_returns_none_when_no_match():
     hass.config_entries.async_entries = MagicMock(return_value=[other])
     found = find_unmigrated_v1_entry(hass, "10.0.0.1", 502, 1, "tcp")
     assert found is None
+
+
+def test_find_unmigrated_v1_entry_matches_legacy_slave_id_data():
+    """An entry storing the bus address under ``slave_id`` is matched against ``unit_id``."""
+    hass = MagicMock()
+    legacy = _v1_entry("10.0.0.1", 502, 7, "tcp")
+    assert "slave_id" in legacy.data
+    hass.config_entries.async_entries = MagicMock(return_value=[legacy])
+    found = find_unmigrated_v1_entry(hass, "10.0.0.1", 502, 7, "tcp")
+    assert found is legacy
+
+
+def test_find_unmigrated_v1_entry_matches_unit_id_data():
+    """An entry storing the bus address under the new ``unit_id`` key is matched too."""
+    hass = MagicMock()
+    fresh = _entry_with_unit_id("10.0.0.1", 502, 7, "tcp")
+    assert "unit_id" in fresh.data
+    hass.config_entries.async_entries = MagicMock(return_value=[fresh])
+    found = find_unmigrated_v1_entry(hass, "10.0.0.1", 502, 7, "tcp")
+    assert found is fresh

@@ -366,7 +366,7 @@ async def test_filtration_pump_energy_sensor_registers_when_power_set(
             "host": "192.0.2.30",
             "port": 502,
             "name": "Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             "modbus_framer": "tcp",
         },
         options={
@@ -405,7 +405,7 @@ async def test_filtration_pump_energy_accumulates_while_pump_runs(
             "host": "192.0.2.31",
             "port": 502,
             "name": "Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             "modbus_framer": "tcp",
         },
         options={
@@ -467,7 +467,7 @@ async def test_filtration_pump_energy_restores_native_value_after_restart(
             "host": "192.0.2.32",
             "port": 502,
             "name": "Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             "modbus_framer": "tcp",
         },
         options={
@@ -520,7 +520,7 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
             "host": "192.0.2.33",
             "port": 502,
             "name": "Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             "modbus_framer": "tcp",
         },
         options={
@@ -659,7 +659,7 @@ async def test_cell_runtime_sensors_skipped_without_hydrolysis(
             "host": "192.0.2.1",
             "port": 502,
             "name": "Test Pool",
-            "slave_id": 1,
+            "unit_id": 1,
             "modbus_framer": "tcp",
         },
         options={"scan_interval": 30, "modbus_framer": "tcp"},

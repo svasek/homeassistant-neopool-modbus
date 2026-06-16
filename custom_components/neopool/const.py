@@ -43,7 +43,7 @@ FOLLOW_UP_REFRESH_DELAY = (
     2.0  # seconds — delay before a second refresh after IO entity actions
 )
 DEFAULT_PORT = 502
-DEFAULT_SLAVE_ID = 1
+DEFAULT_UNIT_ID = 1
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -9,12 +9,12 @@
         },
         "error": {
             "cannot_connect": "Nie udało się połączyć",
-            "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID slave i ustawienia ramki.",
+            "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID jednostki i ustawienia ramki.",
             "serial_mismatch": "Urządzenie pod tym adresem ma inny numer seryjny niż pierwotnie skonfigurowane."
         },
         "step": {
             "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
                 "title": "Import from existing VistaPool integration"
             },
             "reconfigure": {
@@ -22,13 +22,13 @@
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
                     "port": "Port",
-                    "slave_id": "Slave ID"
+                    "unit_id": "Unit ID"
                 },
                 "data_description": {
                     "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
                     "modbus_framer": "Wybierz 'tcp' dla bramek konwertujących między TCP a RTU. Wybierz 'rtu' dla transparentnych bramek przesyłających surowe ramki RTU przez TCP.",
                     "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
-                    "slave_id": "Adres Modbus slave kontrolera basenu. Większość konfiguracji używa 1."
+                    "unit_id": "ID jednostki (serwera) Modbus kontrolera basenu. Większość konfiguracji używa 1."
                 },
                 "description": "Zaktualizuj ustawienia połączenia z kontrolerem NeoPool.",
                 "title": "Skonfiguruj ponownie połączenie NeoPool"
@@ -40,7 +40,7 @@
                     "modbus_framer": "Framer Modbus",
                     "name_default": "Basen",
                     "port": "Port",
-                    "slave_id": "Slave ID",
+                    "unit_id": "Unit ID",
                     "use_cover_sensor": "Włącz czujnik przykrycia basenu",
                     "use_filtration1": "Włącz 1. timer filtracji w trybie automatycznym",
                     "use_filtration2": "Włącz 2. timer filtracji w trybie automatycznym",
@@ -52,7 +52,7 @@
                     "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
                     "modbus_framer": "Wybierz 'tcp' dla bramek konwertujących między TCP a RTU. Wybierz 'rtu' dla transparentnych bramek przesyłających surowe ramki RTU przez TCP.",
                     "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
-                    "slave_id": "Adres Modbus slave kontrolera basenu. Większość konfiguracji używa 1.",
+                    "unit_id": "ID jednostki (serwera) Modbus kontrolera basenu. Większość konfiguracji używa 1.",
                     "use_cover_sensor": "Tworzy czujnik binarny wskazujący, czy przykrycie basenu jest otwarte czy zamknięte.",
                     "use_filtration1": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
                     "use_filtration2": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",

@@ -899,22 +899,25 @@ def find_unmigrated_v1_entry(
     hass: HomeAssistant,
     host: str | None,
     port: int | None,
-    slave_id: int | None,
+    unit_id: int | None,
     modbus_framer: str | None,
 ) -> ConfigEntry | None:
     """Return an existing v1 (``unique_id=None``) entry matching connection params.
 
     Used by the config flow to abort with ``already_configured`` when a user
     tries to add a controller that's already configured under a v1 entry
-    that hasn't been migrated yet (host/port/slave_id/framer all match).
+    that hasn't been migrated yet (host/port/unit_id/framer all match).
+    Legacy entries may store the bus address under the older ``slave_id``
+    key, which is still accepted as a fallback.
     """
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id is not None:
             continue
+        entry_unit_id = entry.data.get("unit_id", entry.data.get("slave_id"))
         if (
             entry.data.get(CONF_HOST) == host
             and entry.data.get(CONF_PORT) == port
-            and entry.data.get("slave_id") == slave_id
+            and entry_unit_id == unit_id
             and entry.data.get("modbus_framer") == modbus_framer
         ):
             return entry
@@ -935,7 +938,7 @@ def async_abort_if_unmigrated_v1_match(
         flow.hass,
         user_input.get(CONF_HOST),
         user_input.get(CONF_PORT),
-        user_input.get("slave_id"),
+        user_input.get("unit_id", user_input.get("slave_id")),
         user_input.get("modbus_framer"),
     ):
         return flow.async_abort(reason="already_configured")

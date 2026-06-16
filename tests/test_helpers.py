@@ -321,12 +321,24 @@ async def test_is_host_port_open_returns_false_on_timeout() -> None:
 async def test_async_get_device_serial_success() -> None:
     """async_get_device_serial returns the serial when the probe succeeds."""
 
-    config = {"host": "192.0.2.1", "port": 502, "slave_id": 1, "modbus_framer": "tcp"}
+    config = {"host": "192.0.2.1", "port": 502, "unit_id": 1, "modbus_framer": "tcp"}
     with patch(
         "custom_components.neopool.helpers.async_probe_serial",
         new=AsyncMock(return_value="ABCDEF1234"),
     ):
         assert await async_get_device_serial(config) == "ABCDEF1234"
+
+
+async def test_async_get_device_serial_legacy_slave_id_fallback() -> None:
+    """Legacy configs with only ``slave_id`` are still routed correctly."""
+
+    config = {"host": "192.0.2.1", "port": 502, "slave_id": 5, "modbus_framer": "tcp"}
+    probe = AsyncMock(return_value="ABCDEF1234")
+    with patch("custom_components.neopool.helpers.async_probe_serial", new=probe):
+        assert await async_get_device_serial(config) == "ABCDEF1234"
+    probe.assert_awaited_once()
+    kwargs = probe.await_args.kwargs
+    assert kwargs["unit_id"] == 5
 
 
 async def test_async_get_device_serial_neopool_error_returns_none() -> None:

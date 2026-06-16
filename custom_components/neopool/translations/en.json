@@ -9,12 +9,12 @@
         },
         "error": {
             "cannot_connect": "Failed to connect",
-            "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check slave ID and framer settings.",
+            "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check unit ID and framer settings.",
             "serial_mismatch": "The device at this address has a different serial number than the one originally configured."
         },
         "step": {
             "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, slave ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
                 "title": "Import from existing VistaPool integration"
             },
             "reconfigure": {
@@ -22,13 +22,13 @@
                     "host": "Host",
                     "modbus_framer": "Modbus framer",
                     "port": "Port",
-                    "slave_id": "Slave ID"
+                    "unit_id": "Unit ID"
                 },
                 "data_description": {
                     "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
                     "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
                     "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
-                    "slave_id": "The Modbus slave address of the pool controller. Most setups use 1."
+                    "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1."
                 },
                 "description": "Update the connection settings for your NeoPool controller.",
                 "title": "Reconfigure NeoPool Connection"
@@ -40,7 +40,7 @@
                     "modbus_framer": "Modbus framer",
                     "name_default": "Pool",
                     "port": "Port",
-                    "slave_id": "Slave ID",
+                    "unit_id": "Unit ID",
                     "use_cover_sensor": "Enable Pool Cover Sensor",
                     "use_filtration1": "Enable 1st filtration timer for automatic mode",
                     "use_filtration2": "Enable 2nd filtration timer for automatic mode",
@@ -52,7 +52,7 @@
                     "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
                     "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
                     "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
-                    "slave_id": "The Modbus slave address of the pool controller. Most setups use 1.",
+                    "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1.",
                     "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed.",
                     "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
                     "use_filtration2": "Creates timer entities for configuring automatic filtration schedule.",

@@ -12,7 +12,7 @@ from syrupy.assertion import SnapshotAssertion
 from custom_components.neopool.const import (
     CURRENT_VERSION,
     DEFAULT_PORT,
-    DEFAULT_SLAVE_ID,
+    DEFAULT_UNIT_ID,
     DOMAIN,
 )
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
@@ -139,7 +139,7 @@ def mock_config_entry() -> MockConfigEntry:
             CONF_HOST: MOCK_HOST,
             CONF_PORT: MOCK_PORT,
             CONF_NAME: MOCK_NAME,
-            "slave_id": DEFAULT_SLAVE_ID,
+            "unit_id": DEFAULT_UNIT_ID,
             "modbus_framer": "tcp",
         },
         options={
