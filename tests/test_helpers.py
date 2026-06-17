@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from zoneinfo import ZoneInfo
 
+from neopool_modbus.capabilities import has_filtvalve
 from neopool_modbus.exceptions import NeoPoolError
 import pytest
 
@@ -14,7 +15,6 @@ from custom_components.neopool.helpers import (
     calculate_next_interval_time,
     combine_u32,
     get_device_time,
-    has_filtvalve,
     is_device_time_out_of_sync,
     parse_register_int,
     prepare_device_time,

@@ -18,6 +18,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
+from neopool_modbus.capabilities import is_ionization_present
 from neopool_modbus.registers import is_valid_relay_gpio
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
@@ -84,7 +85,7 @@ def _should_skip_binary_sensor(
         return True
 
     # Skip ION entities if ionization module not present
-    if key.startswith("ION ") and not bool((data.get("MBF_PAR_MODEL") or 0) & 0x0001):
+    if key.startswith("ION ") and not is_ionization_present(data):
         return True  # pragma: no cover
 
     # Skip HIDRO entities if no hydrolysis module is installed

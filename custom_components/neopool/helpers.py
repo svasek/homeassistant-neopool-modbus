@@ -26,7 +26,7 @@ from typing import Any
 
 from neopool_modbus import async_probe_serial
 from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER, is_valid_relay_gpio
+from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
 
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -137,22 +137,6 @@ def calculate_next_interval_time(
 
     # Round to nearest minute (set seconds and microseconds to 0)
     return target_time.replace(second=0, microsecond=0)
-
-
-# Machine type index → brand name (matches kNeoPoolMachineNames[] in Tasmota)
-
-
-def has_filtvalve(data: dict) -> bool:
-    """Return True if a Besgo automatic filter valve is configured.
-
-    Primary signal is MBF_PAR_FILTVALVE_GPIO (relay assigned to the valve,
-    valid range 1-7). MBF_PAR_FILTVALVE_ENABLE is honoured as a fallback
-    for cases where GPIO is 0 but the feature flag is explicitly set.
-    Values outside the valid relay range (1-7) are treated as not present.
-    """
-    gpio = data.get("MBF_PAR_FILTVALVE_GPIO") or 0
-    enable = data.get("MBF_PAR_FILTVALVE_ENABLE") or 0
-    return is_valid_relay_gpio(gpio) or enable != 0
 
 
 def parse_register_int(raw: int | str, name: str) -> int:

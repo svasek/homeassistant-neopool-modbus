@@ -19,6 +19,7 @@ import logging
 import math
 from typing import Any
 
+from neopool_modbus.capabilities import has_filtvalve, is_ionization_present
 from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from homeassistant.components.sensor import (
@@ -36,7 +37,7 @@ from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import calculate_next_interval_time, combine_u32, has_filtvalve
+from .helpers import calculate_next_interval_time, combine_u32
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
         and data.get("Conductivity measurement module detected") is not True
     ):
         return True
-    if key == "MBF_ION_CURRENT" and not bool((data.get("MBF_PAR_MODEL") or 0) & 0x0001):
+    if key == "MBF_ION_CURRENT" and not is_ionization_present(data):
         return True
     if key in (
         "MBF_HIDRO_CURRENT",
@@ -101,7 +102,7 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
         return True
     if key.startswith("CELL_RUNTIME") and not data.get("Hydrolysis module detected"):
         return True
-    if key == "ION_POLARITY" and not bool((data.get("MBF_PAR_MODEL") or 0) & 0x0001):
+    if key == "ION_POLARITY" and not is_ionization_present(data):
         return True
     if key == "FILTRATION_SPEED" and not get_filtration_pump_type(
         data.get("MBF_PAR_FILTRATION_CONF", 0)

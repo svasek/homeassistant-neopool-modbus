@@ -19,6 +19,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
+from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
 from neopool_modbus.decoders import (
     generate_time_options,
     get_filtration_pump_type,
@@ -41,7 +42,6 @@ from .const import (
 )
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import has_filtvalve
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,11 +67,9 @@ def _should_skip_select(
         get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
     ):
         return True  # pragma: no cover
-    # Skip boost mode select if model does not support "Hydro/Electrolysis"
-    if key == "MBF_CELL_BOOST":
-        mbf_par_model = data.get("MBF_PAR_MODEL", 0)
-        if not (mbf_par_model & 0x0002):  # pragma: no cover
-            return True
+    # Skip boost mode select if hydrolysis module not present
+    if key == "MBF_CELL_BOOST" and not is_hydrolysis_present(data):  # pragma: no cover
+        return True
     # Conditionally add Intelligent min. filtration time only if heating relay is assigned
     if key == "MBF_PAR_INTELLIGENT_FILT_MIN_TIME":
         if not bool(data.get("MBF_PAR_HEATING_GPIO")) or not bool(

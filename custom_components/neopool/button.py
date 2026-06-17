@@ -17,6 +17,8 @@
 import logging
 from typing import Any
 
+from neopool_modbus.capabilities import has_filtvalve
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -25,7 +27,7 @@ from . import NeoPoolConfigEntry
 from .const import BUTTON_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import has_filtvalve, prepare_device_time
+from .helpers import prepare_device_time
 
 _LOGGER = logging.getLogger(__name__)
 
