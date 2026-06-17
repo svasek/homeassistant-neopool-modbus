@@ -20,7 +20,13 @@ import math
 from typing import Any
 
 from neopool_modbus.capabilities import has_filtvalve, is_ionization_present
-from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
+from neopool_modbus.decoders import (
+    decode_hidro_polarity,
+    decode_ion_polarity,
+    decode_ph_pump_status,
+    get_filtration_pump_type,
+    is_hydrolysis_in_percent,
+)
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -240,82 +246,17 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
             return False
         return self.coordinator.data.get("Filtration Pump") is False
 
-    def _compute_ph_pump_status(self) -> str | None:
-        """Decode the pH pump status from the control + per-pump bits."""
-        ctrl = self.coordinator.data.get("pH control module")
-        acid_bit = self.coordinator.data.get("pH acid pump active")
-        pump_bit = self.coordinator.data.get("pH pump active")
-        if ctrl is None and acid_bit is None and pump_bit is None:
-            return None
-        if ctrl is None:
-            return None  # partial data — cannot determine status
-        if not ctrl:
-            return "off"
-        # MBF_PAR_RELAY_PH determines the pH pump configuration:
-        #   0 = acid + base (bit 11 = acid, bit 12 = base)
-        #   1 = acid only   (bit 12 = acid pump; bit 11 unused)
-        #   2 = base only   (bit 12 = base pump; bit 11 unused)
-        relay_ph = self.coordinator.data.get("MBF_PAR_RELAY_PH", 0) or 0
-        if relay_ph == 1:
-            return "acid" if pump_bit else "idle"
-        if relay_ph == 2:
-            return "base" if pump_bit else "idle"
-        # Both pumps (relay_ph == 0): bit 11 = acid, bit 12 = base
-        if acid_bit and pump_bit:
-            return "both"
-        if acid_bit:
-            return "acid"
-        if pump_bit:
-            return "base"
-        return "idle"
-
-    def _compute_hidro_polarity(self) -> str | None:
-        """Decode the hydrolysis polarity from the cell status bits."""
-        pol1 = self.coordinator.data.get("HIDRO in Pol1")
-        pol2 = self.coordinator.data.get("HIDRO in Pol2")
-        dead = self.coordinator.data.get("HIDRO in dead time")
-        if pol1 is None and pol2 is None and dead is None:
-            return None
-        filtration = self.coordinator.data.get("Filtration Pump")
-        if filtration is not None and filtration is False:
-            return "off"
-        fl1 = self.coordinator.data.get("HIDRO Cell Flow FL1")
-        if filtration is True and fl1 is False:
-            return "no_flow"
-        if dead:
-            return "dead_time"
-        if pol1:
-            return "pol1"
-        if pol2:
-            return "pol2"
-        return "off"
-
-    def _compute_ion_polarity(self) -> str | None:
-        """Decode the ionizer polarity from the cell status bits."""
-        pol1 = self.coordinator.data.get("ION in Pol1")
-        pol2 = self.coordinator.data.get("ION in Pol2")
-        dead = self.coordinator.data.get("ION in dead time")
-        if pol1 is None and pol2 is None and dead is None:
-            return None
-        if dead:
-            return "dead_time"
-        if pol1:
-            return "pol1"
-        if pol2:
-            return "pol2"
-        return "off"
-
     @property
     def native_value(self) -> float | int | str | datetime | None:
         """Return the actual sensor value from coordinator data."""
         if self._is_measurement_suppressed():
             return None
         if self._key == "PH_PUMP_STATUS":
-            return self._compute_ph_pump_status()
+            return decode_ph_pump_status(self.coordinator.data)
         if self._key == "HIDRO_POLARITY":
-            return self._compute_hidro_polarity()
+            return decode_hidro_polarity(self.coordinator.data)
         if self._key == "ION_POLARITY":
-            return self._compute_ion_polarity()
+            return decode_ion_polarity(self.coordinator.data)
         if self._key == "MBF_PAR_FILT_MODE":
             return self.coordinator.data.get("filtration_mode")
         if self._key == "FILTRATION_SPEED":
