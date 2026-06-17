@@ -342,12 +342,13 @@ async def test_filt_mode_native_value(
     filt_mode: int,
     expected: str,
 ) -> None:
-    """Filt mode native value resolves the int through FILTRATION_MODE_MAP."""
+    """Filt mode native value reads the lib's decoded filtration_mode key."""
     await setup_integration(hass, mock_config_entry)
     entity = _sensor_by_key(hass, "MBF_PAR_FILT_MODE")
     assert entity is not None
     coordinator = mock_config_entry.runtime_data
     coordinator.data["MBF_PAR_FILT_MODE"] = filt_mode
+    coordinator.data["filtration_mode"] = expected
     assert entity.native_value == expected
 
 

@@ -81,6 +81,8 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "Redox measurement module detected": True,
     "pH measurement module detected": True,
     "MBF_PAR_FILT_MODE": 0,  # manual
+    "filtration_mode": "manual",
+    "filtration_speed_state": "off",
     "MBF_MEASURE_TEMPERATURE": 250,  # 25.0°C
     "MBF_MEASURE_PH": 720,  # 7.20
     "Filtration Pump": False,
@@ -217,6 +219,8 @@ def minimal_pool_data() -> dict[str, Any]:
         "Redox measurement module detected": False,
         "pH measurement module detected": False,
         "MBF_PAR_FILT_MODE": 0,
+        "filtration_mode": "manual",
+        "filtration_speed_state": "off",
         "Filtration Pump": False,
     }
 

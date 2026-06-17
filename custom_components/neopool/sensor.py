@@ -42,24 +42,15 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
 
-# Add mapping for MBF_PAR_FILT_MODE values
-# fmt: off
-FILTRATION_MODE_MAP = {
-    0: "manual",        # This mode allows to turn the filtration (and all other systems that depend on it) on and off manually
-    1: "auto",          # This mode allows filtering to be turned on and off according to the settings of the TIMER1, TIMER2 and TIMER3 timers.
-    2: "heating",       # This mode is similar to the AUTO mode, but includes setting the temperature for the heating function. This mode is activated only if the MBF_PAR_HEATING_MODE register is at 1 and there is a heating relay assigned.
-    3: "smart",         # This filtration mode adjusts the pump operating times depending on the temperature. This mode is activated only if the MBF_PAR_TEMPERATURE_ACTIVE register is at 1.
-    4: "intelligent",   # This mode performs an intelligent filtration process in combination with the heating function. This mode is activated only if the MBF_PAR_HEATING_MODE register is at 1 and there is a heating relay assigned.
-    13: "backwash",     # This filter mode is started when the backwash operation is activated.
-}
-# fmt: on
-
-FILTRATION_SPEED_MAP = {
-    0: "off",
-    1: "low",
-    2: "mid",
-    3: "high",
-}
+_FILTRATION_MODE_OPTIONS: tuple[str, ...] = (
+    "manual",
+    "auto",
+    "heating",
+    "smart",
+    "intelligent",
+    "backwash",
+)
+_FILTRATION_SPEED_OPTIONS: tuple[str, ...] = ("off", "low", "mid", "high")
 
 PH_STATUS_ALARM_MAP = {
     0: "ok",
@@ -332,13 +323,9 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         if self._key == "ION_POLARITY":
             return self._compute_ion_polarity()
         if self._key == "MBF_PAR_FILT_MODE":
-            filt_mode: int | None = self.coordinator.data.get(self._key)
-            return FILTRATION_MODE_MAP.get(filt_mode) if filt_mode is not None else None
+            return self.coordinator.data.get("filtration_mode")
         if self._key == "FILTRATION_SPEED":
-            filt_speed: int | None = self.coordinator.data.get(self._key)
-            return (
-                FILTRATION_SPEED_MAP.get(filt_speed) if filt_speed is not None else None
-            )
+            return self.coordinator.data.get("filtration_speed_state")
         if self._key == "MBF_PH_STATUS_ALARM":
             ph_alarm: int | None = self.coordinator.data.get(self._key)
             return PH_STATUS_ALARM_MAP.get(ph_alarm) if ph_alarm is not None else None
@@ -352,9 +339,9 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     def options(self) -> list[str] | None:
         """Return the list of options for the sensor."""
         if self._key == "MBF_PAR_FILT_MODE":
-            return list(FILTRATION_MODE_MAP.values())
+            return list(_FILTRATION_MODE_OPTIONS)
         if self._key == "FILTRATION_SPEED":
-            return list(FILTRATION_SPEED_MAP.values())
+            return list(_FILTRATION_SPEED_OPTIONS)
         if self._key == "MBF_PH_STATUS_ALARM":
             return list(PH_STATUS_ALARM_MAP.values())
         if self._key == "HIDRO_POLARITY":
