@@ -183,6 +183,9 @@ def mock_neopool_client() -> Generator[MagicMock]:
         mock_client.async_set_cell_boost = AsyncMock(return_value=None)
         mock_client.async_set_filtration_speed = AsyncMock(return_value=None)
         mock_client.async_set_temp_setpoint = AsyncMock(return_value=None)
+        mock_client.async_sync_device_time = AsyncMock(return_value=None)
+        mock_client.async_clear_errors = AsyncMock(return_value=None)
+        mock_client.async_reset_user_counters = AsyncMock(return_value=None)
         mock_client.write_timer = AsyncMock()
         mock_client.close = AsyncMock()
         yield mock_client

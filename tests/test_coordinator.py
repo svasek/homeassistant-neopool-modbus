@@ -162,12 +162,11 @@ async def test_auto_time_sync_writes_when_drift_detected(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """With auto_time_sync on and the device clock drifting, we write to 0x0408 + 0x04F0."""
+    """auto_time_sync delegates to the lib's async_sync_device_time on drift."""
     drifted = dict(MOCK_POOL_DATA)
     # Pick an "in the past" device clock that is well over a minute old.
     long_ago = int(dt_util.utcnow().timestamp()) - 7200
-    drifted["MBF_PAR_TIME_LOW"] = long_ago & 0xFFFF
-    drifted["MBF_PAR_TIME_HIGH"] = (long_ago >> 16) & 0xFFFF
+    drifted["MBF_PAR_TIME"] = long_ago
     mock_neopool_client.async_read_all = AsyncMock(return_value=drifted)
 
     entry = MockConfigEntry(
@@ -189,13 +188,7 @@ async def test_auto_time_sync_writes_when_drift_detected(
         },
     )
     await setup_integration(hass, entry)
-    # Two writes expected: 0x0408 (time) and 0x04F0 (commit).
-    written_addresses = [
-        call.args[0]
-        for call in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert 0x0408 in written_addresses
-    assert 0x04F0 in written_addresses
+    assert mock_neopool_client.async_sync_device_time.await_count == 1
 
 
 # ---------------------------------------------------------------------------

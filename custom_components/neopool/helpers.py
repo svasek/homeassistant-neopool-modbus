@@ -62,11 +62,9 @@ def get_device_time(
     data: dict[str, Any], hass: HomeAssistant | None = None
 ) -> datetime.datetime | None:
     """Get device time and convert to datetime object."""
-    low = data.get("MBF_PAR_TIME_LOW")
-    high = data.get("MBF_PAR_TIME_HIGH")
-    if low is None or high is None:
+    unix_ts = data.get("MBF_PAR_TIME")
+    if unix_ts is None:
         return None
-    unix_ts = (high << 16) | low
     if hass:
         local_tz = dt_util.get_time_zone(hass.config.time_zone)
         # WORKAROUND: This is the naive datetime object, without timezone info
@@ -81,11 +79,8 @@ def get_device_time(
 # but is timezone-naive — it just shows the value back through its display
 # as a wall-clock time. To get the display to match the user's local clock,
 # we anchor the "epoch" at 1970-01-01 in the user's timezone instead of UTC.
-def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
-    """Prepare device time for writing to the device.
-
-    Returns a list of two integers representing the low and high parts of the time.
-    """
+def prepare_device_time(hass: HomeAssistant | None = None) -> int:
+    """Return the unix timestamp the device should display as local wall-clock."""
     if hass:
         ha_tz = dt_util.get_time_zone(hass.config.time_zone)
         now_local = dt_util.now(ha_tz)
@@ -94,12 +89,8 @@ def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
         # as `now_local`. The subtraction cancels the timezone offset out and
         # yields the local-clock seconds the device's display expects.
         epoch_local = datetime.datetime(1970, 1, 1, tzinfo=ha_tz)
-        unix_time_local = int((now_local - epoch_local).total_seconds())
-    else:  # pragma: no cover
-        unix_time_local = int(dt_util.now().timestamp())
-    low = unix_time_local & 0xFFFF
-    high = (unix_time_local >> 16) & 0xFFFF
-    return [low, high]
+        return int((now_local - epoch_local).total_seconds())
+    return int(dt_util.now().timestamp())  # pragma: no cover
 
 
 # This function checks if the device time is out of sync with the Home Assistant time

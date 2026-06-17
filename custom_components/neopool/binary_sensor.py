@@ -224,7 +224,7 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
         if self._key == "Device Time Out Of Sync":
-            if self.coordinator.data.get("MBF_PAR_TIME_LOW") is None:
+            if self.coordinator.data.get("MBF_PAR_TIME") is None:
                 return None
             return is_device_time_out_of_sync(self.coordinator.data, self.hass)
 

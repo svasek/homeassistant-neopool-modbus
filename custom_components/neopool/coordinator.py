@@ -23,7 +23,6 @@ from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import aggregate_filtration_remaining, parse_version
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
-    COPY_TO_RTC_REGISTER,
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     MAX_RELAY_GPIO,
@@ -395,10 +394,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if self.auto_time_sync and is_device_time_out_of_sync(data, self.hass):
             _LOGGER.debug("Device time is out of sync, updating")
-            await self.client.async_write_register(
-                0x0408, prepare_device_time(self.hass)
-            )
-            await self.client.async_write_register(COPY_TO_RTC_REGISTER, 1)
+            await self.client.async_sync_device_time(prepare_device_time(self.hass))
 
         self._apply_dev_overrides(data)
 

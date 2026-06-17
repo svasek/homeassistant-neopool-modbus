@@ -67,9 +67,9 @@ def test_combine_u32_missing_or_none_returns_none(data: dict) -> None:
 
 
 def test_get_device_time_utc() -> None:
-    """Decoded device time matches the (high << 16 | low) timestamp."""
-    data = {"MBF_PAR_TIME_LOW": 0x5678, "MBF_PAR_TIME_HIGH": 0x1234}
+    """Decoded device time matches MBF_PAR_TIME interpreted as a unix timestamp."""
     ts = (0x1234 << 16) | 0x5678
+    data = {"MBF_PAR_TIME": ts}
     assert get_device_time(data) == datetime.fromtimestamp(ts, tz=UTC)
 
 
@@ -77,19 +77,17 @@ def test_get_device_time_utc() -> None:
     "data",
     [
         {},
-        {"MBF_PAR_TIME_LOW": 1},
-        {"MBF_PAR_TIME_HIGH": 1},
+        {"MBF_PAR_TIME": None},
     ],
 )
 def test_get_device_time_missing_keys(data: dict) -> None:
-    """Missing TIME_LOW or TIME_HIGH yields None."""
+    """Missing MBF_PAR_TIME yields None."""
     assert get_device_time(data) is None
 
 
 def test_get_device_time_epoch_zero() -> None:
-    """Both registers zero → 1970-01-01T00:00:00Z."""
-    data = {"MBF_PAR_TIME_LOW": 0, "MBF_PAR_TIME_HIGH": 0}
-    assert get_device_time(data) == datetime(1970, 1, 1, tzinfo=UTC)
+    """MBF_PAR_TIME == 0 -> 1970-01-01T00:00:00Z."""
+    assert get_device_time({"MBF_PAR_TIME": 0}) == datetime(1970, 1, 1, tzinfo=UTC)
 
 
 def test_get_device_time_with_hass(hass: HomeAssistant) -> None:
@@ -101,7 +99,7 @@ def test_get_device_time_with_hass(hass: HomeAssistant) -> None:
     """
     hass.config.time_zone = "UTC"
     ts = 1_234_567_890
-    data = {"MBF_PAR_TIME_LOW": ts & 0xFFFF, "MBF_PAR_TIME_HIGH": (ts >> 16) & 0xFFFF}
+    data = {"MBF_PAR_TIME": ts}
     result = get_device_time(data, hass)
     assert result is not None
     assert result.tzinfo is not None
@@ -115,19 +113,11 @@ def test_get_device_time_with_hass(hass: HomeAssistant) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_prepare_device_time_returns_two_word_list(hass: HomeAssistant) -> None:
-    """prepare_device_time returns two 16-bit words (low, high)."""
+def test_prepare_device_time_returns_unix_timestamp(hass: HomeAssistant) -> None:
+    """prepare_device_time returns a positive 32-bit unix timestamp."""
     result = prepare_device_time(hass)
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert all(isinstance(x, int) and 0 <= x < 0x10000 for x in result)
-
-
-def test_prepare_device_time_no_hass() -> None:
-    """Without hass we still get a valid two-word result (UTC fallback)."""
-    result = prepare_device_time(None)
-    assert isinstance(result, list)
-    assert len(result) == 2
+    assert isinstance(result, int)
+    assert 0 < result < 0x100000000
 
 
 # ---------------------------------------------------------------------------
@@ -138,10 +128,7 @@ def test_prepare_device_time_no_hass() -> None:
 def test_is_device_time_out_of_sync_within_threshold() -> None:
     """A small drift between device and HA returns False."""
     now = int(dt_util.utcnow().timestamp())
-    data = {
-        "MBF_PAR_TIME_LOW": now & 0xFFFF,
-        "MBF_PAR_TIME_HIGH": (now >> 16) & 0xFFFF,
-    }
+    data = {"MBF_PAR_TIME": now}
     with patch(
         "homeassistant.util.dt.utcnow",
         return_value=datetime.fromtimestamp(now, tz=UTC),
@@ -153,10 +140,7 @@ def test_is_device_time_out_of_sync_above_threshold() -> None:
     """A drift larger than threshold returns True."""
     now = int(dt_util.utcnow().timestamp())
     device_time = now - 7200  # 2 hours ago
-    data = {
-        "MBF_PAR_TIME_LOW": device_time & 0xFFFF,
-        "MBF_PAR_TIME_HIGH": (device_time >> 16) & 0xFFFF,
-    }
+    data = {"MBF_PAR_TIME": device_time}
     with patch(
         "homeassistant.util.dt.utcnow",
         return_value=datetime.fromtimestamp(now, tz=UTC),
