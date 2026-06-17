@@ -21,6 +21,7 @@ from typing import Any
 from neopool_modbus.registers import (
     EXEC_REGISTER,
     MANUAL_FILTRATION_REGISTER,
+    TimerRelayMode,
     is_valid_relay_gpio,
 )
 
@@ -175,7 +176,9 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             await client.async_write_register(
                 self.function_addr, self.function_code
             )  # Set function (if needed)
-            await client.async_write_register(self.timer_block_addr, 3)  # Always on
+            await client.async_write_register(
+                self.timer_block_addr, TimerRelayMode.ALWAYS_ON
+            )
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
         elif self._switch_type in ("climate_mode", "smart_anti_freeze", "uv_mode"):
             if self.function_addr is None:  # pragma: no cover
@@ -246,7 +249,9 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
                 self._key,
                 self.timer_block_addr,
             )
-            await client.async_write_register(self.timer_block_addr, 4)  # Always off
+            await client.async_write_register(
+                self.timer_block_addr, TimerRelayMode.ALWAYS_OFF
+            )
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
         elif self._switch_type in ("climate_mode", "smart_anti_freeze", "uv_mode"):
             if self.function_addr is None:  # pragma: no cover
@@ -301,7 +306,9 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         elif self._switch_type == "aux":  # pragma: no cover
             data[self._key] = state
         elif self._switch_type == "relay_timer":
-            data[f"relay_{self._key}_enable"] = 3 if state else 4
+            data[f"relay_{self._key}_enable"] = (
+                TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
+            )
         elif self._switch_type == "climate_mode":
             data["MBF_PAR_CLIMA_ONOFF"] = 1 if state else 0
         elif self._switch_type == "smart_anti_freeze":
@@ -332,7 +339,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             return bool(self.coordinator.data.get(self._key, 0))
         if self._switch_type == "relay_timer":
             enable_val = self.coordinator.data.get(f"relay_{self._key}_enable", None)
-            return enable_val == 3  # ON if ALWAYS ON
+            return enable_val == TimerRelayMode.ALWAYS_ON
         if self._switch_type == "climate_mode":
             return bool(self.coordinator.data.get("MBF_PAR_CLIMA_ONOFF", 0))
         if self._switch_type == "smart_anti_freeze":

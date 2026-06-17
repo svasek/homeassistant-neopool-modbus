@@ -5,6 +5,11 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 from freezegun.api import FrozenDateTimeFactory
+from neopool_modbus.decoders import (
+    decode_hidro_polarity,
+    decode_ion_polarity,
+    decode_ph_pump_status,
+)
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -143,14 +148,8 @@ async def test_ph_pump_status_decoder(
     data: dict[str, Any],
     expected: str | None,
 ) -> None:
-    """Drive _compute_ph_pump_status through every relay_ph branch."""
-    await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, "PH_PUMP_STATUS")
-    if entity is None:
-        pytest.skip("PH_PUMP_STATUS entity not registered on this fixture")
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data.update(data)
-    assert entity._compute_ph_pump_status() == expected
+    """decode_ph_pump_status covers every relay_ph branch."""
+    assert decode_ph_pump_status(data) == expected
 
 
 # ---------------------------------------------------------------------------
@@ -226,24 +225,8 @@ async def test_hidro_polarity_decoder(
     data: dict[str, Any],
     expected: str | None,
 ) -> None:
-    """Drive _compute_hidro_polarity through every polarity / flow branch."""
-    await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, "HIDRO_POLARITY")
-    if entity is None:
-        pytest.skip("HIDRO_POLARITY entity not registered")
-    coordinator = mock_config_entry.runtime_data
-    # Reset polarity-related keys before each parametrization so prior
-    # state doesn't leak.
-    for k in (
-        "HIDRO in Pol1",
-        "HIDRO in Pol2",
-        "HIDRO in dead time",
-        "Filtration Pump",
-        "HIDRO Cell Flow FL1",
-    ):
-        coordinator.data.pop(k, None)
-    coordinator.data.update(data)
-    assert entity._compute_hidro_polarity() == expected
+    """decode_hidro_polarity covers every polarity / flow branch."""
+    assert decode_hidro_polarity(data) == expected
 
 
 # ---------------------------------------------------------------------------
@@ -280,16 +263,8 @@ async def test_ion_polarity_decoder(
     data: dict[str, Any],
     expected: str | None,
 ) -> None:
-    """Drive _compute_ion_polarity through every branch."""
-    await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, "ION_POLARITY")
-    if entity is None:
-        pytest.skip("ION_POLARITY entity not registered")
-    coordinator = mock_config_entry.runtime_data
-    for k in ("ION in Pol1", "ION in Pol2", "ION in dead time"):
-        coordinator.data.pop(k, None)
-    coordinator.data.update(data)
-    assert entity._compute_ion_polarity() == expected
+    """decode_ion_polarity covers every branch."""
+    assert decode_ion_polarity(data) == expected
 
 
 # ---------------------------------------------------------------------------

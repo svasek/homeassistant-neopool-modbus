@@ -17,7 +17,7 @@
 import logging
 from typing import Any
 
-from neopool_modbus.registers import EXEC_REGISTER, is_valid_relay_gpio
+from neopool_modbus.registers import EXEC_REGISTER, TimerRelayMode, is_valid_relay_gpio
 
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.core import HomeAssistant
@@ -125,7 +125,9 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             await client.async_write_register(
                 self.function_addr, self.function_code
             )  # Set function (if needed)
-            await client.async_write_register(self.timer_block_addr, 3)  # Always ON
+            await client.async_write_register(
+                self.timer_block_addr, TimerRelayMode.ALWAYS_ON
+            )
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
 
         # Optimistic update + schedule follow-up
@@ -153,7 +155,9 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
                 self._key,
                 self.timer_block_addr,
             )
-            await client.async_write_register(self.timer_block_addr, 4)  # Always OFF
+            await client.async_write_register(
+                self.timer_block_addr, TimerRelayMode.ALWAYS_OFF
+            )
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
 
         # Optimistic update + schedule follow-up
@@ -165,14 +169,16 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         """Apply an optimistic state update to coordinator data."""
         data = self.coordinator.data
         if self._switch_type == "relay_timer":
-            data["relay_light_enable"] = 3 if state else 4
+            data["relay_light_enable"] = (
+                TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
+            )
 
     @property
     def is_on(self) -> bool:
         """Return True if the light is ON."""
         if self._switch_type == "relay_timer":
             enable_val = self.coordinator.data.get("relay_light_enable", None)
-            return enable_val == 3  # ON if ALWAYS ON
+            return enable_val == TimerRelayMode.ALWAYS_ON
         return False  # pragma: no cover
 
     @property
@@ -182,7 +188,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             return False
         if self._switch_type == "relay_timer":
             mode_val = self.coordinator.data.get("relay_light_enable", None)
-            return mode_val in (0, 3, 4)
+            return mode_val in (0, TimerRelayMode.ALWAYS_ON, TimerRelayMode.ALWAYS_OFF)
         return True  # pragma: no cover
 
     @property

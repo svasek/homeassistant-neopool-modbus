@@ -64,21 +64,6 @@ CURRENT_VERSION = 4
 # MBF_RELAY_STATE has 7 relays (bits 0-6); MBF_PAR_UV_RELAY_GPIO is a 1-based index.
 
 
-# GPIO registers that assign physical relay outputs.
-# Used for sanity-checking register values after the first Modbus read.
-GPIO_REGISTERS = {
-    "MBF_PAR_FILT_GPIO": "Filtration relay",
-    "MBF_PAR_LIGHTING_GPIO": "Lighting relay",
-    "MBF_PAR_HEATING_GPIO": "Heating relay",
-    "MBF_PAR_PH_ACID_RELAY_GPIO": "pH acid pump relay",
-    "MBF_PAR_PH_BASE_RELAY_GPIO": "pH base pump relay",
-    "MBF_PAR_RX_RELAY_GPIO": "Redox pump relay",
-    "MBF_PAR_CL_RELAY_GPIO": "Chlorine pump relay",
-    "MBF_PAR_CD_RELAY_GPIO": "Conductivity pump relay",
-    "MBF_PAR_UV_RELAY_GPIO": "UV lamp relay",
-    "MBF_PAR_FILTVALVE_GPIO": "Filter valve relay",
-}
-
 # Persisted in entry.options for winter-mode restarts.
 _CUSTOM_CAPABILITY_KEYS: tuple[str, ...] = (
     "MBF_PAR_HIDRO_NOM",
