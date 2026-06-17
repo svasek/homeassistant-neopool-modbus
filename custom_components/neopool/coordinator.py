@@ -20,7 +20,7 @@ import logging
 from typing import Any
 
 from neopool_modbus import NeoPoolModbusClient
-from neopool_modbus.decoders import parse_version
+from neopool_modbus.decoders import aggregate_filtration_remaining, parse_version
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     COPY_TO_RTC_REGISTER,
@@ -219,18 +219,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data[f"{t_name}_interval"] = t["interval"]
             data[f"{t_name}_period"] = t["period"]
             data[f"{t_name}_countdown"] = t["countdown"]
-            if t["on"] is not None and t["interval"] is not None:
-                data[f"{t_name}_stop"] = (t["on"] + t["interval"]) % 86400
-            else:
-                data[f"{t_name}_stop"] = None
+            data[f"{t_name}_stop"] = t.get("stop")
 
-        # Aggregate filtration remaining time from active filtration timers
-        filt_remaining: int | None = None
-        for n in (1, 2, 3):
-            cd = data.get(f"filtration{n}_countdown")
-            if cd is not None and cd > 0:
-                filt_remaining = max(filt_remaining or 0, cd)
-        data["FILTRATION_REMAINING"] = filt_remaining
+        data["FILTRATION_REMAINING"] = aggregate_filtration_remaining(data)
 
     def _apply_dev_overrides(self, data: dict[str, Any]) -> None:
         """Apply developer override values to data, if enabled."""

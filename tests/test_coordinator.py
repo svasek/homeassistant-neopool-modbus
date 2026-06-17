@@ -464,6 +464,7 @@ async def test_timer_block_data_merged_into_coordinator(
                 "enable": 1,
                 "on": 8 * 3600,  # 08:00
                 "interval": 4 * 3600,  # 4h → stop = 12:00
+                "stop": 12 * 3600,
                 "period": 86400,
                 "countdown": 3600,
             },
@@ -471,6 +472,7 @@ async def test_timer_block_data_merged_into_coordinator(
                 "enable": 0,
                 "on": None,
                 "interval": None,
+                "stop": None,
                 "period": None,
                 "countdown": 0,
             },
