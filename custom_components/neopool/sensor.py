@@ -37,7 +37,7 @@ from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import calculate_next_interval_time, combine_u32
+from .helpers import calculate_next_interval_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -188,11 +188,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         if props.get("entity_registry_enabled_default") is False:
             self._attr_entity_registry_enabled_default = False
 
-        # Synthetic 32-bit counters (e.g. CELL_RUNTIME_*) declare the
-        # ``*_LOW`` / ``*_HIGH`` register pair they should be combined from.
-        # native_value() rebuilds the 32-bit value via combine_u32().
-        self._register_pair: tuple[str, str] | None = props.get("register_pair")
-
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
@@ -315,8 +310,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Return the actual sensor value from coordinator data."""
         if self._is_measurement_suppressed():
             return None
-        if self._register_pair is not None:
-            return combine_u32(self.coordinator.data, *self._register_pair)
         if self._key == "PH_PUMP_STATUS":
             return self._compute_ph_pump_status()
         if self._key == "HIDRO_POLARITY":

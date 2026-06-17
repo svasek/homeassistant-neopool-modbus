@@ -610,14 +610,14 @@ async def test_hidro_current_g_per_hour_mode(
         ("CELL_RUNTIME_POL_CHANGES", 7),
     ],
 )
-async def test_cell_runtime_sensor_combines_low_and_high_words(
+async def test_cell_runtime_sensor_reads_combined_register(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     key: str,
     expected_seconds: int,
 ) -> None:
-    """Each CELL_RUNTIME_* sensor decodes its (low, high) register pair via combine_u32.
+    """Each CELL_RUNTIME_* sensor reads the combined u32 key from coordinator data.
 
     All five sensors have ``entity_registry_enabled_default=False`` (CELL_RUNTIME_TOTAL
     and CELL_RUNTIME_PART because the user opted into the diagnostic level
@@ -676,12 +676,12 @@ async def test_cell_runtime_sensors_skipped_without_hydrolysis(
     assert cell_entities == []
 
 
-async def test_cell_runtime_sensor_returns_none_when_register_pair_missing(
+async def test_cell_runtime_sensor_returns_none_when_key_missing(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """combine_u32 returns None when either half is missing — the sensor too."""
+    """Sensor returns None when the combined key is absent from coordinator data."""
     # CELL_RUNTIME_PART is disabled-by-default; pre-enable it so the platform
     # constructs the entity object whose native_value we can inspect.
     mock_config_entry.add_to_hass(hass)
@@ -695,8 +695,8 @@ async def test_cell_runtime_sensor_returns_none_when_register_pair_missing(
     )
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
-    # Drop the high word; combine_u32 must short-circuit to None.
-    coordinator.data["MBF_CELL_RUNTIME_PART_HIGH"] = None
+    # Remove the combined key entirely -- coordinator.data.get() returns None.
+    coordinator.data.pop("CELL_RUNTIME_PART", None)
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
 
