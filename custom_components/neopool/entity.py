@@ -19,6 +19,7 @@ It provides common functionality for all entities, including device information,
 """
 
 from neopool_modbus.decoders import (
+    decode_par_model_modules,
     get_machine_name,
     modbus_regs_to_hex_string,
     parse_version,
@@ -30,6 +31,15 @@ from homeassistant.util import slugify as ha_slugify
 
 from .const import DOMAIN, NAME
 from .coordinator import NeoPoolCoordinator
+
+# Map lib's snake_case module names to the human-readable labels exposed
+# in the device's hw_version field.
+_MODULE_LABELS: dict[str, str] = {
+    "ionization": "Ionization",
+    "hydrolysis": "Hydro/Electrolysis",
+    "uv_lamp": "UV Lamp",
+    "salinity": "Salinity",
+}
 
 
 class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
@@ -74,7 +84,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
             name=getattr(self.coordinator, "device_name", NAME),
             model=f"{model_prefix}{machine_type}".strip(),
             manufacturer="Hayward (Sugar Valley)",
-            hw_version=f"Detected Modules: [{self.decode_modules(data.get('MBF_PAR_MODEL'))}]",
+            hw_version=f"Detected Modules: [{self._format_modules(data)}]",
             sw_version=f"v{self.coordinator.firmware} (v{parse_version(data.get('MBF_PAR_VERSION'))})",
             serial_number=serial_number,
         )
@@ -89,17 +99,13 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         return ha_slugify(name.lower().replace("mbf_", "", 1).replace("par_", "", 1))
 
     @staticmethod
-    def decode_modules(model_bitmask: int | None) -> str:
-        """Decode MBF_PAR_MODEL bitmask into a human-readable string."""
-        if model_bitmask is None:
-            return "Unknown"
-        modules = []
-        if model_bitmask & 0x0001:
-            modules.append("Ionization")
-        if model_bitmask & 0x0002:
-            modules.append("Hydro/Electrolysis")
-        if model_bitmask & 0x0004:
-            modules.append("UV Lamp")
-        if model_bitmask & 0x0008:
-            modules.append("Salinity")
-        return ", ".join(modules) if modules else "None"
+    def _format_modules(data: dict) -> str:
+        """Render the installed module list as the user-facing hw_version label."""
+        modules = data.get("installed_modules")
+        if modules is None:
+            # Coordinator data not yet populated; fall back to a fresh decode
+            # so the device card stays readable on first paint.
+            modules = decode_par_model_modules(data.get("MBF_PAR_MODEL"))
+        if not modules:
+            return "None" if data.get("MBF_PAR_MODEL") is not None else "Unknown"
+        return ", ".join(_MODULE_LABELS.get(m, m) for m in modules)
