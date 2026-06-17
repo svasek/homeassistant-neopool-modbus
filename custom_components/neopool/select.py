@@ -258,6 +258,12 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         to backwash on a device with an automatic Besgo valve, where the pump
         must keep running for the valve to open correctly.
         """
+        value = next(
+            (k for k, v in self._options_map.items() if v == option),
+            None,
+        )
+        if value is None:  # pragma: no cover
+            return
         if self._key == "MBF_PAR_FILT_MODE":
             current_name = self.coordinator.data.get("filtration_mode")
             has_auto_valve = has_filtvalve(self.coordinator.data)
@@ -271,19 +277,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                     'Your pool "%s" has been switched to the BACKWASH mode!',
                     NeoPoolEntity.slugify(self.coordinator.device_name),
                 )
-            value = next(
-                (k for k, v in self._options_map.items() if v == option),
-                None,
-            )
-            if value is None:  # pragma: no cover
-                return
         else:
-            value = next(
-                (k for k, v in self._options_map.items() if v == option),
-                None,
-            )
-            if value is None:  # pragma: no cover
-                return
             await client.async_write_register(self._register, value)
         self._optimistic_update(value)
         self.coordinator.async_set_updated_data(self.coordinator.data)
