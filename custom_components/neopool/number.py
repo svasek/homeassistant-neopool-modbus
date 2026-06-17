@@ -226,17 +226,11 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
                 current = int(self.coordinator.data.get(self._data_key, 0) or 0)
                 raw = (current & ~self._mask) | ((raw << self._shift) & self._mask)
                 await client.async_write_register(self._register, raw, apply=True)
-            # If user changes heating or intelligent setpoint, mirror the value
-            # to both registers so a single UI control can keep them in sync.
             elif self._register in (
                 HEATING_SETPOINT_REGISTER,
                 INTELLIGENT_SETPOINT_REGISTER,
             ):
-                # Write both sequentially to ensure both modes share same target
-                await client.async_write_register(HEATING_SETPOINT_REGISTER, raw)
-                await client.async_write_register(
-                    INTELLIGENT_SETPOINT_REGISTER, raw, apply=True
-                )
+                await client.async_set_temp_setpoint(raw)
             else:
                 await client.async_write_register(self._register, raw, apply=True)
             await self.coordinator.async_request_refresh()
