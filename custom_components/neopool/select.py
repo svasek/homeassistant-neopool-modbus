@@ -19,6 +19,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
+from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
 from neopool_modbus.decoders import (
     generate_time_options,
     get_filtration_pump_type,
@@ -41,7 +42,6 @@ from .const import (
 )
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import has_filtvalve
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,11 +67,9 @@ def _should_skip_select(
         get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
     ):
         return True  # pragma: no cover
-    # Skip boost mode select if model does not support "Hydro/Electrolysis"
-    if key == "MBF_CELL_BOOST":
-        mbf_par_model = data.get("MBF_PAR_MODEL", 0)
-        if not (mbf_par_model & 0x0002):  # pragma: no cover
-            return True
+    # Skip boost mode select if hydrolysis module not present
+    if key == "MBF_CELL_BOOST" and not is_hydrolysis_present(data):  # pragma: no cover
+        return True
     # Conditionally add Intelligent min. filtration time only if heating relay is assigned
     if key == "MBF_PAR_INTELLIGENT_FILT_MIN_TIME":
         if not bool(data.get("MBF_PAR_HEATING_GPIO")) or not bool(
@@ -244,44 +242,12 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
     async def _select_cell_boost(self, client: Any, option: str) -> None:
         """Encode the cell boost mode into the composite cell-status register."""
-        value = next(
-            (k for k, v in self._options_map.items() if v == option),
-            None,
-        )
-        if value is None:  # pragma: no cover
-            return
-        if value == 0:  # pragma: no cover
-            write_val = 0
-        elif value == 1:  # pragma: no cover
-            # 0x85A0 = Boost active, redox control DISABLED
-            write_val = 0x0500 | 0x00A0 | 0x8000
-        elif value == 2:
-            # 0x05A0 = Boost active, redox control ENABLED
-            write_val = 0x0500 | 0x00A0
-        else:  # pragma: no cover
-            return
-        reg = SELECT_DEFINITIONS[self._key]["register"]
-        await client.async_write_register(reg, write_val)
+        await client.async_set_cell_boost(option)
         await asyncio.sleep(0.2)
 
     async def _select_filtration_speed(self, client: Any, option: str) -> None:
         """Pack the filtration speed into the composite filtration_conf register."""
-        rev_map = {v: k for k, v in self._options_map.items()}
-        value = rev_map.get(option)
-        if value is None:  # pragma: no cover
-            return
-        current = self.coordinator.data.get("MBF_PAR_FILTRATION_CONF")
-        if current is None or self._attr_mask is None or self._attr_shift is None:
-            return  # pragma: no cover
-        new_val = (current & ~self._attr_mask) | (value << self._attr_shift)
-        _LOGGER.debug(
-            "Setting new filtration speed: current=0x%04X, new_val=0x%04X, mask=0x%04X, shift=%s",
-            current,
-            new_val,
-            self._attr_mask,
-            self._attr_shift,
-        )
-        await client.async_write_register(self._register, new_val, apply=True)
+        await client.async_set_filtration_speed(option)
         await asyncio.sleep(0.2)
 
     async def _select_default_register(self, client: Any, option: str) -> None:
@@ -299,28 +265,20 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if value is None:  # pragma: no cover
             return
         if self._key == "MBF_PAR_FILT_MODE":
-            current_mode = self.coordinator.data.get(self._key)
-            current_name = (
-                self._options_map.get(int(current_mode))
-                if current_mode is not None
-                else None
-            )
+            current_name = self.coordinator.data.get("filtration_mode")
             has_auto_valve = has_filtvalve(self.coordinator.data)
-            # When leaving manual mode, stop the pump first - EXCEPT when
-            # switching to backwash on a device WITH an automatic valve (Besgo).
-            # In that case the pump must keep running so the valve opens correctly.
-            # For manual valve users the pump must stop so the user can safely
-            # rotate the multi-way valve before the backwash cycle begins.
             if current_name == "manual" and option != "manual":
                 if not (option == "backwash" and has_auto_valve):
                     await client.async_write_register(MANUAL_FILTRATION_REGISTER, 0)
                     await asyncio.sleep(0.1)
-        await client.async_write_register(self._register, value)
-        if self._key == "MBF_PAR_FILT_MODE" and option == "backwash":
-            _LOGGER.info(
-                'Your pool "%s" has been switched to the BACKWASH mode!',
-                NeoPoolEntity.slugify(self.coordinator.device_name),
-            )
+            await client.async_set_filtration_mode(option)
+            if option == "backwash":
+                _LOGGER.info(
+                    'Your pool "%s" has been switched to the BACKWASH mode!',
+                    NeoPoolEntity.slugify(self.coordinator.device_name),
+                )
+        else:
+            await client.async_write_register(self._register, value)
         self._optimistic_update(value)
         self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()

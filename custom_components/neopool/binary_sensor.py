@@ -18,6 +18,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
+from neopool_modbus.capabilities import is_ionization_present
 from neopool_modbus.registers import is_valid_relay_gpio
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
@@ -84,7 +85,7 @@ def _should_skip_binary_sensor(
         return True
 
     # Skip ION entities if ionization module not present
-    if key.startswith("ION ") and not bool((data.get("MBF_PAR_MODEL") or 0) & 0x0001):
+    if key.startswith("ION ") and not is_ionization_present(data):
         return True  # pragma: no cover
 
     # Skip HIDRO entities if no hydrolysis module is installed
@@ -224,7 +225,7 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
         if self._key == "Device Time Out Of Sync":
-            if self.coordinator.data.get("MBF_PAR_TIME_LOW") is None:
+            if self.coordinator.data.get("MBF_PAR_TIME") is None:
                 return None
             return is_device_time_out_of_sync(self.coordinator.data, self.hass)
 

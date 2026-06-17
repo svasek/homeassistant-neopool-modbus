@@ -26,7 +26,7 @@ from typing import Any
 
 from neopool_modbus import async_probe_serial
 from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER, is_valid_relay_gpio
+from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
 
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -38,23 +38,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-def combine_u32(data: dict[str, Any], low_key: str, high_key: str) -> int | None:
-    """Combine two consecutive 16-bit Modbus registers into one 32-bit unsigned value.
-
-    NeoPool firmware exposes 32-bit counters (cell runtime, system time, work-time
-    counters, etc.) as two 16-bit register pairs labelled ``*_LOW`` and ``*_HIGH``.
-    This helper rebuilds the 32-bit value as ``(high << 16) | low``.
-
-    Returns ``None`` if either half is missing from the coordinator data; the
-    caller treats this the same as ``coordinator.data.get(key)`` returning ``None``.
-    """
-    low = data.get(low_key)
-    high = data.get(high_key)
-    if low is None or high is None:
-        return None
-    return (int(high) << 16) | int(low)
-
-
 # This function takes a dictionary of data and returns the device time as a datetime object
 # It extracts the low and high parts of the time from the dictionary, combines them into a single timestamp,
 # and converts it to a datetime object in UTC timezone
@@ -62,11 +45,9 @@ def get_device_time(
     data: dict[str, Any], hass: HomeAssistant | None = None
 ) -> datetime.datetime | None:
     """Get device time and convert to datetime object."""
-    low = data.get("MBF_PAR_TIME_LOW")
-    high = data.get("MBF_PAR_TIME_HIGH")
-    if low is None or high is None:
+    unix_ts = data.get("MBF_PAR_TIME")
+    if unix_ts is None:
         return None
-    unix_ts = (high << 16) | low
     if hass:
         local_tz = dt_util.get_time_zone(hass.config.time_zone)
         # WORKAROUND: This is the naive datetime object, without timezone info
@@ -81,11 +62,8 @@ def get_device_time(
 # but is timezone-naive — it just shows the value back through its display
 # as a wall-clock time. To get the display to match the user's local clock,
 # we anchor the "epoch" at 1970-01-01 in the user's timezone instead of UTC.
-def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
-    """Prepare device time for writing to the device.
-
-    Returns a list of two integers representing the low and high parts of the time.
-    """
+def prepare_device_time(hass: HomeAssistant | None = None) -> int:
+    """Return the unix timestamp the device should display as local wall-clock."""
     if hass:
         ha_tz = dt_util.get_time_zone(hass.config.time_zone)
         now_local = dt_util.now(ha_tz)
@@ -94,12 +72,8 @@ def prepare_device_time(hass: HomeAssistant | None = None) -> list[int]:
         # as `now_local`. The subtraction cancels the timezone offset out and
         # yields the local-clock seconds the device's display expects.
         epoch_local = datetime.datetime(1970, 1, 1, tzinfo=ha_tz)
-        unix_time_local = int((now_local - epoch_local).total_seconds())
-    else:  # pragma: no cover
-        unix_time_local = int(dt_util.now().timestamp())
-    low = unix_time_local & 0xFFFF
-    high = (unix_time_local >> 16) & 0xFFFF
-    return [low, high]
+        return int((now_local - epoch_local).total_seconds())
+    return int(dt_util.now().timestamp())  # pragma: no cover
 
 
 # This function checks if the device time is out of sync with the Home Assistant time
@@ -146,22 +120,6 @@ def calculate_next_interval_time(
 
     # Round to nearest minute (set seconds and microseconds to 0)
     return target_time.replace(second=0, microsecond=0)
-
-
-# Machine type index → brand name (matches kNeoPoolMachineNames[] in Tasmota)
-
-
-def has_filtvalve(data: dict) -> bool:
-    """Return True if a Besgo automatic filter valve is configured.
-
-    Primary signal is MBF_PAR_FILTVALVE_GPIO (relay assigned to the valve,
-    valid range 1-7). MBF_PAR_FILTVALVE_ENABLE is honoured as a fallback
-    for cases where GPIO is 0 but the feature flag is explicitly set.
-    Values outside the valid relay range (1-7) are treated as not present.
-    """
-    gpio = data.get("MBF_PAR_FILTVALVE_GPIO") or 0
-    enable = data.get("MBF_PAR_FILTVALVE_ENABLE") or 0
-    return is_valid_relay_gpio(gpio) or enable != 0
 
 
 def parse_register_int(raw: int | str, name: str) -> int:

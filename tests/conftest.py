@@ -81,6 +81,8 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "Redox measurement module detected": True,
     "pH measurement module detected": True,
     "MBF_PAR_FILT_MODE": 0,  # manual
+    "filtration_mode": "manual",
+    "filtration_speed_state": "off",
     "MBF_MEASURE_TEMPERATURE": 250,  # 25.0°C
     "MBF_MEASURE_PH": 720,  # 7.20
     "Filtration Pump": False,
@@ -97,19 +99,14 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "relay_aux2_enable": 4,
     "relay_aux3_enable": 4,
     "relay_aux4_enable": 4,
-    # Cell-runtime 32-bit counters (LOW/HIGH word pairs).
+    # Cell-runtime 32-bit counters (lib 3.1.3+ collapses LOW/HIGH pairs).
     # Total = 0x0001_0000 s = 65536 s; Partial = 0x0000_0E10 s = 3600 s (1 hour);
     # Pol1/Pol2 split the partial roughly in half; pol-changes count = 7.
-    "MBF_CELL_RUNTIME_LOW": 0x0000,
-    "MBF_CELL_RUNTIME_HIGH": 0x0001,
-    "MBF_CELL_RUNTIME_PART_LOW": 0x0E10,
-    "MBF_CELL_RUNTIME_PART_HIGH": 0x0000,
-    "MBF_CELL_RUNTIME_POLA_LOW": 0x0708,
-    "MBF_CELL_RUNTIME_POLA_HIGH": 0x0000,
-    "MBF_CELL_RUNTIME_POLB_LOW": 0x0708,
-    "MBF_CELL_RUNTIME_POLB_HIGH": 0x0000,
-    "MBF_CELL_RUNTIME_POL_CHANGES_LOW": 0x0007,
-    "MBF_CELL_RUNTIME_POL_CHANGES_HIGH": 0x0000,
+    "CELL_RUNTIME_TOTAL": 0x00010000,
+    "CELL_RUNTIME_PART": 0x00000E10,
+    "CELL_RUNTIME_POLA": 0x00000708,
+    "CELL_RUNTIME_POLB": 0x00000708,
+    "CELL_RUNTIME_POL_CHANGES": 0x00000007,
 }
 
 
@@ -177,6 +174,13 @@ def mock_neopool_client() -> Generator[MagicMock]:
         mock_client.async_write_register = AsyncMock(
             return_value={"value": 0, "confirmed": 0}
         )
+        mock_client.async_set_filtration_mode = AsyncMock(return_value=None)
+        mock_client.async_set_cell_boost = AsyncMock(return_value=None)
+        mock_client.async_set_filtration_speed = AsyncMock(return_value=None)
+        mock_client.async_set_temp_setpoint = AsyncMock(return_value=None)
+        mock_client.async_sync_device_time = AsyncMock(return_value=None)
+        mock_client.async_clear_errors = AsyncMock(return_value=None)
+        mock_client.async_reset_user_counters = AsyncMock(return_value=None)
         mock_client.write_timer = AsyncMock()
         mock_client.close = AsyncMock()
         yield mock_client
@@ -217,6 +221,8 @@ def minimal_pool_data() -> dict[str, Any]:
         "Redox measurement module detected": False,
         "pH measurement module detected": False,
         "MBF_PAR_FILT_MODE": 0,
+        "filtration_mode": "manual",
+        "filtration_speed_state": "off",
         "Filtration Pump": False,
     }
 

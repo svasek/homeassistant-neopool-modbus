@@ -42,18 +42,13 @@ async def test_sync_time_button_writes_time_and_commit(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """SYNC_TIME button writes the current time to 0x0408 and commits via 0x04F0."""
+    """SYNC_TIME button delegates to async_sync_device_time."""
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _button_entity_id(hass, mock_config_entry, "sync_time")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_sync_device_time.reset_mock()
     await _press(hass, entity_id)
-
-    addresses = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert 0x0408 in addresses
-    assert 0x04F0 in addresses
+    assert mock_neopool_client.async_sync_device_time.await_count == 1
 
 
 async def test_escape_button_writes_clear_register(
@@ -61,13 +56,13 @@ async def test_escape_button_writes_clear_register(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """MBF_ESCAPE button writes 1 to 0x0297."""
+    """MBF_ESCAPE button delegates to async_clear_errors."""
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _button_entity_id(hass, mock_config_entry, "mbf_escape")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_clear_errors.reset_mock()
     await _press(hass, entity_id)
-    mock_neopool_client.async_write_register.assert_any_await(0x0297, 1)
+    mock_neopool_client.async_clear_errors.assert_awaited_once()
 
 
 async def test_backwash_button_writes_filt_mode(
@@ -75,13 +70,13 @@ async def test_backwash_button_writes_filt_mode(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """BACKWASH writes 13 (MBV_PAR_FILT_BACKWASH) to filtration mode register."""
+    """BACKWASH delegates to async_set_filtration_mode("backwash")."""
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _button_entity_id(hass, mock_config_entry, "backwash")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _press(hass, entity_id)
-    mock_neopool_client.async_write_register.assert_any_await(0x0411, 13)
+    mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("backwash")
 
 
 async def test_button_press_blocked_in_winter_mode(
@@ -108,10 +103,10 @@ async def test_button_press_blocked_in_winter_mode(
             break
     assert entity_obj is not None
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_sync_device_time.reset_mock()
     await entity_obj.async_press()
     assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_write_register.assert_not_called()
+    mock_neopool_client.async_sync_device_time.assert_not_called()
 
 
 async def test_backwash_button_aborts_when_valve_disappears(
@@ -131,10 +126,10 @@ async def test_backwash_button_aborts_when_valve_disappears(
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _press(hass, entity_id)
     assert "Backwash valve not configured" in caplog.text
-    mock_neopool_client.async_write_register.assert_not_called()
+    mock_neopool_client.async_set_filtration_mode.assert_not_called()
 
 
 async def test_reset_cell_partial_button_writes_reset_and_save(
@@ -142,7 +137,7 @@ async def test_reset_cell_partial_button_writes_reset_and_save(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """RESET_CELL_PARTIAL writes 0x02F2 (reset) then 0x02F0 (save) and refreshes."""
+    """RESET_CELL_PARTIAL delegates to async_reset_user_counters."""
     # The reset button is destructive (clears partial counters) so it ships
     # disabled-by-default. Pre-enable it in the registry before setup so the
     # platform constructs the entity object.
@@ -158,17 +153,9 @@ async def test_reset_cell_partial_button_writes_reset_and_save(
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _button_entity_id(hass, mock_config_entry, "reset_cell_partial")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_reset_user_counters.reset_mock()
     await _press(hass, entity_id)
-
-    addresses = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    # Reset must come before the EEPROM save so the device flushes the new
-    # zeroed counters, not the stale ones.
-    assert addresses == [0x02F2, 0x02F0]
-    mock_neopool_client.async_write_register.assert_any_await(0x02F2, 1)
-    mock_neopool_client.async_write_register.assert_any_await(0x02F0, 1)
+    mock_neopool_client.async_reset_user_counters.assert_awaited_once()
 
 
 async def test_reset_cell_partial_button_disabled_by_default(

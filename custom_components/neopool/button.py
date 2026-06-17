@@ -17,11 +17,7 @@
 import logging
 from typing import Any
 
-from neopool_modbus.registers import (
-    COPY_TO_RTC_REGISTER,
-    EEPROM_SAVE_REGISTER,
-    RESET_USER_COUNTERS_REGISTER,
-)
+from neopool_modbus.capabilities import has_filtvalve
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
@@ -31,7 +27,7 @@ from . import NeoPoolConfigEntry
 from .const import BUTTON_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import has_filtvalve, prepare_device_time
+from .helpers import prepare_device_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,17 +98,13 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         if self.coordinator.winter_mode:
             _LOGGER.warning("Winter mode is active — ignoring press for %s", self._key)
             return
+        client = self.coordinator.client
         if self._key == "SYNC_TIME":
-            client = self.coordinator.client
             _LOGGER.debug("Syncing time with device")
-            await client.async_write_register(0x0408, prepare_device_time(self.hass))
-            await client.async_write_register(COPY_TO_RTC_REGISTER, 1)
-            await self.coordinator.async_request_refresh()
+            await client.async_sync_device_time(prepare_device_time(self.hass))
         elif self._key == "MBF_ESCAPE":
-            client = self.coordinator.client
             _LOGGER.debug("Clearing all possible errors")
-            await client.async_write_register(0x0297, 1)
-            await self.coordinator.async_request_refresh()
+            await client.async_clear_errors()
         elif self._key == "BACKWASH":
             if not has_filtvalve(self.coordinator.data):
                 _LOGGER.warning(
@@ -124,26 +116,14 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
                     self.coordinator.device_name,
                 )
                 return
-            client = self.coordinator.client
             _LOGGER.info(
                 "Starting backwash on device '%s'", self.coordinator.device_name
             )
-            # Set filtration mode to backwash (13 = MBV_PAR_FILT_BACKWASH).
-            # The device opens the configured Besgo valve and runs the filter
-            # cleaning cycle for the duration stored in MBF_PAR_FILTVALVE_INTERVAL.
-            await client.async_write_register(0x0411, 13)
-            await self.coordinator.async_request_refresh()
+            await client.async_set_filtration_mode("backwash")
         elif self._key == "RESET_CELL_PARTIAL":
-            client = self.coordinator.client
             _LOGGER.info(
                 "Resetting partial cell runtime counter on device '%s'",
                 self.coordinator.device_name,
             )
-            # MBF_RESET_USER_COUNTERS: writing any value resets the user-level
-            # partial counters (cell partial runtime + ION/UV partial work-time,
-            # although only the cell partial counter is exposed today). Per the
-            # v10.23 spec the operation is volatile, so chain a write to
-            # MBF_SAVE_TO_EEPROM to make it persistent.
-            await client.async_write_register(RESET_USER_COUNTERS_REGISTER, 1)
-            await client.async_write_register(EEPROM_SAVE_REGISTER, 1)
-            await self.coordinator.async_request_refresh()
+            await client.async_reset_user_counters()
+        await self.coordinator.async_request_refresh()

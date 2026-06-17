@@ -19,6 +19,7 @@ import logging
 import math
 from typing import Any
 
+from neopool_modbus.capabilities import has_filtvalve, is_ionization_present
 from neopool_modbus.decoders import get_filtration_pump_type, is_hydrolysis_in_percent
 
 from homeassistant.components.sensor import (
@@ -36,30 +37,21 @@ from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER, SENSOR_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import calculate_next_interval_time, combine_u32, has_filtvalve
+from .helpers import calculate_next_interval_time
 
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
 
-# Add mapping for MBF_PAR_FILT_MODE values
-# fmt: off
-FILTRATION_MODE_MAP = {
-    0: "manual",        # This mode allows to turn the filtration (and all other systems that depend on it) on and off manually
-    1: "auto",          # This mode allows filtering to be turned on and off according to the settings of the TIMER1, TIMER2 and TIMER3 timers.
-    2: "heating",       # This mode is similar to the AUTO mode, but includes setting the temperature for the heating function. This mode is activated only if the MBF_PAR_HEATING_MODE register is at 1 and there is a heating relay assigned.
-    3: "smart",         # This filtration mode adjusts the pump operating times depending on the temperature. This mode is activated only if the MBF_PAR_TEMPERATURE_ACTIVE register is at 1.
-    4: "intelligent",   # This mode performs an intelligent filtration process in combination with the heating function. This mode is activated only if the MBF_PAR_HEATING_MODE register is at 1 and there is a heating relay assigned.
-    13: "backwash",     # This filter mode is started when the backwash operation is activated.
-}
-# fmt: on
-
-FILTRATION_SPEED_MAP = {
-    0: "off",
-    1: "low",
-    2: "mid",
-    3: "high",
-}
+_FILTRATION_MODE_OPTIONS: tuple[str, ...] = (
+    "manual",
+    "auto",
+    "heating",
+    "smart",
+    "intelligent",
+    "backwash",
+)
+_FILTRATION_SPEED_OPTIONS: tuple[str, ...] = ("off", "low", "mid", "high")
 
 PH_STATUS_ALARM_MAP = {
     0: "ok",
@@ -100,7 +92,7 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
         and data.get("Conductivity measurement module detected") is not True
     ):
         return True
-    if key == "MBF_ION_CURRENT" and not bool((data.get("MBF_PAR_MODEL") or 0) & 0x0001):
+    if key == "MBF_ION_CURRENT" and not is_ionization_present(data):
         return True
     if key in (
         "MBF_HIDRO_CURRENT",
@@ -110,7 +102,7 @@ def _should_skip_sensor(key: str, data: dict, options: dict | None = None) -> bo
         return True
     if key.startswith("CELL_RUNTIME") and not data.get("Hydrolysis module detected"):
         return True
-    if key == "ION_POLARITY" and not bool((data.get("MBF_PAR_MODEL") or 0) & 0x0001):
+    if key == "ION_POLARITY" and not is_ionization_present(data):
         return True
     if key == "FILTRATION_SPEED" and not get_filtration_pump_type(
         data.get("MBF_PAR_FILTRATION_CONF", 0)
@@ -195,11 +187,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         # Disable some entities by default.
         if props.get("entity_registry_enabled_default") is False:
             self._attr_entity_registry_enabled_default = False
-
-        # Synthetic 32-bit counters (e.g. CELL_RUNTIME_*) declare the
-        # ``*_LOW`` / ``*_HIGH`` register pair they should be combined from.
-        # native_value() rebuilds the 32-bit value via combine_u32().
-        self._register_pair: tuple[str, str] | None = props.get("register_pair")
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
@@ -323,8 +310,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Return the actual sensor value from coordinator data."""
         if self._is_measurement_suppressed():
             return None
-        if self._register_pair is not None:
-            return combine_u32(self.coordinator.data, *self._register_pair)
         if self._key == "PH_PUMP_STATUS":
             return self._compute_ph_pump_status()
         if self._key == "HIDRO_POLARITY":
@@ -332,13 +317,9 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         if self._key == "ION_POLARITY":
             return self._compute_ion_polarity()
         if self._key == "MBF_PAR_FILT_MODE":
-            filt_mode: int | None = self.coordinator.data.get(self._key)
-            return FILTRATION_MODE_MAP.get(filt_mode) if filt_mode is not None else None
+            return self.coordinator.data.get("filtration_mode")
         if self._key == "FILTRATION_SPEED":
-            filt_speed: int | None = self.coordinator.data.get(self._key)
-            return (
-                FILTRATION_SPEED_MAP.get(filt_speed) if filt_speed is not None else None
-            )
+            return self.coordinator.data.get("filtration_speed_state")
         if self._key == "MBF_PH_STATUS_ALARM":
             ph_alarm: int | None = self.coordinator.data.get(self._key)
             return PH_STATUS_ALARM_MAP.get(ph_alarm) if ph_alarm is not None else None
@@ -352,9 +333,9 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     def options(self) -> list[str] | None:
         """Return the list of options for the sensor."""
         if self._key == "MBF_PAR_FILT_MODE":
-            return list(FILTRATION_MODE_MAP.values())
+            return list(_FILTRATION_MODE_OPTIONS)
         if self._key == "FILTRATION_SPEED":
-            return list(FILTRATION_SPEED_MAP.values())
+            return list(_FILTRATION_SPEED_OPTIONS)
         if self._key == "MBF_PH_STATUS_ALARM":
             return list(PH_STATUS_ALARM_MAP.values())
         if self._key == "HIDRO_POLARITY":

@@ -3,10 +3,6 @@
 import asyncio
 from unittest.mock import MagicMock
 
-from neopool_modbus.registers import (
-    HEATING_SETPOINT_REGISTER,
-    INTELLIGENT_SETPOINT_REGISTER,
-)
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -107,13 +103,13 @@ async def test_heating_setpoint_mirrors_to_intelligent(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Writing the heating setpoint mirrors the value to the intelligent register."""
+    """Writing the heating setpoint delegates to async_set_temp_setpoint."""
 
     await setup_integration(hass, mock_config_entry)
     _disable_debounce(hass)
     entity_id = _number_entity_id(hass, mock_config_entry, "mbf_par_heating_temp")
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_temp_setpoint.reset_mock()
     await _set_value(hass, entity_id, 28.0)
 
     entity_obj = None
@@ -126,11 +122,7 @@ async def test_heating_setpoint_mirrors_to_intelligent(
             break
     await _flush_debounce(hass, entity_obj)
 
-    addresses = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert HEATING_SETPOINT_REGISTER in addresses
-    assert INTELLIGENT_SETPOINT_REGISTER in addresses
+    mock_neopool_client.async_set_temp_setpoint.assert_awaited_once_with(28)
 
 
 async def test_number_blocked_in_winter_mode(

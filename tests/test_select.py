@@ -54,13 +54,13 @@ async def test_filt_mode_select_writes_register(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Selecting a filtration mode writes the mapped int to 0x0411."""
+    """Selecting a filtration mode delegates to the lib's async_set_filtration_mode."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _select_option(hass, entity_id, "auto")
-    mock_neopool_client.async_write_register.assert_any_await(0x0411, 1)
+    mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
 async def test_filt_mode_leaving_manual_stops_pump_first(
@@ -70,27 +70,28 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
 ) -> None:
     """Switching from manual to a non-backwash mode preemptively stops the pump.
 
-    Custom-pre-condition: current MBF_PAR_FILT_MODE == 0 (manual). Switching
-    to 'auto' must first write 0 to MANUAL_FILTRATION_REGISTER, then write
-    the new mode to 0x0411.
+    Custom-pre-condition: filtration_mode == "manual". Switching to "auto"
+    must first write 0 to MANUAL_FILTRATION_REGISTER before the lib write.
     """
 
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
     coordinator.data["MBF_PAR_FILT_MODE"] = 0
+    coordinator.data["filtration_mode"] = "manual"
     coordinator.data["MBF_PAR_FILT_MANUAL_STATE"] = 1
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
     mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _select_option(hass, entity_id, "auto")
 
     addresses = [
         c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
     ]
     assert MANUAL_FILTRATION_REGISTER in addresses
-    assert 0x0411 in addresses
+    mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
 async def test_filt_mode_backwash_with_auto_valve_keeps_pump_running(
@@ -106,11 +107,13 @@ async def test_filt_mode_backwash_with_auto_valve_keeps_pump_running(
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
     coordinator.data["MBF_PAR_FILT_MODE"] = 0
+    coordinator.data["filtration_mode"] = "manual"
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
     mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _select_option(hass, entity_id, "backwash")
 
     addresses = [
@@ -118,7 +121,7 @@ async def test_filt_mode_backwash_with_auto_valve_keeps_pump_running(
     ]
     # No write to MANUAL_FILTRATION_REGISTER (pump kept running for valve)
     assert MANUAL_FILTRATION_REGISTER not in addresses
-    assert 0x0411 in addresses
+    mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("backwash")
 
 
 # ---------------------------------------------------------------------------
@@ -179,9 +182,9 @@ async def test_cell_boost_active_redox_writes_composite_value(
     await hass.async_block_till_done()
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_cell_boost")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_cell_boost.reset_mock()
     await _select_option(hass, entity_id, "active_redox")
-    mock_neopool_client.async_write_register.assert_any_await(0x020C, 0x05A0)
+    mock_neopool_client.async_set_cell_boost.assert_awaited_once_with("active_redox")
 
 
 async def test_cell_boost_current_option_decodes_register_bits(
@@ -336,7 +339,7 @@ async def test_filtration_speed_packs_into_filtration_conf(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Selecting a speed re-packs the value into MBF_PAR_FILTRATION_CONF."""
+    """Selecting a speed delegates to the lib's async_set_filtration_speed."""
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
     coordinator.data["MBF_PAR_FILTRATION_CONF"] = 0
@@ -344,12 +347,9 @@ async def test_filtration_speed_packs_into_filtration_conf(
     await hass.async_block_till_done()
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtration_speed")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_filtration_speed.reset_mock()
     await _select_option(hass, entity_id, "high")
-    # high == 2, mask 0x0070, shift 4 → value 0x0020
-    mock_neopool_client.async_write_register.assert_any_await(
-        0x050F, 0x0020, apply=True
-    )
+    mock_neopool_client.async_set_filtration_speed.assert_awaited_once_with("high")
 
 
 # ---------------------------------------------------------------------------
