@@ -32,8 +32,6 @@ from homeassistant.util import slugify as ha_slugify
 from .const import DOMAIN, NAME
 from .coordinator import NeoPoolCoordinator
 
-# Map lib's snake_case module names to the human-readable labels exposed
-# in the device's hw_version field.
 _MODULE_LABELS: dict[str, str] = {
     "ionization": "Ionization",
     "hydrolysis": "Hydro/Electrolysis",
@@ -100,11 +98,10 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
 
     @staticmethod
     def _format_modules(data: dict) -> str:
-        """Render the installed module list as the user-facing hw_version label."""
+        """Render installed_modules as the hw_version label."""
         modules = data.get("installed_modules")
         if modules is None:
-            # Coordinator data not yet populated; fall back to a fresh decode
-            # so the device card stays readable on first paint.
+            # First paint: coordinator data not yet populated.
             modules = decode_par_model_modules(data.get("MBF_PAR_MODEL"))
         if not modules:
             return "None" if data.get("MBF_PAR_MODEL") is not None else "Unknown"

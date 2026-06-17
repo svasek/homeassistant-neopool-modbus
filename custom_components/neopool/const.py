@@ -17,6 +17,8 @@
 import logging
 from typing import Any
 
+from neopool_modbus.capabilities import CAPABILITY_KEYS as LIB_CAPABILITY_KEYS
+
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.number import NumberDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
@@ -77,14 +79,8 @@ GPIO_REGISTERS = {
     "MBF_PAR_FILTVALVE_GPIO": "Filter valve relay",
 }
 
-# Capability keys that drive entity-creation logic in every platform's async_setup_entry.
-# They are snapshotted when winter mode is enabled and persisted in entry.options so that
-# platforms can set up the correct set of entities after a HA restart in winter mode.
-CAPABILITY_KEYS = (
-    "MBF_PAR_MODEL",
-    "MBF_PAR_TEMPERATURE_ACTIVE",
-    "MBF_PAR_FILTRATION_CONF",
-    "MBF_PAR_HEATING_GPIO",
+# Persisted in entry.options for winter-mode restarts.
+_CUSTOM_CAPABILITY_KEYS: tuple[str, ...] = (
     "MBF_PAR_HIDRO_NOM",
     "MBF_PAR_HIDRO_COVER_ENABLE",
     "MBF_PAR_PH_ACID_RELAY_GPIO",
@@ -96,13 +92,10 @@ CAPABILITY_KEYS = (
     "MBF_PAR_RELAY_PH",
     "MBF_PAR_FILT_GPIO",
     "MBF_PAR_LIGHTING_GPIO",
-    "MBF_PAR_FILTVALVE_ENABLE",
-    "MBF_PAR_FILTVALVE_GPIO",
-    "Hydrolysis module detected",
-    "pH measurement module detected",
-    "Redox measurement module detected",
-    "Chlorine measurement module detected",
-    "Conductivity measurement module detected",
+)
+
+CAPABILITY_KEYS: tuple[str, ...] = tuple(
+    dict.fromkeys((*LIB_CAPABILITY_KEYS, *_CUSTOM_CAPABILITY_KEYS))
 )
 
 # Entity keys removed in past releases. async_setup_entry() uses this list to
