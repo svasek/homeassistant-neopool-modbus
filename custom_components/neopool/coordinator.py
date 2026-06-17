@@ -47,7 +47,7 @@ from .const import (
 )
 from .helpers import is_device_time_out_of_sync, prepare_device_time
 
-MAX_SCAN_INTERVAL = timedelta(seconds=180)  # Maximum allowed scan interval (3 minutes)
+MAX_SCAN_INTERVAL = timedelta(seconds=180)
 
 _FILT_TIMERS = ("filtration1", "filtration2", "filtration3")
 
@@ -67,7 +67,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entry_id: str,
     ) -> None:
         """Initialise the NeoPool data update coordinator."""
-        # Store normal and maximal intervals
         self.normal_update_interval = timedelta(
             seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
         )
@@ -86,13 +85,10 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.entry = entry
         self.entry_id = entry_id
-        # Use the entry title as the device label / slug source. Users can
-        # rename the entry from Settings → Devices & services to change this.
         self.device_name = entry.title or DOMAIN
         self.auto_time_sync = self.entry.options.get("auto_time_sync", False)
         self.winter_mode = self.entry.options.get("winter_mode", False)
-        # Capability snapshot: persisted in options so platform setup survives restarts
-        # in winter mode (where no real Modbus read occurs to populate coordinator.data).
+        # Persisted in options for winter mode (no Modbus reads).
         self._capability_snapshot: dict[str, Any] = dict(
             entry.options.get("_capabilities", {})
         )
@@ -108,15 +104,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         The follow-up catches delayed device state changes that may not
         be visible in Modbus registers immediately after a write.
-        No immediate refresh is performed — callers should apply optimistic
-        state updates before calling this method.
-        If called again before the previous follow-up fires, the old one
-        is cancelled to avoid stacking.
         """
         self._schedule_follow_up_refresh(delay)
 
     def cancel_follow_up_refresh(self) -> None:
-        """Cancel any pending follow-up refresh (e.g. on config entry unload)."""
+        """Cancel any pending follow-up refresh."""
         if self._follow_up_unsub:
             self._follow_up_unsub()
             self._follow_up_unsub = None
@@ -135,13 +127,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._follow_up_unsub = async_call_later(self.hass, delay, _do_refresh)
 
     def _check_gpio_registers(self, data: dict) -> None:
-        """Validate GPIO register values after first successful read.
-
-        GPIO registers assign physical relay outputs (valid range 0-MAX_RELAY_GPIO).
-        A value outside this range indicates register corruption, which can happen
-        when the Modbus gateway framing mode does not match the integration's framer
-        setting (e.g. transparent gateway with TCP framer).
-        """
+        """Validate GPIO register values after first successful read."""
         corrupted = []
         for key, label in GPIO_REGISTERS.items():
             value = data.get(key)
@@ -157,7 +143,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     MAX_RELAY_GPIO,
                 )
 
-        # Dismiss legacy persistent notification from versions before repair-issues migration
         persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_corrupted_gpio")
 
         if corrupted:
@@ -175,17 +160,12 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_placeholders={"details": details},
             )
         else:
-            # Clear any previous issue if registers are now valid
+            # Clear any previous repair issue if registers are now valid.
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
             _LOGGER.info("GPIO registers passed sanity check: all values are valid")
 
     def _get_enabled_timers(self) -> list[str]:
-        """Return the list of timer block names enabled in entry options.
-
-        Filtration timer blocks are always included so the countdown
-        aggregation has fresh data even when the user hasn't enabled
-        their configuration entities.
-        """
+        """Return the list of timer block names enabled in entry options."""
         options = self.entry.options
         enabled: list[str] = []
         for key in TIMER_BLOCKS:
@@ -214,7 +194,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         for t_name, t in timers.items():
             data[f"{t_name}_enable"] = t["enable"]
-            data[f"{t_name}_start"] = t["on"]  # saved as seconds since midnight
+            data[f"{t_name}_start"] = t["on"]  # seconds since midnight
             data[f"{t_name}_interval"] = t["interval"]
             data[f"{t_name}_period"] = t["period"]
             data[f"{t_name}_countdown"] = t["countdown"]
@@ -243,14 +223,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Applied dev overrides: %s", overrides)
 
     async def _sync_heating_intelligent_setpoints(self, data: dict[str, Any]) -> None:
-        """Keep heating and intelligent setpoints synchronized last-change-wins.
-
-        If exactly one register changed since the previous snapshot, mirror
-        it to the other. If both changed in the same cycle, revert both to
-        their previous values to avoid conflicts. If neither changed but
-        the values differ, perform an initial sync using heating as the
-        source of truth.
-        """
+        """Keep heating and intelligent setpoints synchronized last-change-wins."""
         prev = self.data
         heat = data.get("MBF_PAR_HEATING_TEMP")
         intel = data.get("MBF_PAR_INTELLIGENT_TEMP")
@@ -262,7 +235,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         intelligent_changed = i_old is None or intel != i_old
 
         if heating_changed ^ intelligent_changed:
-            # Exactly one changed: sync the other to match (last-change-wins)
             winner_val = int(heat if heating_changed else intel)
             loser_reg = (
                 INTELLIGENT_SETPOINT_REGISTER
@@ -278,7 +250,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 data["MBF_PAR_INTELLIGENT_TEMP"],
             )
         elif heating_changed and intelligent_changed:
-            # Both changed this cycle; revert both to previous values
             _LOGGER.warning(
                 "Both heating and intelligent setpoints changed simultaneously "
                 "(heating: %s→%s, intelligent: %s→%s). Reverting both to previous values to prevent conflict",
@@ -302,7 +273,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     data["MBF_PAR_INTELLIGENT_TEMP"],
                 )
         else:
-            # Neither changed but they differ: initial sync (heating wins)
             _LOGGER.info(
                 "Setpoints differ but neither changed (heating=%s, intelligent=%s). "
                 "Performing initial sync: setting intelligent to match heating",
@@ -320,12 +290,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
 
     def _persist_capability_snapshot(self, data: dict[str, Any]) -> None:
-        """Persist the capability snapshot so platform setup survives HA restarts.
-
-        While Modbus is down (e.g. because winter mode is on), platforms
-        still need to know which entities to register; the snapshot stored
-        in entry.options gives them that visibility.
-        """
+        """Persist the capability snapshot so platform setup survives HA restarts."""
         new_snapshot = {k: data[k] for k in CAPABILITY_KEYS if k in data}
         if new_snapshot == self._capability_snapshot:
             return
@@ -350,7 +315,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch the latest data from the pool controller."""
-        # Winter mode: skip all Modbus communication; entities remain but show unknown values
         if self.winter_mode:
             _LOGGER.debug("Winter mode active - skipping Modbus communication")
             return self.data if self.data is not None else self._capability_snapshot
@@ -367,7 +331,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._consecutive_errors = 0
 
-        # Reset interval after success
         if self.update_interval != self.normal_update_interval:  # pragma: no cover
             _LOGGER.info(
                 "Communication OK, resetting update interval to %s seconds",
@@ -378,7 +341,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._firmware = parse_version(data.get("MBF_POWER_MODULE_VERSION"))
         self._model = "NeoPool"
 
-        # One-time GPIO sanity check after first successful read
         if not self._gpio_checked:
             self._gpio_checked = True
             self._check_gpio_registers(data)
@@ -401,10 +363,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             await self._sync_heating_intelligent_setpoints(data)
         except Exception as sync_err:  # noqa: BLE001  # pragma: no cover
-            # Setpoint sync is best-effort: it walks coordinator data and
-            # writes a register, so anything from KeyError / TypeError /
-            # ValueError up to NeoPoolError / OSError can surface here. A
-            # failed sync must not poison the rest of the update cycle.
             _LOGGER.debug("Setpoint auto-sync skipped due to error: %s", sync_err)
 
         self._persist_capability_snapshot(data)
@@ -413,10 +371,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def set_auto_time_sync(self, enabled: bool) -> None:
         """Persist the auto_time_sync flag and refresh the entry options."""
         self.auto_time_sync = enabled
-        # Update the entry options to reflect the change
-        # This is necessary to persist the setting across restarts
-        # and to ensure that the coordinator uses the updated value
-        # when fetching data
         options = dict(self.entry.options)
         options["auto_time_sync"] = enabled
         self.hass.config_entries.async_update_entry(self.entry, options=options)
@@ -427,8 +381,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         options = dict(self.entry.options)
         options["winter_mode"] = enabled
         if enabled:
-            # Refresh snapshot from live data (if available) and persist so that
-            # platform setup can reconstruct the correct entity set after a restart.
             if self.data:
                 self._capability_snapshot = {
                     k: self.data[k] for k in CAPABILITY_KEYS if k in self.data

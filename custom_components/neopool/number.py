@@ -47,17 +47,12 @@ def _should_skip_number(
     entry_options: Mapping[str, Any],
 ) -> bool:
     """Return True if a number entity should not be created."""
-    # Only create number entities if enabled in options
     option_key = props.get("option")
     if option_key and not entry_options.get(option_key, False):
         return True
-    # Skip smart temperature numbers if no temperature sensor is active
     if key in ("MBF_PAR_SMART_TEMP_HIGH", "MBF_PAR_SMART_TEMP_LOW"):
         if not bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")):
             return True
-    # Conditionally add heating setpoint only if heating relay is assigned.
-    # Only enforce when the GPIO key is present in data; a missing key
-    # (e.g. old capability snapshot) must not suppress the entity.
     if key == "MBF_PAR_HEATING_TEMP":
         if "MBF_PAR_HEATING_GPIO" in data and not is_valid_relay_gpio(
             data["MBF_PAR_HEATING_GPIO"] or 0
@@ -65,36 +60,27 @@ def _should_skip_number(
             return True
         if not bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")):
             return True
-    # Conditionally add pH high limit only if acid pump relay is assigned.
-    # Only enforce when the GPIO key is present in data.
     if key == "MBF_PAR_PH1":
         if "MBF_PAR_PH_ACID_RELAY_GPIO" in data and not is_valid_relay_gpio(
             data["MBF_PAR_PH_ACID_RELAY_GPIO"] or 0
         ):
             return True
-    # Conditionally add pH low limit only if base pump relay is assigned.
-    # Only enforce when the GPIO key is present in data.
     if key == "MBF_PAR_PH2":
         if "MBF_PAR_PH_BASE_RELAY_GPIO" in data and not is_valid_relay_gpio(
             data["MBF_PAR_PH_BASE_RELAY_GPIO"] or 0
         ):
             return True
-    # Conditionally add redox setpoint only if redox module is detected
     if key == "MBF_PAR_RX1":
         if not bool(data.get("Redox measurement module detected")):
             return True
-    # Conditionally add chlorine setpoint only if chlorine module is detected
     if key == "MBF_PAR_CL1":
         if not bool(data.get("Chlorine measurement module detected")):
             return True
-    # Skip hydrolysis target if no hydrolysis module is installed
     if key == "MBF_PAR_HIDRO" and not data.get("Hydrolysis module detected"):
         return True
-    # Cover reduction numbers only visible when hydrolysis module present
     if key == "MBF_PAR_HIDRO_COVER_REDUCTION":
         if not data.get("Hydrolysis module detected"):
             return True
-    # Shutdown temperature needs hydrolysis and temperature sensor
     if key == "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE":
         if (
             not data.get("Hydrolysis module detected")
@@ -139,12 +125,10 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._key = key
         self._register = props.get("register")
         self._scale = props.get("scale", 1.0)
-        # Optional bitmask support for compound registers
         self._mask: int | None = props.get("mask")
         self._shift: int = props.get("shift", 0)
         self._data_key: str = props.get("data_key", key)
 
-        # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
@@ -177,8 +161,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
             return
         await super().async_added_to_hass()
 
-        # Read full register map and get the value using string key
-        # Use coordinator cache instead of hitting Modbus again
         val = self.coordinator.data.get(self._data_key)
         if val is not None and self._mask is not None:
             val = (int(val) & self._mask) >> self._shift
@@ -201,9 +183,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         ):  # pragma: no cover
             self._pending_write_task.cancel()
         self._pending_write_task = asyncio.create_task(self._debounced_write())
-        # Optimistic UI update: show the pending value immediately.
-        # The actual Modbus write and coordinator refresh happen after the
-        # debounce delay inside _debounced_write().
+        # Show the pending value optimistically. Write happens after debounce.
         self.async_write_ha_state()
 
     async def _debounced_write(self) -> None:
@@ -222,7 +202,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
                 return
             raw = int(self._pending_value * self._scale)
             if self._mask is not None:
-                # Read-Modify-Write: preserve bits outside our mask
                 current = int(self.coordinator.data.get(self._data_key, 0) or 0)
                 raw = (current & ~self._mask) | ((raw << self._shift) & self._mask)
                 await client.async_write_register(self._register, raw, apply=True)
@@ -258,19 +237,16 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         ):  # pragma: no cover
             return float(round(raw))
         if raw is None:
-            return self._attr_native_value  # fallback if coordinator is not updated yet
+            return self._attr_native_value
         return round(float(raw), 2)
 
-    # Property to set correct native value for hydrolysis
     @property
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement for the number value."""
         if self._key == "MBF_PAR_HIDRO":
-            # Dynamically determine unit based on machine configuration using the same logic as Tasmota
             return "%" if is_hydrolysis_in_percent(self.coordinator.data) else "g/h"
         return self._attr_native_unit_of_measurement
 
-    # Property to set correct native max value for hydrolysis
     @property
     def native_max_value(self) -> float:
         """Return the maximum value for the number entity."""

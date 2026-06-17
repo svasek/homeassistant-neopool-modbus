@@ -149,7 +149,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
         errors = {}
         if user_input is not None:
-            # Validation 1: TCP connection
             errors = await self._async_validate_connection(user_input)
             if errors:
                 return self.async_show_form(
@@ -158,7 +157,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors=errors,
                 )
 
-            # Validation 2: Trial Modbus read → get serial number
             serial_number = await async_get_device_serial(user_input)
             if not serial_number:
                 errors[CONF_HOST] = "cannot_read_modbus"
@@ -173,7 +171,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors=errors,
                 )
 
-            # Validation 3: Duplicate prevention (unique_id based on serial)
             unique_id = f"neopool_{serial_number}"
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
@@ -252,7 +249,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             errors = await self._async_validate_connection(user_input)
             if not errors:
-                # Verify the device serial matches this entry's unique_id
                 if entry.unique_id:
                     serial = await async_get_device_serial({**current, **user_input})
                     if serial and f"neopool_{serial}" != entry.unique_id:

@@ -32,8 +32,7 @@ from homeassistant.helpers.typing import ConfigType
 from .const import DOMAIN, PLATFORMS, REMOVED_ENTITY_KEYS
 from .coordinator import NeoPoolCoordinator
 
-# Re-exported for Home Assistant — HA calls async_migrate_entry(hass, entry)
-# from the integration's __init__ module when config entry version changes.
+# Re-exported for Home Assistant — HA discovers async_migrate_entry from __init__.
 from .migration import async_cleanup_legacy_files, async_migrate_entry
 from .services import async_setup_services
 
@@ -78,8 +77,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
     """Set up the NeoPool integration from a config entry."""
     # CUSTOM-ONLY START — historic config flow stored options inside `data`;
     # the core integration writes options correctly from day one.
-    # --- MIGRATE CONFIG FLOW DATA TO OPTIONS IF NEEDED ---
-    # Copy all keys except connection settings from data to options
     connection_keys = [CONF_HOST, CONF_PORT, CONF_NAME, "unit_id", "slave_id"]
     candidate_keys = [k for k in entry.data if k not in connection_keys]
     if not entry.options or not any(k in entry.options for k in candidate_keys):
@@ -90,30 +87,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
                 new_options,
             )
             hass.config_entries.async_update_entry(entry, options=new_options)
-    # --- End migration ---
     # CUSTOM-ONLY END
 
-    # Initialize Modbus client and coordinator
     client = NeoPoolModbusClient(entry.data)
     coordinator = NeoPoolCoordinator(hass, client, entry, entry.entry_id)
-
-    # Wait for the first update from the coordinator
     await coordinator.async_config_entry_first_refresh()
-
-    # Store the coordinator as runtime_data for easy access
     entry.runtime_data = coordinator
 
-    # Remove orphaned entity-registry entries for sensors that no longer exist
     _cleanup_removed_entities(hass, entry)
 
     # CUSTOM-ONLY START — HACS does not prune deleted files on upgrade,
     # so we sweep modules whose implementation moved to neopool-modbus.
-    # Remove .py modules whose implementation moved to the neopool-modbus
-    # PyPI library; HACS does not prune deleted files on upgrade.
     await async_cleanup_legacy_files(hass)
     # CUSTOM-ONLY END
 
-    # Forward entities setup to Home Assistant
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True

@@ -40,7 +40,6 @@ async def async_get_config_entry_diagnostics(
         "version": entry.version,
     }
 
-    # Coordinator state (contains data, errors, etc.)
     coordinator = getattr(entry, "runtime_data", None)
 
     if coordinator is None:
@@ -57,7 +56,6 @@ async def async_get_config_entry_diagnostics(
         "model": getattr(coordinator, "model", None),
     }
 
-    # Additional client details
     client = getattr(coordinator, "client", None)
     if client and hasattr(client, "connection_stats"):
         diagnostics["connection_stats"] = async_redact_data(

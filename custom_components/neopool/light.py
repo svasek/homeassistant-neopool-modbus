@@ -45,13 +45,9 @@ async def async_setup_entry(
     entities = []
 
     for key, props in LIGHT_DEFINITIONS.items():
-        # Only create light if enabled in options
         option_key = props.get("option")
         if option_key and not entry.options.get(option_key, False):
             continue
-        # Skip if lighting relay is not assigned.
-        # Only enforce when the GPIO key is present in data; a missing key
-        # (e.g. old capability snapshot) must not suppress the entity.
         if "MBF_PAR_LIGHTING_GPIO" in coordinator.data and not is_valid_relay_gpio(
             coordinator.data["MBF_PAR_LIGHTING_GPIO"] or 0
         ):
@@ -75,14 +71,12 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         """Initialize the NeoPool light entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._switch_type = props.get("switch_type") or None
 
-        # Initialize properties for relay timer switches
         self.timer_block_addr: int | None = props.get("timer_block_addr")
         self.function_addr: int | None = props.get("function_addr")
         self.function_code: int | None = props.get("function_code")
@@ -194,11 +188,9 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
     @property
     def supported_color_modes(self) -> set[ColorMode]:
         """Return the color modes supported by this light."""
-        # For simple on/off light, the correct mode is COLOR_MODE_ONOFF (or ColorMode.ONOFF)
         return {ColorMode.ONOFF}
 
     @property
     def color_mode(self) -> ColorMode:
         """Return the current color mode of the light."""
-        # Actual mode is always onoff, as brightness and color are not available
         return ColorMode.ONOFF

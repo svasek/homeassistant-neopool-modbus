@@ -69,9 +69,6 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         data = self.coordinator.data or {}
         serial_number = modbus_regs_to_hex_string(data.get("MBF_POWER_MODULE_NODEID"))
 
-        # Use entry.unique_id (serial-based in v2+) as device identifier,
-        # otherwise fall back to entry_id. Never use serial_number as identifier
-        # to avoid mid-run device identity flips when migration was deferred.
         hw_identifier = self.coordinator.entry.unique_id or self._entry_id
 
         machine_type = (get_machine_name(data) or "").strip()
@@ -87,8 +84,6 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
             serial_number=serial_number,
         )
 
-    # Generate a unique object ID for the entity to use in Home Assistant
-    # This remove the prefix "mbf_" and "par_" from the key and replaces spaces, dashes, and dots with underscores
     @staticmethod
     def slugify(name: str) -> str:
         """Convert a name to a slug suitable for use as an object ID."""
@@ -101,7 +96,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         """Render installed_modules as the hw_version label."""
         modules = data.get("installed_modules")
         if modules is None:
-            # First paint: coordinator data not yet populated.
+            # Coordinator data not yet populated.
             modules = decode_par_model_modules(data.get("MBF_PAR_MODEL"))
         if not modules:
             return "None" if data.get("MBF_PAR_MODEL") is not None else "Unknown"

@@ -146,7 +146,7 @@ async def async_setup_entry(
         entities.append(
             NeoPoolSensor(
                 coordinator,
-                entry.entry_id,  # Pass entry_id explicitly to the sensor entity
+                entry.entry_id,
                 key,
                 props,
             )
@@ -164,7 +164,7 @@ async def async_setup_entry(
 class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     """Representation of a NeoPool sensor."""
 
-    _winter_mode_active = False  # sensors stay available during winter mode
+    _winter_mode_active = False
 
     def __init__(
         self,
@@ -174,9 +174,8 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         props: dict[str, Any],
     ) -> None:
         """Initialize the NeoPool sensor entity."""
-        super().__init__(coordinator, entry_id)  # Pass entry_id to the parent class
+        super().__init__(coordinator, entry_id)
         self._key = key
-        # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
@@ -190,7 +189,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         self._attr_entity_category = props.get("entity_category") or None
         self._attr_suggested_display_precision = props.get("display_precision")
 
-        # Disable some entities by default.
         if props.get("entity_registry_enabled_default") is False:
             self._attr_entity_registry_enabled_default = False
 
@@ -265,7 +263,6 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
             ph_alarm: int | None = self.coordinator.data.get(self._key)
             return PH_STATUS_ALARM_MAP.get(ph_alarm) if ph_alarm is not None else None
         if self._key == "MBF_PAR_INTELLIGENT_TT_NEXT_INTERVAL":
-            # Convert seconds to timestamp using helper function
             seconds = self.coordinator.data.get(self._key)
             return calculate_next_interval_time(seconds, self.hass)
         return self.coordinator.data.get(self._key)
@@ -335,8 +332,6 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
         last_data = await self.async_get_last_sensor_data()
         if last_data is None:  # pragma: no cover
             return
-        # native_value is typed `StateType | date | datetime | Decimal`; only the
-        # numeric / numeric-string variants make sense for an energy counter.
         value = last_data.native_value
         if not isinstance(value, (int, float, str)):  # pragma: no cover
             return

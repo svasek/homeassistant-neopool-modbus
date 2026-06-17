@@ -46,31 +46,25 @@ def _should_skip_switch(
     entry_options: Mapping[str, Any],
 ) -> bool:
     """Return True if a switch entity should not be created."""
-    # Only create relay switches if enabled in options
     option_key = props.get("option")
     if option_key and not entry_options.get(option_key, False):
         return True
-    # Conditionally add clima mode only if heating relay is assigned
     if key == "MBF_PAR_CLIMA_ONOFF":
         if not bool(data.get("MBF_PAR_HEATING_GPIO")) or not bool(
             data.get("MBF_PAR_TEMPERATURE_ACTIVE")
         ):
             return True
-    # Skip smart antifreeze if temperature sensor not active
     if key == "MBF_PAR_SMART_ANTI_FREEZE":
         if not bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")):
             return True
-    # Hydro cover-reduction switch only when hydrolysis module present
     if key == "MBF_PAR_HIDRO_COVER_ENABLE":
         if not data.get("Hydrolysis module detected"):
             return True
-    # Hydro temp-shutdown switch needs hydrolysis and temperature sensor
     if key == "MBF_PAR_HIDRO_TEMP_SHUTDOWN":
         if not data.get("Hydrolysis module detected") or not bool(
             data.get("MBF_PAR_TEMPERATURE_ACTIVE")
         ):
             return True
-    # UV mode switch only when UV relay is assigned
     if key == "MBF_PAR_UV_MODE":
         uv_gpio = data.get("MBF_PAR_UV_RELAY_GPIO", 0) or 0
         if not is_valid_relay_gpio(uv_gpio):
@@ -111,7 +105,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         """Initialize the NeoPool switch entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
@@ -125,12 +118,10 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
 
         self._attr_entity_category = props.get("entity_category") or None
 
-        # Initialize properties for relay timer switches
         self.timer_block_addr: int | None = props.get("timer_block_addr")
         self.function_addr: int | None = props.get("function_addr")
         self.function_code: int | None = props.get("function_code")
 
-        # Initialize properties for bitmask switches
         self._mask_bit: int | None = props.get("mask_bit")
         self._data_key = props.get("data_key") or self._key
 
@@ -206,7 +197,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             )
             await client.async_write_register(self.function_addr, new_value, apply=True)
 
-        # Optimistic update + schedule follow-up for IO switch types
         if self._switch_type not in ("auto_time_sync", "winter_mode"):
             self._optimistic_update(True)
             self.coordinator.async_set_updated_data(self.coordinator.data)
@@ -279,7 +269,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             )
             await client.async_write_register(self.function_addr, new_value, apply=True)
 
-        # Optimistic update + schedule follow-up for IO switch types
         if self._switch_type not in ("auto_time_sync", "winter_mode"):
             self._optimistic_update(False)
             self.coordinator.async_set_updated_data(self.coordinator.data)
@@ -354,7 +343,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return True if the switch is available."""
-        # These switches are pure HA settings (not device state) - always operable.
+        # These switches are HA settings (not device state)
         if self._switch_type in ("winter_mode", "auto_time_sync"):
             return True
         if not super().available:
@@ -362,7 +351,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         if self._switch_type == "manual_filtration":
             return self.coordinator.data.get("MBF_PAR_FILT_MODE") == 0
         if self._switch_type == "relay_timer":
-            # Getting the timer name based on the switch key (e.g., "aux1" -> "relay_aux1_enable")
             if self._key.startswith("aux"):
                 timer_name = f"relay_{self._key}_enable"
             elif self._key == "light":  # pragma: no cover
@@ -370,6 +358,5 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             else:
                 return True  # pragma: no cover
             mode_val = self.coordinator.data.get(timer_name, None)
-            # 3 = on, 4 = off → available; 0 (disabled) or 1 (auto) → not available
             return mode_val in (3, 4)
         return True

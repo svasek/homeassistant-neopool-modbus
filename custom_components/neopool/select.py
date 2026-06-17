@@ -62,33 +62,28 @@ def _should_skip_select(
     entry_options: Mapping[str, Any],
 ) -> bool:
     """Return True if a select entity should not be created."""
-    # Skip filtration speed selects if pump type is not set
     if key in _FILTRATION_SPEED_KEYS and not bool(
         get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
     ):
         return True  # pragma: no cover
-    # Skip boost mode select if hydrolysis module not present
     if key == "MBF_CELL_BOOST" and not is_hydrolysis_present(data):  # pragma: no cover
         return True
-    # Conditionally add Intelligent min. filtration time only if heating relay is assigned
     if key == "MBF_PAR_INTELLIGENT_FILT_MIN_TIME":
         if not bool(data.get("MBF_PAR_HEATING_GPIO")) or not bool(
             data.get("MBF_PAR_TEMPERATURE_ACTIVE")
         ):
             return True
-    # Besgo-valve selects: only when a Besgo valve is detected
+    # If Besgo valve detected
     if key in (
         "MBF_PAR_FILTVALVE_PERIOD_MINUTES",
         "MBF_PAR_FILTVALVE_MODE",
     ) and not has_filtvalve(data):
         return True
-    # Skip relay activation delay if no pH module is detected
     if (
         key == "MBF_PAR_RELAY_ACTIVATION_DELAY"
         and data.get("pH measurement module detected") is not True
     ):
         return True
-    # Option-gated select
     option_key = props.get("option")
     if option_key and not entry_options.get(option_key, False):
         return True
@@ -126,7 +121,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         """Initialize the NeoPool select entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
@@ -139,7 +133,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         self._attr_shift = props.get("shift") or None
         self._props = props
 
-        # Disable some entities by default. Mostly for secondary timers.
         if any(
             self._key.startswith(f"relay_aux{n}b") for n in range(1, 5)
         ) or self._key.startswith("MBF_CELL_BOOST"):
@@ -156,17 +149,11 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         await super().async_added_to_hass()
 
     async def _select_mapped_register(self, client: Any, option: str) -> None:
-        """Reverse-lookup the option label and write to a register.
-
-        Used by mapped-register selects (INTELLIGENT_FILT_MIN_TIME,
-        FILTVALVE_PERIOD_MINUTES, RELAY_ACTIVATION_DELAY): looks the option
-        label back to its register value, applies the optional
-        ``write_offset``, and writes to the entity's register.
-        """
+        """Reverse-lookup the option label and write to a register."""
         reverse_map = {v: k for k, v in self._options_map.items()}
         value = reverse_map.get(option)
         if value is None:
-            try:  # pragma: no cover  # mapped_register option is always in options_map; this fallback is for raw values
+            try:  # pragma: no cover
                 value = int(option.rstrip("ms"))
             except (TypeError, ValueError):  # pragma: no cover
                 return
@@ -202,11 +189,10 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
     async def _select_timer_period(self, option: str) -> None:
         """Update the repeat period of a timer via the set_timer service."""
-        timer_name = self._key.rsplit("_", 1)[0]  # for example, "relay_aux1"
+        timer_name = self._key.rsplit("_", 1)[0]
         period_value = PERIOD_MAP.get(option)
         if period_value is None:
-            # fallback to integer conversion
-            try:  # pragma: no cover  # 'option' is always one of the labels in PERIOD_MAP
+            try:  # pragma: no cover
                 period_value = int(option)
             except (TypeError, ValueError):  # pragma: no cover
                 return
@@ -223,7 +209,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     async def _select_relay_mode(self, option: str) -> None:
         """Update a relay's automatic/on/off mode via the set_timer service."""
         timer_field = self._props.get("timer_field", "enable")
-        timer_name = self._key.rsplit("_", 1)[0]  # for example, "relay_aux1"
+        timer_name = self._key.rsplit("_", 1)[0]
         reverse_map = {v: k for k, v in self._options_map.items()}
         value = reverse_map.get(option)
         if value is None:  # pragma: no cover
@@ -251,13 +237,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         await asyncio.sleep(0.2)
 
     async def _select_default_register(self, client: Any, option: str) -> None:
-        """Write the option's mapped value to the entity's register.
-
-        Special-cases MBF_PAR_FILT_MODE: leaving manual mode first stops the
-        pump (writing 0 to MANUAL_FILTRATION_REGISTER), except when switching
-        to backwash on a device with an automatic Besgo valve, where the pump
-        must keep running for the valve to open correctly.
-        """
+        """Write the option's mapped value to the entity's register."""
         value = next(
             (k for k, v in self._options_map.items() if v == option),
             None,
@@ -319,9 +299,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         """Return the list of options for the select entity."""
         option_keys = list(self._options_map.keys())
 
-        # Hide heating and intelligent if either is not supported:
-        # - requires heating relay assigned (MBF_PAR_HEATING_GPIO)
-        # - requires active temperature sensor (MBF_PAR_TEMPERATURE_ACTIVE != 0)
         if self._key == "MBF_PAR_FILT_MODE":
             no_heating_gpio = not bool(
                 self.coordinator.data.get("MBF_PAR_HEATING_GPIO")
@@ -333,38 +310,27 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                 # Remove keys for "heating" (2) and "intelligent" (4)
                 option_keys = [k for k in option_keys if k not in (2, 4)]
 
-        # Hide smart if temperature sensor is not active
         if self._key == "MBF_PAR_FILT_MODE" and not bool(
             self.coordinator.data.get("MBF_PAR_TEMPERATURE_ACTIVE")
         ):
             # Remove key for "smart"
             option_keys = [k for k in option_keys if k != 3]
 
-        # Show backwash option only if:
-        # - explicitly enabled in advanced config options, OR
-        # - a Besgo automatic filter valve is configured
-        # The mapping (13 -> "backwash") is always present in options_map so that
-        # current_option and async_select_option work correctly regardless of
-        # whether options() has been evaluated first.
         if self._key == "MBF_PAR_FILT_MODE":
             backwash_allowed = self.coordinator.entry.options.get(
                 "enable_backwash_option", False
             ) or has_filtvalve(self.coordinator.data)
             if not backwash_allowed:
                 # Keep backwash (13) in the list if the device is currently in that
-                # mode, so current_option always matches one of the available options.
                 current_mode = self.coordinator.data.get("MBF_PAR_FILT_MODE")
                 if current_mode != 13:
                     option_keys = [k for k in option_keys if k != 13]
 
-        # Hide "Active (Redox control)" if no Redox module
         if self._key == "MBF_CELL_BOOST" and not bool(
             self.coordinator.data.get("Redox measurement module detected")
         ):
             option_keys = [k for k in option_keys if k != 2]
 
-        # Generate options list based on config entry options
-        # Also, handle Timer options in cases where doesn't fit the options_map
         if self._select_type == "timer_time":
             resolution = max(
                 1,
@@ -385,9 +351,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                     return [current_hhmm, *options_list]
             return options_list
 
-        # Handle Timer Period options
-        # If the select type is "timer_period", we need to generate a list of periods
-        # based on the PERIOD_MAP and the current value in the coordinator data
         if self._select_type == "timer_period":
             options_list = list(PERIOD_MAP.keys())
             value = self.coordinator.data.get(f"{self._key}")
@@ -401,14 +364,12 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             options = list(dict.fromkeys(self._options_map.values()))
             timer_name = self._key.rsplit("_", 1)[0]
             value = self.coordinator.data.get(f"{timer_name}_enable")
-            # Dynamically add "disabled" at the beginning if enable==0
             if value == 0 and "disabled" not in options:
                 options = ["disabled", *options]
             if value == 2 and "auto_linked" not in options:  # pragma: no cover
                 options = ["auto_linked", *options]
             return options
 
-        # Mapped register selects: return labels from options_map.
         # If device holds an unknown value, prepend raw fallback string.
         if self._select_type == "mapped_register":
             options = [self._options_map[k] for k in option_keys]
@@ -446,7 +407,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             reg_val = self.coordinator.data.get(self._key)
             if reg_val is None:  # pragma: no cover
                 return None
-            # 0: Inactive
             if reg_val == 0:
                 return self._options_map[0]
             # 1: Active (redox control disabled) - bit 0x8000 set
@@ -455,7 +415,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             # 2: Active (Redox control) - bits 0x0500 | 0x00A0 set and 0x8000 NOT set
             elif (reg_val & (0x0500 | 0x00A0)) == (0x0500 | 0x00A0):
                 return self._options_map[2]
-            # fallback (should not occur)
             return self._options_map[0]
 
         if self._key in _FILTRATION_SPEED_KEYS:
@@ -474,7 +433,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             return PERIOD_SECONDS_TO_KEY.get(value, str(value))
 
         if self._select_type == "relay_mode":
-            # Get the timer_block and timer_field from properties
             timer_name = self._key.rsplit("_", 1)[0]
             value = self.coordinator.data.get(f"{timer_name}_enable")
             if value == 0:
@@ -485,7 +443,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                 return None
             return self._options_map.get(int(value))  # pragma: no cover
 
-        # Mapped register selects: return label from options_map or raw fallback
         if self._select_type == "mapped_register":
             value = self.coordinator.data.get(self._key)
             if value is None:  # pragma: no cover

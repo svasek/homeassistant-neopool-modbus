@@ -46,10 +46,9 @@ async def async_setup_entry(
     entities = []
 
     for key, props in BUTTON_DEFINITIONS.items():
-        # BACKWASH button is only available when a Besgo filter valve is configured
+        # Only available when a Besgo filter valve is configured
         if key == "BACKWASH" and not has_filtvalve(coordinator.data):
             continue
-        # RESET_CELL_PARTIAL only makes sense on units with a hydrolysis cell
         if key == "RESET_CELL_PARTIAL" and not coordinator.data.get(
             "Hydrolysis module detected"
         ):
@@ -71,15 +70,12 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         """Initialize the NeoPool button entity."""
         super().__init__(coordinator, entry_id)
         self._key = key
-        # Use entry.unique_id (serial-based in v2+) for stable identity, fallback to entry_id
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{self._key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(self._key)
 
         self._attr_entity_category = props.get("entity_category") or None
 
-        # Disable some entities by default (e.g. destructive actions like
-        # RESET_CELL_PARTIAL that the user has to opt into explicitly).
         if props.get("entity_registry_enabled_default") is False:
             self._attr_entity_registry_enabled_default = False
 

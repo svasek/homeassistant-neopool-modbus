@@ -130,7 +130,6 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         schema = vol.Schema(schema_dict)
 
         if user_input is not None:
-            # Coerce selector string values back to int before saving
             for _key in ("scan_interval", "timer_resolution"):
                 if _key in user_input:
                     user_input[_key] = int(user_input[_key])
@@ -177,7 +176,6 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
                     "enable_backwash_option",
                     default=options.get("enable_backwash_option", False),
                 ): bool,
-                # Developer helpers (hidden toggles to force coordinator values)
                 vol.Optional(
                     "dev_overrides_enabled",
                     default=options.get("dev_overrides_enabled", False),

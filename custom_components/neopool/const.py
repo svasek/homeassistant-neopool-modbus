@@ -48,20 +48,7 @@ DEFAULT_PORT = 502
 DEFAULT_UNIT_ID = 1
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ConfigEntry schema version
-# ─────────────────────────────────────────────────────────────────────────────
-# Single source of truth for the ConfigEntry version: imported by both
-# `migration.py` (which writes it during migrations) and `config_flow.py`
-# (whose `NeoPoolConfigFlow.VERSION` class attribute mirrors it so HA
-# stamps fresh entries at the current schema version). Lives in const.py
-# rather than migration.py so the two consumers are symmetric — neither
-# is the "owner". See migration.py for the per-step semantics (v1→v2,
-# v2→v3, v3→v4) and which code path performs each transition.
 CURRENT_VERSION = 4
-
-# Command registers that auto-clear to 0 after write; read-back verification must be skipped.
-# MBF_RELAY_STATE has 7 relays (bits 0-6); MBF_PAR_UV_RELAY_GPIO is a 1-based index.
 
 
 # Persisted in entry.options for winter-mode restarts.
@@ -83,36 +70,28 @@ CAPABILITY_KEYS: tuple[str, ...] = tuple(
     dict.fromkeys((*LIB_CAPABILITY_KEYS, *_CUSTOM_CAPABILITY_KEYS))
 )
 
-# Entity keys removed in past releases. async_setup_entry() uses this list to
-# purge orphaned entity-registry entries so they don't linger as "unavailable".
 REMOVED_ENTITY_KEYS = (
-    # Removed in PR #117 — merged into polarity enum sensors
+    # Removed in PR #117
     "ion in dead time",
     "ion in pol1",
     "ion in pol2",
     "hidro in dead time",
     "hidro in pol1",
     "hidro in pol2",
-    # Removed in PR #118 — redundant / not useful as sensors
+    # Removed in PR #118
     "hidro on target",
     "hidro chlorine flow indicator fl2",
     "hidro cell flow fl1",
-    # Removed in PR #119 — merged into PH_PUMP_STATUS enum sensor
+    # Removed in PR #119
     "ph acid pump active",
     "ph pump active",
-    # Added in PR #140, removed — bit 7 too sensitive for practical use
+    # Added in PR #140
     "ph regulation out of range",
     "redox regulation out of range",
     "chlorine regulation out of range",
     "conductivity regulation out of range",
 )
 
-# Period keys for relay timer dropdowns. Keys map to translation strings
-# in translations/<lang>.json (e.g. "1_day" → "1 day"); values are the
-# corresponding lengths in seconds the device stores in the timer block's
-# `period` field. This dict and its inverse drive the HA `select` entity
-# options — they are not part of the Modbus protocol and stay in the
-# integration rather than in the neopool-modbus library.
 PERIOD_MAP = {
     "1_day": 86400,
     "2_days": 2 * 86400,
@@ -247,10 +226,6 @@ SENSOR_DEFINITIONS: dict[str, dict[str, Any]] = {
         "display_precision": 0,
         "entity_registry_enabled_default": False,
     },
-    # Hydrolysis cell runtime counters. The firmware exposes these as 32-bit
-    # values split across two 16-bit register pairs (``*_LOW``/``*_HIGH``);
-    # NeoPoolSensor.native_value combines them via combine_u32(). Resetting the
-    # partial counter is wired through the RESET_CELL_PARTIAL button.
     "CELL_RUNTIME_TOTAL": {
         "name": "Cell Runtime Total",
         "unit": "s",
@@ -463,10 +438,6 @@ BINARY_SENSOR_DEFINITIONS: dict[str, dict[str, Any]] = {
         "device_class": BinarySensorDeviceClass.PROBLEM,
         "entity_category": EntityCategory.DIAGNOSTIC,
     },
-    # Hydrolysis status bits
-    # Note: "HIDRO On Target" (bit 0, MBMSK_HIDRO_STATUS_ON_TARGET) removed —
-    # indicates setpoint reached, which is derivable from hidro_current vs hidro
-    # setpoint. Even Tasmota defines this bit but never displays it.
     "HIDRO Low Flow": {
         "name": "Hydrolysis Production Problem",
         "device_class": BinarySensorDeviceClass.PROBLEM,
@@ -477,7 +448,7 @@ BINARY_SENSOR_DEFINITIONS: dict[str, dict[str, Any]] = {
     #     "device_class": None,
     #     "entity_category": EntityCategory.DIAGNOSTIC,
     # },
-    # Note: "HIDRO Cell Flow FL1" (bit 3, MBMSK_HIDRO_STATUS_FL1) removed —
+    # Note: "HIDRO Cell Flow FL1" (bit 3, MBMSK_HIDRO_STATUS_FL1)
     # merged into the HIDRO_POLARITY enum sensor as "no_flow" state.
     "Pool Cover": {
         "name": "Pool Cover",
@@ -504,9 +475,6 @@ BINARY_SENSOR_DEFINITIONS: dict[str, dict[str, Any]] = {
         "device_class": BinarySensorDeviceClass.RUNNING,
         "entity_category": EntityCategory.DIAGNOSTIC,
     },
-    # Note: "HIDRO Chlorine flow indicator FL2" (bit 9, MBMSK_HIDRO_STATUS_FL2) removed —
-    # redundant with "Chlorine flow sensor problem" (MBF_CL_STATUS bit 3) for devices
-    # with a chlorine module, and irrelevant for devices without one.
     "HIDRO Activated by the CL module": {
         "name": "Hydrolysis Activated by Chlorine Module",
         "device_class": BinarySensorDeviceClass.RUNNING,
