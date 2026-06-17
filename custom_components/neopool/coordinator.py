@@ -23,6 +23,7 @@ from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import aggregate_filtration_remaining, parse_version
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
+    GPIO_REGISTERS,
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     MAX_RELAY_GPIO,
@@ -43,7 +44,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     FOLLOW_UP_REFRESH_DELAY,
-    GPIO_REGISTERS,
 )
 from .helpers import is_device_time_out_of_sync, prepare_device_time
 
