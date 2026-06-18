@@ -5,7 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool.const import CURRENT_VERSION, SWITCH_DEFINITIONS
+from custom_components.neopool.const import CURRENT_VERSION
+from custom_components.neopool.switch import SWITCH_DESCRIPTIONS
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
@@ -155,7 +156,8 @@ async def test_io_switch_blocked_in_winter_mode(
     entity = next(
         e
         for e in platform.entities.values()
-        if getattr(e, "_switch_type", None) == "manual_filtration"
+        if getattr(e, "entity_description", None) is not None
+        and e.entity_description.switch_type == "manual_filtration"
     )
     mock_neopool_client.async_write_register.reset_mock()
     await entity.async_turn_on()
@@ -251,7 +253,7 @@ async def test_climate_smart_uv_writes_to_function_register(
 
     await setup_integration(hass, mock_config_entry)
 
-    function_addr = SWITCH_DEFINITIONS[register_key].get("function_addr")
+    function_addr = SWITCH_DESCRIPTIONS[register_key].function_addr
     assert function_addr is not None
 
     # Unique IDs are lower-case slugified by NeoPoolEntity.

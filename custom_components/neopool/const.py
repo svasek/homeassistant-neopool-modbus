@@ -15,11 +15,10 @@
 """Constants for the NeoPool integration."""
 
 import logging
-from typing import Any
 
 from neopool_modbus.capabilities import CAPABILITY_KEYS as LIB_CAPABILITY_KEYS
 
-from homeassistant.const import EntityCategory, Platform
+from homeassistant.const import Platform
 
 DOMAIN = "neopool"
 NAME = "NeoPool"
@@ -102,120 +101,3 @@ PERIOD_MAP = {
 }
 
 PERIOD_SECONDS_TO_KEY = {v: k for k, v in PERIOD_MAP.items()}
-
-
-
-
-
-SWITCH_DEFINITIONS: dict[str, dict[str, Any]] = {
-    "WINTER_MODE": {
-        "name": "Winter Mode",
-        "entity_category": EntityCategory.CONFIG,
-        "switch_type": "winter_mode",
-    },
-    "TIME_AUTO_SYNC": {
-        "name": "Automatic Time Sync",
-        "entity_category": EntityCategory.CONFIG,
-        "switch_type": "auto_time_sync",
-    },
-    "MBF_PAR_FILT_MANUAL_STATE": {
-        "name": "Manual Filtration",
-        "entity_category": None,
-        "switch_type": "manual_filtration",
-    },
-    "MBF_PAR_CLIMA_ONOFF": {
-        "name": "Climate mode",
-        "function_addr": 0x0417,
-        "entity_category": EntityCategory.CONFIG,
-        "switch_type": "climate_mode",
-    },
-    "MBF_PAR_SMART_ANTI_FREEZE": {
-        "name": "Smart antifreeze",
-        "function_addr": 0x041A,
-        "entity_category": EntityCategory.CONFIG,
-        "switch_type": "smart_anti_freeze",
-    },
-    "MBF_PAR_UV_MODE": {
-        "name": "UV Mode",
-        "function_addr": 0x0427,
-        "entity_category": EntityCategory.CONFIG,
-        "switch_type": "uv_mode",
-    },
-    # "MBF_PAR_UV_HIDE_WARN_CLEAN": {
-    #     "name": "Suppress UV Clean Warning",
-    #     "function_addr": 0x0428,
-    #     "mask_bit": 0x0001,
-    #     "data_key": "MBF_PAR_UV_HIDE_WARN",
-    #     "entity_category": EntityCategory.CONFIG,
-    #     "switch_type": "bitmask",
-    # },
-    # "MBF_PAR_UV_HIDE_WARN_REPLACE": {
-    #     "name": "Suppress UV Replace Warning",
-    #     "function_addr": 0x0428,
-    #     "mask_bit": 0x0002,
-    #     "data_key": "MBF_PAR_UV_HIDE_WARN",
-    #     "entity_category": EntityCategory.CONFIG,
-    #     "switch_type": "bitmask",
-    # },
-    "MBF_PAR_HIDRO_COVER_ENABLE": {
-        "name": "Hydrolysis Cover Reduction",
-        "function_addr": 0x042C,
-        "mask_bit": 0x0001,
-        "data_key": "MBF_PAR_HIDRO_COVER_ENABLE",
-        "entity_category": EntityCategory.CONFIG,
-        "switch_type": "bitmask",
-        "option": "use_cover_sensor",
-    },
-    "MBF_PAR_HIDRO_TEMP_SHUTDOWN": {
-        "name": "Hydrolysis Temperature Shutdown",
-        "function_addr": 0x042C,
-        "mask_bit": 0x0002,
-        "data_key": "MBF_PAR_HIDRO_COVER_ENABLE",
-        "entity_category": EntityCategory.CONFIG,
-        "switch_type": "bitmask",
-        "option": "use_cover_sensor",
-    },
-    "aux1": {
-        "name": "Auxiliary Relay 1",
-        "switch_type": "relay_timer",
-        "timer_block_addr": 0x04AC,
-        "function_addr": 0x04B7,
-        "function_code": 0x0800,  # AUX1 relay code
-        "option": "use_aux1",
-    },
-    "aux2": {
-        "name": "Auxiliary Relay 2",
-        "switch_type": "relay_timer",
-        "timer_block_addr": 0x04BB,
-        "function_addr": 0x04C6,
-        "function_code": 0x1000,  # AUX2 relay code
-        "option": "use_aux2",
-    },
-    "aux3": {
-        "name": "Auxiliary Relay 3",
-        "switch_type": "relay_timer",
-        "timer_block_addr": 0x04CA,
-        "function_addr": 0x04D5,
-        "function_code": 0x2000,  # AUX3 relay code
-        "option": "use_aux3",
-    },
-    "aux4": {
-        "name": "Auxiliary Relay 4",
-        "switch_type": "relay_timer",
-        "timer_block_addr": 0x04D9,
-        "function_addr": 0x04E4,
-        "function_code": 0x4000,  # AUX4 relay code
-        "option": "use_aux4",
-    },
-}
-
-LIGHT_DEFINITIONS: dict[str, dict[str, Any]] = {
-    "light": {
-        "name": "Pool Light",
-        "switch_type": "relay_timer",
-        "timer_block_addr": 0x0470,
-        "function_addr": 0x047B,
-        "function_code": 2,  # LIGHTING
-        "option": "use_light",
-    },
-}

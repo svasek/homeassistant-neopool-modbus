@@ -14,6 +14,8 @@
 
 """Light platform for the NeoPool integration."""
 
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 import logging
 from typing import Any
 
@@ -21,16 +23,47 @@ from neopool_modbus.registers import EXEC_REGISTER, TimerRelayMode, is_valid_rel
 
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
-from .const import LIGHT_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
+
+type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
+
+
+@dataclass(frozen=True, kw_only=True)
+class NeoPoolLightEntityDescription(EntityDescription):
+    """Describes a NeoPool light entity."""
+
+    switch_type: str = ""
+    function_addr: int | None = None
+    function_code: int | None = None
+    timer_block_addr: int | None = None
+    supported_fn: SupportedFn | None = None
+
+
+LIGHT_DESCRIPTIONS: dict[str, NeoPoolLightEntityDescription] = {
+    "light": NeoPoolLightEntityDescription(
+        key="light",
+        switch_type="relay_timer",
+        timer_block_addr=0x0470,
+        function_addr=0x047B,
+        function_code=2,  # LIGHTING
+        supported_fn=lambda data, opts: (
+            bool(opts.get("use_light"))
+            and (
+                "MBF_PAR_LIGHTING_GPIO" not in data
+                or is_valid_relay_gpio(data["MBF_PAR_LIGHTING_GPIO"] or 0)
+            )
+        ),
+    ),
+}
 
 
 async def async_setup_entry(
@@ -40,53 +73,41 @@ async def async_setup_entry(
 ) -> None:
     """Set up NeoPool lights from a config entry."""
     coordinator = entry.runtime_data
-    entry_id = entry.entry_id
 
-    entities = []
-
-    for key, props in LIGHT_DEFINITIONS.items():
-        option_key = props.get("option")
-        if option_key and not entry.options.get(option_key, False):
-            continue
-        if "MBF_PAR_LIGHTING_GPIO" in coordinator.data and not is_valid_relay_gpio(
-            coordinator.data["MBF_PAR_LIGHTING_GPIO"] or 0
-        ):
-            continue
-
-        entities.append(NeoPoolLight(coordinator, entry_id, key, props))
-
-    async_add_entities(entities)
+    async_add_entities(
+        NeoPoolLight(coordinator, entry.entry_id, key, desc)
+        for key, desc in LIGHT_DESCRIPTIONS.items()
+        if desc.supported_fn is None
+        or desc.supported_fn(coordinator.data, entry.options)
+    )
 
 
 class NeoPoolLight(NeoPoolEntity, LightEntity):
     """Representation of a NeoPool light entity."""
+
+    entity_description: NeoPoolLightEntityDescription
 
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
         entry_id: str,
         key: str,
-        props: dict[str, Any],
+        description: NeoPoolLightEntityDescription,
     ) -> None:
         """Initialize the NeoPool light entity."""
         super().__init__(coordinator, entry_id)
+        self.entity_description = description
         self._key = key
         device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{self._key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(self._key)
-
-        self._switch_type = props.get("switch_type") or None
-
-        self.timer_block_addr: int | None = props.get("timer_block_addr")
-        self.function_addr: int | None = props.get("function_addr")
-        self.function_code: int | None = props.get("function_code")
+        self._attr_unique_id = f"{device_id}_{key.lower()}"
+        self._attr_translation_key = NeoPoolEntity.slugify(key)
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
             "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
             self.entity_id,
-            self._attr_translation_key,
+            self.entity_description.translation_key,
             getattr(self, "has_entity_name", None),
         )
         await super().async_added_to_hass()
@@ -102,25 +123,24 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers")
             return
-        if self._switch_type == "relay_timer":
+        desc = self.entity_description
+        if desc.switch_type == "relay_timer":
             if (
-                self.function_addr is None
-                or self.function_code is None
-                or self.timer_block_addr is None
+                desc.function_addr is None
+                or desc.function_code is None
+                or desc.timer_block_addr is None
             ):  # pragma: no cover
                 _LOGGER.error("Missing relay_timer config for %s", self._key)
                 return
             _LOGGER.debug(
                 "Turning ON %s: function_addr=0x%04X, timer_block_addr=0x%04X",
                 self._key,
-                self.function_addr,
-                self.timer_block_addr,
+                desc.function_addr,
+                desc.timer_block_addr,
             )
+            await client.async_write_register(desc.function_addr, desc.function_code)
             await client.async_write_register(
-                self.function_addr, self.function_code
-            )  # Set function (if needed)
-            await client.async_write_register(
-                self.timer_block_addr, TimerRelayMode.ALWAYS_ON
+                desc.timer_block_addr, TimerRelayMode.ALWAYS_ON
             )
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
 
@@ -140,17 +160,18 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers")
             return
-        if self._switch_type == "relay_timer":
-            if self.timer_block_addr is None:  # pragma: no cover
+        desc = self.entity_description
+        if desc.switch_type == "relay_timer":
+            if desc.timer_block_addr is None:  # pragma: no cover
                 _LOGGER.error("Missing timer_block_addr for %s", self._key)
                 return
             _LOGGER.debug(
                 "Turning OFF %s: timer_block_addr=0x%04X",
                 self._key,
-                self.timer_block_addr,
+                desc.timer_block_addr,
             )
             await client.async_write_register(
-                self.timer_block_addr, TimerRelayMode.ALWAYS_OFF
+                desc.timer_block_addr, TimerRelayMode.ALWAYS_OFF
             )
             await client.async_write_register(EXEC_REGISTER, 1)  # Commit
 
@@ -161,8 +182,9 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
 
     def _optimistic_update(self, state: bool) -> None:
         """Apply an optimistic state update to coordinator data."""
+        desc = self.entity_description
         data = self.coordinator.data
-        if self._switch_type == "relay_timer":
+        if desc.switch_type == "relay_timer":
             data["relay_light_enable"] = (
                 TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
             )
@@ -170,7 +192,8 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
     @property
     def is_on(self) -> bool:
         """Return True if the light is ON."""
-        if self._switch_type == "relay_timer":
+        desc = self.entity_description
+        if desc.switch_type == "relay_timer":
             enable_val = self.coordinator.data.get("relay_light_enable", None)
             return enable_val == TimerRelayMode.ALWAYS_ON
         return False  # pragma: no cover
@@ -180,7 +203,8 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         """Return True if the light is available."""
         if not super().available:
             return False
-        if self._switch_type == "relay_timer":
+        desc = self.entity_description
+        if desc.switch_type == "relay_timer":
             mode_val = self.coordinator.data.get("relay_light_enable", None)
             return mode_val in (0, TimerRelayMode.ALWAYS_ON, TimerRelayMode.ALWAYS_OFF)
         return True  # pragma: no cover
