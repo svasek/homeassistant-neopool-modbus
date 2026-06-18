@@ -20,8 +20,24 @@ import logging
 from typing import Any
 
 from neopool_modbus.registers import (
+    AUX1_FUNCTION_CODE,
+    AUX1_FUNCTION_REGISTER,
+    AUX1_TIMER_BLOCK_REGISTER,
+    AUX2_FUNCTION_CODE,
+    AUX2_FUNCTION_REGISTER,
+    AUX2_TIMER_BLOCK_REGISTER,
+    AUX3_FUNCTION_CODE,
+    AUX3_FUNCTION_REGISTER,
+    AUX3_TIMER_BLOCK_REGISTER,
+    AUX4_FUNCTION_CODE,
+    AUX4_FUNCTION_REGISTER,
+    AUX4_TIMER_BLOCK_REGISTER,
+    CLIMA_ONOFF_REGISTER,
     EXEC_REGISTER,
+    HIDRO_COVER_ENABLE_REGISTER,
     MANUAL_FILTRATION_REGISTER,
+    SMART_ANTI_FREEZE_REGISTER,
+    UV_MODE_REGISTER,
     TimerRelayMode,
     is_valid_relay_gpio,
 )
@@ -74,7 +90,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         key="MBF_PAR_CLIMA_ONOFF",
         entity_category=EntityCategory.CONFIG,
         switch_type="climate_mode",
-        function_addr=0x0417,
+        function_addr=CLIMA_ONOFF_REGISTER,
         supported_fn=lambda data, opts: (
             bool(data.get("MBF_PAR_HEATING_GPIO"))
             and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
@@ -84,14 +100,14 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         key="MBF_PAR_SMART_ANTI_FREEZE",
         entity_category=EntityCategory.CONFIG,
         switch_type="smart_anti_freeze",
-        function_addr=0x041A,
+        function_addr=SMART_ANTI_FREEZE_REGISTER,
         supported_fn=lambda data, opts: bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")),
     ),
     "MBF_PAR_UV_MODE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_UV_MODE",
         entity_category=EntityCategory.CONFIG,
         switch_type="uv_mode",
-        function_addr=0x0427,
+        function_addr=UV_MODE_REGISTER,
         supported_fn=lambda data, opts: is_valid_relay_gpio(
             data.get("MBF_PAR_UV_RELAY_GPIO", 0) or 0
         ),
@@ -100,7 +116,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         key="MBF_PAR_HIDRO_COVER_ENABLE",
         entity_category=EntityCategory.CONFIG,
         switch_type="bitmask",
-        function_addr=0x042C,
+        function_addr=HIDRO_COVER_ENABLE_REGISTER,
         mask_bit=0x0001,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
         supported_fn=lambda data, opts: (
@@ -112,7 +128,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         key="MBF_PAR_HIDRO_TEMP_SHUTDOWN",
         entity_category=EntityCategory.CONFIG,
         switch_type="bitmask",
-        function_addr=0x042C,
+        function_addr=HIDRO_COVER_ENABLE_REGISTER,
         mask_bit=0x0002,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
         supported_fn=lambda data, opts: (
@@ -124,33 +140,33 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     "aux1": NeoPoolSwitchEntityDescription(
         key="aux1",
         switch_type="relay_timer",
-        timer_block_addr=0x04AC,
-        function_addr=0x04B7,
-        function_code=0x0800,  # AUX1 relay code
+        timer_block_addr=AUX1_TIMER_BLOCK_REGISTER,
+        function_addr=AUX1_FUNCTION_REGISTER,
+        function_code=AUX1_FUNCTION_CODE,
         supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
     ),
     "aux2": NeoPoolSwitchEntityDescription(
         key="aux2",
         switch_type="relay_timer",
-        timer_block_addr=0x04BB,
-        function_addr=0x04C6,
-        function_code=0x1000,  # AUX2 relay code
+        timer_block_addr=AUX2_TIMER_BLOCK_REGISTER,
+        function_addr=AUX2_FUNCTION_REGISTER,
+        function_code=AUX2_FUNCTION_CODE,
         supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
     ),
     "aux3": NeoPoolSwitchEntityDescription(
         key="aux3",
         switch_type="relay_timer",
-        timer_block_addr=0x04CA,
-        function_addr=0x04D5,
-        function_code=0x2000,  # AUX3 relay code
+        timer_block_addr=AUX3_TIMER_BLOCK_REGISTER,
+        function_addr=AUX3_FUNCTION_REGISTER,
+        function_code=AUX3_FUNCTION_CODE,
         supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
     ),
     "aux4": NeoPoolSwitchEntityDescription(
         key="aux4",
         switch_type="relay_timer",
-        timer_block_addr=0x04D9,
-        function_addr=0x04E4,
-        function_code=0x4000,  # AUX4 relay code
+        timer_block_addr=AUX4_TIMER_BLOCK_REGISTER,
+        function_addr=AUX4_FUNCTION_REGISTER,
+        function_code=AUX4_FUNCTION_CODE,
         supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
     ),
 }
