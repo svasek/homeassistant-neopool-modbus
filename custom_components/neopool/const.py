@@ -42,7 +42,7 @@ DEFAULT_PORT = 502
 DEFAULT_UNIT_ID = 1
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
 
-CURRENT_VERSION = 4
+CURRENT_VERSION = 5
 
 
 # Persisted in entry.options for winter-mode restarts.

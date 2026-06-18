@@ -43,7 +43,7 @@
       }),
       'title': 'Pool',
       'unique_id': 'neopool_1234567890',
-      'version': 4,
+      'version': 5,
     }),
     'connection_stats': dict({
     }),

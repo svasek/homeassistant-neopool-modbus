@@ -130,7 +130,7 @@ async def async_get_device_serial(
     """Perform minimal Modbus read to get device serial number."""
     host = config.get(CONF_HOST, "")
     port = config.get(CONF_PORT, 502)
-    unit_id = config.get("unit_id", config.get("slave_id", 1))
+    unit_id = config.get("unit_id", 1)
     framer = config.get("modbus_framer", DEFAULT_MODBUS_FRAMER)
 
     try:
