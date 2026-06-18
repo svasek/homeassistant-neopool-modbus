@@ -28,7 +28,27 @@ from neopool_modbus.decoders import (
     hhmm_to_seconds,
     seconds_to_hhmm,
 )
-from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
+from neopool_modbus.registers import (
+    AUX1_TIMER_BLOCK_REGISTER,
+    AUX2_TIMER_BLOCK_REGISTER,
+    AUX3_TIMER_BLOCK_REGISTER,
+    AUX4_TIMER_BLOCK_REGISTER,
+    CELL_BOOST_REGISTER,
+    FILTRATION_CONF_REGISTER,
+    FILTRATION_MODE_REGISTER,
+    FILTRATION_TIMER1_SPEED_MASK,
+    FILTRATION_TIMER1_SPEED_SHIFT,
+    FILTRATION_TIMER2_SPEED_MASK,
+    FILTRATION_TIMER2_SPEED_SHIFT,
+    FILTRATION_TIMER3_SPEED_MASK,
+    FILTRATION_TIMER3_SPEED_SHIFT,
+    FILTVALVE_MODE_REGISTER,
+    FILTVALVE_PERIOD_REGISTER,
+    INTELLIGENT_FILT_MIN_TIME_REGISTER,
+    LIGHT_TIMER_BLOCK_REGISTER,
+    MANUAL_FILTRATION_REGISTER,
+    RELAY_ACTIVATION_DELAY_REGISTER,
+)
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.const import EntityCategory
@@ -80,13 +100,12 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             4: "intelligent",
             13: "backwash",
         },
-        register=0x0411,
+        register=FILTRATION_MODE_REGISTER,
     ),
     "MBF_PAR_FILTRATION_SPEED": NeoPoolSelectEntityDescription(
         key="MBF_PAR_FILTRATION_SPEED",
         options_map={0: "low", 1: "mid", 2: "high"},
-        register=0x050F,
-        mask=0x0070,
+        register=FILTRATION_CONF_REGISTER,
         shift=4,
         supported_fn=lambda data, opts: bool(  # pragma: no cover
             get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
@@ -95,7 +114,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "MBF_CELL_BOOST": NeoPoolSelectEntityDescription(
         key="MBF_CELL_BOOST",
         options_map={0: "inactive", 1: "active", 2: "active_redox"},
-        register=0x020C,
+        register=CELL_BOOST_REGISTER,
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: is_hydrolysis_present(data),  # pragma: no cover
     ),
@@ -109,7 +128,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             3: "always_on",
             4: "always_off",
         },
-        register=0x04E9,
+        register=FILTVALVE_MODE_REGISTER,
         supported_fn=lambda data, opts: has_filtvalve(data),
     ),
     "MBF_PAR_FILTVALVE_PERIOD_MINUTES": NeoPoolSelectEntityDescription(
@@ -128,7 +147,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             30240: "3_weeks",
             40320: "4_weeks",
         },
-        register=0x04ED,
+        register=FILTVALVE_PERIOD_REGISTER,
         supported_fn=lambda data, opts: has_filtvalve(data),
     ),
     "MBF_PAR_INTELLIGENT_FILT_MIN_TIME": NeoPoolSelectEntityDescription(
@@ -149,7 +168,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             660: "11h",
             720: "12h",
         },
-        register=0x041D,
+        register=INTELLIGENT_FILT_MIN_TIME_REGISTER,
         supported_fn=lambda data, opts: (
             bool(data.get("MBF_PAR_HEATING_GPIO"))
             and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
@@ -175,7 +194,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             3600: "3600",
             10800: "10800",
         },
-        register=0x0433,
+        register=RELAY_ACTIVATION_DELAY_REGISTER,
         supported_fn=lambda data, opts: (
             data.get("pH measurement module detected") is True
         ),
@@ -220,9 +239,9 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="filtration1_speed",
         entity_category=EntityCategory.CONFIG,
         options_map={0: "low", 1: "mid", 2: "high"},
-        register=0x050F,
-        mask=0x0380,
-        shift=7,
+        register=FILTRATION_CONF_REGISTER,
+        mask=FILTRATION_TIMER1_SPEED_MASK,
+        shift=FILTRATION_TIMER1_SPEED_SHIFT,
         supported_fn=lambda data, opts: (
             bool(opts.get("use_filtration1"))
             and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
@@ -232,9 +251,9 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="filtration2_speed",
         entity_category=EntityCategory.CONFIG,
         options_map={0: "low", 1: "mid", 2: "high"},
-        register=0x050F,
-        mask=0x1C00,
-        shift=10,
+        register=FILTRATION_CONF_REGISTER,
+        mask=FILTRATION_TIMER2_SPEED_MASK,
+        shift=FILTRATION_TIMER2_SPEED_SHIFT,
         supported_fn=lambda data, opts: (
             bool(opts.get("use_filtration2"))
             and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
@@ -244,9 +263,9 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="filtration3_speed",
         entity_category=EntityCategory.CONFIG,
         options_map={0: "low", 1: "mid", 2: "high"},
-        register=0x050F,
-        mask=0xE000,
-        shift=13,
+        register=FILTRATION_CONF_REGISTER,
+        mask=FILTRATION_TIMER3_SPEED_MASK,
+        shift=FILTRATION_TIMER3_SPEED_SHIFT,
         supported_fn=lambda data, opts: (
             bool(opts.get("use_filtration3"))
             and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
@@ -429,35 +448,35 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "relay_aux1_mode": NeoPoolSelectEntityDescription(
         key="relay_aux1_mode",
         options_map={1: "auto", 3: "on", 4: "off"},
-        register=0x04AC,
+        register=AUX1_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
     ),
     "relay_aux2_mode": NeoPoolSelectEntityDescription(
         key="relay_aux2_mode",
         options_map={1: "auto", 3: "on", 4: "off"},
-        register=0x04BB,
+        register=AUX2_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
     ),
     "relay_aux3_mode": NeoPoolSelectEntityDescription(
         key="relay_aux3_mode",
         options_map={1: "auto", 3: "on", 4: "off"},
-        register=0x04CA,
+        register=AUX3_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
     ),
     "relay_aux4_mode": NeoPoolSelectEntityDescription(
         key="relay_aux4_mode",
         options_map={1: "auto", 3: "on", 4: "off"},
-        register=0x04D9,
+        register=AUX4_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
     ),
     "relay_light_mode": NeoPoolSelectEntityDescription(
         key="relay_light_mode",
         options_map={1: "auto", 3: "on", 4: "off"},
-        register=0x0470,
+        register=LIGHT_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_light")),
     ),

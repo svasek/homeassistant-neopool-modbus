@@ -19,7 +19,13 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from neopool_modbus.registers import EXEC_REGISTER, TimerRelayMode, is_valid_relay_gpio
+from neopool_modbus.registers import (
+    EXEC_REGISTER,
+    LIGHT_FUNCTION_REGISTER,
+    LIGHT_TIMER_BLOCK_REGISTER,
+    TimerRelayMode,
+    is_valid_relay_gpio,
+)
 
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.core import HomeAssistant
@@ -52,8 +58,8 @@ LIGHT_DESCRIPTIONS: dict[str, NeoPoolLightEntityDescription] = {
     "light": NeoPoolLightEntityDescription(
         key="light",
         switch_type="relay_timer",
-        timer_block_addr=0x0470,
-        function_addr=0x047B,
+        timer_block_addr=LIGHT_TIMER_BLOCK_REGISTER,
+        function_addr=LIGHT_FUNCTION_REGISTER,
         function_code=2,  # LIGHTING
         supported_fn=lambda data, opts: (
             bool(opts.get("use_light"))
