@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.0.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.1.2...v5.0.0) (2026-06-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* 💥 drop slave_id and migrate entries to unit_id ([#194](https://github.com/svasek/homeassistant-neopool-modbus/issues/194))
+
+### ✨ Features
+
+* 💥 drop slave_id and migrate entries to unit_id ([#194](https://github.com/svasek/homeassistant-neopool-modbus/issues/194)) ([b6f3b94](https://github.com/svasek/homeassistant-neopool-modbus/commit/b6f3b94649767050443fa7001759c597c8184dcd))
+* **config:** ✨ rename slave_id to unit_id (with legacy fallback) ([#188](https://github.com/svasek/homeassistant-neopool-modbus/issues/188)) ([ce738ed](https://github.com/svasek/homeassistant-neopool-modbus/commit/ce738ed58b522fd880abe8f468896a11aa5f7889))
+
+
+### 🐛 Bug Fixes
+
+* 🩹 tighten types, fix variable shadowing, use LightEntityDescription ([fe42a8a](https://github.com/svasek/homeassistant-neopool-modbus/commit/fe42a8a1c34c694af2e73fc9b98107cb0e696813))
+
+
+### ♻️ Refactoring
+
+* ♻️ delegate tier-1 logic to neopool-modbus library ([#190](https://github.com/svasek/homeassistant-neopool-modbus/issues/190)) ([8bac0bc](https://github.com/svasek/homeassistant-neopool-modbus/commit/8bac0bc0b773683217315bc686319be7a2ef10c5))
+* ♻️ delegate tier-2 logic to neopool-modbus library ([#191](https://github.com/svasek/homeassistant-neopool-modbus/issues/191)) ([a35870f](https://github.com/svasek/homeassistant-neopool-modbus/commit/a35870f872be43a2c87a83c999da14f79a46bbbf))
+* ♻️ migrate entity definitions to typed EntityDescription pattern ([#192](https://github.com/svasek/homeassistant-neopool-modbus/issues/192)) ([8e62592](https://github.com/svasek/homeassistant-neopool-modbus/commit/8e62592c81c95fb6cf0b903fd210a04fd47d11f9))
+* ♻️ replace inline hex addresses with named register constants ([#193](https://github.com/svasek/homeassistant-neopool-modbus/issues/193)) ([c1add13](https://github.com/svasek/homeassistant-neopool-modbus/commit/c1add1348af063ffcd74cc2962b73267bde00ff1))
+
 ## [4.1.2](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.1.1...v4.1.2) (2026-06-15)
 
 
