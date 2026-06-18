@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Question / Support
+    url: https://github.com/svasek/homeassistant-neopool-modbus/discussions
+    about: Ask usage questions or start a discussion
+  - name: python-neopool-modbus library issues
+    url: https://github.com/svasek/python-neopool-modbus/issues/new/choose
+    about: Bugs in the underlying Modbus protocol library (not this integration)

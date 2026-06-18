@@ -1,0 +1,49 @@
+name: Feature request
+description: Propose a new entity, option, or integration capability
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the **Home Assistant integration** (UI, entities, config flow).
+        If the feature requires new register decoding or a new API method, it may need
+        a change in the [python-neopool-modbus library](https://github.com/svasek/python-neopool-modbus/issues/new/choose) first.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One-paragraph description of what you want and why.
+    validations:
+      required: true
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Use case
+      description: How would you use this? What problem does it solve?
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: Device / brand (if hardware-specific)
+      placeholder: "e.g. Oxilife"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This also requires a change in the python-neopool-modbus library.

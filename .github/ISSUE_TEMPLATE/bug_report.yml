@@ -1,0 +1,82 @@
+name: Bug report
+description: Something in the integration is broken or behaves unexpectedly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: make sure you are using the **latest released version** and that
+        the issue is in **this integration**, not in the
+        [python-neopool-modbus library](https://github.com/svasek/python-neopool-modbus/issues/new/choose).
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I am using the latest released version of this integration.
+          required: true
+        - label: The issue is in this integration, not in the underlying library.
+          required: true
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Integration version
+      placeholder: "e.g. 5.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "e.g. 2025.6.0"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device / brand
+      description: NeoPool controller model or brand name (Sugar Valley, Bayrol, Hayward, etc.)
+      placeholder: "e.g. Oxilife"
+    validations:
+      required: false
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug. Include the full error traceback if one was raised.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Enable debug logging for the integration and paste relevant lines here.
+      render: text
+    validations:
+      required: false
