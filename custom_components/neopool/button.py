@@ -48,22 +48,18 @@ class NeoPoolButtonEntityDescription(ButtonEntityDescription):
 BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
     "SYNC_TIME": NeoPoolButtonEntityDescription(
         key="SYNC_TIME",
-        translation_key="sync_time",
         entity_category=EntityCategory.CONFIG,
     ),
     "MBF_ESCAPE": NeoPoolButtonEntityDescription(
         key="MBF_ESCAPE",
-        translation_key="mbf_escape",
         entity_category=EntityCategory.CONFIG,
     ),
     "BACKWASH": NeoPoolButtonEntityDescription(
         key="BACKWASH",
-        translation_key="backwash",
         supported_fn=lambda data, opts: has_filtvalve(data),
     ),
     "RESET_CELL_PARTIAL": NeoPoolButtonEntityDescription(
         key="RESET_CELL_PARTIAL",
-        translation_key="reset_cell_partial",
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(data.get("Hydrolysis module detected")),
@@ -82,7 +78,8 @@ async def async_setup_entry(
     async_add_entities(
         NeoPoolButton(coordinator, entry.entry_id, key, desc)
         for key, desc in BUTTON_DESCRIPTIONS.items()
-        if desc.supported_fn is None or desc.supported_fn(coordinator.data, entry.options)
+        if desc.supported_fn is None
+        or desc.supported_fn(coordinator.data, entry.options)
     )
 
 
@@ -104,6 +101,7 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         self._key = key
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{key.lower()}"
+        self._attr_translation_key = NeoPoolEntity.slugify(key)
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""

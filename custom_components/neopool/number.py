@@ -71,7 +71,6 @@ def _support_heating_temp(data: dict[str, Any], opts: Mapping[str, Any]) -> bool
 NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     "MBF_PAR_HIDRO": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO",
-        translation_key="mbf_par_hidro",
         native_unit_of_measurement="%",
         native_min_value=0.0,
         native_max_value=100.0,
@@ -83,7 +82,6 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_PH1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_PH1",
-        translation_key="mbf_par_ph1",
         device_class=NumberDeviceClass.PH,
         native_min_value=0.0,
         native_max_value=14.0,
@@ -91,12 +89,13 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         register=0x0504,
         scale=100.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data, opts: "MBF_PAR_PH_ACID_RELAY_GPIO" not in data
-        or is_valid_relay_gpio(data["MBF_PAR_PH_ACID_RELAY_GPIO"] or 0),
+        supported_fn=lambda data, opts: (
+            "MBF_PAR_PH_ACID_RELAY_GPIO" not in data
+            or is_valid_relay_gpio(data["MBF_PAR_PH_ACID_RELAY_GPIO"] or 0)
+        ),
     ),
     "MBF_PAR_PH2": NeoPoolNumberEntityDescription(
         key="MBF_PAR_PH2",
-        translation_key="mbf_par_ph2",
         device_class=NumberDeviceClass.PH,
         native_min_value=0.0,
         native_max_value=14.0,
@@ -104,12 +103,13 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         register=0x0505,
         scale=100.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data, opts: "MBF_PAR_PH_BASE_RELAY_GPIO" not in data
-        or is_valid_relay_gpio(data["MBF_PAR_PH_BASE_RELAY_GPIO"] or 0),
+        supported_fn=lambda data, opts: (
+            "MBF_PAR_PH_BASE_RELAY_GPIO" not in data
+            or is_valid_relay_gpio(data["MBF_PAR_PH_BASE_RELAY_GPIO"] or 0)
+        ),
     ),
     "MBF_PAR_RX1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_RX1",
-        translation_key="mbf_par_rx1",
         native_unit_of_measurement="mV",
         device_class=NumberDeviceClass.VOLTAGE,
         native_min_value=0.0,
@@ -124,7 +124,6 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_CL1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_CL1",
-        translation_key="mbf_par_cl1",
         native_unit_of_measurement="ppm",
         native_min_value=0.0,
         native_max_value=10.0,
@@ -138,7 +137,6 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_HEATING_TEMP": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HEATING_TEMP",
-        translation_key="mbf_par_heating_temp",
         native_unit_of_measurement="°C",
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=0.0,
@@ -151,7 +149,6 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_SMART_TEMP_HIGH": NeoPoolNumberEntityDescription(
         key="MBF_PAR_SMART_TEMP_HIGH",
-        translation_key="mbf_par_smart_temp_high",
         native_unit_of_measurement="°C",
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=0.0,
@@ -164,7 +161,6 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_SMART_TEMP_LOW": NeoPoolNumberEntityDescription(
         key="MBF_PAR_SMART_TEMP_LOW",
-        translation_key="mbf_par_smart_temp_low",
         native_unit_of_measurement="°C",
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=0.0,
@@ -177,7 +173,6 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_HIDRO_COVER_REDUCTION": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO_COVER_REDUCTION",
-        translation_key="mbf_par_hidro_cover_reduction",
         native_unit_of_measurement="%",
         native_min_value=0.0,
         native_max_value=100.0,
@@ -192,7 +187,6 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE",
-        translation_key="mbf_par_hidro_shutdown_temperature",
         native_unit_of_measurement="°C",
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=1.0,
@@ -204,9 +198,11 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         shift=8,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data, opts: bool(opts.get("use_cover_sensor"))
-        and bool(data.get("Hydrolysis module detected"))
-        and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")),
+        supported_fn=lambda data, opts: (
+            bool(opts.get("use_cover_sensor"))
+            and bool(data.get("Hydrolysis module detected"))
+            and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
+        ),
     ),
 }
 
@@ -222,7 +218,8 @@ async def async_setup_entry(
     async_add_entities(
         NeoPoolNumber(coordinator, entry.entry_id, key, desc)
         for key, desc in NUMBER_DESCRIPTIONS.items()
-        if desc.supported_fn is None or desc.supported_fn(coordinator.data, entry.options)
+        if desc.supported_fn is None
+        or desc.supported_fn(coordinator.data, entry.options)
     )
 
 
@@ -246,6 +243,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
 
         device_id = self.coordinator.entry.unique_id or self._entry_id
         self._attr_unique_id = f"{device_id}_{key.lower()}"
+        self._attr_translation_key = NeoPoolEntity.slugify(key)
         self._attr_mode = NumberMode.BOX
 
         self._pending_write_task: asyncio.Task[None] | None = None
@@ -268,7 +266,9 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
 
         val = self.coordinator.data.get(self._data_key)
         if val is not None and self.entity_description.mask is not None:
-            val = (int(val) & self.entity_description.mask) >> self.entity_description.shift
+            val = (
+                int(val) & self.entity_description.mask
+            ) >> self.entity_description.shift
         self._attr_native_value = (
             round(val, 2) if isinstance(val, (int, float)) else None
         )
@@ -337,7 +337,9 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         """Return the actual number value."""
         raw = self.coordinator.data.get(self._data_key)
         if raw is not None and self.entity_description.mask is not None:
-            raw = (int(raw) & self.entity_description.mask) >> self.entity_description.shift
+            raw = (
+                int(raw) & self.entity_description.mask
+            ) >> self.entity_description.shift
         if (
             self.suggested_display_precision == 0 and raw is not None
         ):  # pragma: no cover
