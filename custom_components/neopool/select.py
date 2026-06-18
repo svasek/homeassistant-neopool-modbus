@@ -222,8 +222,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=0x050F,
         mask=0x0380,
         shift=7,
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration1"))
-        and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))),
+        supported_fn=lambda data, opts: (
+            bool(opts.get("use_filtration1"))
+            and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
+        ),
     ),
     "filtration2_speed": NeoPoolSelectEntityDescription(
         key="filtration2_speed",
@@ -232,8 +234,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=0x050F,
         mask=0x1C00,
         shift=10,
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration2"))
-        and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))),
+        supported_fn=lambda data, opts: (
+            bool(opts.get("use_filtration2"))
+            and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
+        ),
     ),
     "filtration3_speed": NeoPoolSelectEntityDescription(
         key="filtration3_speed",
@@ -242,8 +246,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=0x050F,
         mask=0xE000,
         shift=13,
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration3"))
-        and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))),
+        supported_fn=lambda data, opts: (
+            bool(opts.get("use_filtration3"))
+            and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
+        ),
     ),
     "relay_aux1_start": NeoPoolSelectEntityDescription(
         key="relay_aux1_start",
