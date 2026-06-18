@@ -19,7 +19,6 @@ from typing import Any
 
 from neopool_modbus.capabilities import CAPABILITY_KEYS as LIB_CAPABILITY_KEYS
 
-from homeassistant.components.number import NumberDeviceClass
 from homeassistant.const import EntityCategory, Platform
 
 DOMAIN = "neopool"
@@ -105,124 +104,6 @@ PERIOD_MAP = {
 PERIOD_SECONDS_TO_KEY = {v: k for k, v in PERIOD_MAP.items()}
 
 
-NUMBER_DEFINITIONS: dict[str, dict[str, Any]] = {
-    "MBF_PAR_HIDRO": {
-        "name": "Hydrolysis target production level",
-        "unit": "%",
-        "min": 0.0,
-        "max": 100.0,
-        "step": 1.0,
-        "register": 0x0502,  # MBF_PAR_HIDRO
-        "scale": 10.0,
-        "device_class": None,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_PH1": {
-        "name": "pH Max Limit",
-        "min": 0.0,
-        "max": 14.0,
-        "step": 0.1,
-        "register": 0x0504,  # MBF_PAR_PH1
-        "scale": 100.0,
-        "device_class": NumberDeviceClass.PH,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_PH2": {
-        "name": "pH Min Limit",
-        "min": 0.0,
-        "max": 14.0,
-        "step": 0.1,
-        "register": 0x0505,  # MBF_PAR_PH2
-        "scale": 100.0,
-        "device_class": NumberDeviceClass.PH,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_RX1": {
-        "name": "Redox Setpoint",
-        "unit": "mV",
-        "min": 0.0,
-        "max": 1000.0,
-        "step": 1.0,
-        "register": 0x0508,  # MBF_PAR_RX1
-        "scale": 1.0,
-        "device_class": NumberDeviceClass.VOLTAGE,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_CL1": {
-        "name": "Chlorine Setpoint",
-        "unit": "ppm",
-        "min": 0.0,
-        "max": 10.0,
-        "step": 0.1,
-        "register": 0x050A,  # MBF_PAR_CL1
-        "scale": 100.0,
-        "device_class": None,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_HEATING_TEMP": {
-        "name": "Temperature Setpoint",
-        "unit": "°C",
-        "min": 0.0,
-        "max": 40.0,
-        "step": 1.0,
-        "register": 0x0416,  # MBF_PAR_HEATING_TEMP
-        "scale": 1.0,
-        "device_class": NumberDeviceClass.TEMPERATURE,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_SMART_TEMP_HIGH": {
-        "name": "Smart Upper Temperature",
-        "unit": "°C",
-        "min": 0.0,
-        "max": 40.0,
-        "step": 1.0,
-        "register": 0x0418,  # MBF_PAR_SMART_TEMP_HIGH
-        "scale": 1.0,
-        "device_class": NumberDeviceClass.TEMPERATURE,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_SMART_TEMP_LOW": {
-        "name": "Smart Lower Temperature",
-        "unit": "°C",
-        "min": 0.0,
-        "max": 40.0,
-        "step": 1.0,
-        "register": 0x0419,  # MBF_PAR_SMART_TEMP_LOW
-        "scale": 1.0,
-        "device_class": NumberDeviceClass.TEMPERATURE,
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_PAR_HIDRO_COVER_REDUCTION": {
-        "name": "Hydrolysis Cover Reduction Percentage",
-        "unit": "%",
-        "min": 0.0,
-        "max": 100.0,
-        "step": 1.0,
-        "register": 0x042D,  # MBF_PAR_HIDRO_COVER_REDUCTION
-        "data_key": "MBF_PAR_HIDRO_COVER_REDUCTION",  # coordinator data key (combined register)
-        "mask": 0x00FF,
-        "shift": 0,
-        "scale": 1.0,
-        "device_class": None,
-        "entity_category": EntityCategory.CONFIG,
-        "option": "use_cover_sensor",
-    },
-    "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE": {
-        "name": "Hydrolysis Shutdown Temperature",
-        "unit": "°C",
-        "min": 1.0,
-        "max": 40.0,
-        "step": 1.0,
-        "register": 0x042D,  # MBF_PAR_HIDRO_COVER_REDUCTION (upper byte)
-        "data_key": "MBF_PAR_HIDRO_COVER_REDUCTION",  # coordinator data key (combined register)
-        "mask": 0xFF00,
-        "shift": 8,
-        "scale": 1.0,
-        "device_class": NumberDeviceClass.TEMPERATURE,
-        "entity_category": EntityCategory.CONFIG,
-        "option": "use_cover_sensor",
-    },
-}
 
 
 SELECT_DEFINITIONS: dict[str, dict[str, Any]] = {
