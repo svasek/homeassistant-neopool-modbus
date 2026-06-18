@@ -11,6 +11,7 @@ Core ships fresh entries at v1 with no migration story — the sync
 script excludes this whole file via ``EXCLUDE_TEST_FILES``.
 """
 
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -148,14 +149,12 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable() -> None:
 
 
 async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
-    """Test that a v3 entry is bumped to v4 (the neopool-modbus library marker).
+    """Test that a v3 entry is bumped through v4 to v5.
 
     v3 entries are produced by the cross-domain pipeline (vistapool v2 →
     neopool v3 rename). HA picks up the resulting entry, sees its stored
-    version differs from ConfigFlow.VERSION (=CURRENT_VERSION=4) and
-    dispatches to async_migrate_entry, which performs the trivial
-    ``version=4`` write — no data shape change, no serial read, no
-    entity_registry walk.
+    version differs from ConfigFlow.VERSION (=CURRENT_VERSION=5) and
+    dispatches to async_migrate_entry, which bumps v3→v4 then v4→v5.
     """
     hass = MagicMock()
 
@@ -166,31 +165,65 @@ async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
     config_entry.title = "My Pool"
     config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
+    def _update_entry(entry: MagicMock, **kwargs: Any) -> None:
+        for k, v in kwargs.items():
+            if k == "data":
+                entry.data = v
+            else:
+                setattr(entry, k, v)
+
+    hass.config_entries.async_update_entry.side_effect = _update_entry
+
     result = await async_migrate_entry(hass, config_entry)
 
     assert result is True
-    # The v1→v2 prelude is gated on `version < 2` and must not run on a v3
-    # entry — no serial probe, no entity walk, just the marker bump.
-    hass.config_entries.async_update_entry.assert_called_once_with(
-        config_entry, version=4
+    assert hass.config_entries.async_update_entry.call_count == 2
+    hass.config_entries.async_update_entry.assert_any_call(config_entry, version=4)
+    hass.config_entries.async_update_entry.assert_any_call(
+        config_entry,
+        data={"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1},
+        version=5,
     )
 
 
-async def test_async_migrate_entry_already_at_current_version_is_noop() -> None:
-    """Test that calling async_migrate_entry on a v4 entry does nothing.
-
-    HA may invoke this function on every setup whose stored version
-    differs from ConfigFlow.VERSION. Once entries reach CURRENT_VERSION
-    that should never happen, but guarding the function makes it robust
-    against unexpected dispatches and prevents stale "Migrating … from
-    v4 to v2" log noise.
-    """
+async def test_async_migrate_entry_v4_to_v5_slave_id_renamed() -> None:
+    """Test that a v4 entry with slave_id is migrated to v5 with unit_id."""
     hass = MagicMock()
 
     config_entry = MagicMock()
     config_entry.entry_id = "neopool_entry_v4"
     config_entry.unique_id = "neopool_AABBCCDD11223344EEFF0011"
     config_entry.version = 4
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "slave_id": 3}
+
+    def _update_entry(entry: MagicMock, **kwargs: Any) -> None:
+        for k, v in kwargs.items():
+            if k == "data":
+                entry.data = v
+            else:
+                setattr(entry, k, v)
+
+    hass.config_entries.async_update_entry.side_effect = _update_entry
+
+    result = await async_migrate_entry(hass, config_entry)
+
+    assert result is True
+    hass.config_entries.async_update_entry.assert_called_once_with(
+        config_entry,
+        data={"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 3},
+        version=5,
+    )
+
+
+async def test_async_migrate_entry_already_at_current_version_is_noop() -> None:
+    """Test that calling async_migrate_entry on a v5 entry does nothing."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "neopool_entry_v5"
+    config_entry.unique_id = "neopool_AABBCCDD11223344EEFF0011"
+    config_entry.version = 5
     config_entry.title = "My Pool"
     config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 

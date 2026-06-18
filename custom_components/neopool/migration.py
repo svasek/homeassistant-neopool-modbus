@@ -104,9 +104,24 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             return True
 
     if config_entry.version == 3:
-        hass.config_entries.async_update_entry(config_entry, version=CURRENT_VERSION)
+        hass.config_entries.async_update_entry(config_entry, version=4)
         _LOGGER.info(
-            "Bumped %s config entry %s to v%d (neopool-modbus library marker)",
+            "Bumped %s config entry %s to v4 (neopool-modbus library marker)",
+            DOMAIN,
+            config_entry.entry_id,
+        )
+
+    if config_entry.version == 4:
+        new_data = dict(config_entry.data)
+        if "slave_id" in new_data and "unit_id" not in new_data:
+            new_data["unit_id"] = new_data.pop("slave_id")
+        else:
+            new_data.pop("slave_id", None)
+        hass.config_entries.async_update_entry(
+            config_entry, data=new_data, version=CURRENT_VERSION
+        )
+        _LOGGER.info(
+            "Migrated %s config entry %s to v%d (slave_id → unit_id)",
             DOMAIN,
             config_entry.entry_id,
             CURRENT_VERSION,

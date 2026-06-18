@@ -77,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
     """Set up the NeoPool integration from a config entry."""
     # CUSTOM-ONLY START — historic config flow stored options inside `data`;
     # the core integration writes options correctly from day one.
-    connection_keys = [CONF_HOST, CONF_PORT, CONF_NAME, "unit_id", "slave_id"]
+    connection_keys = [CONF_HOST, CONF_PORT, CONF_NAME, "unit_id"]
     candidate_keys = [k for k in entry.data if k not in connection_keys]
     if not entry.options or not any(k in entry.options for k in candidate_keys):
         new_options = {k: entry.data[k] for k in candidate_keys}

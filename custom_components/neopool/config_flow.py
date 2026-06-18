@@ -230,9 +230,7 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): int,
                 vol.Optional(
                     "unit_id",
-                    default=current.get(
-                        "unit_id", current.get("slave_id", DEFAULT_UNIT_ID)
-                    ),
+                    default=current.get("unit_id", DEFAULT_UNIT_ID),
                 ): int,
                 vol.Optional(
                     "modbus_framer",
