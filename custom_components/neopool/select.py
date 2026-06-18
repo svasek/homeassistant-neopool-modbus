@@ -548,12 +548,12 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
     async def _select_timer_time(self, option: str) -> None:
         """Update the start or stop time of a timer via the set_timer service."""
-        timer_name, field = self._key.rsplit("_", 1)
+        timer_name, timer_field = self._key.rsplit("_", 1)
         data = self.coordinator.data
-        if field == "start":
+        if timer_field == "start":
             start = option
             stop = seconds_to_hhmm(data.get(f"{timer_name}_stop", 0))
-        elif field == "stop":
+        elif timer_field == "stop":
             start = seconds_to_hhmm(data.get(f"{timer_name}_start", 0))
             stop = option
         else:  # pragma: no cover
@@ -801,24 +801,24 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
                 return None
             if desc.mask is None or desc.shift is None:  # pragma: no cover
                 return None
-            value = (int(raw) & desc.mask) >> desc.shift
-            return desc.options_map.get(value)
+            speed_value = (int(raw) & desc.mask) >> desc.shift
+            return desc.options_map.get(speed_value)
 
         if desc.select_type == "timer_period":
             value = self.coordinator.data.get(self._key)
             if value is None:  # pragma: no cover
                 return None
-            return PERIOD_SECONDS_TO_KEY.get(value, str(value))
+            return PERIOD_SECONDS_TO_KEY.get(int(value), str(value))
 
         if desc.select_type == "relay_mode":
             timer_name = self._key.rsplit("_", 1)[0]
             value = self.coordinator.data.get(f"{timer_name}_enable")
-            if value == 0:
-                return "disabled"
-            if value == 2:  # pragma: no cover
-                return "auto_linked"
             if value is None:  # pragma: no cover
                 return None
+            if int(value) == 0:
+                return "disabled"
+            if int(value) == 2:  # pragma: no cover
+                return "auto_linked"
             return desc.options_map.get(int(value))  # pragma: no cover
 
         if desc.select_type == "mapped_register":
@@ -826,7 +826,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             if value is None:  # pragma: no cover
                 return None
             suffix = desc.fallback_suffix
-            return desc.options_map.get(value, f"{value}{suffix}")
+            return desc.options_map.get(int(value), f"{value}{suffix}")
 
         if self._key == "MBF_PAR_FILTVALVE_MODE":
             value = self.coordinator.data.get(self._key)

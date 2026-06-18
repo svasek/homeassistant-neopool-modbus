@@ -6,9 +6,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+# CUSTOM-ONLY START
 from pytest_homeassistant_custom_component.syrupy import HomeAssistantSnapshotExtension
 from syrupy.assertion import SnapshotAssertion
 
+# CUSTOM-ONLY END
 from custom_components.neopool.const import (
     CURRENT_VERSION,
     DEFAULT_PORT,
@@ -23,6 +26,7 @@ MOCK_NAME = "Pool"
 MOCK_SERIAL = "1234567890"
 
 
+# CUSTOM-ONLY START
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Auto-load the custom integration in every test.
@@ -42,6 +46,9 @@ def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     instead of syrupy's default `tests/__snapshots__/`.
     """
     return snapshot.use_extension(HomeAssistantSnapshotExtension)
+
+
+# CUSTOM-ONLY END
 
 
 # Minimal coordinator data for a healthy controller. Real device returns
@@ -140,7 +147,9 @@ def mock_config_entry() -> MockConfigEntry:
             "modbus_framer": "tcp",
         },
         options={
+            # CUSTOM-ONLY START
             "scan_interval": 30,
+            # CUSTOM-ONLY END
             "modbus_framer": "tcp",
             "use_filtration1": True,
             "use_filtration2": True,

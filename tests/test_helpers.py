@@ -146,7 +146,7 @@ def test_calculate_next_interval_time_without_hass() -> None:
 
 
 @pytest.mark.parametrize("invalid", [0, -100, None])
-def test_calculate_next_interval_time_invalid_input(invalid) -> None:
+def test_calculate_next_interval_time_invalid_input(invalid: float | None) -> None:
     """Zero, negative or None seconds yield None."""
     assert calculate_next_interval_time(invalid, None) is None
 
@@ -190,7 +190,7 @@ def test_has_filtvalve(data: dict, expected: bool) -> None:
         ("0xFFFF", 0xFFFF),
     ],
 )
-def test_parse_register_int_valid(raw, expected: int) -> None:
+def test_parse_register_int_valid(raw: int | str, expected: int) -> None:
     """parse_register_int accepts decimal and 0x-prefixed strings as well as ints."""
     assert parse_register_int(raw, "address") == expected
 
@@ -215,7 +215,7 @@ def test_parse_register_int_rejects_unparsable(raw: str) -> None:
 
 
 @pytest.mark.parametrize("raw", [-1, 65536, "0x10000"])
-def test_parse_register_int_rejects_out_of_range(raw) -> None:
+def test_parse_register_int_rejects_out_of_range(raw: int | str) -> None:
     """Values outside the 16-bit holding-register range are rejected."""
     with pytest.raises(ServiceValidationError):
         parse_register_int(raw, "value")

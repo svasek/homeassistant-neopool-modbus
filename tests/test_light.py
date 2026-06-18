@@ -140,23 +140,14 @@ async def test_light_winter_mode_guard_when_called_directly(
     coordinator.winter_mode = True
 
     entity_id = _light_entity_id(hass, mock_config_entry)
-    # Reach the entity object via hass.data
     entity_obj = None
-    for platform in hass.data.get("entity_components", {}).values():
-        if hasattr(platform, "get_entity"):
-            entity_obj = platform.get_entity(entity_id)
-            if entity_obj is not None:
+    for platforms in ep.async_get_platforms(hass, "neopool"):
+        for ent in platforms.entities.values():
+            if ent.entity_id == entity_id:
+                entity_obj = ent
                 break
-    if entity_obj is None:
-        # Fallback via entity_platform's domain-keyed registry
-
-        for platforms in ep.async_get_platforms(hass, "neopool"):
-            for ent in platforms.entities.values():
-                if ent.entity_id == entity_id:
-                    entity_obj = ent
-                    break
-            if entity_obj is not None:
-                break
+        if entity_obj is not None:
+            break
 
     assert entity_obj is not None
     mock_neopool_client.async_write_register.reset_mock()

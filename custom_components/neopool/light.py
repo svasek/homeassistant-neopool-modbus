@@ -27,9 +27,12 @@ from neopool_modbus.registers import (
     is_valid_relay_gpio,
 )
 
-from homeassistant.components.light import ColorMode, LightEntity
+from homeassistant.components.light import (
+    ColorMode,
+    LightEntity,
+    LightEntityDescription,
+)
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
@@ -44,7 +47,7 @@ type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
 
 
 @dataclass(frozen=True, kw_only=True)
-class NeoPoolLightEntityDescription(EntityDescription):
+class NeoPoolLightEntityDescription(LightEntityDescription):
     """Describes a NeoPool light entity."""
 
     switch_type: str = ""

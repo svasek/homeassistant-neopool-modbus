@@ -12,11 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Base entity class for the NeoPool integration.
-
-This module defines the base entity class for the NeoPool integration.
-It provides common functionality for all entities, including device information,
-"""
+"""Base entity class for the NeoPool integration."""
 
 from neopool_modbus.decoders import (
     decode_par_model_modules,
