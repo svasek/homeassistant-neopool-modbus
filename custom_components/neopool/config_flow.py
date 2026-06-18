@@ -61,10 +61,6 @@ async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
 class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for NeoPool."""
 
-    # HA contract: ConfigFlow subclasses must declare a class-level VERSION
-    # used to stamp fresh entries and to detect when async_migrate_entry
-    # needs to run. The single source of truth lives in const.CURRENT_VERSION
-    # — this attribute just exposes it under the name HA core looks for.
     VERSION = CURRENT_VERSION
 
     async def _async_validate_connection(self, user_input: dict) -> dict:

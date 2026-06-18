@@ -49,7 +49,6 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step of the options flow."""
-        # Get current options from the config entry
         options = dict(self.config_entry.options)
         already_enabled = options.get("enable_backwash_option", False)
 

@@ -4,11 +4,13 @@ from unittest.mock import MagicMock
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.neopool.const import DOMAIN
 from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
+from .conftest import MOCK_SERIAL
 
 
 def _binary_by_key(hass: HomeAssistant, key: str):
@@ -125,26 +127,30 @@ async def test_measurement_module_off_when_filtration_off(
     mock_neopool_client: MagicMock,
 ) -> None:
     """Measurement-module sensors report OFF when the filtration pump is idle."""
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    registry.async_get_or_create(
+        "binary_sensor",
+        DOMAIN,
+        f"neopool_{MOCK_SERIAL}_ph measurement active",
+        config_entry=mock_config_entry,
+        disabled_by=None,
+    )
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
 
+    entity = _binary_by_key(hass, "pH measurement active")
+    assert entity is not None
+
     coordinator.data["pH measurement active"] = True
     coordinator.data["Filtration Pump"] = False
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
-    state = _binary_state(hass, entity_registry, "pH measurement active")
-    if state is None:
-        # Skip-by-fixture: capability flag may not register the entity in
-        # the default fixture set; that's expected here.
-        return
-    assert state.state == STATE_OFF
+    assert entity.is_on is False
 
     coordinator.data["Filtration Pump"] = True
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
-    state = _binary_state(hass, entity_registry, "pH measurement active")
-    assert state is not None
-    assert state.state == STATE_ON
+    assert entity.is_on is True
+
+    coordinator.data["Filtration Pump"] = None
+    assert entity.is_on is True
 
 
 # ---------------------------------------------------------------------------

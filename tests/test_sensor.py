@@ -16,7 +16,8 @@ from pytest_homeassistant_custom_component.common import (
     mock_restore_cache_with_extra_data,
 )
 
-from custom_components.neopool.const import CURRENT_VERSION, DOMAIN, SENSOR_DEFINITIONS
+from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
+from custom_components.neopool.sensor import SENSOR_DESCRIPTIONS
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
@@ -700,4 +701,4 @@ async def test_cell_runtime_default_enabled_state(
         "CELL_RUNTIME_POLB",
         "CELL_RUNTIME_POL_CHANGES",
     ):
-        assert SENSOR_DEFINITIONS[key]["entity_registry_enabled_default"] is False
+        assert SENSOR_DESCRIPTIONS[key].entity_registry_enabled_default is False

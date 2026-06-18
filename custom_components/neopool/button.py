@@ -14,17 +14,19 @@
 
 """Button platform for the NeoPool integration."""
 
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 import logging
 from typing import Any
 
 from neopool_modbus.capabilities import has_filtvalve
 
-from homeassistant.components.button import ButtonEntity
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
-from .const import BUTTON_DEFINITIONS
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
 from .helpers import prepare_device_time
@@ -32,6 +34,37 @@ from .helpers import prepare_device_time
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
+
+type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
+
+
+@dataclass(frozen=True, kw_only=True)
+class NeoPoolButtonEntityDescription(ButtonEntityDescription):
+    """Describes a NeoPool button entity."""
+
+    supported_fn: SupportedFn | None = None
+
+
+BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
+    "SYNC_TIME": NeoPoolButtonEntityDescription(
+        key="SYNC_TIME",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    "MBF_ESCAPE": NeoPoolButtonEntityDescription(
+        key="MBF_ESCAPE",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    "BACKWASH": NeoPoolButtonEntityDescription(
+        key="BACKWASH",
+        supported_fn=lambda data, opts: has_filtvalve(data),
+    ),
+    "RESET_CELL_PARTIAL": NeoPoolButtonEntityDescription(
+        key="RESET_CELL_PARTIAL",
+        entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
+        supported_fn=lambda data, opts: bool(data.get("Hydrolysis module detected")),
+    ),
+}
 
 
 async def async_setup_entry(
@@ -41,50 +74,41 @@ async def async_setup_entry(
 ) -> None:
     """Set up NeoPool button entities from a config entry."""
     coordinator = entry.runtime_data
-    entry_id = entry.entry_id
 
-    entities = []
-
-    for key, props in BUTTON_DEFINITIONS.items():
-        # Only available when a Besgo filter valve is configured
-        if key == "BACKWASH" and not has_filtvalve(coordinator.data):
-            continue
-        if key == "RESET_CELL_PARTIAL" and not coordinator.data.get(
-            "Hydrolysis module detected"
-        ):
-            continue
-        entities.append(NeoPoolButton(coordinator, entry_id, key, props))
-    async_add_entities(entities)
+    async_add_entities(
+        NeoPoolButton(coordinator, entry.entry_id, key, desc)
+        for key, desc in BUTTON_DESCRIPTIONS.items()
+        if desc.supported_fn is None
+        or desc.supported_fn(coordinator.data, entry.options)
+    )
 
 
 class NeoPoolButton(NeoPoolEntity, ButtonEntity):
     """Representation of a NeoPool button entity."""
+
+    entity_description: NeoPoolButtonEntityDescription
 
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
         entry_id: str,
         key: str,
-        props: dict[str, Any],
+        description: NeoPoolButtonEntityDescription,
     ) -> None:
         """Initialize the NeoPool button entity."""
         super().__init__(coordinator, entry_id)
+        self.entity_description = description
         self._key = key
         device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{self._key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(self._key)
-
-        self._attr_entity_category = props.get("entity_category") or None
-
-        if props.get("entity_registry_enabled_default") is False:
-            self._attr_entity_registry_enabled_default = False
+        self._attr_unique_id = f"{device_id}_{key.lower()}"
+        self._attr_translation_key = NeoPoolEntity.slugify(key)
 
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
             "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
             self.entity_id,
-            self._attr_translation_key,
+            self.translation_key,
             getattr(self, "has_entity_name", None),
         )
         await super().async_added_to_hass()
