@@ -36,6 +36,12 @@ from neopool_modbus.registers import (
     CELL_BOOST_REGISTER,
     FILTRATION_CONF_REGISTER,
     FILTRATION_MODE_REGISTER,
+    FILTRATION_TIMER1_SPEED_MASK,
+    FILTRATION_TIMER1_SPEED_SHIFT,
+    FILTRATION_TIMER2_SPEED_MASK,
+    FILTRATION_TIMER2_SPEED_SHIFT,
+    FILTRATION_TIMER3_SPEED_MASK,
+    FILTRATION_TIMER3_SPEED_SHIFT,
     FILTVALVE_MODE_REGISTER,
     FILTVALVE_PERIOD_REGISTER,
     INTELLIGENT_FILT_MIN_TIME_REGISTER,
@@ -234,8 +240,8 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         options_map={0: "low", 1: "mid", 2: "high"},
         register=FILTRATION_CONF_REGISTER,
-        mask=0x0380,
-        shift=7,
+        mask=FILTRATION_TIMER1_SPEED_MASK,
+        shift=FILTRATION_TIMER1_SPEED_SHIFT,
         supported_fn=lambda data, opts: (
             bool(opts.get("use_filtration1"))
             and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
@@ -246,8 +252,8 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         options_map={0: "low", 1: "mid", 2: "high"},
         register=FILTRATION_CONF_REGISTER,
-        mask=0x1C00,
-        shift=10,
+        mask=FILTRATION_TIMER2_SPEED_MASK,
+        shift=FILTRATION_TIMER2_SPEED_SHIFT,
         supported_fn=lambda data, opts: (
             bool(opts.get("use_filtration2"))
             and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
@@ -258,8 +264,8 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         options_map={0: "low", 1: "mid", 2: "high"},
         register=FILTRATION_CONF_REGISTER,
-        mask=0xE000,
-        shift=13,
+        mask=FILTRATION_TIMER3_SPEED_MASK,
+        shift=FILTRATION_TIMER3_SPEED_SHIFT,
         supported_fn=lambda data, opts: (
             bool(opts.get("use_filtration3"))
             and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))

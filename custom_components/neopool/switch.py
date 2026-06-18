@@ -34,7 +34,9 @@ from neopool_modbus.registers import (
     AUX4_TIMER_BLOCK_REGISTER,
     CLIMA_ONOFF_REGISTER,
     EXEC_REGISTER,
+    HIDRO_COVER_ENABLE_BIT,
     HIDRO_COVER_ENABLE_REGISTER,
+    HIDRO_TEMP_SHUTDOWN_BIT,
     MANUAL_FILTRATION_REGISTER,
     SMART_ANTI_FREEZE_REGISTER,
     UV_MODE_REGISTER,
@@ -117,7 +119,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         switch_type="bitmask",
         function_addr=HIDRO_COVER_ENABLE_REGISTER,
-        mask_bit=0x0001,
+        mask_bit=HIDRO_COVER_ENABLE_BIT,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
         supported_fn=lambda data, opts: (
             bool(opts.get("use_cover_sensor"))
@@ -129,7 +131,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         switch_type="bitmask",
         function_addr=HIDRO_COVER_ENABLE_REGISTER,
-        mask_bit=0x0002,
+        mask_bit=HIDRO_TEMP_SHUTDOWN_BIT,
         data_key="MBF_PAR_HIDRO_COVER_ENABLE",
         supported_fn=lambda data, opts: (
             bool(opts.get("use_cover_sensor"))
