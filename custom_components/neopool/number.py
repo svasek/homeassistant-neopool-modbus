@@ -255,7 +255,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         _LOGGER.debug(
             "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
             self.entity_id,
-            self.entity_description.translation_key,
+            self.translation_key,
             getattr(self, "has_entity_name", None),
         )
         client = getattr(self.coordinator, "client", None)

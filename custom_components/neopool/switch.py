@@ -92,9 +92,8 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         switch_type="uv_mode",
         function_addr=0x0427,
-        supported_fn=lambda data, opts: (
-            "MBF_PAR_UV_RELAY_GPIO" not in data
-            or is_valid_relay_gpio(data["MBF_PAR_UV_RELAY_GPIO"] or 0)
+        supported_fn=lambda data, opts: is_valid_relay_gpio(
+            data.get("MBF_PAR_UV_RELAY_GPIO", 0) or 0
         ),
     ),
     "MBF_PAR_HIDRO_COVER_ENABLE": NeoPoolSwitchEntityDescription(
@@ -346,7 +345,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         _LOGGER.debug(
             "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
             self.entity_id,
-            self.entity_description.translation_key,
+            self.translation_key,
             getattr(self, "has_entity_name", None),
         )
         await super().async_added_to_hass()
