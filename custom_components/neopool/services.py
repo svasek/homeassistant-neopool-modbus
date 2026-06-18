@@ -61,8 +61,6 @@ SERVICE_SET_TIMER_SCHEMA = vol.Schema(
         vol.Optional(ATTR_START): cv.string,
         vol.Optional(ATTR_STOP): cv.string,
         vol.Optional(ATTR_PERIOD): vol.All(int, vol.Range(min=1, max=604800)),
-        # 'enable' carries the relay-mode integer (0=disabled, 1=auto,
-        # 2=auto_linked, 3=on, 4=off) used by the relay_mode select platform.
         vol.Optional(ATTR_ENABLE): vol.All(int, vol.Range(min=0, max=4)),
     }
 )
@@ -76,9 +74,6 @@ SERVICE_WRITE_REGISTER_SCHEMA = vol.Schema(
     }
 )
 
-# `count` capped at 31 — the device firmware refuses larger reads (the
-# library raises ValueError if we ignore the cap, so we surface the same
-# limit at the schema layer for a clean YAML-side error).
 SERVICE_READ_REGISTER_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_ENTRY_ID): cv.string,
@@ -250,15 +245,7 @@ async def _async_write_register(call: ServiceCall) -> None:
 
 
 async def _async_read_register(call: ServiceCall) -> ServiceResponse:
-    """Read one or more Modbus registers and return the raw u16 values.
-
-    The library picks Read Input Registers (FC 0x04) for any address on
-    the 0x01 page (MEASURE) and Read Holding Registers (FC 0x03) elsewhere
-    — see ``neopool_modbus.registers.is_input_register``. Decoding the
-    raw u16 into a meaningful value (e.g. dividing pH by 100) is the
-    caller's responsibility; the service deliberately returns the raw
-    transport so users can build their own templates.
-    """
+    """Read one or more Modbus registers and return the raw u16 values."""
     address = parse_register_int(call.data[ATTR_ADDRESS], "address")
     count = call.data[ATTR_COUNT]
     coordinator = _get_coordinator(call.hass, call)
@@ -293,8 +280,6 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
         "count": count,
         "values": registers,
     }
-    # Single-register reads expose `value` as a scalar so templates can
-    # reference {{ response.value }} without indexing into a list.
     if count == 1:
         response["value"] = registers[0]
     return response

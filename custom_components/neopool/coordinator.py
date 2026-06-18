@@ -160,7 +160,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_placeholders={"details": details},
             )
         else:
-            # Clear any previous repair issue if registers are now valid.
+            # Clear previous repair issues if registers are OK.
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
             _LOGGER.info("GPIO registers passed sanity check: all values are valid")
 

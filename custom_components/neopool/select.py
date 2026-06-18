@@ -22,6 +22,7 @@ from typing import Any
 
 from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
 from neopool_modbus.decoders import (
+    decode_cell_boost,
     generate_time_options,
     get_filtration_pump_type,
     hhmm_to_seconds,
@@ -773,15 +774,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             reg_val = self.coordinator.data.get(self._key)
             if reg_val is None:  # pragma: no cover
                 return None
-            if reg_val == 0:
-                return desc.options_map[0]
-            # 1: Active (redox control disabled) - bit 0x8000 set
-            elif reg_val & 0x8000:
-                return desc.options_map[1]
-            # 2: Active (Redox control) - bits 0x0500 | 0x00A0 set and 0x8000 NOT set
-            elif (reg_val & (0x0500 | 0x00A0)) == (0x0500 | 0x00A0):
-                return desc.options_map[2]
-            return desc.options_map[0]
+            return decode_cell_boost(reg_val) or desc.options_map[0]
 
         if self._key in _FILTRATION_SPEED_KEYS:
             raw = self.coordinator.data.get("MBF_PAR_FILTRATION_CONF")

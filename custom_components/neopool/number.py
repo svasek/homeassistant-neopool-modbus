@@ -368,6 +368,5 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     def native_step(self) -> float | None:
         """Return the step value for the number entity."""
         if self._key == "MBF_PAR_HIDRO":
-            # 1.0 step in percent mode, 0.1 step in g/h mode (matches display precision and register scale)
             return 1.0 if is_hydrolysis_in_percent(self.coordinator.data) else 0.1
         return self.entity_description.native_step

@@ -111,9 +111,6 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         device_class=BinarySensorDeviceClass.POWER,
         supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
     ),
-    # pH status bits
-    # Note: "pH acid pump active" and "pH pump active" (MBF_PH_STATUS bits 11/12)
-    # are merged into the PH_PUMP_STATUS enum sensor.
     "pH module control status": NeoPoolBinarySensorEntityDescription(
         key="pH module control status",
         device_class=BinarySensorDeviceClass.RUNNING,
@@ -135,7 +132,6 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=_module_detected("pH measurement module detected"),
     ),
-    # Redox
     "Redox pump active": NeoPoolBinarySensorEntityDescription(
         key="Redox pump active",
         device_class=BinarySensorDeviceClass.RUNNING,
@@ -163,7 +159,6 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=_module_detected("Redox measurement module detected"),
     ),
-    # Chlorine
     "Chlorine flow sensor problem": NeoPoolBinarySensorEntityDescription(
         key="Chlorine flow sensor problem",
         device_class=BinarySensorDeviceClass.PROBLEM,
@@ -197,7 +192,6 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=_module_detected("Chlorine measurement module detected"),
     ),
-    # Conductivity
     "Conductivity pump active": NeoPoolBinarySensorEntityDescription(
         key="Conductivity pump active",
         device_class=BinarySensorDeviceClass.RUNNING,
@@ -225,7 +219,6 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=_module_detected("Conductivity measurement module detected"),
     ),
-    # Ion status bits
     "ION On Target": NeoPoolBinarySensorEntityDescription(
         key="ION On Target",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -307,10 +300,6 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
             or is_valid_relay_gpio(data["MBF_PAR_UV_RELAY_GPIO"] or 0)
         ),
     ),
-    # Note: "HIDRO in dead time", "HIDRO in Pol1" and "HIDRO in Pol2" are merged
-    # into the HIDRO_POLARITY enum sensor.
-    # Similarly, "ION in dead time", "ION in Pol1" and "ION in Pol2" are merged
-    # into the ION_POLARITY enum sensor.
 }
 
 
@@ -369,7 +358,6 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
                 return None
             return is_device_time_out_of_sync(self.coordinator.data, self.hass)
 
-        # Invert logic for OPENING device class
         if self._key == "Pool Cover":
             value = self.coordinator.data.get(self._key)
             if value is None:
