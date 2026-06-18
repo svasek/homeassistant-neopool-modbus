@@ -167,6 +167,7 @@ def _process_test_file(
             src.read_text(encoding="utf-8"),
             strip_license=strip_license,
             strip_pragma=strip_pragma,
+            strip_comments=True,
         )
         _write(dest, transformed)
         return

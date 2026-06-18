@@ -41,6 +41,16 @@ _DOCSTRING_LINE = re.compile(r'^[ \t]+""".*"""[ \t]*$')
 # so we don't leave dangling spaces.
 _PRAGMA_NO_COVER = re.compile(r"[ \t]*#[ \t]*pragma:[ \t]*no cover[^\n]*")
 
+# Matches a full-line comment (optional leading whitespace, then `#`).
+# Used by strip_inline_comments to drop standalone comment lines from
+# test files — core reviewers expect comment-free test code.
+_FULL_LINE_COMMENT = re.compile(r"^[ \t]*#[^\n]*\n?", flags=re.MULTILINE)
+
+# Matches a trailing inline comment on a code line. We only strip the
+# comment portion, not the code. The negative lookbehind avoids matching
+# `#` inside strings — good enough for our controlled test sources.
+_TRAILING_COMMENT = re.compile(r"[ \t]+#[^\n]*")
+
 
 # Module names we strip imports for, derived from EXCLUDE_INTEGRATION_FILES
 # (e.g. {"migration"} → drop `from .migration import …` blocks). Using the
@@ -206,6 +216,18 @@ def strip_pragma_no_cover(source: str) -> str:
     return _PRAGMA_NO_COVER.sub("", source)
 
 
+def strip_inline_comments(source: str) -> str:
+    """Remove all ``#``-style comments from Python source.
+
+    Full-line comment lines (including section headers like ``# ---``) are
+    dropped entirely. Trailing inline comments are stripped from code lines
+    while leaving the code intact. Module/function/class docstrings are not
+    touched — they are string literals, not comments.
+    """
+    source = _FULL_LINE_COMMENT.sub("", source)
+    return _TRAILING_COMMENT.sub("", source)
+
+
 def apply_python_replacements(source: str) -> str:
     """Apply every (old, new) pair from `PYTHON_REPLACEMENTS` in order."""
     for old, new in PYTHON_REPLACEMENTS:
@@ -218,6 +240,7 @@ def transform_python(
     *,
     strip_license: bool,
     strip_pragma: bool,
+    strip_comments: bool = False,
 ) -> str:
     """Run every transform on a single Python source string."""
     # Order matters: drop CUSTOM-ONLY blocks *first* so the auto-import
@@ -229,6 +252,8 @@ def transform_python(
         source = strip_license_header(source)
     if strip_pragma:
         source = strip_pragma_no_cover(source)
+    if strip_comments:
+        source = strip_inline_comments(source)
     source = collapse_blank_lines(source)
     source = collapse_blank_after_func_docstring(source)
     return apply_python_replacements(source)

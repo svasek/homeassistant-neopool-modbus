@@ -146,6 +146,8 @@ JSON_DROP_KEYS: tuple[str, ...] = (
     "config.abort.migration_failed",
     "issues.domain_renamed",
     "issues.domain_rename_partial_failure",
+    "options.step.init.data.scan_interval",
+    "options.step.init.data_description.scan_interval",
 )
 
 # ---------------------------------------------------------------------------
