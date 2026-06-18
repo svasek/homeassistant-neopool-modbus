@@ -224,24 +224,6 @@ NUMBER_DEFINITIONS: dict[str, dict[str, Any]] = {
     },
 }
 
-BUTTON_DEFINITIONS: dict[str, dict[str, Any]] = {
-    "SYNC_TIME": {
-        "name": "Synchronize Device Time",
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "MBF_ESCAPE": {
-        "name": "Clear Errors",
-        "entity_category": EntityCategory.CONFIG,
-    },
-    "BACKWASH": {
-        "name": "Start Backwash",
-    },
-    "RESET_CELL_PARTIAL": {
-        "name": "Reset Partial Cell Runtime",
-        "entity_category": EntityCategory.CONFIG,
-        "entity_registry_enabled_default": False,
-    },
-}
 
 SELECT_DEFINITIONS: dict[str, dict[str, Any]] = {
     "MBF_PAR_FILT_MODE": {
