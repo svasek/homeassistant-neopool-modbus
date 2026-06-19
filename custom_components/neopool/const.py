@@ -64,28 +64,6 @@ CAPABILITY_KEYS: tuple[str, ...] = tuple(
     dict.fromkeys((*LIB_CAPABILITY_KEYS, *_CUSTOM_CAPABILITY_KEYS))
 )
 
-REMOVED_ENTITY_KEYS = (
-    # Removed in PR #117
-    "ion in dead time",
-    "ion in pol1",
-    "ion in pol2",
-    "hidro in dead time",
-    "hidro in pol1",
-    "hidro in pol2",
-    # Removed in PR #118
-    "hidro on target",
-    "hidro chlorine flow indicator fl2",
-    "hidro cell flow fl1",
-    # Removed in PR #119
-    "ph acid pump active",
-    "ph pump active",
-    # Added in PR #140
-    "ph regulation out of range",
-    "redox regulation out of range",
-    "chlorine regulation out of range",
-    "conductivity regulation out of range",
-)
-
 PERIOD_MAP = {
     "1_day": 86400,
     "2_days": 2 * 86400,

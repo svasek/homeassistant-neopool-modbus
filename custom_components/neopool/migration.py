@@ -71,6 +71,51 @@ LEGACY_FILES_REMOVED_IN_V4 = (
 )
 
 
+# Stale entity_registry rows accumulated across HACS releases; swept on
+# every setup. Lives in the HACS-only migration module.
+REMOVED_ENTITY_KEYS: tuple[str, ...] = (
+    # Removed in PR #117
+    "ion in dead time",
+    "ion in pol1",
+    "ion in pol2",
+    "hidro in dead time",
+    "hidro in pol1",
+    "hidro in pol2",
+    # Removed in PR #118
+    "hidro on target",
+    "hidro chlorine flow indicator fl2",
+    "hidro cell flow fl1",
+    # Removed in PR #119
+    "ph acid pump active",
+    "ph pump active",
+    # Added in PR #140
+    "ph regulation out of range",
+    "redox regulation out of range",
+    "chlorine regulation out of range",
+    "conductivity regulation out of range",
+)
+
+
+def cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Drop entity_registry rows matching REMOVED_ENTITY_KEYS."""
+    registry = er.async_get(hass)
+    # Match both old ({entry_id}_{key}) and new ({unique_id}_{key}) unique_id formats
+    prefixes = {entry.entry_id}
+    if entry.unique_id:
+        prefixes.add(entry.unique_id)
+    removed_uids = {
+        f"{prefix}_{key}" for prefix in prefixes for key in REMOVED_ENTITY_KEYS
+    }
+    for entity_entry in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if entity_entry.unique_id in removed_uids:
+            _LOGGER.debug(
+                "Removing orphaned entity %s (unique_id=%s)",
+                entity_entry.entity_id,
+                entity_entry.unique_id,
+            )
+            registry.async_remove(entity_entry.entity_id)
+
+
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate config entry to current version.
 

@@ -4,7 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool.const import CURRENT_VERSION, DOMAIN, REMOVED_ENTITY_KEYS
+from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
+from custom_components.neopool.migration import REMOVED_ENTITY_KEYS
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
