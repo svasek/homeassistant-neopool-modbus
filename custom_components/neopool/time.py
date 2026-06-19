@@ -14,6 +14,7 @@
 
 """Time platform for the NeoPool integration."""
 
+import asyncio
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import time as dt_time
@@ -41,14 +42,15 @@ type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolTimeEntityDescription(TimeEntityDescription):
-    """Describes a NeoPool time entity."""
+    """NeoPool time entity description."""
 
     timer_block: str
     timer_field: Literal["start", "stop"]
     supported_fn: SupportedFn | None = None
 
 
-# (timer_block, options-flow flag, enabled-by-default)
+_DEBOUNCE_DELAY = 10.0
+
 _TIMER_BLOCKS: tuple[tuple[str, str, bool], ...] = (
     ("filtration1", "use_filtration1", True),
     ("filtration2", "use_filtration2", True),
@@ -66,7 +68,7 @@ _TIMER_BLOCKS: tuple[tuple[str, str, bool], ...] = (
 
 
 def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
-    """Build the 24 timer start/stop time-entity descriptions."""
+    """Build the timer start/stop descriptions."""
     out: dict[str, NeoPoolTimeEntityDescription] = {}
     for block, opt_flag, enabled_default in _TIMER_BLOCKS:
         for field in ("start", "stop"):
@@ -102,7 +104,7 @@ async def async_setup_entry(
 
 
 class NeoPoolTime(NeoPoolEntity, TimeEntity):
-    """Representation of a NeoPool timer start/stop time entity."""
+    """NeoPool timer start/stop time entity."""
 
     entity_description: NeoPoolTimeEntityDescription
 
@@ -113,7 +115,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         key: str,
         description: NeoPoolTimeEntityDescription,
     ) -> None:
-        """Initialize the NeoPool time entity."""
+        """Initialize the entity."""
         super().__init__(coordinator, entry_id)
         self.entity_description = description
         self._key = key
@@ -121,13 +123,12 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         self._attr_unique_id = f"{device_id}_{key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(key)
 
+        self._pending_write_task: asyncio.Task[None] | None = None
+        self._debounce_delay = _DEBOUNCE_DELAY
+
     @property
     def native_value(self) -> dt_time | None:
-        """Return the timer value as a datetime.time (HH:MM:SS).
-
-        Coordinator stores the value as seconds since midnight (0..86399).
-        Wrap with modulo 86400 as a defensive guard against device noise.
-        """
+        """Decode seconds-since-midnight into HH:MM:SS."""
         seconds = self.coordinator.data.get(self._key)
         if seconds is None:
             return None
@@ -142,26 +143,37 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         )
 
     async def async_set_value(self, value: dt_time) -> None:
-        """Write the new start or stop time via the set_timer service.
-
-        The device stores both bounds as a single (on, interval) pair, so we
-        always pass the unchanged sibling alongside the field we're writing.
-        """
+        """Apply optimistically, then debounce-write to the device."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
-                "Winter mode is active — ignoring set_value for %s", self._key
+                "Winter mode is active - ignoring set_value for %s", self._key
+            )
+            return
+        seconds = value.hour * 3600 + value.minute * 60 + value.second
+        self.coordinator.data[self._key] = seconds
+        self.coordinator.async_set_updated_data(self.coordinator.data)
+
+        if self._pending_write_task is not None and not self._pending_write_task.done():
+            self._pending_write_task.cancel()
+        self._pending_write_task = asyncio.create_task(self._debounced_write())
+
+    async def _debounced_write(self) -> None:
+        """Push the value to the device after a quiet period."""
+        try:
+            await asyncio.sleep(self._debounce_delay)
+        except asyncio.CancelledError:  # pragma: no cover
+            return
+        if self.coordinator.winter_mode:  # pragma: no cover
+            _LOGGER.warning(
+                "Winter mode is active - debounced write cancelled for %s",
+                self._key,
             )
             return
         desc = self.entity_description
         block = desc.timer_block
         data = self.coordinator.data
-        hhmm = f"{value.hour:02d}:{value.minute:02d}"
-        if desc.timer_field == "start":
-            start = hhmm
-            stop = seconds_to_hhmm(int(data.get(f"{block}_stop", 0)))
-        else:
-            start = seconds_to_hhmm(int(data.get(f"{block}_start", 0)))
-            stop = hhmm
+        start = seconds_to_hhmm(int(data.get(f"{block}_start", 0)))
+        stop = seconds_to_hhmm(int(data.get(f"{block}_stop", 0)))
         await self.hass.services.async_call(
             DOMAIN,
             "set_timer",
