@@ -18,13 +18,14 @@
 [![Sponsor me](https://img.shields.io/badge/sponsor-❤-brightgreen?style=flat)](https://github.com/sponsors/svasek)
 [![Ko-fi](https://img.shields.io/badge/ko--fi-support-29abe0?style=flat&logo=ko-fi)](https://ko-fi.com/svasek)
 
-> **This integration is available via [HACS](https://hacs.xyz/)**
-
 **Supported device models** (Sugar Valley / Hayward product lines):  
 Hidrolife • Aquascenic • Oxilife • Bionet • Hidroniser • UVScenic • Station • Aquarite
 
 **Distributed by** (vendors selling NeoPool-based hardware):  
 Hayward • Brilix (Albixon) • Bayrol • Certikin • Poolstar • GrupAquadirect • Pentair • ProducPool • Pool Technologie • Kripsol
+
+> [!TIP]
+> **This integration is available via [HACS](https://hacs.xyz/)**
 
 ---
 
@@ -34,7 +35,8 @@ The hardware supported by this integration uses the **NeoPool control system**, 
 
 The Modbus protocol implemented here is described in the official _"NeoPool Control System MODBUS Register description"_ documentation by Sugar Valley.
 
-> **Note:** _VistaPool_ is the name of Hayward's mobile/web app for cloud-based pool management.
+> [!NOTE]
+> _VistaPool_ is the name of Hayward's mobile/web app for cloud-based pool management.
 > This integration works entirely **locally via Modbus** — it does not require or use the VistaPool app or any cloud service.
 
 ---
@@ -65,7 +67,9 @@ If you find this integration useful, consider supporting its development:
 - **Connector:** Standard **2.54 mm** 5-pin PCB female connector
 - **Settings:** 19200 baud, 1 stop bit, no parity
 - **Protocol:** Modbus RTU
-- **See the [Modbus Connection Guide](docs/modbus-connection-guide.md)** for more info and images.
+
+> [!TIP]
+> **See the [Modbus Connection Guide](docs/modbus-connection-guide.md)** for more info and images.
 
 ### Plug Connector
 
@@ -84,8 +88,10 @@ If you find this integration useful, consider supporting its development:
 - **The NeoPool device acts as a Modbus _server_, this integration is a Modbus _client_.**
 - **Only one Modbus client can be connected to a Modbus connector with the same label**. It is not possible to operate multiple clients on connectors that share the same name.
 - **Modbus connectors with different labels represent independent physical interfaces.** Data traffic on one connector is **not visible** on others.
-- The **DISPLAY** connector is present **twice** and is usually used by the built-in LCD.
-  **Do not use it for this integration if the LCD is connected!**
+
+> [!IMPORTANT]
+> The **DISPLAY** connector is present **twice** and is usually used by the built-in LCD.
+> **Do not use it for this integration if the LCD is connected!**
 
 ---
 
@@ -123,11 +129,11 @@ If you find this integration useful, consider supporting its development:
 3. Install **NeoPool Modbus Integration**.
 4. Restart Home Assistant.
 
-### Manual
-
-1. Download or clone this repository.
-2. Copy the `custom_components/neopool` folder to your `/config/custom_components` directory.
-3. Restart Home Assistant.
+> ### Manual
+>
+> 1. Download or clone this repository.
+> 2. Copy the `custom_components/neopool` folder to your `/config/custom_components` directory.
+> 3. Restart Home Assistant.
 
 ## Setup and Configuration
 
@@ -153,13 +159,12 @@ Or add manually:
 - **Host**: IP address of your Modbus TCP gateway
 - **Port**: _(default: 502)_
 - **Unit ID**: _(default: 1)_
-- **Scan interval**: _(default: 30s)_
 
 ### 3. Adjust Integration Options (Optional)
 
 After initial setup, you can fine-tune the integration:
 
-- **Scan interval** (default: 30s)
+- **Scan interval** (default: 20s)
 - **Timer resolution** (default: 15m)
 - **Enable/disable relays** (Light and AUX1–AUX4 are default: disabled)
 - **Enable/disable cover sensor** (pool cover input — enables cover-related entities; default: disabled)
@@ -167,8 +172,8 @@ After initial setup, you can fine-tune the integration:
 - **Filtration pump power** (rated wattage in W; when non-zero, creates instantaneous power and cumulative energy sensors usable in the Energy dashboard)
 - **Unlock advanced features** (see [below](#advanced-options-unlocking-backwash-mode))
 
-Go to **Settings → Devices & Services → NeoPool Modbus Integration → Configure**  
-to adjust options at any time.
+> [!TIP]
+> Go to **Settings → Devices & Services → NeoPool Modbus Integration → Configure** to adjust options at any time.
 
 ---
 
@@ -182,6 +187,7 @@ If your pool controller is **physically disconnected during winter** (e.g. drain
 - Automations referencing these entities continue to exist without errors.
 - When the pool season starts again, flip the switch back OFF — communication resumes and values update at the next poll cycle.
 
+> [!TIP]
 > The winter mode state is persisted across Home Assistant restarts, so you only need to set it once.
 > Winter mode can also be toggled via automations (e.g. turn on every 1st November, turn off every 1st April).
 
@@ -202,7 +208,7 @@ To enable it:
 
 4. Submit the form. The advanced settings page will open, allowing you to enable "Backwash" mode.
 
-> **⚠️ WARNING:**
+> [!WARNING]
 > Enabling "Backwash" exposes this function in filtration mode selection.
 > **Improper use may damage your filtration system! Only activate if you fully understand the risks.**
 
@@ -223,7 +229,7 @@ Additional Besgo-only entities are created automatically when `MBF_PAR_FILTVALVE
 | `select.<name>_filtvalve_period_minutes` | How often automatic backwash is triggered (1 day – 4 weeks) |
 | `select.<name>_filtvalve_mode`           | Valve timer mode: Automatic / Always On / Always Off        |
 
-> **⚠️ WARNING:**
+> [!WARNING]
 > Always verify that your filtration system is correctly set up before triggering a backwash remotely.
 > **Improper use may damage your filtration system!**
 
@@ -233,12 +239,12 @@ Additional Besgo-only entities are created automatically when `MBF_PAR_FILTVALVE
 
 This integration polls the NeoPool controller over Modbus TCP using a Home Assistant **DataUpdateCoordinator**. A single shared Modbus client per hub fetches all registers in batched reads and distributes the result to every entity, so adding more entities does not increase Modbus traffic.
 
-- **Default interval:** 30 seconds (configurable from 5 s to 300 s in **Options → Scan interval**).
+- **Default interval:** 20 seconds (configurable from 5 s to 300 s in **Options → Scan interval**).
 - **Adaptive backoff:** When a Modbus read fails, all entities become **unavailable** immediately (`UpdateFailed`) and the polling interval is automatically extended (exponentially up to 3 minutes) to avoid hammering an offline device. Entities recover and the interval resets to the user-configured value as soon as the next read succeeds.
 - **Write-then-refresh:** When you toggle a switch, change a number, or call a service, a follow-up refresh is scheduled 2 seconds after the write so the UI reflects the new state without waiting for the next poll cycle.
 - **Winter Mode:** When enabled, polling is fully suspended (no TCP connection attempts, no error logs). See [Winter Mode](#winter-mode).
 
-If you need higher responsiveness for a specific automation, lowering the scan interval is safe — the gateway and controller easily handle 5-second polling — but be aware that some Modbus TCP gateways (especially Wi-Fi-based ones) become unstable under sustained sub-10-second polling.
+> If you need higher responsiveness for a specific automation, lowering the scan interval is safe — the gateway and controller easily handle 5-second polling — but be aware that some Modbus TCP gateways (especially Wi-Fi-based ones) become unstable under sustained sub-10-second polling.
 
 ---
 
@@ -459,7 +465,7 @@ logger:
     pymodbus: debug
 ```
 
-This produces *very* verbose output (every wire byte) and is intentionally **not** part of the in-UI debug toggle to keep that path useful for normal bug reports.
+This produces _very_ verbose output (every wire byte) and is intentionally **not** part of the in-UI debug toggle to keep that path useful for normal bug reports.
 
 ---
 
