@@ -245,12 +245,6 @@
                     "mid": "Střední"
                 }
             },
-            "filtration1_start": {
-                "name": "Timer 1 - Spuštění filtrace"
-            },
-            "filtration1_stop": {
-                "name": "Timer 1 - Vypnutí filtrace"
-            },
             "filtration2_speed": {
                 "name": "Timer 2 - Rychlost filtrace",
                 "state": {
@@ -259,12 +253,6 @@
                     "mid": "Střední"
                 }
             },
-            "filtration2_start": {
-                "name": "Timer 2 -  Spuštění filtrace"
-            },
-            "filtration2_stop": {
-                "name": "Timer 2 - Vypnutí filtrace"
-            },
             "filtration3_speed": {
                 "name": "Timer 3 - Rychlost filtrace",
                 "state": {
@@ -272,12 +260,6 @@
                     "low": "Nízká",
                     "mid": "Střední"
                 }
-            },
-            "filtration3_start": {
-                "name": "Timer 3 -  Spuštění filtrace"
-            },
-            "filtration3_stop": {
-                "name": "Timer 3 - Vypnutí filtrace"
             },
             "filtration_speed": {
                 "name": "Rychlost filtrace",
@@ -354,12 +336,6 @@
                     "5_days": "5 dní"
                 }
             },
-            "relay_aux1_start": {
-                "name": "Timer Aux1 (1) -  Spuštění"
-            },
-            "relay_aux1_stop": {
-                "name": "Timer Aux1 (1) -  Vypnutí"
-            },
             "relay_aux1b_period": {
                 "name": "Timer Aux1 (2) - Interval",
                 "state": {
@@ -373,12 +349,6 @@
                     "4_weeks": "4 týdny",
                     "5_days": "5 dní"
                 }
-            },
-            "relay_aux1b_start": {
-                "name": "Timer Aux1 (2) -  Spuštění"
-            },
-            "relay_aux1b_stop": {
-                "name": "Timer Aux1 (2) -  Vypnutí"
             },
             "relay_aux2_mode": {
                 "name": "Režim relé Aux2",
@@ -404,12 +374,6 @@
                     "5_days": "5 dní"
                 }
             },
-            "relay_aux2_start": {
-                "name": "Timer Aux2 (1) -  Spuštění"
-            },
-            "relay_aux2_stop": {
-                "name": "Timer Aux2 (1) -  Vypnutí"
-            },
             "relay_aux2b_period": {
                 "name": "Timer Aux2 (2) - Interval",
                 "state": {
@@ -423,12 +387,6 @@
                     "4_weeks": "4 týdny",
                     "5_days": "5 dní"
                 }
-            },
-            "relay_aux2b_start": {
-                "name": "Timer Aux2 (2) -  Spuštění"
-            },
-            "relay_aux2b_stop": {
-                "name": "Timer Aux2 (2) -  Vypnutí"
             },
             "relay_aux3_mode": {
                 "name": "Režim relé Aux3",
@@ -454,12 +412,6 @@
                     "5_days": "5 dní"
                 }
             },
-            "relay_aux3_start": {
-                "name": "Timer Aux3 (1) -  Spuštění"
-            },
-            "relay_aux3_stop": {
-                "name": "Timer Aux3 (1) -  Vypnutí"
-            },
             "relay_aux3b_period": {
                 "name": "Timer Aux3 (2) - Interval",
                 "state": {
@@ -473,12 +425,6 @@
                     "4_weeks": "4 týdny",
                     "5_days": "5 dní"
                 }
-            },
-            "relay_aux3b_start": {
-                "name": "Timer Aux3 (2) -  Spuštění"
-            },
-            "relay_aux3b_stop": {
-                "name": "Timer Aux3 (2) -  Vypnutí"
             },
             "relay_aux4_mode": {
                 "name": "Režim relé Aux4",
@@ -504,12 +450,6 @@
                     "5_days": "5 dní"
                 }
             },
-            "relay_aux4_start": {
-                "name": "Timer Aux4 (1) -  Spuštění"
-            },
-            "relay_aux4_stop": {
-                "name": "Timer Aux4 (1) -  Vypnutí"
-            },
             "relay_aux4b_period": {
                 "name": "Timer Aux4 (2) - Interval",
                 "state": {
@@ -523,12 +463,6 @@
                     "4_weeks": "4 týdny",
                     "5_days": "5 dní"
                 }
-            },
-            "relay_aux4b_start": {
-                "name": "Timer Aux4 (2) -  Spuštění"
-            },
-            "relay_aux4b_stop": {
-                "name": "Timer Aux4 (2) -  Vypnutí"
             },
             "relay_light_mode": {
                 "name": "Režim světla",
@@ -552,12 +486,6 @@
                     "4_weeks": "4 týdny",
                     "5_days": "5 dní"
                 }
-            },
-            "relay_light_start": {
-                "name": "Timer Světla -  Spuštění"
-            },
-            "relay_light_stop": {
-                "name": "Timer Světla -  Vypnutí"
             }
         },
         "sensor": {
@@ -720,6 +648,80 @@
             "winter_mode": {
                 "name": "Zimní režim"
             }
+        },
+        "time": {
+            "filtration1_start": {
+                "name": "Timer 1 - Spuštění filtrace"
+            },
+            "filtration1_stop": {
+                "name": "Timer 1 - Vypnutí filtrace"
+            },
+            "filtration2_start": {
+                "name": "Timer 2 -  Spuštění filtrace"
+            },
+            "filtration2_stop": {
+                "name": "Timer 2 - Vypnutí filtrace"
+            },
+            "filtration3_start": {
+                "name": "Timer 3 -  Spuštění filtrace"
+            },
+            "filtration3_stop": {
+                "name": "Timer 3 - Vypnutí filtrace"
+            },
+            "relay_aux1_start": {
+                "name": "Timer Aux1 (1) -  Spuštění"
+            },
+            "relay_aux1_stop": {
+                "name": "Timer Aux1 (1) -  Vypnutí"
+            },
+            "relay_aux1b_start": {
+                "name": "Timer Aux1 (2) -  Spuštění"
+            },
+            "relay_aux1b_stop": {
+                "name": "Timer Aux1 (2) -  Vypnutí"
+            },
+            "relay_aux2_start": {
+                "name": "Timer Aux2 (1) -  Spuštění"
+            },
+            "relay_aux2_stop": {
+                "name": "Timer Aux2 (1) -  Vypnutí"
+            },
+            "relay_aux2b_start": {
+                "name": "Timer Aux2 (2) -  Spuštění"
+            },
+            "relay_aux2b_stop": {
+                "name": "Timer Aux2 (2) -  Vypnutí"
+            },
+            "relay_aux3_start": {
+                "name": "Timer Aux3 (1) -  Spuštění"
+            },
+            "relay_aux3_stop": {
+                "name": "Timer Aux3 (1) -  Vypnutí"
+            },
+            "relay_aux3b_start": {
+                "name": "Timer Aux3 (2) -  Spuštění"
+            },
+            "relay_aux3b_stop": {
+                "name": "Timer Aux3 (2) -  Vypnutí"
+            },
+            "relay_aux4_start": {
+                "name": "Timer Aux4 (1) -  Spuštění"
+            },
+            "relay_aux4_stop": {
+                "name": "Timer Aux4 (1) -  Vypnutí"
+            },
+            "relay_aux4b_start": {
+                "name": "Timer Aux4 (2) -  Spuštění"
+            },
+            "relay_aux4b_stop": {
+                "name": "Timer Aux4 (2) -  Vypnutí"
+            },
+            "relay_light_start": {
+                "name": "Timer Světla -  Spuštění"
+            },
+            "relay_light_stop": {
+                "name": "Timer Světla -  Vypnutí"
+            }
         }
     },
     "exceptions": {
@@ -811,7 +813,6 @@
                     "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)",
                     "measure_when_filtration_off": "Měřit hodnoty i při vypnuté filtraci",
                     "scan_interval": "Interval aktualizace dat (v sekundách)",
-                    "timer_resolution": "Krok pro nastavení časovačů (v minutách)",
                     "unlock_advanced": "Odemknout pokročilé možnosti",
                     "use_aux1": "Povolit relé Aux1",
                     "use_aux2": "Povolit relé Aux2",
@@ -828,7 +829,6 @@
                     "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
                     "measure_when_filtration_off": "Pokud je vypnuto, chemická měření (pH, ORP atd.) probíhají pouze při běžícím filtračním čerpadle.",
                     "scan_interval": "Nižší hodnoty zvyšují rychlost odezvy, ale generují více Modbus komunikace.",
-                    "timer_resolution": "Určuje přesnost výběru času v entitách časovačů.",
                     "unlock_advanced": "Zadejte odemykací kód pro přístup k pokročilým nastavením (formát: prefix_zařízení + aktuální rok).",
                     "use_aux1": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
                     "use_aux2": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",

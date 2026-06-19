@@ -31,11 +31,11 @@ PLATFORMS: list[Platform] = [
     Platform.SELECT,
     Platform.SENSOR,
     Platform.SWITCH,
+    Platform.TIME,
 ]
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_TIMER_RESOLUTION = 15  # in minutes
 DEFAULT_SCAN_INTERVAL = 20  # in seconds
 FOLLOW_UP_REFRESH_DELAY = 2.0  # seconds  (delay before a 2nd refresh for IO entity)
 DEFAULT_PORT = 502

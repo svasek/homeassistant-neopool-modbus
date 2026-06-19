@@ -29,7 +29,6 @@ from .const import (
     # CUSTOM-ONLY START
     DEFAULT_SCAN_INTERVAL,
     # CUSTOM-ONLY END
-    DEFAULT_TIMER_RESOLUTION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -68,12 +67,6 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
                 )
             ),
             # CUSTOM-ONLY END
-            vol.Optional(
-                "timer_resolution",
-                default=str(options.get("timer_resolution", DEFAULT_TIMER_RESOLUTION)),
-            ): SelectSelector(
-                SelectSelectorConfig(options=[str(v) for v in (1, 5, 10, 15, 30, 60)])
-            ),
             vol.Optional(
                 "measure_when_filtration_off",
                 default=options.get("measure_when_filtration_off", False),
@@ -137,8 +130,6 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             if "scan_interval" in user_input:
                 user_input["scan_interval"] = int(user_input["scan_interval"])
             # CUSTOM-ONLY END
-            if "timer_resolution" in user_input:
-                user_input["timer_resolution"] = int(user_input["timer_resolution"])
             if (user_input.get("unlock_advanced") or "").strip() == expected:
                 self._base_options = user_input.copy()
                 self._base_options.pop("unlock_advanced", None)

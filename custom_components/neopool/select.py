@@ -21,13 +21,7 @@ import logging
 from typing import Any
 
 from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
-from neopool_modbus.decoders import (
-    decode_cell_boost,
-    generate_time_options,
-    get_filtration_pump_type,
-    hhmm_to_seconds,
-    seconds_to_hhmm,
-)
+from neopool_modbus.decoders import decode_cell_boost, get_filtration_pump_type
 from neopool_modbus.registers import (
     AUX1_TIMER_BLOCK_REGISTER,
     AUX2_TIMER_BLOCK_REGISTER,
@@ -56,7 +50,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import NeoPoolConfigEntry
-from .const import DEFAULT_TIMER_RESOLUTION, DOMAIN, PERIOD_MAP, PERIOD_SECONDS_TO_KEY
+from .const import DOMAIN, PERIOD_MAP, PERIOD_SECONDS_TO_KEY
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -199,42 +193,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             data.get("pH measurement module detected") is True
         ),
     ),
-    "filtration1_start": NeoPoolSelectEntityDescription(
-        key="filtration1_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration1")),
-    ),
-    "filtration1_stop": NeoPoolSelectEntityDescription(
-        key="filtration1_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration1")),
-    ),
-    "filtration2_start": NeoPoolSelectEntityDescription(
-        key="filtration2_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration2")),
-    ),
-    "filtration2_stop": NeoPoolSelectEntityDescription(
-        key="filtration2_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration2")),
-    ),
-    "filtration3_start": NeoPoolSelectEntityDescription(
-        key="filtration3_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration3")),
-    ),
-    "filtration3_stop": NeoPoolSelectEntityDescription(
-        key="filtration3_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_filtration3")),
-    ),
     "filtration1_speed": NeoPoolSelectEntityDescription(
         key="filtration1_speed",
         entity_category=EntityCategory.CONFIG,
@@ -271,36 +229,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
         ),
     ),
-    "relay_aux1_start": NeoPoolSelectEntityDescription(
-        key="relay_aux1_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
-    ),
-    "relay_aux1_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux1_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
-    ),
     "relay_aux1_period": NeoPoolSelectEntityDescription(
         key="relay_aux1_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
-    ),
-    "relay_aux1b_start": NeoPoolSelectEntityDescription(
-        key="relay_aux1b_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
-    ),
-    "relay_aux1b_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux1b_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
     ),
     "relay_aux1b_period": NeoPoolSelectEntityDescription(
@@ -310,36 +242,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
     ),
-    "relay_aux2_start": NeoPoolSelectEntityDescription(
-        key="relay_aux2_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
-    ),
-    "relay_aux2_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux2_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
-    ),
     "relay_aux2_period": NeoPoolSelectEntityDescription(
         key="relay_aux2_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
-    ),
-    "relay_aux2b_start": NeoPoolSelectEntityDescription(
-        key="relay_aux2b_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
-    ),
-    "relay_aux2b_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux2b_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
     ),
     "relay_aux2b_period": NeoPoolSelectEntityDescription(
@@ -349,36 +255,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
     ),
-    "relay_aux3_start": NeoPoolSelectEntityDescription(
-        key="relay_aux3_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
-    ),
-    "relay_aux3_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux3_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
-    ),
     "relay_aux3_period": NeoPoolSelectEntityDescription(
         key="relay_aux3_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
-    ),
-    "relay_aux3b_start": NeoPoolSelectEntityDescription(
-        key="relay_aux3b_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
-    ),
-    "relay_aux3b_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux3b_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
     ),
     "relay_aux3b_period": NeoPoolSelectEntityDescription(
@@ -388,36 +268,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
     ),
-    "relay_aux4_start": NeoPoolSelectEntityDescription(
-        key="relay_aux4_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
-    ),
-    "relay_aux4_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux4_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
-    ),
     "relay_aux4_period": NeoPoolSelectEntityDescription(
         key="relay_aux4_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
-    ),
-    "relay_aux4b_start": NeoPoolSelectEntityDescription(
-        key="relay_aux4b_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
-    ),
-    "relay_aux4b_stop": NeoPoolSelectEntityDescription(
-        key="relay_aux4b_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
     ),
     "relay_aux4b_period": NeoPoolSelectEntityDescription(
@@ -426,18 +280,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         select_type="timer_period",
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
-    ),
-    "relay_light_start": NeoPoolSelectEntityDescription(
-        key="relay_light_start",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_light")),
-    ),
-    "relay_light_stop": NeoPoolSelectEntityDescription(
-        key="relay_light_stop",
-        entity_category=EntityCategory.CONFIG,
-        select_type="timer_time",
-        supported_fn=lambda data, opts: bool(opts.get("use_light")),
     ),
     "relay_light_period": NeoPoolSelectEntityDescription(
         key="relay_light_period",
@@ -546,29 +388,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
-    async def _select_timer_time(self, option: str) -> None:
-        """Update the start or stop time of a timer via the set_timer service."""
-        timer_name, timer_field = self._key.rsplit("_", 1)
-        data = self.coordinator.data
-        if timer_field == "start":
-            start = option
-            stop = seconds_to_hhmm(data.get(f"{timer_name}_stop", 0))
-        elif timer_field == "stop":
-            start = seconds_to_hhmm(data.get(f"{timer_name}_start", 0))
-            stop = option
-        else:  # pragma: no cover
-            return
-        await self.hass.services.async_call(
-            DOMAIN,
-            "set_timer",
-            {
-                "entry_id": self._entry_id,
-                "timer": timer_name,
-                "start": start,
-                "stop": stop,
-            },
-        )
-
     async def _select_timer_period(self, option: str) -> None:
         """Update the repeat period of a timer via the set_timer service."""
         timer_name = self._key.rsplit("_", 1)[0]
@@ -661,9 +480,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if desc.select_type == "mapped_register":
             await self._select_mapped_register(client, option)
             return
-        if desc.select_type == "timer_time":
-            await self._select_timer_time(option)
-            return
         if desc.select_type == "timer_period":
             await self._select_timer_period(option)
             return
@@ -715,26 +531,6 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             self.coordinator.data.get("Redox measurement module detected")
         ):
             option_keys = [k for k in option_keys if k != 2]
-
-        if desc.select_type == "timer_time":
-            resolution = max(
-                1,
-                self.coordinator.entry.options.get(
-                    "timer_resolution", DEFAULT_TIMER_RESOLUTION
-                ),
-            )
-            options_map = {
-                hhmm_to_seconds(opt): opt for opt in generate_time_options(resolution)
-            }
-            option_keys = list(options_map.keys())
-
-            value = self.coordinator.data.get(self._key)
-            options_list = [options_map[k] for k in option_keys]
-            if value is not None:
-                current_hhmm = seconds_to_hhmm(value)
-                if current_hhmm not in options_list:  # pragma: no cover
-                    return [current_hhmm, *options_list]
-            return options_list
 
         if desc.select_type == "timer_period":
             options_list = list(PERIOD_MAP.keys())
@@ -837,10 +633,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         value = self.coordinator.data.get(self._key)
         if value is None:  # pragma: no cover
             return None
-        if desc.options_map:
-            # If not exactly in options_map, always return current HH:MM
-            return desc.options_map.get(value) or seconds_to_hhmm(value)
-        return seconds_to_hhmm(value)  # pragma: no cover
+        return desc.options_map.get(value)
 
     @property
     def available(self) -> bool:
