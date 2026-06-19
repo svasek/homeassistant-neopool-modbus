@@ -44,7 +44,6 @@ CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
 
 CURRENT_VERSION = 5
 
-
 # Persisted in entry.options for winter-mode restarts.
 _CUSTOM_CAPABILITY_KEYS: tuple[str, ...] = (
     "MBF_PAR_HIDRO_NOM",

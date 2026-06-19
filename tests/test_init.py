@@ -104,3 +104,62 @@ async def test_setup_cleans_orphaned_entity_registry_entries(
     await hass.async_block_till_done()
 
     assert registry.async_get(orphan.entity_id) is None
+
+
+async def test_setup_cleans_legacy_select_timer_rows(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Legacy ``select.X_start/stop`` rows from before the time-platform move
+    are removed; the new ``time.X_start/stop`` siblings (sharing unique_id)
+    survive because the wildcard is scoped to the ``select`` domain.
+    """
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+
+    # Legacy select row that should be wiped (matches "select.filtration*_start").
+    legacy_uid = f"{mock_config_entry.unique_id}_filtration1_start"
+    legacy = registry.async_get_or_create(
+        "select", "neopool", legacy_uid, config_entry=mock_config_entry
+    )
+    legacy_entity_id = legacy.entity_id
+
+    # Same unique_id under the time domain — must NOT be removed.
+    sibling = registry.async_get_or_create(
+        "time", "neopool", legacy_uid, config_entry=mock_config_entry
+    )
+    sibling_entity_id = sibling.entity_id
+
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert registry.async_get(legacy_entity_id) is None
+    assert registry.async_get(sibling_entity_id) is not None
+
+
+async def test_setup_does_not_touch_unrelated_select_entities(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """The select wildcards target only ``*_start`` / ``*_stop`` keys.
+
+    A bystander like ``select.filtration_mode`` or ``select.relay_aux1_period``
+    must remain untouched even though it lives under the same domain.
+    """
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+
+    bystander_uid = f"{mock_config_entry.unique_id}_relay_aux1_period"
+    bystander = registry.async_get_or_create(
+        "select", "neopool", bystander_uid, config_entry=mock_config_entry
+    )
+    bystander_entity_id = bystander.entity_id
+
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # The bystander row may have been re-registered by the platform during
+    # setup, but it must still exist under its original entity_id.
+    assert registry.async_get(bystander_entity_id) is not None

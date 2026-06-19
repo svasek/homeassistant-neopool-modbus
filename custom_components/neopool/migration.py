@@ -15,6 +15,7 @@
 """NeoPool integration for Home Assistant - Config entry migration."""
 
 import asyncio
+from fnmatch import fnmatch
 import json
 import logging
 from pathlib import Path
@@ -73,6 +74,11 @@ LEGACY_FILES_REMOVED_IN_V4 = (
 
 # Stale entity_registry rows accumulated across HACS releases; swept on
 # every setup. Lives in the HACS-only migration module.
+#
+# Each item is either:
+#   * "<key-pattern>"          -- match by unique_id alone
+#   * "<domain>.<key-pattern>" -- match unique_id AND require entity domain
+# Patterns support shell wildcards via fnmatch (`*`, `?`).
 REMOVED_ENTITY_KEYS: tuple[str, ...] = (
     # Removed in PR #117
     "ion in dead time",
@@ -93,6 +99,13 @@ REMOVED_ENTITY_KEYS: tuple[str, ...] = (
     "redox regulation out of range",
     "chlorine regulation out of range",
     "conductivity regulation out of range",
+    # PR #195 -- timer start/stop moved from select to time platform
+    "select.filtration*_start",
+    "select.filtration*_stop",
+    "select.relay_aux*_start",
+    "select.relay_aux*_stop",
+    "select.relay_light_start",
+    "select.relay_light_stop",
 )
 
 
@@ -103,11 +116,31 @@ def cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
     prefixes = {entry.entry_id}
     if entry.unique_id:
         prefixes.add(entry.unique_id)
-    removed_uids = {
-        f"{prefix}_{key}" for prefix in prefixes for key in REMOVED_ENTITY_KEYS
-    }
+
+    domain_agnostic_patterns: list[str] = []
+    domain_scoped_patterns: dict[str, list[str]] = {}
+    for item in REMOVED_ENTITY_KEYS:
+        if "." in item:
+            old_domain, key_pattern = item.split(".", 1)
+            domain_scoped_patterns.setdefault(old_domain, []).append(key_pattern)
+        else:
+            domain_agnostic_patterns.append(item)
+
+    def matches(unique_id: str, patterns: list[str]) -> bool:
+        for prefix in prefixes:
+            head = f"{prefix}_"
+            if not unique_id.startswith(head):
+                continue
+            key = unique_id[len(head) :]
+            if any(fnmatch(key, p) for p in patterns):
+                return True
+        return False
+
     for entity_entry in er.async_entries_for_config_entry(registry, entry.entry_id):
-        if entity_entry.unique_id in removed_uids:
+        match = matches(entity_entry.unique_id, domain_agnostic_patterns) or matches(
+            entity_entry.unique_id, domain_scoped_patterns.get(entity_entry.domain, [])
+        )
+        if match:
             _LOGGER.debug(
                 "Removing orphaned entity %s (unique_id=%s)",
                 entity_entry.entity_id,
