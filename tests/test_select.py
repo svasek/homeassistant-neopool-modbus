@@ -357,44 +357,6 @@ async def test_filtration_speed_packs_into_filtration_conf(
 # ---------------------------------------------------------------------------
 
 
-async def test_timer_start_select_calls_set_timer_service(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """A timer_time select forwards start to the set_timer service."""
-    await setup_integration(hass, mock_config_entry)
-    entity_id = _select_entity_id(hass, mock_config_entry, "filtration1_start")
-    mock_neopool_client.write_timer.reset_mock()
-    await _select_option(hass, entity_id, "06:00")
-    # write_timer called via the set_timer service handler
-    assert mock_neopool_client.write_timer.await_count == 1
-    timer_name, payload = mock_neopool_client.write_timer.await_args.args
-    assert timer_name == "filtration1"
-    assert "on" in payload  # 06:00 is the start
-
-
-async def test_timer_stop_select_calls_set_timer_service(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """A timer_time select for the 'stop' field also reaches the service.
-
-    The 'start' branch and the 'stop' branch in _select_timer_time read
-    different sides of the existing timer; both need coverage.
-    """
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["filtration1_start"] = 6 * 3600  # 06:00
-    coordinator.async_set_updated_data(coordinator.data)
-
-    entity_id = _select_entity_id(hass, mock_config_entry, "filtration1_stop")
-    mock_neopool_client.write_timer.reset_mock()
-    await _select_option(hass, entity_id, "10:00")
-    assert mock_neopool_client.write_timer.await_count == 1
-
-
 async def test_timer_period_select_calls_set_timer_service(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,

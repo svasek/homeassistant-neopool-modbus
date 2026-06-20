@@ -39,7 +39,6 @@ async def test_options_flow_save_changes(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "timer_resolution": "30",
             "use_filtration1": False,
             "use_filtration2": False,
             "use_filtration3": False,
@@ -78,7 +77,6 @@ async def test_options_flow_unlock_advanced_with_correct_password(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "timer_resolution": "15",
             "use_filtration1": False,
             "use_filtration2": False,
             "use_filtration3": False,
@@ -109,7 +107,6 @@ async def test_options_flow_unlock_advanced_wrong_password_shows_error(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "timer_resolution": "15",
             "use_filtration1": False,
             "use_filtration2": False,
             "use_filtration3": False,
@@ -146,7 +143,6 @@ async def test_options_flow_advanced_step_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "timer_resolution": "15",
             "use_filtration1": False,
             "use_filtration2": False,
             "use_filtration3": False,

@@ -245,12 +245,6 @@
                     "mid": "Media"
                 }
             },
-            "filtration1_start": {
-                "name": "Timer 1 - Inizio filtrazione"
-            },
-            "filtration1_stop": {
-                "name": "Timer 1 - Fine filtrazione"
-            },
             "filtration2_speed": {
                 "name": "Timer 2 - Velocità di filtrazione",
                 "state": {
@@ -259,12 +253,6 @@
                     "mid": "Media"
                 }
             },
-            "filtration2_start": {
-                "name": "Timer 2 - Inizio filtrazione"
-            },
-            "filtration2_stop": {
-                "name": "Timer 2 - Fine filtrazione"
-            },
             "filtration3_speed": {
                 "name": "Timer 3 - Velocità di filtrazione",
                 "state": {
@@ -272,12 +260,6 @@
                     "low": "Bassa",
                     "mid": "Media"
                 }
-            },
-            "filtration3_start": {
-                "name": "Timer 3 - Inizio filtrazione"
-            },
-            "filtration3_stop": {
-                "name": "Timer 3 - Fine filtrazione"
             },
             "filtration_speed": {
                 "name": "Velocità di filtrazione",
@@ -354,12 +336,6 @@
                     "5_days": "5 giorni"
                 }
             },
-            "relay_aux1_start": {
-                "name": "Timer Aux1 (1) - Avvio"
-            },
-            "relay_aux1_stop": {
-                "name": "Timer Aux1 (1) - Arresto"
-            },
             "relay_aux1b_period": {
                 "name": "Timer Aux1 (2) - Intervallo",
                 "state": {
@@ -373,12 +349,6 @@
                     "4_weeks": "4 settimane",
                     "5_days": "5 giorni"
                 }
-            },
-            "relay_aux1b_start": {
-                "name": "Timer Aux1 (2) - Avvio"
-            },
-            "relay_aux1b_stop": {
-                "name": "Timer Aux1 (2) - Arresto"
             },
             "relay_aux2_mode": {
                 "name": "Modalità relè Aux2",
@@ -404,12 +374,6 @@
                     "5_days": "5 giorni"
                 }
             },
-            "relay_aux2_start": {
-                "name": "Timer Aux2 (1) - Avvio"
-            },
-            "relay_aux2_stop": {
-                "name": "Timer Aux2 (1) - Arresto"
-            },
             "relay_aux2b_period": {
                 "name": "Timer Aux2 (2) - Intervallo",
                 "state": {
@@ -423,12 +387,6 @@
                     "4_weeks": "4 settimane",
                     "5_days": "5 giorni"
                 }
-            },
-            "relay_aux2b_start": {
-                "name": "Timer Aux2 (2) - Avvio"
-            },
-            "relay_aux2b_stop": {
-                "name": "Timer Aux2 (2) - Arresto"
             },
             "relay_aux3_mode": {
                 "name": "Modalità relè Aux3",
@@ -454,12 +412,6 @@
                     "5_days": "5 giorni"
                 }
             },
-            "relay_aux3_start": {
-                "name": "Timer Aux3 (1) - Avvio"
-            },
-            "relay_aux3_stop": {
-                "name": "Timer Aux3 (1) - Arresto"
-            },
             "relay_aux3b_period": {
                 "name": "Timer Aux3 (2) - Intervallo",
                 "state": {
@@ -473,12 +425,6 @@
                     "4_weeks": "4 settimane",
                     "5_days": "5 giorni"
                 }
-            },
-            "relay_aux3b_start": {
-                "name": "Timer Aux3 (2) - Avvio"
-            },
-            "relay_aux3b_stop": {
-                "name": "Timer Aux3 (2) - Arresto"
             },
             "relay_aux4_mode": {
                 "name": "Modalità relè Aux4",
@@ -504,12 +450,6 @@
                     "5_days": "5 giorni"
                 }
             },
-            "relay_aux4_start": {
-                "name": "Timer Aux4 (1) - Avvio"
-            },
-            "relay_aux4_stop": {
-                "name": "Timer Aux4 (1) - Arresto"
-            },
             "relay_aux4b_period": {
                 "name": "Timer Aux4 (2) - Intervallo",
                 "state": {
@@ -523,12 +463,6 @@
                     "4_weeks": "4 settimane",
                     "5_days": "5 giorni"
                 }
-            },
-            "relay_aux4b_start": {
-                "name": "Timer Aux4 (2) - Avvio"
-            },
-            "relay_aux4b_stop": {
-                "name": "Timer Aux4 (2) - Arresto"
             },
             "relay_light_mode": {
                 "name": "Modalità luce",
@@ -552,12 +486,6 @@
                     "4_weeks": "4 settimane",
                     "5_days": "5 giorni"
                 }
-            },
-            "relay_light_start": {
-                "name": "Timer Luce - Avvio"
-            },
-            "relay_light_stop": {
-                "name": "Timer Luce - Arresto"
             }
         },
         "sensor": {
@@ -720,6 +648,80 @@
             "winter_mode": {
                 "name": "Modalità invernale"
             }
+        },
+        "time": {
+            "filtration1_start": {
+                "name": "Timer 1 - Inizio filtrazione"
+            },
+            "filtration1_stop": {
+                "name": "Timer 1 - Fine filtrazione"
+            },
+            "filtration2_start": {
+                "name": "Timer 2 - Inizio filtrazione"
+            },
+            "filtration2_stop": {
+                "name": "Timer 2 - Fine filtrazione"
+            },
+            "filtration3_start": {
+                "name": "Timer 3 - Inizio filtrazione"
+            },
+            "filtration3_stop": {
+                "name": "Timer 3 - Fine filtrazione"
+            },
+            "relay_aux1_start": {
+                "name": "Timer Aux1 (1) - Avvio"
+            },
+            "relay_aux1_stop": {
+                "name": "Timer Aux1 (1) - Arresto"
+            },
+            "relay_aux1b_start": {
+                "name": "Timer Aux1 (2) - Avvio"
+            },
+            "relay_aux1b_stop": {
+                "name": "Timer Aux1 (2) - Arresto"
+            },
+            "relay_aux2_start": {
+                "name": "Timer Aux2 (1) - Avvio"
+            },
+            "relay_aux2_stop": {
+                "name": "Timer Aux2 (1) - Arresto"
+            },
+            "relay_aux2b_start": {
+                "name": "Timer Aux2 (2) - Avvio"
+            },
+            "relay_aux2b_stop": {
+                "name": "Timer Aux2 (2) - Arresto"
+            },
+            "relay_aux3_start": {
+                "name": "Timer Aux3 (1) - Avvio"
+            },
+            "relay_aux3_stop": {
+                "name": "Timer Aux3 (1) - Arresto"
+            },
+            "relay_aux3b_start": {
+                "name": "Timer Aux3 (2) - Avvio"
+            },
+            "relay_aux3b_stop": {
+                "name": "Timer Aux3 (2) - Arresto"
+            },
+            "relay_aux4_start": {
+                "name": "Timer Aux4 (1) - Avvio"
+            },
+            "relay_aux4_stop": {
+                "name": "Timer Aux4 (1) - Arresto"
+            },
+            "relay_aux4b_start": {
+                "name": "Timer Aux4 (2) - Avvio"
+            },
+            "relay_aux4b_stop": {
+                "name": "Timer Aux4 (2) - Arresto"
+            },
+            "relay_light_start": {
+                "name": "Timer Luce - Avvio"
+            },
+            "relay_light_stop": {
+                "name": "Timer Luce - Arresto"
+            }
         }
     },
     "exceptions": {
@@ -811,7 +813,6 @@
                     "filtration_pump_power": "Potenza della pompa di filtrazione (W, 0 = disabilitato)",
                     "measure_when_filtration_off": "Misura i valori anche quando la filtrazione è spenta",
                     "scan_interval": "Intervallo aggiornamento dati (secondi)",
-                    "timer_resolution": "Passo regolazione timer (minuti)",
                     "unlock_advanced": "Sblocca opzioni avanzate",
                     "use_aux1": "Abilita relè Aux1",
                     "use_aux2": "Abilita relè Aux2",
@@ -828,7 +829,6 @@
                     "filtration_pump_power": "Specificare la potenza nominale della pompa di filtrazione. Con un valore diverso da zero vengono creati due sensori: potenza istantanea (W) ed energia cumulata (Wh), entrambi utilizzabili nel pannello energetico.",
                     "measure_when_filtration_off": "Quando disabilitato, le misurazioni chimiche (pH, ORP, ecc.) vengono effettuate solo quando la pompa di filtrazione è in funzione.",
                     "scan_interval": "Valori più bassi aumentano la reattività ma generano più traffico Modbus.",
-                    "timer_resolution": "Determina la granularità delle selezioni temporali nelle entità timer.",
                     "unlock_advanced": "Inserire il codice di sblocco per accedere alle impostazioni avanzate (formato: prefisso_dispositivo + anno corrente).",
                     "use_aux1": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
                     "use_aux2": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",

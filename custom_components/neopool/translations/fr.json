@@ -245,12 +245,6 @@
                     "mid": "Moyenne"
                 }
             },
-            "filtration1_start": {
-                "name": "Minuteur 1 - Début de filtration"
-            },
-            "filtration1_stop": {
-                "name": "Minuteur 1 - Fin de filtration"
-            },
             "filtration2_speed": {
                 "name": "Minuteur 2 - Vitesse de filtration",
                 "state": {
@@ -259,12 +253,6 @@
                     "mid": "Moyenne"
                 }
             },
-            "filtration2_start": {
-                "name": "Minuteur 2 - Début de filtration"
-            },
-            "filtration2_stop": {
-                "name": "Minuteur 2 - Fin de filtration"
-            },
             "filtration3_speed": {
                 "name": "Minuteur 3 - Vitesse de filtration",
                 "state": {
@@ -272,12 +260,6 @@
                     "low": "Basse",
                     "mid": "Moyenne"
                 }
-            },
-            "filtration3_start": {
-                "name": "Minuteur 3 - Début de filtration"
-            },
-            "filtration3_stop": {
-                "name": "Minuteur 3 - Fin de filtration"
             },
             "filtration_speed": {
                 "name": "Vitesse de filtration",
@@ -354,12 +336,6 @@
                     "5_days": "5 jours"
                 }
             },
-            "relay_aux1_start": {
-                "name": "Minuteur Aux1 (1) - Démarrage"
-            },
-            "relay_aux1_stop": {
-                "name": "Minuteur Aux1 (1) - Arrêt"
-            },
             "relay_aux1b_period": {
                 "name": "Minuteur Aux1 (2) - Intervalle",
                 "state": {
@@ -373,12 +349,6 @@
                     "4_weeks": "4 semaines",
                     "5_days": "5 jours"
                 }
-            },
-            "relay_aux1b_start": {
-                "name": "Minuteur Aux1 (2) - Démarrage"
-            },
-            "relay_aux1b_stop": {
-                "name": "Minuteur Aux1 (2) - Arrêt"
             },
             "relay_aux2_mode": {
                 "name": "Mode relais Aux2",
@@ -404,12 +374,6 @@
                     "5_days": "5 jours"
                 }
             },
-            "relay_aux2_start": {
-                "name": "Minuteur Aux2 (1) - Démarrage"
-            },
-            "relay_aux2_stop": {
-                "name": "Minuteur Aux2 (1) - Arrêt"
-            },
             "relay_aux2b_period": {
                 "name": "Minuteur Aux2 (2) - Intervalle",
                 "state": {
@@ -423,12 +387,6 @@
                     "4_weeks": "4 semaines",
                     "5_days": "5 jours"
                 }
-            },
-            "relay_aux2b_start": {
-                "name": "Minuteur Aux2 (2) - Démarrage"
-            },
-            "relay_aux2b_stop": {
-                "name": "Minuteur Aux2 (2) - Arrêt"
             },
             "relay_aux3_mode": {
                 "name": "Mode relais Aux3",
@@ -454,12 +412,6 @@
                     "5_days": "5 jours"
                 }
             },
-            "relay_aux3_start": {
-                "name": "Minuteur Aux3 (1) - Démarrage"
-            },
-            "relay_aux3_stop": {
-                "name": "Minuteur Aux3 (1) - Arrêt"
-            },
             "relay_aux3b_period": {
                 "name": "Minuteur Aux3 (2) - Intervalle",
                 "state": {
@@ -473,12 +425,6 @@
                     "4_weeks": "4 semaines",
                     "5_days": "5 jours"
                 }
-            },
-            "relay_aux3b_start": {
-                "name": "Minuteur Aux3 (2) - Démarrage"
-            },
-            "relay_aux3b_stop": {
-                "name": "Minuteur Aux3 (2) - Arrêt"
             },
             "relay_aux4_mode": {
                 "name": "Mode relais Aux4",
@@ -504,12 +450,6 @@
                     "5_days": "5 jours"
                 }
             },
-            "relay_aux4_start": {
-                "name": "Minuteur Aux4 (1) - Démarrage"
-            },
-            "relay_aux4_stop": {
-                "name": "Minuteur Aux4 (1) - Arrêt"
-            },
             "relay_aux4b_period": {
                 "name": "Minuteur Aux4 (2) - Intervalle",
                 "state": {
@@ -523,12 +463,6 @@
                     "4_weeks": "4 semaines",
                     "5_days": "5 jours"
                 }
-            },
-            "relay_aux4b_start": {
-                "name": "Minuteur Aux4 (2) - Démarrage"
-            },
-            "relay_aux4b_stop": {
-                "name": "Minuteur Aux4 (2) - Arrêt"
             },
             "relay_light_mode": {
                 "name": "Mode lumière",
@@ -552,12 +486,6 @@
                     "4_weeks": "4 semaines",
                     "5_days": "5 jours"
                 }
-            },
-            "relay_light_start": {
-                "name": "Minuteur Lumière - Démarrage"
-            },
-            "relay_light_stop": {
-                "name": "Minuteur Lumière - Arrêt"
             }
         },
         "sensor": {
@@ -720,6 +648,80 @@
             "winter_mode": {
                 "name": "Mode hiver"
             }
+        },
+        "time": {
+            "filtration1_start": {
+                "name": "Minuteur 1 - Début de filtration"
+            },
+            "filtration1_stop": {
+                "name": "Minuteur 1 - Fin de filtration"
+            },
+            "filtration2_start": {
+                "name": "Minuteur 2 - Début de filtration"
+            },
+            "filtration2_stop": {
+                "name": "Minuteur 2 - Fin de filtration"
+            },
+            "filtration3_start": {
+                "name": "Minuteur 3 - Début de filtration"
+            },
+            "filtration3_stop": {
+                "name": "Minuteur 3 - Fin de filtration"
+            },
+            "relay_aux1_start": {
+                "name": "Minuteur Aux1 (1) - Démarrage"
+            },
+            "relay_aux1_stop": {
+                "name": "Minuteur Aux1 (1) - Arrêt"
+            },
+            "relay_aux1b_start": {
+                "name": "Minuteur Aux1 (2) - Démarrage"
+            },
+            "relay_aux1b_stop": {
+                "name": "Minuteur Aux1 (2) - Arrêt"
+            },
+            "relay_aux2_start": {
+                "name": "Minuteur Aux2 (1) - Démarrage"
+            },
+            "relay_aux2_stop": {
+                "name": "Minuteur Aux2 (1) - Arrêt"
+            },
+            "relay_aux2b_start": {
+                "name": "Minuteur Aux2 (2) - Démarrage"
+            },
+            "relay_aux2b_stop": {
+                "name": "Minuteur Aux2 (2) - Arrêt"
+            },
+            "relay_aux3_start": {
+                "name": "Minuteur Aux3 (1) - Démarrage"
+            },
+            "relay_aux3_stop": {
+                "name": "Minuteur Aux3 (1) - Arrêt"
+            },
+            "relay_aux3b_start": {
+                "name": "Minuteur Aux3 (2) - Démarrage"
+            },
+            "relay_aux3b_stop": {
+                "name": "Minuteur Aux3 (2) - Arrêt"
+            },
+            "relay_aux4_start": {
+                "name": "Minuteur Aux4 (1) - Démarrage"
+            },
+            "relay_aux4_stop": {
+                "name": "Minuteur Aux4 (1) - Arrêt"
+            },
+            "relay_aux4b_start": {
+                "name": "Minuteur Aux4 (2) - Démarrage"
+            },
+            "relay_aux4b_stop": {
+                "name": "Minuteur Aux4 (2) - Arrêt"
+            },
+            "relay_light_start": {
+                "name": "Minuteur Lumière - Démarrage"
+            },
+            "relay_light_stop": {
+                "name": "Minuteur Lumière - Arrêt"
+            }
         }
     },
     "exceptions": {
@@ -811,7 +813,6 @@
                     "filtration_pump_power": "Puissance de la pompe de filtration (W, 0 = désactivé)",
                     "measure_when_filtration_off": "Mesurer les valeurs même lorsque la filtration est arrêtée",
                     "scan_interval": "Intervalle de mise à jour des données (secondes)",
-                    "timer_resolution": "Pas de réglage du minuteur (minutes)",
                     "unlock_advanced": "Débloquer les options avancées",
                     "use_aux1": "Activer le relais Aux1",
                     "use_aux2": "Activer le relais Aux2",
@@ -828,7 +829,6 @@
                     "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique.",
                     "measure_when_filtration_off": "Lorsque désactivé, les mesures chimiques (pH, ORP, etc.) ne sont effectuées que lorsque la pompe de filtration fonctionne.",
                     "scan_interval": "Des valeurs plus basses augmentent la réactivité mais génèrent plus de trafic Modbus.",
-                    "timer_resolution": "Détermine la granularité des sélections de temps dans les entités de minuterie.",
                     "unlock_advanced": "Entrez le code de déverrouillage pour accéder aux paramètres avancés (format : préfixe_appareil + année en cours).",
                     "use_aux1": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
                     "use_aux2": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
