@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.0.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v5.0.0...v6.0.0) (2026-06-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* Timer start/stop entities moved from select.* to time.* domain. Any automations or scripts referencing select.filtration1_start, select.relay_aux1_start, etc. must be updated to the corresponding time.* entity IDs.
+
+### ✨ Features
+
+* 💥 move timer start/stop entities from select to time platform ([#195](https://github.com/svasek/homeassistant-neopool-modbus/issues/195)) ([6f8a10e](https://github.com/svasek/homeassistant-neopool-modbus/commit/6f8a10ea287deb86dc0930b2ea02e974a94c43ae))
+
 ## [5.0.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v4.1.2...v5.0.0) (2026-06-18)
 
 
