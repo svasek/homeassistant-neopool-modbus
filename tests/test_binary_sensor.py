@@ -1,11 +1,12 @@
 """Tests for the NeoPool binary_sensor platform value decoders."""
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.const import DOMAIN
-from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
@@ -186,3 +187,56 @@ async def test_mbf_status_dict_keys_resolve(
     # Status not a dict → unknown
     coordinator.data["MBF_STATUS"] = None
     assert entity.is_on is None
+
+
+# ---------------------------------------------------------------------------
+# Platform-wide snapshots
+# ---------------------------------------------------------------------------
+
+
+async def test_all_entities(
+    hass: HomeAssistant,
+    snapshot: SnapshotAssertion,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Snapshot every entity registered by the binary_sensor platform.
+
+    Snapshot the registry entries directly rather than via
+    `snapshot_platform`, which assumes every entity is enabled and has
+    state. NeoPool ships several `entity_registry_enabled_default=False`
+    entities; including them via state lookup would either fail or pull
+    entire state machines into the snapshot. The registry entry alone
+    (unique_id, name, disabled_by, ...) is the stable shape we care about.
+    """
+    with patch("custom_components.neopool.PLATFORMS", [Platform.BINARY_SENSOR]):
+        await setup_integration(hass, mock_config_entry)
+    entries = sorted(
+        er.async_entries_for_config_entry(entity_registry, mock_config_entry.entry_id),
+        key=lambda e: e.entity_id,
+    )
+    assert entries == snapshot
+
+
+async def test_setup_when_modules_absent(
+    hass: HomeAssistant,
+    snapshot: SnapshotAssertion,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client_minimal: MagicMock,
+) -> None:
+    """Snapshot the binary_sensor entities registered when no modules are present.
+
+    Drives setup with the lean `mock_neopool_client_minimal` fixture (no
+    modules detected, no relay GPIOs assigned). Each platform's gating
+    branches fire and entities depending on the missing hardware are
+    skipped; the resulting registry shape is captured as a snapshot.
+    """
+    with patch("custom_components.neopool.PLATFORMS", [Platform.BINARY_SENSOR]):
+        await setup_integration(hass, mock_config_entry)
+    entries = sorted(
+        er.async_entries_for_config_entry(entity_registry, mock_config_entry.entry_id),
+        key=lambda e: e.entity_id,
+    )
+    assert entries == snapshot
