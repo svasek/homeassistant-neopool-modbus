@@ -78,7 +78,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
 
+    # CUSTOM-ONLY START
     cleanup_removed_entities(hass, entry)
+    # CUSTOM-ONLY END
 
     # CUSTOM-ONLY START — HACS does not prune deleted files on upgrade,
     # so we sweep modules whose implementation moved to neopool-modbus.

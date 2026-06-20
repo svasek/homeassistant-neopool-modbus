@@ -148,6 +148,13 @@ JSON_DROP_KEYS: tuple[str, ...] = (
     "issues.domain_rename_partial_failure",
     "options.step.init.data.scan_interval",
     "options.step.init.data_description.scan_interval",
+    # Advanced options step — HACS-only (password-locked, dev overrides, backwash)
+    "options.step.advanced",
+    "options.step.init.data.unlock_advanced",
+    "options.step.init.data_description.unlock_advanced",
+    "options.step.init.data.enable_backwash_option",
+    "options.step.init.data_description.enable_backwash_option",
+    "options.error",
 )
 
 # ---------------------------------------------------------------------------

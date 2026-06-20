@@ -111,9 +111,10 @@ async def test_setup_cleans_legacy_select_timer_rows(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Legacy ``select.X_start/stop`` rows from before the time-platform move
-    are removed; the new ``time.X_start/stop`` siblings (sharing unique_id)
-    survive because the wildcard is scoped to the ``select`` domain.
+    """Legacy select.X_start/stop rows are removed after time-platform move.
+
+    New time.X_start/stop siblings (sharing unique_id) survive because
+    the wildcard is scoped to the select domain.
     """
     mock_config_entry.add_to_hass(hass)
     registry = er.async_get(hass)

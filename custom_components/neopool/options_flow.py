@@ -22,8 +22,11 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
+
+# CUSTOM-ONLY START
 from homeassistant.util import dt as dt_util, slugify
 
+# CUSTOM-ONLY END
 from .const import (
     CONF_FILTRATION_PUMP_POWER,
     # CUSTOM-ONLY START
@@ -51,10 +54,12 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> ConfigFlowResult:
         """Handle the initial step of the options flow."""
         options = dict(self.config_entry.options)
+        # CUSTOM-ONLY START
         already_enabled = options.get("enable_backwash_option", False)
 
         device_slug = slugify(self.config_entry.title)
         expected = f"{device_slug}{dt_util.now().year}"
+        # CUSTOM-ONLY END
 
         schema_dict = {
             # CUSTOM-ONLY START
@@ -113,6 +118,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             ): bool,
         }
 
+        # CUSTOM-ONLY START
         if already_enabled:
             schema_dict[
                 vol.Optional(
@@ -122,6 +128,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
                 )
             ] = bool
         schema_dict[vol.Optional("unlock_advanced", default="")] = str
+        # CUSTOM-ONLY END
 
         schema = vol.Schema(schema_dict)
 
@@ -129,7 +136,6 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             # CUSTOM-ONLY START
             if "scan_interval" in user_input:
                 user_input["scan_interval"] = int(user_input["scan_interval"])
-            # CUSTOM-ONLY END
             if (user_input.get("unlock_advanced") or "").strip() == expected:
                 self._base_options = user_input.copy()
                 self._base_options.pop("unlock_advanced", None)
@@ -141,8 +147,11 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
                     data_schema=schema,
                     errors={"unlock_advanced": "unlock_advanced_error"},
                 )
+            # CUSTOM-ONLY END
             data = user_input.copy()
+            # CUSTOM-ONLY START
             data.pop("unlock_advanced", None)
+            # CUSTOM-ONLY END
             prev_options = dict(self.config_entry.options)
             result = self.async_create_entry(title="", data=data)
 
@@ -162,6 +171,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             description_placeholders={},
         )
 
+    # CUSTOM-ONLY START
     async def async_step_advanced(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -210,3 +220,5 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             },
             last_step=True,
         )
+
+    # CUSTOM-ONLY END
