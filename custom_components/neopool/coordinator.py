@@ -30,7 +30,6 @@ from neopool_modbus.registers import (
     TIMER_BLOCKS,
 )
 
-from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -142,8 +141,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     value & 0xFFFF,
                     MAX_RELAY_GPIO,
                 )
-
-        persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_corrupted_gpio")
 
         if corrupted:
             details = "\n".join(
