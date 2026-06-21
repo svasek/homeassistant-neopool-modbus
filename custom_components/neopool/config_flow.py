@@ -73,12 +73,7 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return errors
 
     async def _async_get_default_title(self) -> str:
-        """Return the localized default entry title.
-
-        Reads the `name_default` translation key (e.g. "Pool" / "Bazén"
-        / "Piscine") so a fresh entry's UI label matches the user's
-        language. Falls back to the English brand name on lookup error.
-        """
+        """Return the localized default entry title."""
         try:
             t = await ha_translation.async_get_translations(
                 self.hass, self.hass.config.language, "config", {DOMAIN}

@@ -371,12 +371,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     )
 
     def _is_measurement_suppressed(self) -> bool:
-        """Return True if a measurement sensor should report None.
-
-        Some chemical / temperature sensors only return meaningful values
-        while the filtration pump is running. The 'measure_when_filtration_off'
-        option lets the user opt out of this gating.
-        """
+        """Return True if a measurement sensor should report None."""
         if self._key not in self._MEASURE_KEYS_REQUIRING_FILTRATION:
             return False
         if self.coordinator.entry.options.get("measure_when_filtration_off", False):
