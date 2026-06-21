@@ -5,7 +5,11 @@ from unittest.mock import AsyncMock, MagicMock
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
+
+# CUSTOM-ONLY START
 from custom_components.neopool.migration import REMOVED_ENTITY_KEYS
+
+# CUSTOM-ONLY END
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
@@ -69,7 +73,6 @@ async def test_setup_in_winter_mode(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "winter_mode": True,
             "_capabilities": snapshot,
@@ -79,6 +82,7 @@ async def test_setup_in_winter_mode(
     assert entry.state is ConfigEntryState.LOADED
 
 
+# CUSTOM-ONLY START — legacy v1→v4 migration cleanup tests (migration is HACS-only).
 async def test_setup_cleans_orphaned_entity_registry_entries(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
@@ -164,3 +168,6 @@ async def test_setup_does_not_touch_unrelated_select_entities(
     # The bystander row may have been re-registered by the platform during
     # setup, but it must still exist under its original entity_id.
     assert registry.async_get(bystander_entity_id) is not None
+
+
+# CUSTOM-ONLY END

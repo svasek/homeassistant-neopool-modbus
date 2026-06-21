@@ -143,7 +143,6 @@ async def test_io_switch_blocked_in_winter_mode(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "winter_mode": True,
             "use_filtration1": True,

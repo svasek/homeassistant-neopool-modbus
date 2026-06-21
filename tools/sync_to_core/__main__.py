@@ -40,7 +40,7 @@ from .json_strip import (
     strip_translations_en_json,
 )
 from .manifest import transform_manifest
-from .transformers import transform_python, transform_yaml
+from .transformers import transform_python, transform_snapshot, transform_yaml
 
 # ---------------------------------------------------------------------------
 # Walk helpers
@@ -171,12 +171,17 @@ def _process_test_file(
         )
         _write(dest, transformed)
         return
-    # Snapshots (*.ambr) and other fixtures: verbatim copy, but route
-    # `tests/snapshots/` into `dist/.../snapshots/` so the layout
-    # matches HA core.
+    # Snapshots (*.ambr) and other fixtures: route `tests/snapshots/`
+    # into `dist/.../snapshots/` so the layout matches HA core.
     rel = src.relative_to(SOURCE_TESTS)
     if rel.parts and rel.parts[0] == "snapshots":
         dest = DEST_SNAPSHOTS / Path(*rel.parts[1:])
+    if src.suffix == ".ambr":
+        # Strip HACS-only entry-options keys (scan_interval, unlock_advanced,
+        # ...) from syrupy snapshots so they stay consistent with the dist
+        # conftest fixtures, which had those keys stripped via CUSTOM-ONLY.
+        _write(dest, transform_snapshot(src.read_text(encoding="utf-8")))
+        return
     _write(dest, src.read_bytes())
 
 

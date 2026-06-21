@@ -348,7 +348,6 @@ async def test_filtration_pump_energy_sensor_registers_when_power_set(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "filtration_pump_power": 800,  # 800 W → energy sensor enabled
         },
@@ -387,7 +386,6 @@ async def test_filtration_pump_energy_accumulates_while_pump_runs(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "filtration_pump_power": 1000,
         },
@@ -449,7 +447,6 @@ async def test_filtration_pump_energy_restores_native_value_after_restart(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "filtration_pump_power": 1000,
         },
@@ -502,7 +499,6 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "filtration_pump_power": 1000,
         },
@@ -640,7 +636,7 @@ async def test_cell_runtime_sensors_skipped_without_hydrolysis(
             "unit_id": 1,
             "modbus_framer": "tcp",
         },
-        options={"scan_interval": 30, "modbus_framer": "tcp"},
+        options={"modbus_framer": "tcp"},
     )
     await setup_integration(hass, entry)
 

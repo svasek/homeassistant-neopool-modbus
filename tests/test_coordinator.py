@@ -90,7 +90,6 @@ async def test_winter_mode_skips_modbus(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "winter_mode": True,
             "_capabilities": snapshot,
@@ -182,7 +181,6 @@ async def test_auto_time_sync_writes_when_drift_detected(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "auto_time_sync": True,
         },
@@ -196,6 +194,7 @@ async def test_auto_time_sync_writes_when_drift_detected(
 # ---------------------------------------------------------------------------
 
 
+# CUSTOM-ONLY START — dev_overrides is a HACS-only knob; both tests exercise it.
 async def test_dev_overrides_applied_when_enabled(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
@@ -215,7 +214,6 @@ async def test_dev_overrides_applied_when_enabled(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "dev_overrides_enabled": True,
             "dev_overrides": _json.dumps({"MBF_MEASURE_TEMPERATURE": 999}),
@@ -245,7 +243,6 @@ async def test_dev_overrides_invalid_json_ignored(
             "modbus_framer": "tcp",
         },
         options={
-            "scan_interval": 30,
             "modbus_framer": "tcp",
             "dev_overrides_enabled": True,
             "dev_overrides": "not-valid-json",
@@ -254,6 +251,9 @@ async def test_dev_overrides_invalid_json_ignored(
     await setup_integration(hass, entry)
     assert entry.state is ConfigEntryState.LOADED
     assert "Failed to apply dev_overrides" in caplog.text
+
+
+# CUSTOM-ONLY END
 
 
 # ---------------------------------------------------------------------------
@@ -288,7 +288,7 @@ async def test_setpoint_initial_sync_uses_heating_as_source(
             "unit_id": 1,
             "modbus_framer": "tcp",
         },
-        options={"scan_interval": 30, "modbus_framer": "tcp"},
+        options={"modbus_framer": "tcp"},
     )
     await setup_integration(hass, entry)
 
@@ -347,7 +347,7 @@ async def test_setpoint_last_change_wins_when_only_heating_changed(
             "unit_id": 1,
             "modbus_framer": "tcp",
         },
-        options={"scan_interval": 30, "modbus_framer": "tcp"},
+        options={"modbus_framer": "tcp"},
     )
     await setup_integration(hass, entry)
 
@@ -399,7 +399,7 @@ async def test_setpoint_revert_when_both_changed(
             "unit_id": 1,
             "modbus_framer": "tcp",
         },
-        options={"scan_interval": 30, "modbus_framer": "tcp"},
+        options={"modbus_framer": "tcp"},
     )
     await setup_integration(hass, entry)
 

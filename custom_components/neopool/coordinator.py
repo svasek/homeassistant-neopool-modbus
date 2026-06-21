@@ -66,9 +66,12 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entry_id: str,
     ) -> None:
         """Initialise the NeoPool data update coordinator."""
+        self.normal_update_interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
+        # CUSTOM-ONLY START — HACS-only per-instance polling-interval override.
         self.normal_update_interval = timedelta(
             seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
         )
+        # CUSTOM-ONLY END
         self.max_update_interval = min(
             self.normal_update_interval * 4, MAX_SCAN_INTERVAL
         )
@@ -199,6 +202,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         data["FILTRATION_REMAINING"] = aggregate_filtration_remaining(data)
 
+    # CUSTOM-ONLY START — HACS-only dev override hatch for live data injection.
     def _apply_dev_overrides(self, data: dict[str, Any]) -> None:
         """Apply developer override values to data, if enabled."""
         if not self.entry.options.get("dev_overrides_enabled", False):
@@ -218,6 +222,8 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         data.update(overrides)
         _LOGGER.debug("Applied dev overrides: %s", overrides)
+
+    # CUSTOM-ONLY END
 
     async def _sync_heating_intelligent_setpoints(self, data: dict[str, Any]) -> None:
         """Keep heating and intelligent setpoints synchronized last-change-wins."""
@@ -355,7 +361,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.debug("Device time is out of sync, updating")
             await self.client.async_sync_device_time(prepare_device_time(self.hass))
 
+        # CUSTOM-ONLY START
         self._apply_dev_overrides(data)
+        # CUSTOM-ONLY END
 
         try:
             await self._sync_heating_intelligent_setpoints(data)
