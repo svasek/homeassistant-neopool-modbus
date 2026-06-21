@@ -50,7 +50,9 @@ async def test_options_flow_save_changes(
             "use_aux4": False,
             "filtration_pump_power": 0,
             "measure_when_filtration_off": False,
+            # CUSTOM-ONLY START
             "unlock_advanced": "",
+            # CUSTOM-ONLY END
         },
     )
 
@@ -59,6 +61,8 @@ async def test_options_flow_save_changes(
     assert mock_config_entry.options["use_filtration1"] is False
 
 
+# CUSTOM-ONLY START — unlock_advanced / dev_overrides / enable_backwash_option
+# are HACS-only knobs gated by a password-locked "advanced" step.
 async def test_options_flow_unlock_advanced_with_correct_password(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
@@ -199,3 +203,6 @@ async def test_options_flow_init_form_when_backwash_already_enabled(
     # The init step renders without erroring; the backwash toggle is now part
     # of the schema directly (no need to unlock_advanced first).
     assert result["step_id"] == "init"
+
+
+# CUSTOM-ONLY END

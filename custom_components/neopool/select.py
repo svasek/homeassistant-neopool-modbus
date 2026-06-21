@@ -518,9 +518,12 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             option_keys = [k for k in option_keys if k != 3]
 
         if self._key == "MBF_PAR_FILT_MODE":
-            backwash_allowed = self.coordinator.entry.options.get(
+            backwash_allowed = has_filtvalve(self.coordinator.data)
+            # CUSTOM-ONLY START — HACS-only manual override to expose backwash mode.
+            backwash_allowed = backwash_allowed or self.coordinator.entry.options.get(
                 "enable_backwash_option", False
-            ) or has_filtvalve(self.coordinator.data)
+            )
+            # CUSTOM-ONLY END
             if not backwash_allowed:
                 # Keep backwash (13) in the list if the device is currently in that
                 current_mode = self.coordinator.data.get("MBF_PAR_FILT_MODE")
