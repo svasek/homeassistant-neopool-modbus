@@ -271,3 +271,24 @@ def transform_yaml(source: str, *, strip_license: bool) -> str:
     if strip_license:
         source = strip_license_header(source)
     return collapse_blank_lines(source)
+
+
+# Match a syrupy snapshot dict line like `        'scan_interval': 30,`
+# (any indent, any scalar value before the trailing comma). Used to drop
+# HACS-only entry-options keys from .ambr snapshots so the snapshot stays
+# consistent with the stripped dist conftest fixtures.
+_AMBR_HACS_ONLY_OPTIONS = re.compile(
+    r"^[ \t]+'(?:scan_interval|unlock_advanced|enable_backwash_option|"
+    r"dev_overrides|dev_overrides_enabled)':[^\n]*\n",
+    flags=re.MULTILINE,
+)
+
+
+def transform_snapshot(source: str) -> str:
+    """Strip HACS-only entry-options keys from a syrupy .ambr snapshot.
+
+    The snapshot is otherwise copied verbatim — only the lines whose key
+    matches a HACS-only options name are removed. Leaves indentation,
+    surrounding context and ordering intact.
+    """
+    return _AMBR_HACS_ONLY_OPTIONS.sub("", source)
