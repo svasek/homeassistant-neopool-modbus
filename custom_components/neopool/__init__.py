@@ -19,12 +19,6 @@ import logging
 from neopool_modbus import NeoPoolModbusClient
 
 from homeassistant.config_entries import ConfigEntry
-
-# CUSTOM-ONLY START — these constants are only referenced by the
-# legacy data→options migration block in async_setup_entry below.
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
-
-# CUSTOM-ONLY END
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
@@ -59,20 +53,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
     """Set up the NeoPool integration from a config entry."""
-    # CUSTOM-ONLY START — historic config flow stored options inside `data`;
-    # the core integration writes options correctly from day one.
-    connection_keys = [CONF_HOST, CONF_PORT, CONF_NAME, "unit_id"]
-    candidate_keys = [k for k in entry.data if k not in connection_keys]
-    if not entry.options or not any(k in entry.options for k in candidate_keys):
-        new_options = {k: entry.data[k] for k in candidate_keys}
-        if new_options:  # pragma: no cover
-            _LOGGER.debug(
-                "NeoPool: Migrating ALL config entry data (except connection params) to options: %s",
-                new_options,
-            )
-            hass.config_entries.async_update_entry(entry, options=new_options)
-    # CUSTOM-ONLY END
-
     client = NeoPoolModbusClient(entry.data)
     coordinator = NeoPoolCoordinator(hass, client, entry, entry.entry_id)
     await coordinator.async_config_entry_first_refresh()

@@ -40,24 +40,14 @@
                     "modbus_framer": "Modbus-Framer",
                     "name_default": "Pool",
                     "port": "Port",
-                    "unit_id": "Unit-ID",
-                    "use_cover_sensor": "Abdeckungssensor aktivieren",
-                    "use_filtration1": "1. Filter-Timer für Automatikbetrieb aktivieren",
-                    "use_filtration2": "2. Filter-Timer für Automatikbetrieb aktivieren",
-                    "use_filtration3": "3. Filter-Timer für Automatikbetrieb aktivieren",
-                    "use_light": "Licht-Relais aktivieren"
+                    "unit_id": "Unit-ID"
                 },
                 "data_description": {
                     "filtration_pump_power": "Geben Sie die Nennleistung der Filtrationspumpe an. Bei einem Wert ungleich null werden zwei Sensoren erstellt: momentane Leistung (W) und kumulierter Energieverbrauch (Wh), beide nutzbar im Energie-Dashboard.",
                     "host": "Geben Sie die IP-Adresse des Modbus-TCP-Gateways ein, das mit Ihrem Pool-Controller verbunden ist.",
                     "modbus_framer": "Wählen Sie 'tcp' für Gateways, die zwischen TCP und RTU konvertieren. Wählen Sie 'rtu' für transparente Gateways, die rohe RTU-Frames über TCP weiterleiten.",
                     "port": "Standard-Modbus-TCP-Port. Ändern Sie ihn nur, wenn Ihr Gateway einen nicht standardmäßigen Port verwendet (Standard: 502).",
-                    "unit_id": "Modbus Unit (Server) ID des Pool-Controllers. Die meisten Setups verwenden 1.",
-                    "use_cover_sensor": "Erstellt einen Binärsensor, der anzeigt, ob die Poolabdeckung geöffnet oder geschlossen ist.",
-                    "use_filtration1": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
-                    "use_filtration2": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
-                    "use_filtration3": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
-                    "use_light": "Erstellt Entitäten zur Steuerung und Überwachung des Licht-Relais."
+                    "unit_id": "Modbus Unit (Server) ID des Pool-Controllers. Die meisten Setups verwenden 1."
                 },
                 "description": "Konfigurieren Sie die Verbindung zu Ihrem NeoPool-Controller.",
                 "title": "NeoPool Verbindung"

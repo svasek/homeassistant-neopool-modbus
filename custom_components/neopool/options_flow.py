@@ -82,7 +82,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             ): vol.All(int, vol.Range(min=0)),
             vol.Optional(
                 "use_filtration1",
-                default=options.get("use_filtration1", True),
+                default=options.get("use_filtration1", False),
             ): bool,
             vol.Optional(
                 "use_filtration2",
