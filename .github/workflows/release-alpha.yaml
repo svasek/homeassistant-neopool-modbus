@@ -80,7 +80,7 @@ jobs:
           echo "📎 Linked issues: ${ISSUES:-none}"
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'issue_comment' && steps.pr.outputs.ref || github.ref }}
           fetch-depth: 0
