@@ -40,24 +40,14 @@
                     "modbus_framer": "Modbus framer",
                     "name_default": "Pool",
                     "port": "Port",
-                    "unit_id": "Unit ID",
-                    "use_cover_sensor": "Enable Pool Cover Sensor",
-                    "use_filtration1": "Enable 1st filtration timer for automatic mode",
-                    "use_filtration2": "Enable 2nd filtration timer for automatic mode",
-                    "use_filtration3": "Enable 3rd filtration timer for automatic mode",
-                    "use_light": "Enable Light Relay"
+                    "unit_id": "Unit ID"
                 },
                 "data_description": {
                     "filtration_pump_power": "Set the rated wattage of the filtration pump. When non-zero, two sensors are created: instantaneous power (W) and cumulative energy (Wh), both usable in the Energy dashboard.",
                     "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
                     "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
                     "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
-                    "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1.",
-                    "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed.",
-                    "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
-                    "use_filtration2": "Creates timer entities for configuring automatic filtration schedule.",
-                    "use_filtration3": "Creates timer entities for configuring automatic filtration schedule.",
-                    "use_light": "Creates entities to control and monitor the pool light relay."
+                    "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1."
                 },
                 "description": "Configure the connection to your NeoPool controller.",
                 "title": "NeoPool Connection"

@@ -1,11 +1,9 @@
-"""HACS-only init tests — version migrations and legacy data→options promotion.
+"""HACS-only init tests — version migrations.
 
 These cover behaviour that has no counterpart in the core integration:
 ``async_migrate_entry`` was added to bridge v1 (no ``unique_id``) → v2
 (serial-based ``unique_id``) → v3 (vistapool→neopool rename) → v4 (the
-``neopool-modbus`` library marker bump). The legacy data→options promo
-runs on every ``async_setup_entry`` so pre-v1.x entries (which kept
-options inside ``data``) self-heal on first load.
+``neopool-modbus`` library marker bump) → v5 (slave_id → unit_id rename).
 
 Core ships fresh entries at v1 with no migration story — the sync
 script excludes this whole file via ``EXCLUDE_TEST_FILES``.
@@ -14,13 +12,8 @@ script excludes this whole file via ``EXCLUDE_TEST_FILES``.
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from custom_components.neopool import async_migrate_entry
-from custom_components.neopool.const import CURRENT_VERSION, DEFAULT_PORT, DOMAIN
-from homeassistant.core import HomeAssistant
-
-from . import setup_integration
+from custom_components.neopool.const import DEFAULT_PORT
 
 # ---------------------------------------------------------------------------
 # async_migrate_entry — version transitions
@@ -376,40 +369,3 @@ async def test_async_migrate_entry_rollback_also_fails() -> None:
     # 3 calls: migrate entity1 (ok), migrate entity2 (fail), rollback entity1 (fail)
     assert mock_registry.async_update_entity.call_count == 3
     hass.config_entries.async_update_entry.assert_not_called()
-
-
-# ---------------------------------------------------------------------------
-# Legacy data → options migration (custom-only; runs on async_setup_entry)
-# ---------------------------------------------------------------------------
-
-
-async def test_legacy_data_to_options_migration(
-    hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """Pre-v1.x entries kept user options inside `data` — async_setup_entry
-    moves every non-connection key from data to options on first load.
-    """
-    legacy_entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="Legacy Pool",
-        unique_id="neopool_legacy_options",
-        version=CURRENT_VERSION,
-        data={
-            "host": "192.0.2.40",
-            "port": 502,
-            "name": "Legacy Pool",
-            "unit_id": 1,
-            # Old-style: framer + use_* sat in data
-            "modbus_framer": "tcp",
-            "use_filtration1": True,
-            "use_light": True,
-        },
-        options={},  # empty → migration triggers
-    )
-    await setup_integration(hass, legacy_entry)
-
-    # use_* keys must have been promoted to options.
-    assert legacy_entry.options.get("use_filtration1") is True
-    assert legacy_entry.options.get("use_light") is True
-    assert legacy_entry.options.get("modbus_framer") == "tcp"

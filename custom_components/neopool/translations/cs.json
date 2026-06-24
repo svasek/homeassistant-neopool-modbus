@@ -40,24 +40,14 @@
                     "modbus_framer": "Modbus rámec",
                     "name_default": "Bazén",
                     "port": "Port",
-                    "unit_id": "Unit ID",
-                    "use_cover_sensor": "Povolit senzor zakrytí bazénu",
-                    "use_filtration1": "Povolit 1. časovač filtrace pro automatický režim",
-                    "use_filtration2": "Povolit 2. časovač filtrace pro automatický režim",
-                    "use_filtration3": "Povolit 3. časovač filtrace pro automatický režim",
-                    "use_light": "Povolit relé Osvětlení"
+                    "unit_id": "Unit ID"
                 },
                 "data_description": {
                     "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "unit_id": "Modbus unit (server) ID řadiče bazénu. Většina zařízení používá 1.",
-                    "use_cover_sensor": "Vytvoří binární senzor indikující, zda je bazén zakrytý nebo odkrytý.",
-                    "use_filtration1": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
-                    "use_filtration2": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
-                    "use_filtration3": "Vytvoří entity časovačů pro konfiguraci automatického plánu filtrace.",
-                    "use_light": "Vytvoří entity pro ovládání a sledování relé osvětlení bazénu."
+                    "unit_id": "Modbus unit (server) ID řadiče bazénu. Většina zařízení používá 1."
                 },
                 "description": "Nakonfigurujte připojení k vašemu řadiči NeoPool.",
                 "title": "Připojení NeoPool"

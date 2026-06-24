@@ -21,21 +21,13 @@ from typing import Any
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
 import voluptuous as vol
 
-from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers import translation as ha_translation
 
 from . import NeoPoolConfigEntry
-from .const import (
-    CONF_FILTRATION_PUMP_POWER,
-    CURRENT_VERSION,
-    DEFAULT_PORT,
-    DEFAULT_UNIT_ID,
-    DOMAIN,
-    NAME,
-)
+from .const import CURRENT_VERSION, DEFAULT_PORT, DEFAULT_UNIT_ID, DOMAIN, NAME
 from .helpers import async_get_device_serial
 from .migration import (
     async_abort_if_unmigrated_v1_match,
@@ -58,7 +50,7 @@ async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
     return True
 
 
-class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for NeoPool."""
 
     VERSION = CURRENT_VERSION
@@ -112,30 +104,6 @@ class NeoPoolConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "modbus_framer",
                     default=DEFAULT_MODBUS_FRAMER,
                 ): vol.In(("tcp", "rtu")),
-                vol.Optional(
-                    CONF_FILTRATION_PUMP_POWER,
-                    default=0,
-                ): vol.All(int, vol.Range(min=0)),
-                vol.Optional(
-                    "use_filtration1",
-                    default=True,
-                ): bool,
-                vol.Optional(
-                    "use_filtration2",
-                    default=False,
-                ): bool,
-                vol.Optional(
-                    "use_filtration3",
-                    default=False,
-                ): bool,
-                vol.Optional(
-                    "use_light",
-                    default=False,
-                ): bool,
-                vol.Optional(
-                    "use_cover_sensor",
-                    default=False,
-                ): bool,
             }
         )
         errors = {}

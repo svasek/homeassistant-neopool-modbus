@@ -34,24 +34,14 @@
           "modbus_framer": "Modbus framer",
           "name_default": "Pool",
           "port": "[%key:common::config_flow::data::port%]",
-          "unit_id": "Unit ID",
-          "use_cover_sensor": "Enable Pool Cover Sensor",
-          "use_filtration1": "Enable 1st filtration timer for automatic mode",
-          "use_filtration2": "Enable 2nd filtration timer for automatic mode",
-          "use_filtration3": "Enable 3rd filtration timer for automatic mode",
-          "use_light": "Enable Light Relay"
+          "unit_id": "Unit ID"
         },
         "data_description": {
           "filtration_pump_power": "Set the rated wattage of the filtration pump. When non-zero, two sensors are created: instantaneous power (W) and cumulative energy (Wh), both usable in the Energy dashboard.",
           "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
           "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
           "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
-          "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1.",
-          "use_cover_sensor": "Creates a binary sensor indicating whether the pool cover is open or closed.",
-          "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
-          "use_filtration2": "[%key:component::neopool::config::step::user::data_description::use_filtration1%]",
-          "use_filtration3": "[%key:component::neopool::config::step::user::data_description::use_filtration1%]",
-          "use_light": "Creates entities to control and monitor the pool light relay."
+          "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1."
         },
         "description": "Configure the connection to your NeoPool controller.",
         "title": "NeoPool Connection"
@@ -583,11 +573,11 @@
           "use_aux2": "Enable Aux2 Relay",
           "use_aux3": "Enable Aux3 Relay",
           "use_aux4": "Enable Aux4 Relay",
-          "use_cover_sensor": "[%key:component::neopool::config::step::user::data::use_cover_sensor%]",
-          "use_filtration1": "[%key:component::neopool::config::step::user::data::use_filtration1%]",
-          "use_filtration2": "[%key:component::neopool::config::step::user::data::use_filtration2%]",
-          "use_filtration3": "[%key:component::neopool::config::step::user::data::use_filtration3%]",
-          "use_light": "[%key:component::neopool::config::step::user::data::use_light%]"
+          "use_cover_sensor": "Enable Pool Cover Sensor",
+          "use_filtration1": "Enable 1st filtration timer for automatic mode",
+          "use_filtration2": "Enable 2nd filtration timer for automatic mode",
+          "use_filtration3": "Enable 3rd filtration timer for automatic mode",
+          "use_light": "Enable Light Relay"
         },
         "data_description": {
           "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Only for systems with manual multi-way valves.",
@@ -600,10 +590,10 @@
           "use_aux3": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
           "use_aux4": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
           "use_cover_sensor": "Creates a binary sensor and enables cover-related entities (hydrolysis cover reduction, shutdown temperature).",
-          "use_filtration1": "[%key:component::neopool::config::step::user::data_description::use_filtration1%]",
-          "use_filtration2": "[%key:component::neopool::config::step::user::data_description::use_filtration1%]",
-          "use_filtration3": "[%key:component::neopool::config::step::user::data_description::use_filtration1%]",
-          "use_light": "[%key:component::neopool::config::step::user::data_description::use_light%]"
+          "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
+          "use_filtration2": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",
+          "use_filtration3": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",
+          "use_light": "Creates entities to control and monitor the pool light relay."
         },
         "description": "WARNING: Changing enabled relays will automatically reload the integration! Changes take effect immediately.",
         "title": "NeoPool Settings"
