@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.1.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.0.0...v6.1.0) (2026-06-29)
+
+
+### ✨ Features
+
+* **config:** ✨ move options out of connection config flow ([#201](https://github.com/svasek/homeassistant-neopool-modbus/issues/201)) ([7538210](https://github.com/svasek/homeassistant-neopool-modbus/commit/753821086825f639d7fd8e0106b23d49a8eeb0d7))
+
+
+### 🐛 Bug Fixes
+
+* **hacs:** 🩹 raise minimum HA version to 2025.8.0 ([08c45ac](https://github.com/svasek/homeassistant-neopool-modbus/commit/08c45ac660fdbda952a8b49fbefc8dd957518ae4))
+* **sensor:** 🐛 report 0 for hydrolysis/ionization production when filtration off ([#203](https://github.com/svasek/homeassistant-neopool-modbus/issues/203)) ([b1702cd](https://github.com/svasek/homeassistant-neopool-modbus/commit/b1702cdc7a58d2f21d79fcb37f87bdf78dfda6a0))
+
 ## [6.0.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v5.0.0...v6.0.0) (2026-06-20)
 
 
