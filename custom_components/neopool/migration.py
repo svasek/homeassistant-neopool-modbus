@@ -52,7 +52,7 @@ OLD_DOMAIN = "vistapool"
 #   v2 → v3  cross-domain rename (migrate_single_entry_cross_domain,
 #            invoked from the neopool config flow).
 #   v3 → v4  marker bump after the neopool-modbus library extraction
-#            (HA-driven async_migrate_entry — no data-shape change).
+#            (HA-driven async_migrate_entry, no data-shape change).
 
 # Marker used to validate that the orphaned `custom_components/vistapool/`
 # directory we're about to delete actually belonged to OUR integration
@@ -153,20 +153,20 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     """Migrate config entry to current version.
 
     Each step is gated so it only runs when the entry is actually at the
-    relevant version — calling this on an already-current entry must be a
+    relevant version, calling this on an already-current entry must be a
     cheap no-op (HA invokes it on every setup whose stored version differs
     from ``ConfigFlow.VERSION``, and we don't want stale "Migrating … from
     v4 to v2 / 0 entities migrated" log noise).
 
     Handles:
-      * v1 → v2 — serial-based unique_id (from PR #146).
-      * v3 → v4 — marker bump after the move to the neopool-modbus PyPI
+      * v1 → v2, serial-based unique_id (from PR #146).
+      * v3 → v4, marker bump after the move to the neopool-modbus PyPI
         library; entry data shape is unchanged. Tagging the entry helps
         diagnostics and any future v4-only logic to distinguish entries
         last touched before / after the library extraction.
 
     The v2 → v3 step (cross-domain ``vistapool`` → ``neopool`` rename)
-    cannot run from here — by the time HA dispatches to this function the
+    cannot run from here, by the time HA dispatches to this function the
     entry is already under ``DOMAIN``. Cross-domain migration lives in
     :func:`migrate_single_entry_cross_domain`, invoked from the neopool
     config flow when the user adds the new integration with a legacy
@@ -240,11 +240,11 @@ async def _migrate_v1_to_v2(
     serial = await async_get_device_serial(dict(config_entry.data))
     if not serial:
         _LOGGER.warning(
-            "Migration for %s: Cannot read device serial — "
+            "Migration for %s: Cannot read device serial, "
             "device may be offline. Will retry on next restart.",
             config_entry.entry_id,
         )
-        # Don't bump version — migration will be retried on next HA startup
+        # Don't bump version, migration will be retried on next HA startup
         return True
 
     new_unique_id = f"neopool_{serial}"
@@ -252,7 +252,7 @@ async def _migrate_v1_to_v2(
     # Check if this serial is already registered (duplicate after migration).
     # We check both the source domain (where the entry lives now) and our
     # own DOMAIN (in case a fresh neopool entry already exists for the same
-    # device — unlikely but possible during a partial migration retry).
+    # device, unlikely but possible during a partial migration retry).
     for check_domain in {source_domain, DOMAIN}:
         for entry in hass.config_entries.async_entries(check_domain):
             if (
@@ -315,7 +315,7 @@ async def _migrate_v1_to_v2(
                     rollback_failed = True
             if rollback_failed:
                 _LOGGER.error(
-                    "Migration aborted for %s: rollback incomplete — "
+                    "Migration aborted for %s: rollback incomplete, "
                     "integration will not load to prevent duplicates.",
                     config_entry.title,
                 )
@@ -334,7 +334,7 @@ async def _migrate_v1_to_v2(
 
     # Update old device identifier to serial-based one (preserves area, labels, etc.).
     # The device was created under (source_domain, entry_id); after the rename it must
-    # use (source_domain, new_unique_id) — the cross-domain step (if any) flips the
+    # use (source_domain, new_unique_id), the cross-domain step (if any) flips the
     # source_domain part of the tuple separately.
     device_registry = dr.async_get(hass)
     old_device = device_registry.async_get_device(
@@ -373,7 +373,7 @@ async def async_migrate_from_vistapool(hass: HomeAssistant) -> dict:
       1. If `entry.version == 1`, run the parametrized v1→v2 prelude on the
          vistapool entry in-place. If the controller is offline, the prelude
          defers (returns True without bumping version) and we skip the
-         cross-domain step for this entry — both run on the next boot.
+         cross-domain step for this entry, both run on the next boot.
       2. Cross-domain step: build a `ConfigEntry(domain="neopool", version=3)`
          with the same data/options/unique_id, retarget entity_registry rows,
          retarget device_registry rows, then `async_add` (which triggers
@@ -402,9 +402,9 @@ async def async_migrate_from_vistapool(hass: HomeAssistant) -> dict:
         except _DeferredMigration as exc:
             # v1→v2 prelude deferred (controller offline); leave the vistapool
             # entry in place and try again on the next HA restart. Don't count
-            # as failure — it's an expected, recoverable state.
+            # as failure, it's an expected, recoverable state.
             _LOGGER.info(
-                "Migration deferred for %s: %s — will retry on next restart",
+                "Migration deferred for %s: %s, will retry on next restart",
                 old_entry.title,
                 exc,
             )
@@ -478,13 +478,13 @@ async def migrate_single_entry_cross_domain(
     #   * a NOT_LOADED entry returns immediately so the call is cheap
     #
     # If unload returns False (the integration's async_unload_entry refused
-    # or raised), abort the migration loudly — running the retarget against
+    # or raised), abort the migration loudly, running the retarget against
     # still-loaded entities would produce the cryptic "Only entities that
     # haven't been loaded can be migrated" error.
     unloaded = await hass.config_entries.async_unload(old_entry.entry_id)
     if not unloaded:
         raise RuntimeError(
-            f"Failed to unload legacy entry {old_entry.entry_id!r} — "
+            f"Failed to unload legacy entry {old_entry.entry_id!r}, "
             "cannot proceed with migration. Restart Home Assistant and "
             "try again."
         )
@@ -498,7 +498,7 @@ async def migrate_single_entry_cross_domain(
 
     # ── Step 2: Construct + register new ConfigEntry (without setup) ─────
     # We need new_entry.entry_id to retarget entities. We CANNOT call
-    # `hass.config_entries.async_add()` yet — that synchronously triggers
+    # `hass.config_entries.async_add()` yet, that synchronously triggers
     # `async_setup_entry` → forward to platforms → `async_add_entities`,
     # which would create duplicate entity_registry rows (the existing rows
     # are still under platform="vistapool", so HA's dedup key
@@ -532,7 +532,7 @@ async def migrate_single_entry_cross_domain(
         title=old_entry.title,
         data=dict(old_entry.data),
         # Preserve the original source (SOURCE_USER for entries created
-        # through the UI, etc.) — overriding it would change reconfigure
+        # through the UI, etc.), overriding it would change reconfigure
         # behavior and how HA presents the entry in the UI.
         source=old_entry.source,
         unique_id=old_entry.unique_id,
@@ -548,7 +548,7 @@ async def migrate_single_entry_cross_domain(
 
     # Steps 3-6 may fail (registry retarget collision, platform setup
     # error, etc.). The new_entry is already in `hass.config_entries._entries`
-    # at this point, so any failure must remove it — otherwise we leak a
+    # at this point, so any failure must remove it, otherwise we leak a
     # ghost entry that has no platforms set up but would still appear in
     # `async_entries(DOMAIN)` and could land in `.storage/core.config_entries`
     # the next time something else triggers a save.
@@ -568,7 +568,7 @@ async def migrate_single_entry_cross_domain(
         # async_update_entity_platform refuses to migrate any entity that still
         # has a non-UNKNOWN state object in hass.states (HA core entity_registry
         # L1933-1936). async_unload_platforms is supposed to remove those, but
-        # in practice we still hit the check — most likely recorder restoring
+        # in practice we still hit the check, most likely recorder restoring
         # the last known state from the database, or a stray async callback
         # that repopulated the state after unload returned. Defensively wipe
         # any lingering state objects for our candidates before retargeting.
@@ -596,7 +596,7 @@ async def migrate_single_entry_cross_domain(
                 applied.append((re_entry.entity_id, re_entry.unique_id))
             except ValueError as exc:
                 _LOGGER.error(
-                    "Failed to retarget %s: %s — rolling back",
+                    "Failed to retarget %s: %s, rolling back",
                     re_entry.entity_id,
                     exc,
                 )
@@ -639,7 +639,7 @@ async def migrate_single_entry_cross_domain(
                     device.id,
                     new_identifiers=new_identifiers,
                 )
-            # 4c: Remove old entry_id (safe — device has new entry_id too)
+            # 4c: Remove old entry_id (safe, device has new entry_id too)
             device_registry.async_update_device(
                 device.id,
                 remove_config_entry_id=old_entry.entry_id,
@@ -651,7 +651,7 @@ async def migrate_single_entry_cross_domain(
         # that the retarget is done, run setup. This synchronously calls
         # `async_setup_entry` → forward to platforms → `async_add_entities`.
         # The platform lookup finds the already-retargeted (sensor, neopool, X)
-        # rows and reuses them — no duplicates are created.
+        # rows and reuses them, no duplicates are created.
         await _setup_registered_entry(hass, new_entry)
 
         # ── Step 6: Remove old vistapool entry ───────────────────────────
@@ -699,7 +699,7 @@ def _register_entry_without_setup(hass: HomeAssistant, entry: ConfigEntry) -> No
 
 
 def _unregister_entry_without_save(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reverse of `_register_entry_without_setup` — drop entry from `_entries`.
+    """Reverse of `_register_entry_without_setup`, drop entry from `_entries`.
 
     Called from the cross-domain migration error path so that a failure
     after Step 2's registration doesn't leave a ghost entry in
@@ -716,7 +716,7 @@ def _unregister_entry_without_save(hass: HomeAssistant, entry: ConfigEntry) -> N
     here, the save call never ran). The matching REMOVED dispatch keeps
     HACS / frontend listeners consistent with the ADDED we sent earlier.
 
-    Idempotent — silent if the entry is already gone (e.g. test mocks
+    Idempotent, silent if the entry is already gone (e.g. test mocks
     that didn't actually populate `_entries`).
     """
     if hass.config_entries._entries.get(entry.entry_id) is None:
@@ -752,7 +752,7 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
       * Refuse if `custom_components/vistapool/` does not exist (nothing to do).
       * Refuse if the directory has no `manifest.json` (looks foreign).
       * Refuse if the manifest's documentation/issue_tracker URL doesn't
-        match our repo (an unrelated `vistapool` fork — leave it alone).
+        match our repo (an unrelated `vistapool` fork, leave it alone).
 
     Returns True if the directory was deleted or was already absent. Returns
     False on safety refusal or filesystem error; callers should surface that
@@ -760,12 +760,12 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
     """
     config_dir = Path(hass.config.path("custom_components/vistapool"))
     if not config_dir.exists():
-        return True  # Nothing to clean up — fresh install or already removed
+        return True  # Nothing to clean up, fresh install or already removed
 
     manifest_path = config_dir / "manifest.json"
     if not manifest_path.is_file():
         _LOGGER.warning(
-            "Legacy folder %s exists but has no manifest.json — refusing to delete",
+            "Legacy folder %s exists but has no manifest.json, refusing to delete",
             config_dir,
         )
         return False
@@ -776,7 +776,7 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
         # Anything from JSONDecodeError to OSError counts as "manifest
         # unreadable"; we refuse to delete a folder we can't identify.
         _LOGGER.warning(
-            "Cannot read legacy manifest %s: %s — refusing to delete",
+            "Cannot read legacy manifest %s: %s, refusing to delete",
             manifest_path,
             err,
         )
@@ -787,7 +787,7 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
     if LEGACY_REPO_URL not in documentation and LEGACY_REPO_URL not in issue_tracker:
         _LOGGER.warning(
             "Legacy folder %s does not match our integration "
-            "(documentation=%r, issue_tracker=%r) — refusing to delete",
+            "(documentation=%r, issue_tracker=%r), refusing to delete",
             config_dir,
             documentation,
             issue_tracker,
@@ -801,7 +801,7 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
         # depending on the platform. We log and ask the user to remove the
         # folder by hand rather than crashing the integration.
         _LOGGER.error(
-            "Failed to delete legacy folder %s: %s — please remove it manually",
+            "Failed to delete legacy folder %s: %s, please remove it manually",
             config_dir,
             err,
         )
@@ -812,7 +812,7 @@ async def async_cleanup_old_folder(hass: HomeAssistant) -> bool:
 
 
 def _read_manifest_json(path: Path) -> dict:
-    """Read a manifest.json file (executor-safe — runs blocking I/O)."""
+    """Read a manifest.json file (executor-safe, runs blocking I/O)."""
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -846,7 +846,7 @@ async def async_cleanup_legacy_files(hass: HomeAssistant) -> None:
                 path.unlink()
             except FileNotFoundError:
                 # Either never existed or another concurrent setup removed
-                # it first — both are fine.
+                # it first, both are fine.
                 return
             except OSError as err:
                 failures.append((path, err))
@@ -865,7 +865,7 @@ async def async_cleanup_legacy_files(hass: HomeAssistant) -> None:
     failures = await hass.async_add_executor_job(_purge_legacy_files)
     for path, err in failures:
         _LOGGER.warning(
-            "Failed to remove legacy file %s: %s — please remove it manually",
+            "Failed to remove legacy file %s: %s, please remove it manually",
             path,
             err,
         )
@@ -885,9 +885,9 @@ async def async_import_legacy_vistapool_entry(
     Returns:
         ``("migration_complete", None)`` on success.
         ``("migration_failed", str(exc))`` if the cross-domain migration
-        raised — caller should ``async_abort`` with the error message.
+        raised, caller should ``async_abort`` with the error message.
         ``(None, None)`` if the legacy entry disappeared between detect
-        and confirm — caller should fall through to the regular new-entry
+        and confirm, caller should fall through to the regular new-entry
         flow.
     """
     legacy_entry = hass.config_entries.async_get_entry(legacy_entry_id)
@@ -905,7 +905,7 @@ async def async_import_legacy_vistapool_entry(
     for device in dr.async_entries_for_config_entry(
         device_registry, legacy_entry.entry_id
     ):
-        # Match the (vistapool, X) tuple — that's the serial-based key
+        # Match the (vistapool, X) tuple, that's the serial-based key
         # the migration will rewrite to (neopool, X).
         serial_key = next(
             (ident for dom, ident in device.identifiers if dom == OLD_DOMAIN),
@@ -928,7 +928,7 @@ async def async_import_legacy_vistapool_entry(
         # registries and the Modbus probe, so it can surface anything
         # from HomeAssistantError to RuntimeError / OSError / NeoPoolError
         # / ValueError. We never want a config-flow step to crash with a
-        # traceback — surface the message via abort(migration_failed)
+        # traceback, surface the message via abort(migration_failed)
         # and let the user retry.
         _LOGGER.exception(
             "Cross-domain migration failed for %s",
@@ -1024,7 +1024,7 @@ def async_abort_if_unmigrated_v1_match(
     """Abort the flow if ``user_input`` matches an unmigrated v1 entry, else None.
 
     HA's standard ``_abort_if_unique_id_configured`` doesn't catch v1
-    entries (their ``unique_id`` is ``None``) — this defensive check
+    entries (their ``unique_id`` is ``None``), this defensive check
     matches them by connection parameters instead.
     """
     if find_unmigrated_v1_entry(
@@ -1057,7 +1057,7 @@ async def async_handle_import_step(
     regular ``async_step_user`` form.
     """
     # The legacy entry might have been removed between async_step_user
-    # detecting it and the user clicking Submit — re-resolve to be safe.
+    # detecting it and the user clicking Submit, re-resolve to be safe.
     legacy_entry = flow.hass.config_entries.async_get_entry(legacy_entry_id)
     if legacy_entry is None or legacy_entry.domain != OLD_DOMAIN:
         # Nothing to import any more; fall through to the regular new-entry
@@ -1074,7 +1074,7 @@ async def async_handle_import_step(
         )
 
     # Run the cross-domain migration (snapshot → retarget → restore →
-    # cleanup) — the helper already created and added the new neopool
+    # cleanup), the helper already created and added the new neopool
     # entry to hass.config_entries, so we MUST NOT call
     # async_create_entry here. Aborting with a friendly reason gives
     # the user a confirmation dialog ("migration completed").
@@ -1082,7 +1082,7 @@ async def async_handle_import_step(
         flow.hass, legacy_entry_id
     )
     if reason is None:
-        # Legacy entry disappeared between detect and run — fall through.
+        # Legacy entry disappeared between detect and run, fall through.
         return await flow.async_step_user()
     if reason == "migration_failed":
         return flow.async_abort(

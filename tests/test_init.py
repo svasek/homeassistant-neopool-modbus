@@ -82,7 +82,7 @@ async def test_setup_in_winter_mode(
     assert entry.state is ConfigEntryState.LOADED
 
 
-# CUSTOM-ONLY START — legacy v1→v4 migration cleanup tests (migration is HACS-only).
+# CUSTOM-ONLY START, legacy v1→v4 migration cleanup tests (migration is HACS-only).
 async def test_setup_cleans_orphaned_entity_registry_entries(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
@@ -130,7 +130,7 @@ async def test_setup_cleans_legacy_select_timer_rows(
     )
     legacy_entity_id = legacy.entity_id
 
-    # Same unique_id under the time domain — must NOT be removed.
+    # Same unique_id under the time domain, must NOT be removed.
     sibling = registry.async_get_or_create(
         "time", "neopool", legacy_uid, config_entry=mock_config_entry
     )

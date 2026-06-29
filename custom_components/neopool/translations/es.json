@@ -792,7 +792,7 @@
                 "data_description": {
                     "dev_overrides": "Un objeto JSON donde cada clave es un nombre de registro Modbus y cada valor reemplaza la lectura real.",
                     "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas.",
-                    "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Use con precaución — el uso inadecuado puede dañar su sistema de filtración."
+                    "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Use con precaución, el uso inadecuado puede dañar su sistema de filtración."
                 },
                 "description": "⚠️ ¡ADVERTENCIA! El uso incorrecto puede dañar la filtración.",
                 "title": "Configuraciones avanzadas"

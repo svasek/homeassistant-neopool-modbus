@@ -17,7 +17,7 @@
 from datetime import timedelta
 import json
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import aggregate_filtration_remaining, parse_version
@@ -67,7 +67,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Initialise the NeoPool data update coordinator."""
         self.normal_update_interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
-        # CUSTOM-ONLY START — HACS-only per-instance polling-interval override.
+        # CUSTOM-ONLY START, HACS-only per-instance polling-interval override.
         self.normal_update_interval = timedelta(
             seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
         )
@@ -202,7 +202,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         data["FILTRATION_REMAINING"] = aggregate_filtration_remaining(data)
 
-    # CUSTOM-ONLY START — HACS-only dev override hatch for live data injection.
+    # CUSTOM-ONLY START, HACS-only dev override hatch for live data injection.
     def _apply_dev_overrides(self, data: dict[str, Any]) -> None:
         """Apply developer override values to data, if enabled."""
         if not self.entry.options.get("dev_overrides_enabled", False):
@@ -316,6 +316,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.update_interval = next_interval
         _LOGGER.warning("Modbus error - marking all entities unavailable")
 
+    @override
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch the latest data from the pool controller."""
         if self.winter_mode:

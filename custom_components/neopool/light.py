@@ -17,7 +17,7 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus.registers import (
     EXEC_REGISTER,
@@ -111,6 +111,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         self._attr_unique_id = f"{device_id}_{key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(key)
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
@@ -121,12 +122,11 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         )
         await super().async_added_to_hass()
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light ON."""
         if self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active — ignoring turn_on for %s", self._key
-            )
+            _LOGGER.warning("Winter mode is active, ignoring turn_on for %s", self._key)
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
@@ -158,11 +158,12 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light OFF."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
-                "Winter mode is active — ignoring turn_off for %s", self._key
+                "Winter mode is active, ignoring turn_off for %s", self._key
             )
             return
         client = getattr(self.coordinator, "client", None)
@@ -199,6 +200,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             )
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return True if the light is ON."""
         desc = self.entity_description
@@ -208,6 +210,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         return False  # pragma: no cover
 
     @property
+    @override
     def available(self) -> bool:
         """Return True if the light is available."""
         if not super().available:
@@ -219,11 +222,13 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         return True  # pragma: no cover
 
     @property
+    @override
     def supported_color_modes(self) -> set[ColorMode]:
         """Return the color modes supported by this light."""
         return {ColorMode.ONOFF}
 
     @property
+    @override
     def color_mode(self) -> ColorMode:
         """Return the current color mode of the light."""
         return ColorMode.ONOFF

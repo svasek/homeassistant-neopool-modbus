@@ -26,7 +26,7 @@ from homeassistant.helpers.typing import ConfigType
 from .const import DOMAIN, PLATFORMS
 from .coordinator import NeoPoolCoordinator
 
-# Re-exported for Home Assistant — HA discovers async_migrate_entry from __init__.
+# Re-exported for Home Assistant, HA discovers async_migrate_entry from __init__.
 from .migration import (
     async_cleanup_legacy_files,
     async_migrate_entry,
@@ -34,7 +34,7 @@ from .migration import (
 )
 from .services import async_setup_services
 
-# CUSTOM-ONLY START — re-exports the migration symbol for HA's discovery.
+# CUSTOM-ONLY START, re-exports the migration symbol for HA's discovery.
 __all__ = ["async_migrate_entry"]
 # CUSTOM-ONLY END
 
@@ -62,7 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
     cleanup_removed_entities(hass, entry)
     # CUSTOM-ONLY END
 
-    # CUSTOM-ONLY START — HACS does not prune deleted files on upgrade,
+    # CUSTOM-ONLY START, HACS does not prune deleted files on upgrade,
     # so we sweep modules whose implementation moved to neopool-modbus.
     await async_cleanup_legacy_files(hass)
     # CUSTOM-ONLY END

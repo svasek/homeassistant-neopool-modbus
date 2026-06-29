@@ -16,7 +16,7 @@
 
 import asyncio
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
 import voluptuous as vol
@@ -75,11 +75,12 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
         except Exception:  # noqa: BLE001
             return NAME
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step of the configuration flow."""
-        # CUSTOM-ONLY START — vistapool→neopool import detection.
+        # CUSTOM-ONLY START, vistapool→neopool import detection.
         # If a legacy `vistapool` config entry is present (left over from the
         # v2.x release before the domain rename), offer the user a one-click
         # import step that migrates the entry, its entities and device-level
@@ -134,7 +135,7 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
-            # CUSTOM-ONLY START — historic v1 entries had no unique_id, so
+            # CUSTOM-ONLY START, historic v1 entries had no unique_id, so
             # the abort_if_unique_id_configured check above can't catch them.
             # Validation 3b: Catch unmigrated v1 entries (unique_id=None) by connection params
             if (
@@ -157,13 +158,13 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=data_schema,
         )
 
-    # CUSTOM-ONLY START — vistapool import step is HACS-only.
+    # CUSTOM-ONLY START, vistapool import step is HACS-only.
     async def async_step_import_from_vistapool(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Offer to migrate an existing vistapool entry to the new neopool domain.
 
-        Thin dispatcher — see :func:`migration.async_handle_import_step` for
+        Thin dispatcher, see :func:`migration.async_handle_import_step` for
         the full pre-check → form → migration → result-mapping pipeline.
         """
         return await async_handle_import_step(
@@ -228,6 +229,7 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
         config_entry: NeoPoolConfigEntry,
     ) -> NeoPoolOptionsFlowHandler:

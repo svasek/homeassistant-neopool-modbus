@@ -68,7 +68,7 @@ async def test_manual_filtration_turn_on_off(
 
 
 # ---------------------------------------------------------------------------
-# winter_mode (no register write — only options change + entity reload)
+# winter_mode (no register write, only options change + entity reload)
 # ---------------------------------------------------------------------------
 
 
@@ -168,7 +168,7 @@ async def test_io_switch_blocked_in_winter_mode(
 
 
 # ---------------------------------------------------------------------------
-# is_on / available — manual_filtration
+# is_on / available, manual_filtration
 # ---------------------------------------------------------------------------
 
 
@@ -266,7 +266,7 @@ async def test_climate_smart_uv_writes_to_function_register(
         if e.domain == "switch" and e.unique_id.endswith(suffix)
     ]
     assert entries, (
-        f"no switch entity with unique_id ending in {suffix} — found: "
+        f"no switch entity with unique_id ending in {suffix}, found: "
         + ", ".join(
             e.unique_id
             for e in er.async_entries_for_config_entry(

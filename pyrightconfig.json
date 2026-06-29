@@ -17,5 +17,6 @@
   "reportOperatorIssue": false,
   "reportAssignmentType": false,
   "reportMissingModuleSource": false,
-  "reportIncompatibleVariableOverride": false
+  "reportIncompatibleVariableOverride": false,
+  "reportImplicitOverride": "error"
 }

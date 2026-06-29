@@ -1,11 +1,11 @@
-"""HACS-only config-flow tests — vistapool import + v1 duplicate abort.
+"""HACS-only config-flow tests, vistapool import + v1 duplicate abort.
 
 These cover behaviour that has no counterpart in the core integration:
 the legacy ``vistapool`` domain rename detection, the import step that
 moves an entry across domains, and the v1 unmigrated-duplicate abort
 that catches connection-param matches before the unique_id is set.
 
-Core ships fresh entries at v1 with no migration story — the sync
+Core ships fresh entries at v1 with no migration story, the sync
 script excludes this whole file via ``EXCLUDE_TEST_FILES``.
 """
 
@@ -21,7 +21,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-# These tests must not hit the network either — same fixture as the main
+# These tests must not hit the network either, same fixture as the main
 # config-flow module.
 pytestmark = pytest.mark.usefixtures("mock_socket_connection")
 
@@ -66,7 +66,7 @@ async def test_create_entry_aborts_unmigrated_v1_duplicate(
 
 
 # ---------------------------------------------------------------------------
-# Legacy vistapool import flow — routing + step variants
+# Legacy vistapool import flow, routing + step variants
 # (these tests drive the flow object directly to keep coverage of the
 # branches that the framework path doesn't reach in a single hass run)
 # ---------------------------------------------------------------------------
@@ -110,7 +110,7 @@ async def test_import_step_falls_back_to_user_when_legacy_gone() -> None:
 
     result = await flow.async_step_import_from_vistapool(user_input=None)
     assert result is not None
-    # Fall through path — the regular new-entry form is shown
+    # Fall through path, the regular new-entry form is shown
     assert result["type"] == "form"
     assert result["step_id"] == "user"
 
@@ -123,7 +123,7 @@ async def test_import_step_falls_back_when_entry_is_not_vistapool() -> None:
     flow._legacy_entry_title = "Bazén"
 
     other_entry = MagicMock()
-    other_entry.domain = "neopool"  # not vistapool — race against another flow
+    other_entry.domain = "neopool"  # not vistapool, race against another flow
     flow.hass.config_entries.async_get_entry.return_value = other_entry
     flow.hass.config_entries.async_entries = MagicMock(return_value=[])
 

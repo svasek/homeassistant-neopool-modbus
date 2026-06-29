@@ -55,7 +55,7 @@ def test_get_device_time_with_hass(hass: HomeAssistant) -> None:
     """Passing hass interprets the device's epoch in HA's local timezone.
 
     The controller stores 'seconds since 1970-01-01 00:00:00 LOCAL TIME'
-    rather than UTC epoch — see the WORKAROUND in helpers.get_device_time.
+    rather than UTC epoch, see the WORKAROUND in helpers.get_device_time.
     The result is then converted back to UTC for HA's state machine.
     """
     hass.config.time_zone = "UTC"
@@ -165,7 +165,7 @@ def test_calculate_next_interval_time_invalid_input(invalid: float | None) -> No
         ({"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 0}, False),
         ({}, False),
         # GPIO=8 is outside the valid hardware range (1-7) and must not trigger
-        # detection — corrupted register values should not auto-create entities.
+        # detection, corrupted register values should not auto-create entities.
         ({"MBF_PAR_FILTVALVE_ENABLE": 0, "MBF_PAR_FILTVALVE_GPIO": 8}, False),
     ],
 )

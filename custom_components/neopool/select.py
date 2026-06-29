@@ -18,7 +18,7 @@ import asyncio
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
 from neopool_modbus.decoders import decode_cell_boost, get_filtration_pump_type
@@ -361,6 +361,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         self._attr_unique_id = f"{device_id}_{key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(key)
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
@@ -465,11 +466,12 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         self.coordinator.async_set_updated_data(self.coordinator.data)
         self.coordinator.request_refresh_with_followup()
 
+    @override
     async def async_select_option(self, option: str) -> None:
         """Handle option selection by dispatching to the per-type writer."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
-                "Winter mode is active — ignoring select_option for %s", self._key
+                "Winter mode is active, ignoring select_option for %s", self._key
             )
             return
         client = getattr(self.coordinator, "client", None)
@@ -495,6 +497,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         await self._select_default_register(client, option)
 
     @property
+    @override
     def options(self) -> list[str]:
         """Return the list of options for the select entity."""
         desc = self.entity_description
@@ -519,7 +522,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
         if self._key == "MBF_PAR_FILT_MODE":
             backwash_allowed = has_filtvalve(self.coordinator.data)
-            # CUSTOM-ONLY START — HACS-only manual override to expose backwash mode.
+            # CUSTOM-ONLY START, HACS-only manual override to expose backwash mode.
             backwash_allowed = backwash_allowed or self.coordinator.entry.options.get(
                 "enable_backwash_option", False
             )
@@ -585,6 +588,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             data[self._key] = value
 
     @property
+    @override
     def current_option(self) -> str | None:
         """Return the current option for the select entity."""
         desc = self.entity_description
@@ -639,6 +643,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         return desc.options_map.get(value)
 
     @property
+    @override
     def available(self) -> bool:
         """Return whether the select entity should be presented as available."""
         if self._key == "MBF_PAR_FILTRATION_SPEED":

@@ -100,7 +100,7 @@ async def test_single_v2_entry_success():
     e2.unique_id = f"{NEW_UID}_mbf_temperature"
     e2.platform = OLD_DOMAIN
     e2.config_entry_id = old.entry_id
-    # An unrelated row under a different platform — must NOT be touched
+    # An unrelated row under a different platform, must NOT be touched
     other = MagicMock()
     other.platform = "some_other_integration"
     other.config_entry_id = "different_entry"
@@ -151,7 +151,7 @@ async def test_single_v2_entry_success():
     hass.config_entries.async_unload.assert_awaited_once_with(old.entry_id)
     register_mock.assert_called_once()
     setup_mock.assert_awaited_once()
-    # Happy path: new entry must NOT be unregistered — it's the one we just
+    # Happy path: new entry must NOT be unregistered, it's the one we just
     # successfully migrated to. Unregister belongs only to the failure paths.
     unregister_mock.assert_not_called()
     new_entry = register_mock.call_args.args[1]
@@ -163,7 +163,7 @@ async def test_single_v2_entry_success():
     assert new_entry.version == 3
     assert new_entry.unique_id == NEW_UID
     assert new_entry.title == old.title
-    # Original source must be preserved — overriding it would change
+    # Original source must be preserved, overriding it would change
     # reconfigure semantics and how HA presents the entry in the UI.
     assert new_entry.source == "user"
     hass.config_entries.async_remove.assert_awaited_once_with(old.entry_id)
@@ -181,7 +181,7 @@ async def test_single_v2_entry_success():
 
 @pytest.mark.asyncio
 async def test_unload_called_unconditionally():
-    """Unload runs even for a NOT_LOADED entry — defensive against stale state."""
+    """Unload runs even for a NOT_LOADED entry, defensive against stale state."""
     hass = MagicMock()
     # async_unload returns True for any entry state, including NOT_LOADED
     hass.config_entries.async_unload = AsyncMock(return_value=True)
@@ -211,7 +211,7 @@ async def test_unload_called_unconditionally():
     ):
         await async_migrate_from_vistapool(hass)
 
-    # Unload runs even for NOT_LOADED — guards against entity_registry rows
+    # Unload runs even for NOT_LOADED, guards against entity_registry rows
     # left over from a previous boot that haven't been cleared yet.
     hass.config_entries.async_unload.assert_awaited_once_with(old.entry_id)
     hass.config_entries.async_setup.assert_awaited_once()
@@ -236,7 +236,7 @@ async def test_unload_failure_aborts_migration():
     assert summary["entries_failed"] == 1
     assert summary["entries_migrated"] == 0
     assert any("Failed to unload" in err for err in summary["errors"])
-    # async_setup and async_remove must NOT have been called — we never reached them
+    # async_setup and async_remove must NOT have been called, we never reached them
     hass.config_entries.async_setup.assert_not_awaited()
     hass.config_entries.async_remove.assert_not_awaited()
 
@@ -287,7 +287,7 @@ async def test_one_entry_fails_others_continue():
     hass.config_entries.async_unload = AsyncMock(return_value=True)
     hass.config_entries.async_remove = AsyncMock()
 
-    # First setup() succeeds, second raises — but the per-entry try/except must
+    # First setup() succeeds, second raises, but the per-entry try/except must
     # ensure the loop keeps running and summary records both outcomes.
     setup_calls = {"n": 0}
 
@@ -358,7 +358,7 @@ async def test_entity_retarget_failure_rolls_back():
         call_count["n"] += 1
         if call_count["n"] == 2:
             raise ValueError("registry collision")
-        # third call is the rollback — must succeed silently
+        # third call is the rollback, must succeed silently
 
     entity_registry = MagicMock()
     entity_registry.entities.values.return_value = [e1, e2]
@@ -378,15 +378,15 @@ async def test_entity_retarget_failure_rolls_back():
     ):
         summary = await async_migrate_from_vistapool(hass)
 
-    # Migration failed for this entry — the per-entry try/except records it
+    # Migration failed for this entry, the per-entry try/except records it
     assert summary["entries_failed"] == 1
     # 3 calls: e1 retarget, e2 retarget (raises), e1 rollback
     assert entity_registry.async_update_entity_platform.call_count == 3
-    # async_setup and async_remove must NOT have been called — we never reached them
+    # async_setup and async_remove must NOT have been called, we never reached them
     hass.config_entries.async_setup.assert_not_awaited()
     hass.config_entries.async_remove.assert_not_awaited()
     # Critical: the new entry was registered in step 2, so step 3's failure
-    # must trigger the unregister cleanup — otherwise we leak a ghost entry.
+    # must trigger the unregister cleanup, otherwise we leak a ghost entry.
     register_mock.assert_called_once()
     unregister_mock.assert_called_once()
     # The unregister call must reference the SAME entry that was registered
@@ -436,7 +436,7 @@ async def test_setup_failure_unregisters_entry():
     ):
         summary = await async_migrate_from_vistapool(hass)
 
-    # Migration failed — recorded as a hard failure
+    # Migration failed, recorded as a hard failure
     assert summary["entries_failed"] == 1
     assert any("platform setup blew up" in err for err in summary["errors"])
     # async_remove (step 6) must NOT have run
@@ -481,7 +481,7 @@ async def test_unregister_helper_is_idempotent():
     from custom_components.neopool.migration import _unregister_entry_without_save
 
     hass = MagicMock()
-    hass.config_entries._entries = {}  # empty — entry was never registered
+    hass.config_entries._entries = {}  # empty, entry was never registered
 
     entry = MagicMock()
     entry.entry_id = "entry_xyz"
@@ -564,7 +564,7 @@ async def test_v1_entry_offline_defers():
     ):
         summary = await async_migrate_from_vistapool(hass)
 
-    # Not a failure — the deferred path is recoverable
+    # Not a failure, the deferred path is recoverable
     assert summary["entries_migrated"] == 0
     assert summary["entries_failed"] == 0
     assert any("deferred" in err.lower() for err in summary["errors"])
@@ -653,7 +653,7 @@ async def test_device_identifiers_flipped_to_neopool():
 
 
 def _executor_passthrough(func, *args, **kwargs):
-    """Synchronous fake for hass.async_add_executor_job — runs the callable inline."""
+    """Synchronous fake for hass.async_add_executor_job, runs the callable inline."""
     return func(*args, **kwargs)
 
 
@@ -779,7 +779,7 @@ async def test_entity_retarget_failure_rollback_also_fails():
     e2.platform = OLD_DOMAIN
     e2.config_entry_id = old.entry_id
 
-    # Both forward retarget and rollback raise — covers the inner except branch
+    # Both forward retarget and rollback raise, covers the inner except branch
     call_count = {"n": 0}
 
     def update_side_effect(entity_id, *args, **kwargs):
@@ -824,7 +824,7 @@ async def test_cleanup_rmtree_failure_returns_false(
 
     result = await async_cleanup_old_folder(hass_with_config_path)
     assert result is False
-    # Folder must still be present — the failed rmtree didn't actually delete it
+    # Folder must still be present, the failed rmtree didn't actually delete it
     assert folder.exists()
 
 
@@ -1037,7 +1037,7 @@ async def test_import_legacy_vistapool_entry_skips_device_without_vistapool_iden
     legacy_entry.entry_id = "legacy_entry"
     hass.config_entries.async_get_entry.return_value = legacy_entry
 
-    # Device with only a non-vistapool identifier — defensive case
+    # Device with only a non-vistapool identifier, defensive case
     device = MagicMock()
     device.identifiers = {("zigbee", "stray-id")}
 
@@ -1063,7 +1063,7 @@ async def test_import_legacy_vistapool_entry_skips_device_without_vistapool_iden
     ):
         reason, _ = await async_import_legacy_vistapool_entry(hass, "legacy_entry")
 
-    # Nothing to restore — no async_update_device call
+    # Nothing to restore, no async_update_device call
     device_registry.async_update_device.assert_not_called()
     assert reason == "migration_complete"
 

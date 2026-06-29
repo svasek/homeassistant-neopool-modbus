@@ -61,7 +61,7 @@ async def test_options_flow_save_changes(
     assert mock_config_entry.options["use_filtration1"] is False
 
 
-# CUSTOM-ONLY START — unlock_advanced / dev_overrides / enable_backwash_option
+# CUSTOM-ONLY START, unlock_advanced / dev_overrides / enable_backwash_option
 # are HACS-only knobs gated by a password-locked "advanced" step.
 async def test_options_flow_unlock_advanced_with_correct_password(
     hass: HomeAssistant,
