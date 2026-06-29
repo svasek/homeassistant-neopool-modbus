@@ -792,7 +792,7 @@
                 "data_description": {
                     "dev_overrides": "Obiekt JSON, gdzie każdy klucz to nazwa rejestru Modbus, a wartość zastępuje rzeczywisty odczyt.",
                     "dev_overrides_enabled": "Gdy włączone, wartości z JSON nadpisań są wstrzykiwane do danych koordynatora w celach testowych.",
-                    "enable_backwash_option": "Dodaje 'Backwash' do wyboru trybu filtracji. Używaj ostrożnie — niewłaściwe użycie może uszkodzić system filtracji."
+                    "enable_backwash_option": "Dodaje 'Backwash' do wyboru trybu filtracji. Używaj ostrożnie, niewłaściwe użycie może uszkodzić system filtracji."
                 },
                 "description": "⚠️ UWAGA: Niewłaściwe użycie może uszkodzić filtrację!",
                 "title": "Ustawienia zaawansowane"

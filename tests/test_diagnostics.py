@@ -32,7 +32,7 @@ async def test_entry_diagnostics(
 
     # Properties that legitimately vary between test runs (timestamps,
     # generated entry IDs, mock object identity) are excluded from the
-    # snapshot — what we care about is the stable shape of the payload
+    # snapshot, what we care about is the stable shape of the payload
     # plus the host/port redaction.
     assert result == snapshot(
         exclude=props(

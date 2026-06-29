@@ -103,7 +103,7 @@ async def test_set_timer_explicit_entry_id_must_be_loaded(
     """Explicit entry_id pointing at a NOT_LOADED entry is rejected.
 
     Routing a service call to a stale or unloaded entry would surface
-    confusing AttributeError downstream — the resolver requires the
+    confusing AttributeError downstream, the resolver requires the
     matching entry to be LOADED.
     """
     await setup_integration(hass, mock_config_entry)
@@ -130,7 +130,7 @@ async def test_set_timer_no_loaded_entry_raises(
 ) -> None:
     """Calling the service before any entry is loaded raises."""
     # async_setup is invoked by HA before any entry, so the service is
-    # registered globally — but no LOADED entry exists yet.
+    # registered globally, but no LOADED entry exists yet.
 
     assert await async_setup_component(hass, DOMAIN, {})
     await hass.async_block_till_done()
@@ -151,7 +151,7 @@ async def test_get_coordinator_raises_when_runtime_data_missing(
 ) -> None:
     """If a LOADED entry has no runtime_data, _get_coordinator raises.
 
-    Direct unit test on the helper — drives the defensive 'coordinator is None'
+    Direct unit test on the helper, drives the defensive 'coordinator is None'
     branch without relying on the entry-state ordering inside HA's
     config_entries machinery.
     """

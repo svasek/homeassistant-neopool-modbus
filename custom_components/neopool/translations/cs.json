@@ -792,7 +792,7 @@
                 "data_description": {
                     "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení.",
                     "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování.",
-                    "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Používejte opatrně — nesprávné použití může poškodit filtrační systém."
+                    "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Používejte opatrně, nesprávné použití může poškodit filtrační systém."
                 },
                 "description": "⚠️ POZOR: Nesprávné použití může poškodit filtraci!",
                 "title": "Pokročilá nastavení"

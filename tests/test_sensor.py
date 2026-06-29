@@ -539,7 +539,7 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
         STATE_UNKNOWN,
     )
     # `native_value` typed as Decimal/datetime/date isn't valid for an energy
-    # counter — the entity must reject it and start at 0 instead of crashing
+    # counter, the entity must reject it and start at 0 instead of crashing
     # the float() conversion.
     fake_extra_data = {
         "native_value": {"__type": "<class 'datetime.datetime'>", "isoformat": "..."},
@@ -577,7 +577,7 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
         if entity_obj is not None:
             break
     assert entity_obj is not None
-    # Restore was rejected — counter starts at 0.
+    # Restore was rejected, counter starts at 0.
     assert entity_obj.native_value == 0
 
 

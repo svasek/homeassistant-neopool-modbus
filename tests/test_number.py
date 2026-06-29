@@ -29,7 +29,7 @@ def _number_entity_id(
         if e.domain == "number" and e.unique_id.endswith(f"_{key_lower_suffix}")
     ]
     assert entries, (
-        f"no number entity ending in _{key_lower_suffix} — found: "
+        f"no number entity ending in _{key_lower_suffix}, found: "
         + ", ".join(
             e.unique_id
             for e in er.async_entries_for_config_entry(registry, entry.entry_id)
@@ -220,7 +220,7 @@ async def test_masked_number_native_value_decodes_via_mask_shift(
 ) -> None:
     """Test that masked compound numbers decode via _mask/_shift.
 
-    HIDRO_COVER_REDUCTION / SHUTDOWN_TEMPERATURE share register 0x042D —
+    HIDRO_COVER_REDUCTION / SHUTDOWN_TEMPERATURE share register 0x042D,
     lower byte holds cover reduction %, upper byte the shutdown
     temperature. native_value must isolate each via _mask/_shift.
     """

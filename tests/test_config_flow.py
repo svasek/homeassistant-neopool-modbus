@@ -16,7 +16,7 @@ from homeassistant.data_entry_flow import FlowResultType
 
 from .conftest import MOCK_HOST, MOCK_PORT, MOCK_SERIAL
 
-# Most config-flow tests should not hit the network — opt in to the
+# Most config-flow tests should not hit the network, opt in to the
 # is_host_port_open patch for every test in this module by default.
 # Tests that exercise is_host_port_open itself opt out by name in the
 # test signature (they don't take the fixture).
@@ -29,7 +29,7 @@ USER_INPUT = {
 
 
 # ---------------------------------------------------------------------------
-# User flow — happy path + recoverable errors
+# User flow, happy path + recoverable errors
 # ---------------------------------------------------------------------------
 
 
@@ -288,7 +288,7 @@ async def test_reconfigure_flow_cannot_read_modbus(
 # Helpers covered indirectly above; explicit unit tests below.
 # ---------------------------------------------------------------------------
 
-# Note: tests for is_host_port_open are in test_helpers.py — keeping them
+# Note: tests for is_host_port_open are in test_helpers.py, keeping them
 # out of this module avoids fighting with the module-level
 # pytestmark.usefixtures("mock_socket_connection") that every config-flow
 # test relies on.

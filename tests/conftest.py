@@ -54,13 +54,13 @@ def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
 # Minimal coordinator data for a healthy controller. Real device returns
 # ~140 keys; the integration tolerates missing keys gracefully (entities
 # show as unavailable). These cover the registers the coordinator's
-# happy-path flow reads — firmware version, basic measurements, all GPIO
+# happy-path flow reads, firmware version, basic measurements, all GPIO
 # registers (set to a valid relay so platforms register their entities),
 # filtration state.
 MOCK_POOL_DATA: dict[str, Any] = {
     "MBF_POWER_MODULE_VERSION": 0x1234,  # → firmware "18.52"
     "MBF_PAR_VERSION": 0x100,
-    # MBF_PAR_MODEL bit 0x0001 = Ion module, 0x0002 = Hydro/Electrolysis —
+    # MBF_PAR_MODEL bit 0x0001 = Ion module, 0x0002 = Hydro/Electrolysis,
     # both set so all conditional sensor / select entities register.
     "MBF_PAR_MODEL": 0x0003,
     "MBF_PAR_SERNUM": int(MOCK_SERIAL),
@@ -269,7 +269,7 @@ def mock_neopool_client_minimal(
 def mock_socket_connection() -> Generator[None]:
     """Patch the TCP probe in config_flow so we don't hit the network.
 
-    Not autouse — opt in via the fixture name when the integration's
+    Not autouse, opt in via the fixture name when the integration's
     config-flow setup runs in the test (it would otherwise try to open
     a real TCP connection).
     """

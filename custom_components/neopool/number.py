@@ -18,7 +18,7 @@ import asyncio
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus.decoders import is_hydrolysis_in_percent
 from neopool_modbus.registers import (
@@ -262,6 +262,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._pending_value: float | None = None
         self._debounce_delay = 2.0
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
@@ -287,11 +288,12 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
 
         self.async_write_ha_state()
 
+    @override
     async def async_set_native_value(self, value: float) -> None:
         """Set the native value of the number entity."""
         if self.coordinator.winter_mode:
             _LOGGER.warning(
-                "Winter mode is active — ignoring set_native_value for %s", self._key
+                "Winter mode is active, ignoring set_native_value for %s", self._key
             )
             return
         self._pending_value = value
@@ -314,7 +316,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
             await asyncio.sleep(self._debounce_delay)
             if self.coordinator.winter_mode:  # pragma: no cover
                 _LOGGER.warning(
-                    "Winter mode is active — debounced write cancelled for %s",
+                    "Winter mode is active, debounced write cancelled for %s",
                     self._key,
                 )
                 return
@@ -345,6 +347,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         return None
 
     @property
+    @override
     def native_value(self) -> float | None:
         """Return the actual number value."""
         raw = self.coordinator.data.get(self._data_key)
@@ -361,6 +364,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         return round(float(raw), 2)
 
     @property
+    @override
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement for the number value."""
         if self._key == "MBF_PAR_HIDRO":
@@ -368,6 +372,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         return self.entity_description.native_unit_of_measurement
 
     @property
+    @override
     def native_max_value(self) -> float:
         """Return the maximum value for the number entity."""
         if self._key == "MBF_PAR_HIDRO":
@@ -377,6 +382,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         return self.entity_description.native_max_value or super().native_max_value
 
     @property
+    @override
     def native_step(self) -> float | None:
         """Return the step value for the number entity."""
         if self._key == "MBF_PAR_HIDRO":

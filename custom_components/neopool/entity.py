@@ -14,6 +14,8 @@
 
 """Base entity class for the NeoPool integration."""
 
+from typing import override
+
 from neopool_modbus.decoders import (
     decode_par_model_modules,
     get_machine_name,
@@ -48,6 +50,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         self._entry_id = entry_id
 
     @property
+    @override
     def available(self) -> bool:
         """Return False for control entities while winter mode is active."""
         if self._winter_mode_active and getattr(self.coordinator, "winter_mode", False):
@@ -55,11 +58,13 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         return super().available
 
     @property
+    @override
     def translation_key(self) -> str | None:
         """Return the translation key for the entity."""
         return getattr(self, "_attr_translation_key", None)  # pragma: no cover
 
     @property
+    @override
     def device_info(self) -> DeviceInfo:  # pragma: no cover
         """Return device information for the entity."""
         data = self.coordinator.data or {}

@@ -19,7 +19,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import time as dt_time
 import logging
-from typing import Any, Literal
+from typing import Any, Literal, override
 
 from neopool_modbus.decoders import seconds_to_hhmm
 
@@ -127,6 +127,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         self._debounce_delay = _DEBOUNCE_DELAY
 
     @property
+    @override
     def native_value(self) -> dt_time | None:
         """Decode seconds-since-midnight into HH:MM:SS."""
         seconds = self.coordinator.data.get(self._key)
@@ -142,6 +143,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
             second=seconds % 60,
         )
 
+    @override
     async def async_set_value(self, value: dt_time) -> None:
         """Apply optimistically, then debounce-write to the device."""
         if self.coordinator.winter_mode:

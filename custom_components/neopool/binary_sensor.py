@@ -17,7 +17,7 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus.capabilities import is_ionization_present
 from neopool_modbus.registers import is_valid_relay_gpio
@@ -340,6 +340,7 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
         self._attr_unique_id = f"{device_id}_{key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(key)
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
@@ -351,6 +352,7 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
         await super().async_added_to_hass()
 
     @property
+    @override
     def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
         if self._key == "Device Time Out Of Sync":

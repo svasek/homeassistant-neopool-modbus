@@ -26,7 +26,7 @@ def _select_entity_id(
         if e.domain == "select" and e.unique_id.endswith(f"_{key_lower_suffix}")
     ]
     assert entries, (
-        f"no select entity ending in _{key_lower_suffix} — found: "
+        f"no select entity ending in _{key_lower_suffix}, found: "
         + ", ".join(
             e.unique_id
             for e in er.async_entries_for_config_entry(registry, entry.entry_id)

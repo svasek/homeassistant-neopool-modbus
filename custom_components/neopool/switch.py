@@ -17,7 +17,7 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus.registers import (
     AUX1_FUNCTION_CODE,
@@ -216,6 +216,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
 
         self._data_key = description.data_key or key
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch ON."""
         desc = self.entity_description
@@ -223,9 +224,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             desc.switch_type not in ("winter_mode", "auto_time_sync")
             and self.coordinator.winter_mode
         ):
-            _LOGGER.warning(
-                "Winter mode is active — ignoring turn_on for %s", self._key
-            )
+            _LOGGER.warning("Winter mode is active, ignoring turn_on for %s", self._key)
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
@@ -290,6 +289,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             await self.coordinator.async_request_refresh()
             self.async_write_ha_state()
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch OFF."""
         desc = self.entity_description
@@ -298,7 +298,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             and self.coordinator.winter_mode
         ):
             _LOGGER.warning(
-                "Winter mode is active — ignoring turn_off for %s", self._key
+                "Winter mode is active, ignoring turn_off for %s", self._key
             )
             return
         client = getattr(self.coordinator, "client", None)
@@ -358,6 +358,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             await self.coordinator.async_request_refresh()
             self.async_write_ha_state()
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to hass."""
         _LOGGER.debug(
@@ -392,6 +393,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
                 data[self._data_key] = current & ~desc.mask_bit
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return True if the switch is on."""
         desc = self.entity_description
@@ -418,6 +420,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         return False  # pragma: no cover
 
     @property
+    @override
     def available(self) -> bool:
         """Return True if the switch is available."""
         desc = self.entity_description

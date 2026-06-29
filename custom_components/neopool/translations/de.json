@@ -792,7 +792,7 @@
                 "data_description": {
                     "dev_overrides": "Ein JSON-Objekt, bei dem jeder Schlüssel ein Modbus-Registername ist und jeder Wert den tatsächlichen Messwert überschreibt.",
                     "dev_overrides_enabled": "Wenn aktiviert, werden Werte aus dem Override-JSON zu Testzwecken in die Koordinator-Daten eingefügt.",
-                    "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Vorsichtig verwenden — unsachgemäße Nutzung kann Ihr Filtersystem beschädigen."
+                    "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Vorsichtig verwenden, unsachgemäße Nutzung kann Ihr Filtersystem beschädigen."
                 },
                 "description": "⚠️ ACHTUNG: Unsachgemäße Verwendung kann die Filterung beschädigen!",
                 "title": "Erweiterte Einstellungen"

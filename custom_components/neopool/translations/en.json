@@ -792,7 +792,7 @@
                 "data_description": {
                     "dev_overrides": "A JSON object where each key is a Modbus register name and each value overrides the actual reading.",
                     "dev_overrides_enabled": "When enabled, values from the override JSON are injected into coordinator data for testing.",
-                    "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Use with caution — improper use may damage your filtration system."
+                    "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Use with caution, improper use may damage your filtration system."
                 },
                 "description": "⚠️ WARNING: Incorrect use may damage filtration!",
                 "title": "Advanced Settings"

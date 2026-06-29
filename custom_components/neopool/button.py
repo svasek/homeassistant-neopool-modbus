@@ -17,7 +17,7 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import Any, override
 
 from neopool_modbus.capabilities import has_filtvalve
 
@@ -103,6 +103,7 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         self._attr_unique_id = f"{device_id}_{key.lower()}"
         self._attr_translation_key = NeoPoolEntity.slugify(key)
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
         _LOGGER.debug(
@@ -113,10 +114,11 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         )
         await super().async_added_to_hass()
 
+    @override
     async def async_press(self) -> None:
         """Perform button action depending on key."""
         if self.coordinator.winter_mode:
-            _LOGGER.warning("Winter mode is active — ignoring press for %s", self._key)
+            _LOGGER.warning("Winter mode is active, ignoring press for %s", self._key)
             return
         client = self.coordinator.client
         if self._key == "SYNC_TIME":

@@ -1,11 +1,11 @@
-"""HACS-only init tests — version migrations.
+"""HACS-only init tests, version migrations.
 
 These cover behaviour that has no counterpart in the core integration:
 ``async_migrate_entry`` was added to bridge v1 (no ``unique_id``) → v2
 (serial-based ``unique_id``) → v3 (vistapool→neopool rename) → v4 (the
 ``neopool-modbus`` library marker bump) → v5 (slave_id → unit_id rename).
 
-Core ships fresh entries at v1 with no migration story — the sync
+Core ships fresh entries at v1 with no migration story, the sync
 script excludes this whole file via ``EXCLUDE_TEST_FILES``.
 """
 
@@ -16,7 +16,7 @@ from custom_components.neopool import async_migrate_entry
 from custom_components.neopool.const import DEFAULT_PORT
 
 # ---------------------------------------------------------------------------
-# async_migrate_entry — version transitions
+# async_migrate_entry, version transitions
 #
 # These tests drive the migration helper directly with MagicMock(hass) so
 # they cover branches the framework path doesn't reach in a single hass
@@ -90,7 +90,7 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
     assert result is True
     # async_migrate_entry only performs the v1 → v2 step here (unique_id +
     # version=2). The v3 → v4 marker bump is gated on `version == 3`, which
-    # this neopool entry never reaches via HA-driven migration alone — that
+    # this neopool entry never reaches via HA-driven migration alone, that
     # transition is owned by the cross-domain pipeline (vistapool v2 →
     # neopool v3) and only then does async_migrate_entry pick up the bump.
     assert hass.config_entries.async_update_entry.call_count == 1
@@ -137,7 +137,7 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable() -> None:
         result = await async_migrate_entry(hass, config_entry)
 
     assert result is True
-    # Version must NOT be bumped — migration will retry on next HA restart
+    # Version must NOT be bumped, migration will retry on next HA restart
     hass.config_entries.async_update_entry.assert_not_called()
 
 
@@ -312,7 +312,7 @@ async def test_async_migrate_entry_entity_update_error() -> None:
         "sensor.pool_ph",
         new_unique_id="old_entry_id_789_mbf_ph_measure",
     )
-    # Version must NOT be bumped — migration will retry on next HA restart
+    # Version must NOT be bumped, migration will retry on next HA restart
     hass.config_entries.async_update_entry.assert_not_called()
 
 

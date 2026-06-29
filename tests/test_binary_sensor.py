@@ -155,7 +155,7 @@ async def test_measurement_module_off_when_filtration_off(
 
 
 # ---------------------------------------------------------------------------
-# MBF_STATUS dict-keyed flags (sub-key resolution) — covered by
+# MBF_STATUS dict-keyed flags (sub-key resolution), covered by
 # direct entity introspection because no MBF_STATUS_* entity is registered
 # under the default fixture set.
 # ---------------------------------------------------------------------------
@@ -173,7 +173,7 @@ async def test_mbf_status_dict_keys_resolve(
     entity = _binary_by_key(hass, "MBF_STATUS_pump_on")
     if entity is None:
         # The default fixture may not surface every status flag; skip the
-        # check rather than fail noisily — the MBF_STATUS unit lookup is
+        # check rather than fail noisily, the MBF_STATUS unit lookup is
         # exercised indirectly when the entity is registered via a richer
         # MOCK_POOL_DATA.
         return

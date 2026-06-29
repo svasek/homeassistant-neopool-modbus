@@ -60,7 +60,7 @@ async def test_transient_modbus_failure_after_first_success_marks_unavailable(
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
-    # last_update_success now False but entry remains LOADED — entities will
+    # last_update_success now False but entry remains LOADED, entities will
     # report unavailable on their own.
     assert coordinator.last_update_success is False
     assert mock_config_entry.state is ConfigEntryState.LOADED
@@ -194,7 +194,7 @@ async def test_auto_time_sync_writes_when_drift_detected(
 # ---------------------------------------------------------------------------
 
 
-# CUSTOM-ONLY START — dev_overrides is a HACS-only knob; both tests exercise it.
+# CUSTOM-ONLY START, dev_overrides is a HACS-only knob; both tests exercise it.
 async def test_dev_overrides_applied_when_enabled(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
@@ -292,7 +292,7 @@ async def test_setpoint_initial_sync_uses_heating_as_source(
     )
     await setup_integration(hass, entry)
 
-    # Now next read returns differing values that *neither changed* — that
+    # Now next read returns differing values that *neither changed*, that
     # means they were already different before this cycle started; force
     # the initial-sync branch by feeding values that are different but
     # match prev (so heating_changed=False AND intelligent_changed=False).
