@@ -2,14 +2,13 @@
 
 import asyncio as _asyncio
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
 from neopool_modbus.capabilities import has_filtvalve
 from neopool_modbus.exceptions import NeoPoolError
 import pytest
 
-from custom_components.neopool.config_flow import is_host_port_open
 from custom_components.neopool.helpers import (
     async_get_device_serial,
     calculate_next_interval_time,
@@ -219,43 +218,6 @@ def test_parse_register_int_rejects_out_of_range(raw: int | str) -> None:
     """Values outside the 16-bit holding-register range are rejected."""
     with pytest.raises(ServiceValidationError):
         parse_register_int(raw, "value")
-
-
-# ---------------------------------------------------------------------------
-# is_host_port_open (config_flow helper, but logic-tested here so it does
-# not collide with config_flow's autouse mock_socket_connection fixture)
-# ---------------------------------------------------------------------------
-
-
-async def test_is_host_port_open_succeeds() -> None:
-    """is_host_port_open returns True when asyncio reports a connection."""
-    fake_writer = MagicMock()
-    fake_writer.close = MagicMock()
-    fake_writer.wait_closed = AsyncMock()
-    with patch(
-        "custom_components.neopool.config_flow.asyncio.open_connection",
-        new=AsyncMock(return_value=(MagicMock(), fake_writer)),
-    ):
-        assert await is_host_port_open("127.0.0.1", 502) is True
-    fake_writer.close.assert_called_once()
-
-
-async def test_is_host_port_open_returns_false_on_oserror() -> None:
-    """is_host_port_open returns False when the probe raises OSError."""
-    with patch(
-        "custom_components.neopool.config_flow.asyncio.open_connection",
-        new=AsyncMock(side_effect=OSError("connection refused")),
-    ):
-        assert await is_host_port_open("127.0.0.1", 1) is False
-
-
-async def test_is_host_port_open_returns_false_on_timeout() -> None:
-    """is_host_port_open returns False when asyncio.wait_for times out."""
-    with patch(
-        "custom_components.neopool.config_flow.asyncio.wait_for",
-        new=AsyncMock(side_effect=TimeoutError),
-    ):
-        assert await is_host_port_open("127.0.0.1", 1) is False
 
 
 # ---------------------------------------------------------------------------

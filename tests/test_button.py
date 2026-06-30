@@ -148,7 +148,7 @@ async def test_reset_cell_partial_button_writes_reset_and_save(
     registry.async_get_or_create(
         "button",
         DOMAIN,
-        f"neopool_{MOCK_SERIAL}_reset_cell_partial",
+        f"{MOCK_SERIAL}_reset_cell_partial",
         config_entry=mock_config_entry,
         disabled_by=None,
     )

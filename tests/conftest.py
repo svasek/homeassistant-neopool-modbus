@@ -137,7 +137,7 @@ def mock_config_entry() -> MockConfigEntry:
     return MockConfigEntry(
         domain=DOMAIN,
         title=MOCK_NAME,
-        unique_id=f"neopool_{MOCK_SERIAL}",
+        unique_id=MOCK_SERIAL,
         version=CURRENT_VERSION,
         data={
             CONF_HOST: MOCK_HOST,
@@ -173,7 +173,7 @@ def mock_neopool_client() -> Generator[MagicMock]:
             autospec=True,
         ) as mock_client_cls,
         patch(
-            "custom_components.neopool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_probe_serial",
             new=AsyncMock(return_value=MOCK_SERIAL),
         ),
     ):
@@ -250,7 +250,7 @@ def mock_neopool_client_minimal(
             autospec=True,
         ) as mock_client_cls,
         patch(
-            "custom_components.neopool.config_flow.async_get_device_serial",
+            "custom_components.neopool.config_flow.async_probe_serial",
             new=AsyncMock(return_value=MOCK_SERIAL),
         ),
     ):
@@ -267,14 +267,14 @@ def mock_neopool_client_minimal(
 
 @pytest.fixture
 def mock_socket_connection() -> Generator[None]:
-    """Patch the TCP probe in config_flow so we don't hit the network.
+    """Patch the lib probe in config_flow so we don't hit the network.
 
     Not autouse, opt in via the fixture name when the integration's
     config-flow setup runs in the test (it would otherwise try to open
-    a real TCP connection).
+    a real TCP connection through ``async_probe_serial``).
     """
     with patch(
-        "custom_components.neopool.config_flow.is_host_port_open",
-        new=AsyncMock(return_value=True),
+        "custom_components.neopool.config_flow.async_probe_serial",
+        new=AsyncMock(return_value=MOCK_SERIAL),
     ):
         yield

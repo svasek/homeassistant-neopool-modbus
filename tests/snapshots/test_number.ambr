@@ -38,7 +38,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_cover_reduction',
-      'unique_id': 'neopool_1234567890_mbf_par_hidro_cover_reduction',
+      'unique_id': '1234567890_mbf_par_hidro_cover_reduction',
       'unit_of_measurement': '%',
     }),
     EntityRegistryEntrySnapshot({
@@ -78,7 +78,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro',
-      'unique_id': 'neopool_1234567890_mbf_par_hidro',
+      'unique_id': '1234567890_mbf_par_hidro',
       'unit_of_measurement': '%',
     }),
     EntityRegistryEntrySnapshot({
@@ -118,7 +118,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_shutdown_temperature',
-      'unique_id': 'neopool_1234567890_mbf_par_hidro_shutdown_temperature',
+      'unique_id': '1234567890_mbf_par_hidro_shutdown_temperature',
       'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
     }),
     EntityRegistryEntrySnapshot({
@@ -158,7 +158,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph1',
-      'unique_id': 'neopool_1234567890_mbf_par_ph1',
+      'unique_id': '1234567890_mbf_par_ph1',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -198,7 +198,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph2',
-      'unique_id': 'neopool_1234567890_mbf_par_ph2',
+      'unique_id': '1234567890_mbf_par_ph2',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -238,7 +238,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'rx1',
-      'unique_id': 'neopool_1234567890_mbf_par_rx1',
+      'unique_id': '1234567890_mbf_par_rx1',
       'unit_of_measurement': 'mV',
     }),
     EntityRegistryEntrySnapshot({
@@ -278,7 +278,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'smart_temp_low',
-      'unique_id': 'neopool_1234567890_mbf_par_smart_temp_low',
+      'unique_id': '1234567890_mbf_par_smart_temp_low',
       'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
     }),
     EntityRegistryEntrySnapshot({
@@ -318,7 +318,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'smart_temp_high',
-      'unique_id': 'neopool_1234567890_mbf_par_smart_temp_high',
+      'unique_id': '1234567890_mbf_par_smart_temp_high',
       'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
     }),
     EntityRegistryEntrySnapshot({
@@ -358,7 +358,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'heating_temp',
-      'unique_id': 'neopool_1234567890_mbf_par_heating_temp',
+      'unique_id': '1234567890_mbf_par_heating_temp',
       'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
     }),
   ])
@@ -402,7 +402,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_cover_reduction',
-      'unique_id': 'neopool_1234567890_mbf_par_hidro_cover_reduction',
+      'unique_id': '1234567890_mbf_par_hidro_cover_reduction',
       'unit_of_measurement': '%',
     }),
   ])

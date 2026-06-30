@@ -45,7 +45,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtvalve_period_minutes',
-      'unique_id': 'neopool_1234567890_mbf_par_filtvalve_period_minutes',
+      'unique_id': '1234567890_mbf_par_filtvalve_period_minutes',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -86,7 +86,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtvalve_mode',
-      'unique_id': 'neopool_1234567890_mbf_par_filtvalve_mode',
+      'unique_id': '1234567890_mbf_par_filtvalve_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -127,7 +127,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'cell_boost',
-      'unique_id': 'neopool_1234567890_mbf_cell_boost',
+      'unique_id': '1234567890_mbf_cell_boost',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -171,7 +171,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filt_mode',
-      'unique_id': 'neopool_1234567890_mbf_par_filt_mode',
+      'unique_id': '1234567890_mbf_par_filt_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -212,7 +212,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration_speed',
-      'unique_id': 'neopool_1234567890_mbf_par_filtration_speed',
+      'unique_id': '1234567890_mbf_par_filtration_speed',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -261,7 +261,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'intelligent_filt_min_time',
-      'unique_id': 'neopool_1234567890_mbf_par_intelligent_filt_min_time',
+      'unique_id': '1234567890_mbf_par_intelligent_filt_min_time',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -302,7 +302,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_light_mode',
-      'unique_id': 'neopool_1234567890_relay_light_mode',
+      'unique_id': '1234567890_relay_light_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -349,7 +349,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_light_period',
-      'unique_id': 'neopool_1234567890_relay_light_period',
+      'unique_id': '1234567890_relay_light_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -400,7 +400,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_activation_delay',
-      'unique_id': 'neopool_1234567890_mbf_par_relay_activation_delay',
+      'unique_id': '1234567890_mbf_par_relay_activation_delay',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -441,7 +441,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux1_mode',
-      'unique_id': 'neopool_1234567890_relay_aux1_mode',
+      'unique_id': '1234567890_relay_aux1_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -482,7 +482,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux2_mode',
-      'unique_id': 'neopool_1234567890_relay_aux2_mode',
+      'unique_id': '1234567890_relay_aux2_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -523,7 +523,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux3_mode',
-      'unique_id': 'neopool_1234567890_relay_aux3_mode',
+      'unique_id': '1234567890_relay_aux3_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -564,7 +564,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux4_mode',
-      'unique_id': 'neopool_1234567890_relay_aux4_mode',
+      'unique_id': '1234567890_relay_aux4_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -605,7 +605,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration1_speed',
-      'unique_id': 'neopool_1234567890_filtration1_speed',
+      'unique_id': '1234567890_filtration1_speed',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -646,7 +646,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration2_speed',
-      'unique_id': 'neopool_1234567890_filtration2_speed',
+      'unique_id': '1234567890_filtration2_speed',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -687,7 +687,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration3_speed',
-      'unique_id': 'neopool_1234567890_filtration3_speed',
+      'unique_id': '1234567890_filtration3_speed',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -734,7 +734,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux1_period',
-      'unique_id': 'neopool_1234567890_relay_aux1_period',
+      'unique_id': '1234567890_relay_aux1_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -781,7 +781,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux1b_period',
-      'unique_id': 'neopool_1234567890_relay_aux1b_period',
+      'unique_id': '1234567890_relay_aux1b_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -828,7 +828,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux2_period',
-      'unique_id': 'neopool_1234567890_relay_aux2_period',
+      'unique_id': '1234567890_relay_aux2_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -875,7 +875,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux2b_period',
-      'unique_id': 'neopool_1234567890_relay_aux2b_period',
+      'unique_id': '1234567890_relay_aux2b_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -922,7 +922,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux3_period',
-      'unique_id': 'neopool_1234567890_relay_aux3_period',
+      'unique_id': '1234567890_relay_aux3_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -969,7 +969,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux3b_period',
-      'unique_id': 'neopool_1234567890_relay_aux3b_period',
+      'unique_id': '1234567890_relay_aux3b_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1016,7 +1016,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux4_period',
-      'unique_id': 'neopool_1234567890_relay_aux4_period',
+      'unique_id': '1234567890_relay_aux4_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1063,7 +1063,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux4b_period',
-      'unique_id': 'neopool_1234567890_relay_aux4b_period',
+      'unique_id': '1234567890_relay_aux4b_period',
       'unit_of_measurement': None,
     }),
   ])
@@ -1107,7 +1107,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filt_mode',
-      'unique_id': 'neopool_1234567890_mbf_par_filt_mode',
+      'unique_id': '1234567890_mbf_par_filt_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1148,7 +1148,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_light_mode',
-      'unique_id': 'neopool_1234567890_relay_light_mode',
+      'unique_id': '1234567890_relay_light_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1195,7 +1195,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_light_period',
-      'unique_id': 'neopool_1234567890_relay_light_period',
+      'unique_id': '1234567890_relay_light_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1236,7 +1236,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux1_mode',
-      'unique_id': 'neopool_1234567890_relay_aux1_mode',
+      'unique_id': '1234567890_relay_aux1_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1277,7 +1277,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux2_mode',
-      'unique_id': 'neopool_1234567890_relay_aux2_mode',
+      'unique_id': '1234567890_relay_aux2_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1318,7 +1318,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux3_mode',
-      'unique_id': 'neopool_1234567890_relay_aux3_mode',
+      'unique_id': '1234567890_relay_aux3_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1359,7 +1359,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux4_mode',
-      'unique_id': 'neopool_1234567890_relay_aux4_mode',
+      'unique_id': '1234567890_relay_aux4_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1406,7 +1406,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux1_period',
-      'unique_id': 'neopool_1234567890_relay_aux1_period',
+      'unique_id': '1234567890_relay_aux1_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1453,7 +1453,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux1b_period',
-      'unique_id': 'neopool_1234567890_relay_aux1b_period',
+      'unique_id': '1234567890_relay_aux1b_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1500,7 +1500,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux2_period',
-      'unique_id': 'neopool_1234567890_relay_aux2_period',
+      'unique_id': '1234567890_relay_aux2_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1547,7 +1547,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux2b_period',
-      'unique_id': 'neopool_1234567890_relay_aux2b_period',
+      'unique_id': '1234567890_relay_aux2b_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1594,7 +1594,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux3_period',
-      'unique_id': 'neopool_1234567890_relay_aux3_period',
+      'unique_id': '1234567890_relay_aux3_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1641,7 +1641,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux3b_period',
-      'unique_id': 'neopool_1234567890_relay_aux3b_period',
+      'unique_id': '1234567890_relay_aux3b_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1688,7 +1688,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux4_period',
-      'unique_id': 'neopool_1234567890_relay_aux4_period',
+      'unique_id': '1234567890_relay_aux4_period',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1735,7 +1735,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'relay_aux4b_period',
-      'unique_id': 'neopool_1234567890_relay_aux4b_period',
+      'unique_id': '1234567890_relay_aux4b_period',
       'unit_of_measurement': None,
     }),
   ])

@@ -665,7 +665,7 @@ async def test_cell_runtime_sensor_reads_combined_register(
     registry.async_get_or_create(
         "sensor",
         DOMAIN,
-        f"neopool_{MOCK_SERIAL}_{key.lower()}",
+        f"{MOCK_SERIAL}_{key.lower()}",
         config_entry=mock_config_entry,
         disabled_by=None,
     )
@@ -723,7 +723,7 @@ async def test_cell_runtime_sensor_returns_none_when_key_missing(
     registry.async_get_or_create(
         "sensor",
         DOMAIN,
-        f"neopool_{MOCK_SERIAL}_cell_runtime_part",
+        f"{MOCK_SERIAL}_cell_runtime_part",
         config_entry=mock_config_entry,
         disabled_by=None,
     )

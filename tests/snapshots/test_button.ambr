@@ -33,7 +33,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'escape',
-      'unique_id': 'neopool_1234567890_mbf_escape',
+      'unique_id': '1234567890_mbf_escape',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -68,7 +68,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'reset_cell_partial',
-      'unique_id': 'neopool_1234567890_reset_cell_partial',
+      'unique_id': '1234567890_reset_cell_partial',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -103,7 +103,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'backwash',
-      'unique_id': 'neopool_1234567890_backwash',
+      'unique_id': '1234567890_backwash',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -138,7 +138,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'sync_time',
-      'unique_id': 'neopool_1234567890_sync_time',
+      'unique_id': '1234567890_sync_time',
       'unit_of_measurement': None,
     }),
   ])
@@ -177,7 +177,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'escape',
-      'unique_id': 'neopool_1234567890_mbf_escape',
+      'unique_id': '1234567890_mbf_escape',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -212,7 +212,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'sync_time',
-      'unique_id': 'neopool_1234567890_sync_time',
+      'unique_id': '1234567890_sync_time',
       'unit_of_measurement': None,
     }),
   ])

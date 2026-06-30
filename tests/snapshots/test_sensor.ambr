@@ -38,7 +38,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtvalve_remaining',
-      'unique_id': 'neopool_1234567890_mbf_par_filtvalve_remaining',
+      'unique_id': '1234567890_mbf_par_filtvalve_remaining',
       'unit_of_measurement': 's',
     }),
     EntityRegistryEntrySnapshot({
@@ -75,7 +75,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'cell_runtime_pol_changes',
-      'unique_id': 'neopool_1234567890_cell_runtime_pol_changes',
+      'unique_id': '1234567890_cell_runtime_pol_changes',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -115,7 +115,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'cell_runtime_pola',
-      'unique_id': 'neopool_1234567890_cell_runtime_pola',
+      'unique_id': '1234567890_cell_runtime_pola',
       'unit_of_measurement': 'h',
     }),
     EntityRegistryEntrySnapshot({
@@ -155,7 +155,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'cell_runtime_polb',
-      'unique_id': 'neopool_1234567890_cell_runtime_polb',
+      'unique_id': '1234567890_cell_runtime_polb',
       'unit_of_measurement': 'h',
     }),
     EntityRegistryEntrySnapshot({
@@ -195,7 +195,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'cell_runtime_part',
-      'unique_id': 'neopool_1234567890_cell_runtime_part',
+      'unique_id': '1234567890_cell_runtime_part',
       'unit_of_measurement': 'h',
     }),
     EntityRegistryEntrySnapshot({
@@ -235,7 +235,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'cell_runtime_total',
-      'unique_id': 'neopool_1234567890_cell_runtime_total',
+      'unique_id': '1234567890_cell_runtime_total',
       'unit_of_measurement': 'h',
     }),
     EntityRegistryEntrySnapshot({
@@ -277,7 +277,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration_speed',
-      'unique_id': 'neopool_1234567890_filtration_speed',
+      'unique_id': '1234567890_filtration_speed',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -321,7 +321,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filt_mode',
-      'unique_id': 'neopool_1234567890_mbf_par_filt_mode',
+      'unique_id': '1234567890_mbf_par_filt_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -356,7 +356,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration_remaining',
-      'unique_id': 'neopool_1234567890_filtration_remaining',
+      'unique_id': '1234567890_filtration_remaining',
       'unit_of_measurement': 's',
     }),
     EntityRegistryEntrySnapshot({
@@ -396,7 +396,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_current',
-      'unique_id': 'neopool_1234567890_mbf_hidro_current',
+      'unique_id': '1234567890_mbf_hidro_current',
       'unit_of_measurement': '%',
     }),
     EntityRegistryEntrySnapshot({
@@ -439,7 +439,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_polarity',
-      'unique_id': 'neopool_1234567890_hidro_polarity',
+      'unique_id': '1234567890_hidro_polarity',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -476,7 +476,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_voltage',
-      'unique_id': 'neopool_1234567890_mbf_hidro_voltage',
+      'unique_id': '1234567890_mbf_hidro_voltage',
       'unit_of_measurement': 'V',
     }),
     EntityRegistryEntrySnapshot({
@@ -513,7 +513,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'intelligent_intervals',
-      'unique_id': 'neopool_1234567890_mbf_par_intelligent_intervals',
+      'unique_id': '1234567890_mbf_par_intelligent_intervals',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -548,7 +548,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'intelligent_tt_next_interval',
-      'unique_id': 'neopool_1234567890_mbf_par_intelligent_tt_next_interval',
+      'unique_id': '1234567890_mbf_par_intelligent_tt_next_interval',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -585,7 +585,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ion_current',
-      'unique_id': 'neopool_1234567890_mbf_ion_current',
+      'unique_id': '1234567890_mbf_ion_current',
       'unit_of_measurement': '%',
     }),
     EntityRegistryEntrySnapshot({
@@ -627,7 +627,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ion_polarity',
-      'unique_id': 'neopool_1234567890_ion_polarity',
+      'unique_id': '1234567890_ion_polarity',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -672,7 +672,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph_status_alarm',
-      'unique_id': 'neopool_1234567890_mbf_ph_status_alarm',
+      'unique_id': '1234567890_mbf_ph_status_alarm',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -709,7 +709,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'measure_ph',
-      'unique_id': 'neopool_1234567890_mbf_measure_ph',
+      'unique_id': '1234567890_mbf_measure_ph',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -752,7 +752,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph_pump_status',
-      'unique_id': 'neopool_1234567890_ph_pump_status',
+      'unique_id': '1234567890_ph_pump_status',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -792,7 +792,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'measure_rx',
-      'unique_id': 'neopool_1234567890_mbf_measure_rx',
+      'unique_id': '1234567890_mbf_measure_rx',
       'unit_of_measurement': 'mV',
     }),
     EntityRegistryEntrySnapshot({
@@ -832,7 +832,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'measure_temperature',
-      'unique_id': 'neopool_1234567890_mbf_measure_temperature',
+      'unique_id': '1234567890_mbf_measure_temperature',
       'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
     }),
   ])
@@ -880,7 +880,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filt_mode',
-      'unique_id': 'neopool_1234567890_mbf_par_filt_mode',
+      'unique_id': '1234567890_mbf_par_filt_mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -915,7 +915,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration_remaining',
-      'unique_id': 'neopool_1234567890_filtration_remaining',
+      'unique_id': '1234567890_filtration_remaining',
       'unit_of_measurement': 's',
     }),
   ])

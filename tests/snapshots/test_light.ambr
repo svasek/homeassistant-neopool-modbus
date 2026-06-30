@@ -37,7 +37,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'light',
-      'unique_id': 'neopool_1234567890_light',
+      'unique_id': '1234567890_light',
       'unit_of_measurement': None,
     }),
   ])

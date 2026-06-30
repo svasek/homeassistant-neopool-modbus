@@ -133,7 +133,7 @@ async def test_measurement_module_off_when_filtration_off(
     registry.async_get_or_create(
         "binary_sensor",
         DOMAIN,
-        f"neopool_{MOCK_SERIAL}_ph measurement active",
+        f"{MOCK_SERIAL}_ph measurement active",
         config_entry=mock_config_entry,
         disabled_by=None,
     )

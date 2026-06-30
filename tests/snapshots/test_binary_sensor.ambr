@@ -33,7 +33,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'device_time_out_of_sync',
-      'unique_id': 'neopool_1234567890_device time out of sync',
+      'unique_id': '1234567890_device time out of sync',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -68,7 +68,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'filtration_pump',
-      'unique_id': 'neopool_1234567890_filtration pump',
+      'unique_id': '1234567890_filtration pump',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -103,7 +103,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'heating',
-      'unique_id': 'neopool_1234567890_heating',
+      'unique_id': '1234567890_heating',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -138,7 +138,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_activated_by_the_rx_module',
-      'unique_id': 'neopool_1234567890_hidro activated by the rx module',
+      'unique_id': '1234567890_hidro activated by the rx module',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -173,7 +173,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_chlorine_shock_mode',
-      'unique_id': 'neopool_1234567890_hidro chlorine shock mode',
+      'unique_id': '1234567890_hidro chlorine shock mode',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -208,7 +208,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_module_active',
-      'unique_id': 'neopool_1234567890_hidro module active',
+      'unique_id': '1234567890_hidro module active',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -243,7 +243,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_low_flow',
-      'unique_id': 'neopool_1234567890_hidro low flow',
+      'unique_id': '1234567890_hidro low flow',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -278,7 +278,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'hidro_module_regulated',
-      'unique_id': 'neopool_1234567890_hidro module regulated',
+      'unique_id': '1234567890_hidro module regulated',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -313,7 +313,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ion_on_target',
-      'unique_id': 'neopool_1234567890_ion on target',
+      'unique_id': '1234567890_ion on target',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -348,7 +348,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ion_low_flow',
-      'unique_id': 'neopool_1234567890_ion low flow',
+      'unique_id': '1234567890_ion low flow',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -383,7 +383,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ion_program_time_exceeded',
-      'unique_id': 'neopool_1234567890_ion program time exceeded',
+      'unique_id': '1234567890_ion program time exceeded',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -418,7 +418,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph_acid_pump',
-      'unique_id': 'neopool_1234567890_ph acid pump',
+      'unique_id': '1234567890_ph acid pump',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -453,7 +453,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph_module_control_status',
-      'unique_id': 'neopool_1234567890_ph module control status',
+      'unique_id': '1234567890_ph module control status',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -488,7 +488,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph_measurement_active',
-      'unique_id': 'neopool_1234567890_ph measurement active',
+      'unique_id': '1234567890_ph measurement active',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -523,7 +523,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'ph_control_module',
-      'unique_id': 'neopool_1234567890_ph control module',
+      'unique_id': '1234567890_ph control module',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -558,7 +558,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'pool_cover',
-      'unique_id': 'neopool_1234567890_pool cover',
+      'unique_id': '1234567890_pool cover',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -593,7 +593,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'pool_light',
-      'unique_id': 'neopool_1234567890_pool light',
+      'unique_id': '1234567890_pool light',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -628,7 +628,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'redox_measurement_active',
-      'unique_id': 'neopool_1234567890_redox measurement active',
+      'unique_id': '1234567890_redox measurement active',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -663,7 +663,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'redox_pump_active',
-      'unique_id': 'neopool_1234567890_redox pump active',
+      'unique_id': '1234567890_redox pump active',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -698,7 +698,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'redox_control_module',
-      'unique_id': 'neopool_1234567890_redox control module',
+      'unique_id': '1234567890_redox control module',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -733,7 +733,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux1',
-      'unique_id': 'neopool_1234567890_aux1',
+      'unique_id': '1234567890_aux1',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -768,7 +768,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux2',
-      'unique_id': 'neopool_1234567890_aux2',
+      'unique_id': '1234567890_aux2',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -803,7 +803,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux3',
-      'unique_id': 'neopool_1234567890_aux3',
+      'unique_id': '1234567890_aux3',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -838,7 +838,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux4',
-      'unique_id': 'neopool_1234567890_aux4',
+      'unique_id': '1234567890_aux4',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -873,7 +873,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'uv_lamp',
-      'unique_id': 'neopool_1234567890_uv lamp',
+      'unique_id': '1234567890_uv lamp',
       'unit_of_measurement': None,
     }),
   ])
@@ -912,7 +912,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'device_time_out_of_sync',
-      'unique_id': 'neopool_1234567890_device time out of sync',
+      'unique_id': '1234567890_device time out of sync',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -947,7 +947,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'pool_cover',
-      'unique_id': 'neopool_1234567890_pool cover',
+      'unique_id': '1234567890_pool cover',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -982,7 +982,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux1',
-      'unique_id': 'neopool_1234567890_aux1',
+      'unique_id': '1234567890_aux1',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1017,7 +1017,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux2',
-      'unique_id': 'neopool_1234567890_aux2',
+      'unique_id': '1234567890_aux2',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1052,7 +1052,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux3',
-      'unique_id': 'neopool_1234567890_aux3',
+      'unique_id': '1234567890_aux3',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -1087,7 +1087,7 @@
       'suggested_object_id': None,
       'supported_features': 0,
       'translation_key': 'aux4',
-      'unique_id': 'neopool_1234567890_aux4',
+      'unique_id': '1234567890_aux4',
       'unit_of_measurement': None,
     }),
   ])
