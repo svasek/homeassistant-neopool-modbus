@@ -43,7 +43,7 @@
       }),
       'title': 'Pool',
       'unique_id': '1234567890',
-      'version': 5,
+      'version': 6,
     }),
     'connection_stats': dict({
     }),

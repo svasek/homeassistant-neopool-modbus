@@ -13,7 +13,7 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from custom_components.neopool import async_migrate_entry
-from custom_components.neopool.const import DEFAULT_PORT
+from custom_components.neopool.const import DEFAULT_PORT, DOMAIN
 
 # ---------------------------------------------------------------------------
 # async_migrate_entry, version transitions
@@ -65,7 +65,7 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
 
     hass.config_entries.async_update_entry.side_effect = _apply_update
 
-    expected_unique_id = f"neopool_{DEFAULT_SERIAL_STRING}"
+    expected_unique_id = DEFAULT_SERIAL_STRING
 
     with (
         patch(
@@ -142,12 +142,12 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable() -> None:
 
 
 async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
-    """Test that a v3 entry is bumped through v4 to v5.
+    """Test that a v3 entry is bumped through v4, v5 and v6.
 
     v3 entries are produced by the cross-domain pipeline (vistapool v2 →
     neopool v3 rename). HA picks up the resulting entry, sees its stored
-    version differs from ConfigFlow.VERSION (=CURRENT_VERSION=5) and
-    dispatches to async_migrate_entry, which bumps v3→v4 then v4→v5.
+    version differs from ConfigFlow.VERSION (=CURRENT_VERSION=6) and
+    dispatches to async_migrate_entry, which bumps v3→v4 → v5 → v6.
     """
     hass = MagicMock()
 
@@ -166,21 +166,41 @@ async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
                 setattr(entry, k, v)
 
     hass.config_entries.async_update_entry.side_effect = _update_entry
+    hass.config_entries.async_entries.return_value = [config_entry]
 
-    result = await async_migrate_entry(hass, config_entry)
+    with (
+        patch(
+            "custom_components.neopool.migration.er.async_get",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "custom_components.neopool.migration.er.async_entries_for_config_entry",
+            return_value=[],
+        ),
+        patch(
+            "custom_components.neopool.migration.dr.async_get",
+            return_value=MagicMock(async_get_device=MagicMock(return_value=None)),
+        ),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
 
     assert result is True
-    assert hass.config_entries.async_update_entry.call_count == 2
+    assert hass.config_entries.async_update_entry.call_count == 3
     hass.config_entries.async_update_entry.assert_any_call(config_entry, version=4)
     hass.config_entries.async_update_entry.assert_any_call(
         config_entry,
         data={"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1},
         version=5,
     )
+    hass.config_entries.async_update_entry.assert_any_call(
+        config_entry,
+        unique_id="AABBCCDD11223344EEFF0011",
+        version=6,
+    )
 
 
 async def test_async_migrate_entry_v4_to_v5_slave_id_renamed() -> None:
-    """Test that a v4 entry with slave_id is migrated to v5 with unit_id."""
+    """Test that a v4 entry with slave_id is migrated through v5 to v6."""
     hass = MagicMock()
 
     config_entry = MagicMock()
@@ -199,24 +219,137 @@ async def test_async_migrate_entry_v4_to_v5_slave_id_renamed() -> None:
 
     hass.config_entries.async_update_entry.side_effect = _update_entry
 
-    result = await async_migrate_entry(hass, config_entry)
+    with (
+        patch(
+            "custom_components.neopool.migration.er.async_get",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "custom_components.neopool.migration.er.async_entries_for_config_entry",
+            return_value=[],
+        ),
+        patch(
+            "custom_components.neopool.migration.dr.async_get",
+            return_value=MagicMock(async_get_device=MagicMock(return_value=None)),
+        ),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
 
     assert result is True
-    hass.config_entries.async_update_entry.assert_called_once_with(
+    assert hass.config_entries.async_update_entry.call_count == 2
+    hass.config_entries.async_update_entry.assert_any_call(
         config_entry,
         data={"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 3},
         version=5,
     )
+    hass.config_entries.async_update_entry.assert_any_call(
+        config_entry,
+        unique_id="AABBCCDD11223344EEFF0011",
+        version=6,
+    )
 
 
-async def test_async_migrate_entry_already_at_current_version_is_noop() -> None:
-    """Test that calling async_migrate_entry on a v5 entry does nothing."""
+async def test_async_migrate_entry_v5_to_v6_drops_legacy_prefix() -> None:
+    """Test that a v5 entry with neopool_ prefix is migrated to v6 (bare serial)."""
     hass = MagicMock()
 
     config_entry = MagicMock()
     config_entry.entry_id = "neopool_entry_v5"
     config_entry.unique_id = "neopool_AABBCCDD11223344EEFF0011"
     config_entry.version = 5
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+
+    mock_entity1 = MagicMock()
+    mock_entity1.entity_id = "sensor.pool_temperature"
+    mock_entity1.unique_id = "neopool_AABBCCDD11223344EEFF0011_mbf_measure_temperature"
+    mock_entity2 = MagicMock()
+    mock_entity2.entity_id = "sensor.pool_ph"
+    mock_entity2.unique_id = "neopool_AABBCCDD11223344EEFF0011_mbf_measure_ph"
+    # Entity from a different integration that happens to share the registry.
+    mock_entity_unrelated = MagicMock()
+    mock_entity_unrelated.entity_id = "sensor.other"
+    mock_entity_unrelated.unique_id = "unrelated_xyz"
+
+    mock_entity_registry = MagicMock()
+    mock_old_device = MagicMock()
+    mock_old_device.id = "old_device_id"
+    mock_device_registry = MagicMock()
+    mock_device_registry.async_get_device.return_value = mock_old_device
+
+    def _update_entry(entry: MagicMock, **kwargs: Any) -> None:
+        for k, v in kwargs.items():
+            setattr(entry, k, v)
+
+    hass.config_entries.async_update_entry.side_effect = _update_entry
+
+    with (
+        patch(
+            "custom_components.neopool.migration.er.async_get",
+            return_value=mock_entity_registry,
+        ),
+        patch(
+            "custom_components.neopool.migration.er.async_entries_for_config_entry",
+            return_value=[mock_entity1, mock_entity2, mock_entity_unrelated],
+        ),
+        patch(
+            "custom_components.neopool.migration.dr.async_get",
+            return_value=mock_device_registry,
+        ),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
+
+    assert result is True
+    # Entity registry rewritten for the prefixed pair, untouched for the unrelated one.
+    assert mock_entity_registry.async_update_entity.call_count == 2
+    mock_entity_registry.async_update_entity.assert_any_call(
+        "sensor.pool_temperature",
+        new_unique_id="AABBCCDD11223344EEFF0011_mbf_measure_temperature",
+    )
+    mock_entity_registry.async_update_entity.assert_any_call(
+        "sensor.pool_ph",
+        new_unique_id="AABBCCDD11223344EEFF0011_mbf_measure_ph",
+    )
+    # Device registry identifier rewritten.
+    mock_device_registry.async_update_device.assert_called_once_with(
+        "old_device_id",
+        new_identifiers={(DOMAIN, "AABBCCDD11223344EEFF0011")},
+    )
+    # Config entry unique_id rewritten and version bumped.
+    hass.config_entries.async_update_entry.assert_called_once_with(
+        config_entry,
+        unique_id="AABBCCDD11223344EEFF0011",
+        version=6,
+    )
+
+
+async def test_async_migrate_entry_v5_to_v6_already_bare_just_bumps_version() -> None:
+    """v5 entry with bare unique_id (no neopool_ prefix) only gets a version bump."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "neopool_entry_v5"
+    config_entry.unique_id = "AABBCCDD11223344EEFF0011"
+    config_entry.version = 5
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+
+    result = await async_migrate_entry(hass, config_entry)
+
+    assert result is True
+    hass.config_entries.async_update_entry.assert_called_once_with(
+        config_entry, version=6
+    )
+
+
+async def test_async_migrate_entry_already_at_current_version_is_noop() -> None:
+    """Test that calling async_migrate_entry on a v6 entry does nothing."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "neopool_entry_v6"
+    config_entry.unique_id = "AABBCCDD11223344EEFF0011"
+    config_entry.version = 6
     config_entry.title = "My Pool"
     config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
@@ -239,7 +372,7 @@ async def test_async_migrate_entry_v1_to_v2_duplicate_detected() -> None:
 
     existing_entry = MagicMock()
     existing_entry.entry_id = "entry_bbb"
-    existing_entry.unique_id = f"neopool_{DEFAULT_SERIAL_STRING}"
+    existing_entry.unique_id = DEFAULT_SERIAL_STRING
     hass.config_entries.async_entries.return_value = [existing_entry]
 
     with patch(

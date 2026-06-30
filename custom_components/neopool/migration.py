@@ -53,6 +53,9 @@ OLD_DOMAIN = "vistapool"
 #            invoked from the neopool config flow).
 #   v3 → v4  marker bump after the neopool-modbus library extraction
 #            (HA-driven async_migrate_entry, no data-shape change).
+#   v4 → v5  slave_id → unit_id rename in entry data.
+#   v5 → v6  drop the legacy "neopool_" prefix from unique_ids
+#            (aligns with the HA core integration).
 
 # Marker used to validate that the orphaned `custom_components/vistapool/`
 # directory we're about to delete actually belonged to OUR integration
@@ -164,6 +167,8 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         library; entry data shape is unchanged. Tagging the entry helps
         diagnostics and any future v4-only logic to distinguish entries
         last touched before / after the library extraction.
+      * v4 → v5, slave_id → unit_id rename in entry data.
+      * v5 → v6, drop the legacy "neopool_" prefix from unique_ids.
 
     The v2 → v3 step (cross-domain ``vistapool`` → ``neopool`` rename)
     cannot run from here, by the time HA dispatches to this function the
@@ -195,16 +200,63 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             new_data["unit_id"] = new_data.pop("slave_id")
         else:
             new_data.pop("slave_id", None)
+        hass.config_entries.async_update_entry(config_entry, data=new_data, version=5)
+        _LOGGER.info(
+            "Migrated %s config entry %s to v5 (slave_id → unit_id)",
+            DOMAIN,
+            config_entry.entry_id,
+        )
+
+    if config_entry.version == 5:
+        await _migrate_v5_to_v6(hass, config_entry)
+    return True
+
+
+async def _migrate_v5_to_v6(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    """Drop the legacy ``neopool_`` prefix from config entry and entity unique_ids.
+
+    Pre-v6 entries used ``unique_id = "neopool_<serial>"`` for the config entry
+    and ``f"neopool_<serial>_<key>"`` for each entity. v6 aligns with the HA
+    core integration by using the bare serial in both places. This step is a
+    pure rename: nothing else changes, so it cannot fail at the device level.
+    """
+    old_uid = config_entry.unique_id
+    if old_uid and old_uid.startswith("neopool_"):
+        new_uid = old_uid.removeprefix("neopool_")
+
+        entity_registry = er.async_get(hass)
+        old_prefix = f"{old_uid}_"
+        new_prefix = f"{new_uid}_"
+        for entity_entry in er.async_entries_for_config_entry(
+            entity_registry, config_entry.entry_id
+        ):
+            if entity_entry.unique_id.startswith(old_prefix):
+                entity_registry.async_update_entity(
+                    entity_entry.entity_id,
+                    new_unique_id=new_prefix
+                    + entity_entry.unique_id.removeprefix(old_prefix),
+                )
+
+        device_registry = dr.async_get(hass)
+        old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_uid)})
+        if old_device:
+            device_registry.async_update_device(
+                old_device.id, new_identifiers={(DOMAIN, new_uid)}
+            )
+
         hass.config_entries.async_update_entry(
-            config_entry, data=new_data, version=CURRENT_VERSION
+            config_entry, unique_id=new_uid, version=CURRENT_VERSION
         )
         _LOGGER.info(
-            "Migrated %s config entry %s to v%d (slave_id → unit_id)",
+            "Migrated %s config entry %s to v%d (dropped neopool_ prefix)",
             DOMAIN,
             config_entry.entry_id,
             CURRENT_VERSION,
         )
-    return True
+    else:
+        # Already-bare unique_id (or None for unmigrated v1); just bump the
+        # version marker so HA stops re-entering this step.
+        hass.config_entries.async_update_entry(config_entry, version=CURRENT_VERSION)
 
 
 async def _migrate_v1_to_v2(
@@ -247,7 +299,7 @@ async def _migrate_v1_to_v2(
         # Don't bump version, migration will be retried on next HA startup
         return True
 
-    new_unique_id = f"neopool_{serial}"
+    new_unique_id = serial
 
     # Check if this serial is already registered (duplicate after migration).
     # We check both the source domain (where the entry lives now) and our
