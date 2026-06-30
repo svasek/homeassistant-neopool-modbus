@@ -19,7 +19,6 @@ from typing import override
 from neopool_modbus.decoders import (
     decode_par_model_modules,
     get_machine_name,
-    modbus_regs_to_hex_string,
     parse_version,
 )
 
@@ -30,12 +29,14 @@ from homeassistant.util import slugify as ha_slugify
 from .const import DOMAIN, NAME
 from .coordinator import NeoPoolCoordinator
 
+# CUSTOM-ONLY START, detected-module labels surfaced as hw_version in HACS.
 _MODULE_LABELS: dict[str, str] = {
     "ionization": "Ionization",
     "hydrolysis": "Hydro/Electrolysis",
     "uv_lamp": "UV Lamp",
     "salinity": "Salinity",
 }
+# CUSTOM-ONLY END
 
 
 class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
@@ -59,30 +60,22 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
 
     @property
     @override
-    def translation_key(self) -> str | None:
-        """Return the translation key for the entity."""
-        return getattr(self, "_attr_translation_key", None)  # pragma: no cover
-
-    @property
-    @override
     def device_info(self) -> DeviceInfo:  # pragma: no cover
         """Return device information for the entity."""
         data = self.coordinator.data or {}
-        serial_number = modbus_regs_to_hex_string(data.get("MBF_POWER_MODULE_NODEID"))
-
-        hw_identifier = self.coordinator.entry.unique_id or self._entry_id
-
+        unique_id = self.coordinator.entry.unique_id
         machine_type = (get_machine_name(data) or "").strip()
-        model_prefix = "NeoPool Compatible: " if machine_type else "NeoPool Compatible"
 
         return DeviceInfo(
-            identifiers={(DOMAIN, hw_identifier)},
-            name=self.coordinator.entry.title or NAME,
-            model=f"{model_prefix}{machine_type}".strip(),
+            identifiers={(DOMAIN, unique_id)},
+            name=NAME,
+            model=machine_type or NAME,
             manufacturer="Hayward (Sugar Valley)",
+            # CUSTOM-ONLY START, hw_version surface for detected modules.
             hw_version=f"Detected Modules: [{self._format_modules(data)}]",
+            # CUSTOM-ONLY END
             sw_version=f"v{self.coordinator.firmware} (v{parse_version(data.get('MBF_PAR_VERSION'))})",
-            serial_number=serial_number,
+            serial_number=unique_id,
         )
 
     @staticmethod
@@ -92,6 +85,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
             return ""
         return ha_slugify(name.lower().replace("mbf_", "", 1).replace("par_", "", 1))
 
+    # CUSTOM-ONLY START, detected-modules helper for hw_version label.
     @staticmethod
     def _format_modules(data: dict) -> str:
         """Render installed_modules as the hw_version label."""
@@ -102,3 +96,5 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         if not modules:
             return "None" if data.get("MBF_PAR_MODEL") is not None else "Unknown"
         return ", ".join(_MODULE_LABELS.get(m, m) for m in modules)
+
+    # CUSTOM-ONLY END

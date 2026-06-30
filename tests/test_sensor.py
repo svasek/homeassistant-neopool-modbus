@@ -486,7 +486,7 @@ async def test_filtration_pump_energy_restores_native_value_after_restart(
 ) -> None:
     """RestoreSensor recovers the previous Wh counter after a HA restart."""
     fake_state = State(
-        "sensor.pool_filtration_pump_energy",
+        "sensor.neopool_filtration_pump_energy",
         STATE_UNKNOWN,
     )
     fake_extra_data = {
@@ -535,7 +535,7 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
 ) -> None:
     """A non-numeric restored native_value does not corrupt the counter."""
     fake_state = State(
-        "sensor.pool_filtration_pump_energy",
+        "sensor.neopool_filtration_pump_energy",
         STATE_UNKNOWN,
     )
     # `native_value` typed as Decimal/datetime/date isn't valid for an energy

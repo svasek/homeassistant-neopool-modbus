@@ -53,7 +53,7 @@ async def test_manual_filtration_turn_on_off(
     """Manual filtration writes 1 to start the pump and 0 to stop it."""
     await setup_integration(hass, mock_config_entry)
 
-    await _turn_on(hass, "switch.pool_manual_filtration")  # manual_filtration entity
+    await _turn_on(hass, "switch.neopool_manual_filtration")  # manual_filtration entity
     # MANUAL_FILTRATION_REGISTER write
     addresses_written = [
         c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
@@ -61,7 +61,7 @@ async def test_manual_filtration_turn_on_off(
     assert addresses_written, "expected at least one register write"
 
     mock_neopool_client.async_write_register.reset_mock()
-    await _turn_off(hass, "switch.pool_manual_filtration")
+    await _turn_off(hass, "switch.neopool_manual_filtration")
     # any write with value 0 to MANUAL_FILTRATION_REGISTER
     write_calls = mock_neopool_client.async_write_register.await_args_list
     assert any(c.args[1] == 0 for c in write_calls)
@@ -82,10 +82,10 @@ async def test_winter_mode_turn_on_off(
     coordinator = mock_config_entry.runtime_data
     assert coordinator.winter_mode is False
 
-    await _turn_on(hass, "switch.pool_winter_mode")
+    await _turn_on(hass, "switch.neopool_winter_mode")
     assert coordinator.winter_mode is True
 
-    await _turn_off(hass, "switch.pool_winter_mode")
+    await _turn_off(hass, "switch.neopool_winter_mode")
     assert coordinator.winter_mode is False
 
 
@@ -104,10 +104,10 @@ async def test_auto_time_sync_turn_on_off(
     coordinator = mock_config_entry.runtime_data
     assert coordinator.auto_time_sync is False
 
-    await _turn_on(hass, "switch.pool_time_auto_sync")
+    await _turn_on(hass, "switch.neopool_time_auto_sync")
     assert coordinator.auto_time_sync is True
 
-    await _turn_off(hass, "switch.pool_time_auto_sync")
+    await _turn_off(hass, "switch.neopool_time_auto_sync")
     assert coordinator.auto_time_sync is False
 
 
@@ -186,7 +186,7 @@ async def test_manual_filtration_is_on_reflects_state(
     coordinator.data["MBF_PAR_FILT_MANUAL_STATE"] = 1
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
-    state = hass.states.get("switch.pool_manual_filtration")
+    state = hass.states.get("switch.neopool_manual_filtration")
     assert state is not None
     assert state.state == STATE_ON
 
@@ -194,7 +194,7 @@ async def test_manual_filtration_is_on_reflects_state(
     coordinator.data["MBF_PAR_FILT_MODE"] = 1
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
-    state = hass.states.get("switch.pool_manual_filtration")
+    state = hass.states.get("switch.neopool_manual_filtration")
     assert state is not None
     assert state.state == STATE_UNAVAILABLE
 

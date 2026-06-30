@@ -45,11 +45,11 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
 
     mock_entity1 = MagicMock()
     mock_entity1.unique_id = "old_entry_id_123_mbf_ph_measure"
-    mock_entity1.entity_id = "sensor.pool_ph"
+    mock_entity1.entity_id = "sensor.neopool_ph"
 
     mock_entity2 = MagicMock()
     mock_entity2.unique_id = "old_entry_id_123_mbf_temperature"
-    mock_entity2.entity_id = "sensor.pool_temperature"
+    mock_entity2.entity_id = "sensor.neopool_temperature"
 
     mock_entity_registry = MagicMock()
     mock_entity_registry.async_update_entity = MagicMock()
@@ -101,11 +101,11 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
     )
     assert mock_entity_registry.async_update_entity.call_count == 2
     mock_entity_registry.async_update_entity.assert_any_call(
-        "sensor.pool_ph",
+        "sensor.neopool_ph",
         new_unique_id=f"{expected_unique_id}_mbf_ph_measure",
     )
     mock_entity_registry.async_update_entity.assert_any_call(
-        "sensor.pool_temperature",
+        "sensor.neopool_temperature",
         new_unique_id=f"{expected_unique_id}_mbf_temperature",
     )
     # Old device identifier is keyed by the current DOMAIN ("neopool")
@@ -284,10 +284,10 @@ async def test_async_migrate_entry_v5_to_v6_drops_legacy_prefix() -> None:
     config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     mock_entity1 = MagicMock()
-    mock_entity1.entity_id = "sensor.pool_temperature"
+    mock_entity1.entity_id = "sensor.neopool_temperature"
     mock_entity1.unique_id = "neopool_AABBCCDD11223344EEFF0011_mbf_measure_temperature"
     mock_entity2 = MagicMock()
-    mock_entity2.entity_id = "sensor.pool_ph"
+    mock_entity2.entity_id = "sensor.neopool_ph"
     mock_entity2.unique_id = "neopool_AABBCCDD11223344EEFF0011_mbf_measure_ph"
     # Entity from a different integration that happens to share the registry.
     mock_entity_unrelated = MagicMock()
@@ -326,11 +326,11 @@ async def test_async_migrate_entry_v5_to_v6_drops_legacy_prefix() -> None:
     # Entity registry rewritten for the prefixed pair, untouched for the unrelated one.
     assert mock_entity_registry.async_update_entity.call_count == 2
     mock_entity_registry.async_update_entity.assert_any_call(
-        "sensor.pool_temperature",
+        "sensor.neopool_temperature",
         new_unique_id="AABBCCDD11223344EEFF0011_mbf_measure_temperature",
     )
     mock_entity_registry.async_update_entity.assert_any_call(
-        "sensor.pool_ph",
+        "sensor.neopool_ph",
         new_unique_id="AABBCCDD11223344EEFF0011_mbf_measure_ph",
     )
     # Device registry identifier rewritten.
@@ -424,11 +424,11 @@ async def test_async_migrate_entry_entity_update_error() -> None:
     # First entity will succeed, second will fail → first must be rolled back
     mock_entity1 = MagicMock()
     mock_entity1.unique_id = "old_entry_id_789_mbf_ph_measure"
-    mock_entity1.entity_id = "sensor.pool_ph"
+    mock_entity1.entity_id = "sensor.neopool_ph"
 
     mock_entity2 = MagicMock()
     mock_entity2.unique_id = "old_entry_id_789_mbf_temperature"
-    mock_entity2.entity_id = "sensor.pool_temperature"
+    mock_entity2.entity_id = "sensor.neopool_temperature"
 
     call_count = 0
 
@@ -465,7 +465,7 @@ async def test_async_migrate_entry_entity_update_error() -> None:
     assert mock_registry.async_update_entity.call_count == 3
     # Verify rollback call restored entity1's original unique_id
     mock_registry.async_update_entity.assert_any_call(
-        "sensor.pool_ph",
+        "sensor.neopool_ph",
         new_unique_id="old_entry_id_789_mbf_ph_measure",
     )
     # Version must NOT be bumped, migration will retry on next HA restart
@@ -487,11 +487,11 @@ async def test_async_migrate_entry_rollback_also_fails() -> None:
 
     mock_entity1 = MagicMock()
     mock_entity1.unique_id = "old_entry_id_789_mbf_ph_measure"
-    mock_entity1.entity_id = "sensor.pool_ph"
+    mock_entity1.entity_id = "sensor.neopool_ph"
 
     mock_entity2 = MagicMock()
     mock_entity2.unique_id = "old_entry_id_789_mbf_temperature"
-    mock_entity2.entity_id = "sensor.pool_temperature"
+    mock_entity2.entity_id = "sensor.neopool_temperature"
 
     call_count = 0
 
