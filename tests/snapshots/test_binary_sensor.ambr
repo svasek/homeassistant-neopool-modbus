@@ -22,12 +22,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Device Time Sync',
+      'object_id_base': 'Device time sync',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
       'original_icon': None,
-      'original_name': 'Device Time Sync',
+      'original_name': 'Device time sync',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -57,12 +57,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration Active',
+      'object_id_base': 'Filtration active',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Filtration Active',
+      'original_name': 'Filtration active',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -127,12 +127,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Activated by Redox Module',
+      'object_id_base': 'Hydrolysis activated by Redox module',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Activated by Redox Module',
+      'original_name': 'Hydrolysis activated by Redox module',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -162,12 +162,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Chlorine Shock Mode (Boost)',
+      'object_id_base': 'Hydrolysis chlorine shock mode (boost)',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Chlorine Shock Mode (Boost)',
+      'original_name': 'Hydrolysis chlorine shock mode (boost)',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -197,12 +197,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Enabled',
+      'object_id_base': 'Hydrolysis enabled',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Enabled',
+      'original_name': 'Hydrolysis enabled',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -232,12 +232,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Production Problem',
+      'object_id_base': 'Hydrolysis production problem',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Production Problem',
+      'original_name': 'Hydrolysis production problem',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -267,12 +267,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Regulation Active',
+      'object_id_base': 'Hydrolysis regulation active',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Regulation Active',
+      'original_name': 'Hydrolysis regulation active',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -302,12 +302,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Ionizer On Target',
+      'object_id_base': 'Ionizer on target',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Ionizer On Target',
+      'original_name': 'Ionizer on target',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -337,12 +337,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Ionizer Production Problem',
+      'object_id_base': 'Ionizer production problem',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
       'original_icon': None,
-      'original_name': 'Ionizer Production Problem',
+      'original_name': 'Ionizer production problem',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -372,12 +372,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Ionizer Program Time Exceeded',
+      'object_id_base': 'Ionizer program time exceeded',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
       'original_icon': None,
-      'original_name': 'Ionizer Program Time Exceeded',
+      'original_name': 'Ionizer program time exceeded',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -407,12 +407,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Acid Pump',
+      'object_id_base': 'pH acid pump',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'pH Acid Pump',
+      'original_name': 'pH acid pump',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -442,12 +442,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Flow Detection Control',
+      'object_id_base': 'pH flow detection control',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'pH Flow Detection Control',
+      'original_name': 'pH flow detection control',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -477,12 +477,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Measurement',
+      'object_id_base': 'pH measurement',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'pH Measurement',
+      'original_name': 'pH measurement',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -512,12 +512,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Regulation Active',
+      'object_id_base': 'pH regulation active',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'pH Regulation Active',
+      'original_name': 'pH regulation active',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -547,12 +547,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Pool Cover',
+      'object_id_base': 'Pool cover',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.OPENING: 'opening'>,
       'original_icon': None,
-      'original_name': 'Pool Cover',
+      'original_name': 'Pool cover',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -582,12 +582,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Pool Light',
+      'object_id_base': 'Pool light',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.LIGHT: 'light'>,
       'original_icon': None,
-      'original_name': 'Pool Light',
+      'original_name': 'Pool light',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -617,12 +617,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Redox Measurement',
+      'object_id_base': 'Redox measurement',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Redox Measurement',
+      'original_name': 'Redox measurement',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -652,12 +652,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Redox Pump Active',
+      'object_id_base': 'Redox pump active',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Redox Pump Active',
+      'original_name': 'Redox pump active',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -687,12 +687,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Redox Regulation Active',
+      'object_id_base': 'Redox regulation active',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Redox Regulation Active',
+      'original_name': 'Redox regulation active',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -862,12 +862,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'UV Lamp',
+      'object_id_base': 'UV lamp',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'UV Lamp',
+      'original_name': 'UV lamp',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -901,12 +901,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Device Time Sync',
+      'object_id_base': 'Device time sync',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
       'original_icon': None,
-      'original_name': 'Device Time Sync',
+      'original_name': 'Device time sync',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -936,12 +936,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Pool Cover',
+      'object_id_base': 'Pool cover',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.OPENING: 'opening'>,
       'original_icon': None,
-      'original_name': 'Pool Cover',
+      'original_name': 'Pool cover',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,

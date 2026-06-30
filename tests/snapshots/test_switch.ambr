@@ -127,12 +127,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Manual Filtration',
+      'object_id_base': 'Manual filtration',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Manual Filtration',
+      'original_name': 'Manual filtration',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -337,12 +337,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Time Auto Sync',
+      'object_id_base': 'Time auto sync',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Time Auto Sync',
+      'original_name': 'Time auto sync',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -372,12 +372,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'UV Mode',
+      'object_id_base': 'UV mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'UV Mode',
+      'original_name': 'UV mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -407,12 +407,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Winter Mode',
+      'object_id_base': 'Winter mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Winter Mode',
+      'original_name': 'Winter mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -446,12 +446,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Manual Filtration',
+      'object_id_base': 'Manual filtration',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Manual Filtration',
+      'original_name': 'Manual filtration',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -621,12 +621,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Time Auto Sync',
+      'object_id_base': 'Time auto sync',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Time Auto Sync',
+      'original_name': 'Time auto sync',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -656,12 +656,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Winter Mode',
+      'object_id_base': 'Winter mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Winter Mode',
+      'original_name': 'Winter mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,

@@ -27,12 +27,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Cover Reduction (when covered)',
+      'object_id_base': 'Cover reduction (when covered)',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Cover Reduction (when covered)',
+      'original_name': 'Cover reduction (when covered)',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -67,12 +67,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolisis Target Production Level',
+      'object_id_base': 'Hydrolisis target production level',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Hydrolisis Target Production Level',
+      'original_name': 'Hydrolisis target production level',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -107,12 +107,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Shutdown Temp. Threshold',
+      'object_id_base': 'Hydrolysis shutdown temp. threshold',
       'options': dict({
       }),
       'original_device_class': <NumberDeviceClass.TEMPERATURE: 'temperature'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Shutdown Temp. Threshold',
+      'original_name': 'Hydrolysis shutdown temp. threshold',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -147,12 +147,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Max Limit',
+      'object_id_base': 'pH max limit',
       'options': dict({
       }),
       'original_device_class': <NumberDeviceClass.PH: 'ph'>,
       'original_icon': None,
-      'original_name': 'pH Max Limit',
+      'original_name': 'pH max limit',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -187,12 +187,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Min Limit',
+      'object_id_base': 'pH min limit',
       'options': dict({
       }),
       'original_device_class': <NumberDeviceClass.PH: 'ph'>,
       'original_icon': None,
-      'original_name': 'pH Min Limit',
+      'original_name': 'pH min limit',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -227,12 +227,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Redox Setpoint',
+      'object_id_base': 'Redox setpoint',
       'options': dict({
       }),
       'original_device_class': <NumberDeviceClass.VOLTAGE: 'voltage'>,
       'original_icon': None,
-      'original_name': 'Redox Setpoint',
+      'original_name': 'Redox setpoint',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -347,12 +347,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Temperature Setpoint',
+      'object_id_base': 'Temperature setpoint',
       'options': dict({
       }),
       'original_device_class': <NumberDeviceClass.TEMPERATURE: 'temperature'>,
       'original_icon': None,
-      'original_name': 'Temperature Setpoint',
+      'original_name': 'Temperature setpoint',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -391,12 +391,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Cover Reduction (when covered)',
+      'object_id_base': 'Cover reduction (when covered)',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Cover Reduction (when covered)',
+      'original_name': 'Cover reduction (when covered)',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,

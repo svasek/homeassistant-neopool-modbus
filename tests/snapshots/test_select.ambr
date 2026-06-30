@@ -34,12 +34,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Backwash Repeat Interval',
+      'object_id_base': 'Backwash repeat interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Backwash Repeat Interval',
+      'original_name': 'Backwash repeat interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -75,12 +75,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Backwash Valve Mode',
+      'object_id_base': 'Backwash valve mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Backwash Valve Mode',
+      'original_name': 'Backwash valve mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -116,12 +116,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Boost Mode',
+      'object_id_base': 'Boost mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Boost Mode',
+      'original_name': 'Boost mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -160,12 +160,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration Mode',
+      'object_id_base': 'Filtration mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Filtration Mode',
+      'original_name': 'Filtration mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -250,12 +250,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Intelligent: Minimum Filtration Time',
+      'object_id_base': 'Intelligent: minimum filtration time',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Intelligent: Minimum Filtration Time',
+      'original_name': 'Intelligent: minimum filtration time',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -291,12 +291,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Light Mode',
+      'object_id_base': 'Light mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Light Mode',
+      'original_name': 'Light mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -338,12 +338,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Light Timer - Interval',
+      'object_id_base': 'Light timer - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Light Timer - Interval',
+      'original_name': 'Light timer - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -430,12 +430,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux1 Mode',
+      'object_id_base': 'Relay Aux1 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux1 Mode',
+      'original_name': 'Relay Aux1 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -471,12 +471,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux2 Mode',
+      'object_id_base': 'Relay Aux2 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux2 Mode',
+      'original_name': 'Relay Aux2 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -512,12 +512,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux3 Mode',
+      'object_id_base': 'Relay Aux3 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux3 Mode',
+      'original_name': 'Relay Aux3 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -553,12 +553,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux4 Mode',
+      'object_id_base': 'Relay Aux4 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux4 Mode',
+      'original_name': 'Relay Aux4 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -594,12 +594,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer 1 - Filtration Speed',
+      'object_id_base': 'Timer 1 - filtration speed',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer 1 - Filtration Speed',
+      'original_name': 'Timer 1 - filtration speed',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -635,12 +635,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer 2 - Filtration Speed',
+      'object_id_base': 'Timer 2 - filtration speed',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer 2 - Filtration Speed',
+      'original_name': 'Timer 2 - filtration speed',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -676,12 +676,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer 3 - Filtration Speed',
+      'object_id_base': 'Timer 3 - filtration speed',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer 3 - Filtration Speed',
+      'original_name': 'Timer 3 - filtration speed',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -723,12 +723,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux1 (1) - Interval',
+      'object_id_base': 'Timer Aux1 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux1 (1) - Interval',
+      'original_name': 'Timer Aux1 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -770,12 +770,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux1 (2) - Interval',
+      'object_id_base': 'Timer Aux1 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux1 (2) - Interval',
+      'original_name': 'Timer Aux1 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -817,12 +817,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux2 (1) - Interval',
+      'object_id_base': 'Timer Aux2 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux2 (1) - Interval',
+      'original_name': 'Timer Aux2 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -864,12 +864,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux2 (2) - Interval',
+      'object_id_base': 'Timer Aux2 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux2 (2) - Interval',
+      'original_name': 'Timer Aux2 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -911,12 +911,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux3 (1) - Interval',
+      'object_id_base': 'Timer Aux3 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux3 (1) - Interval',
+      'original_name': 'Timer Aux3 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -958,12 +958,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux3 (2) - Interval',
+      'object_id_base': 'Timer Aux3 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux3 (2) - Interval',
+      'original_name': 'Timer Aux3 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1005,12 +1005,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux4 (1) - Interval',
+      'object_id_base': 'Timer Aux4 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux4 (1) - Interval',
+      'original_name': 'Timer Aux4 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1052,12 +1052,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux4 (2) - Interval',
+      'object_id_base': 'Timer Aux4 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux4 (2) - Interval',
+      'original_name': 'Timer Aux4 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1096,12 +1096,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration Mode',
+      'object_id_base': 'Filtration mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Filtration Mode',
+      'original_name': 'Filtration mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1137,12 +1137,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Light Mode',
+      'object_id_base': 'Light mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Light Mode',
+      'original_name': 'Light mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1184,12 +1184,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Light Timer - Interval',
+      'object_id_base': 'Light timer - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Light Timer - Interval',
+      'original_name': 'Light timer - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1225,12 +1225,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux1 Mode',
+      'object_id_base': 'Relay Aux1 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux1 Mode',
+      'original_name': 'Relay Aux1 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1266,12 +1266,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux2 Mode',
+      'object_id_base': 'Relay Aux2 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux2 Mode',
+      'original_name': 'Relay Aux2 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1307,12 +1307,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux3 Mode',
+      'object_id_base': 'Relay Aux3 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux3 Mode',
+      'original_name': 'Relay Aux3 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1348,12 +1348,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Relay Aux4 Mode',
+      'object_id_base': 'Relay Aux4 mode',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Relay Aux4 Mode',
+      'original_name': 'Relay Aux4 mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1395,12 +1395,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux1 (1) - Interval',
+      'object_id_base': 'Timer Aux1 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux1 (1) - Interval',
+      'original_name': 'Timer Aux1 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1442,12 +1442,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux1 (2) - Interval',
+      'object_id_base': 'Timer Aux1 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux1 (2) - Interval',
+      'original_name': 'Timer Aux1 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1489,12 +1489,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux2 (1) - Interval',
+      'object_id_base': 'Timer Aux2 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux2 (1) - Interval',
+      'original_name': 'Timer Aux2 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1536,12 +1536,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux2 (2) - Interval',
+      'object_id_base': 'Timer Aux2 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux2 (2) - Interval',
+      'original_name': 'Timer Aux2 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1583,12 +1583,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux3 (1) - Interval',
+      'object_id_base': 'Timer Aux3 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux3 (1) - Interval',
+      'original_name': 'Timer Aux3 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1630,12 +1630,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux3 (2) - Interval',
+      'object_id_base': 'Timer Aux3 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux3 (2) - Interval',
+      'original_name': 'Timer Aux3 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1677,12 +1677,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux4 (1) - Interval',
+      'object_id_base': 'Timer Aux4 (1) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux4 (1) - Interval',
+      'original_name': 'Timer Aux4 (1) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -1724,12 +1724,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Timer Aux4 (2) - Interval',
+      'object_id_base': 'Timer Aux4 (2) - interval',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Timer Aux4 (2) - Interval',
+      'original_name': 'Timer Aux4 (2) - interval',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,

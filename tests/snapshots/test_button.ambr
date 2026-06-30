@@ -22,12 +22,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Clear Error Messages',
+      'object_id_base': 'Clear error messages',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Clear Error Messages',
+      'original_name': 'Clear error messages',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -92,12 +92,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Start Backwash',
+      'object_id_base': 'Start backwash',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Start Backwash',
+      'original_name': 'Start backwash',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -127,12 +127,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Synchronize Device Time',
+      'object_id_base': 'Synchronize device time',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Synchronize Device Time',
+      'original_name': 'Synchronize device time',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -166,12 +166,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Clear Error Messages',
+      'object_id_base': 'Clear error messages',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Clear Error Messages',
+      'original_name': 'Clear error messages',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -201,12 +201,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Synchronize Device Time',
+      'object_id_base': 'Synchronize device time',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Synchronize Device Time',
+      'original_name': 'Synchronize device time',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,

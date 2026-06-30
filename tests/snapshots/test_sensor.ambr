@@ -24,7 +24,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Backwash Time Remaining',
+      'object_id_base': 'Backwash time remaining',
       'options': dict({
         'sensor': dict({
           'suggested_display_precision': 0,
@@ -32,7 +32,7 @@
       }),
       'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
       'original_icon': None,
-      'original_name': 'Backwash Time Remaining',
+      'original_name': 'Backwash time remaining',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -310,12 +310,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration Mode',
+      'object_id_base': 'Filtration mode',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
       'original_icon': None,
-      'original_name': 'Filtration Mode',
+      'original_name': 'Filtration mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -345,12 +345,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration Time Remaining',
+      'object_id_base': 'Filtration time remaining',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
       'original_icon': None,
-      'original_name': 'Filtration Time Remaining',
+      'original_name': 'Filtration time remaining',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -382,7 +382,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Intensity',
+      'object_id_base': 'Hydrolysis intensity',
       'options': dict({
         'sensor': dict({
           'suggested_display_precision': 0,
@@ -390,7 +390,7 @@
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Hydrolysis Intensity',
+      'original_name': 'Hydrolysis intensity',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -428,12 +428,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Polarity',
+      'object_id_base': 'Hydrolysis polarity',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Polarity',
+      'original_name': 'Hydrolysis polarity',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -465,12 +465,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Hydrolysis Voltage',
+      'object_id_base': 'Hydrolysis voltage',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.VOLTAGE: 'voltage'>,
       'original_icon': None,
-      'original_name': 'Hydrolysis Voltage',
+      'original_name': 'Hydrolysis voltage',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -502,12 +502,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Intelligent Mode Intervals',
+      'object_id_base': 'Intelligent mode intervals',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Intelligent Mode Intervals',
+      'original_name': 'Intelligent mode intervals',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -537,12 +537,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Intelligent Mode Next Interval Start',
+      'object_id_base': 'Intelligent mode next interval start',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
       'original_icon': None,
-      'original_name': 'Intelligent Mode Next Interval Start',
+      'original_name': 'Intelligent mode next interval start',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -574,12 +574,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Ionization Level',
+      'object_id_base': 'Ionization level',
       'options': dict({
       }),
       'original_device_class': None,
       'original_icon': None,
-      'original_name': 'Ionization Level',
+      'original_name': 'Ionization level',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -616,12 +616,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Ionizer Polarity',
+      'object_id_base': 'Ionizer polarity',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
       'original_icon': None,
-      'original_name': 'Ionizer Polarity',
+      'original_name': 'Ionizer polarity',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -661,12 +661,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Alarm',
+      'object_id_base': 'pH alarm',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
       'original_icon': None,
-      'original_name': 'pH Alarm',
+      'original_name': 'pH alarm',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -698,12 +698,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Level',
+      'object_id_base': 'pH level',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.PH: 'ph'>,
       'original_icon': None,
-      'original_name': 'pH Level',
+      'original_name': 'pH level',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -741,12 +741,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'pH Pump Status',
+      'object_id_base': 'pH pump status',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
       'original_icon': None,
-      'original_name': 'pH Pump Status',
+      'original_name': 'pH pump status',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -778,7 +778,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Redox Potential',
+      'object_id_base': 'Redox potential',
       'options': dict({
         'sensor': dict({
           'suggested_display_precision': 0,
@@ -786,7 +786,7 @@
       }),
       'original_device_class': <SensorDeviceClass.VOLTAGE: 'voltage'>,
       'original_icon': None,
-      'original_name': 'Redox Potential',
+      'original_name': 'Redox potential',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -818,7 +818,7 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Water Temperature',
+      'object_id_base': 'Water temperature',
       'options': dict({
         'sensor': dict({
           'suggested_display_precision': 1,
@@ -826,7 +826,7 @@
       }),
       'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
       'original_icon': None,
-      'original_name': 'Water Temperature',
+      'original_name': 'Water temperature',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -869,12 +869,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration Mode',
+      'object_id_base': 'Filtration mode',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
       'original_icon': None,
-      'original_name': 'Filtration Mode',
+      'original_name': 'Filtration mode',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
@@ -904,12 +904,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration Time Remaining',
+      'object_id_base': 'Filtration time remaining',
       'options': dict({
       }),
       'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
       'original_icon': None,
-      'original_name': 'Filtration Time Remaining',
+      'original_name': 'Filtration time remaining',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,
