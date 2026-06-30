@@ -16,7 +16,6 @@
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-import logging
 from typing import Any, override
 
 from neopool_modbus.capabilities import is_ionization_present
@@ -36,52 +35,71 @@ from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
 from .helpers import is_device_time_out_of_sync
 
-_LOGGER = logging.getLogger(__name__)
-
 PARALLEL_UPDATES = 0
 
-type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
+type _SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
 
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes a NeoPool binary sensor entity."""
 
-    supported_fn: SupportedFn | None = None
+    supported_fn: _SupportedFn | None = None
+    value_fn: Callable[[Mapping[str, Any], HomeAssistant], bool | None] | None = None
 
 
-def _gpio_ok(gpio_key: str) -> SupportedFn:
+def _gpio_ok(gpio_key: str) -> _SupportedFn:
     """Return a supported_fn that checks a relay GPIO key is valid."""
     return lambda data, opts: (
         gpio_key not in data or is_valid_relay_gpio(data[gpio_key] or 0)
     )
 
 
-def _module_detected(module_key: str) -> SupportedFn:
+def _module_detected(module_key: str) -> _SupportedFn:
     """Return a supported_fn that requires a measurement module to be detected."""
     return lambda data, opts: bool(data.get(module_key))
+
+
+def _device_time_drift(data: Mapping[str, Any], hass: HomeAssistant) -> bool | None:
+    """Compute whether the device clock is out of sync with HA."""
+    if data.get("MBF_PAR_TIME") is None:
+        return None
+    return is_device_time_out_of_sync(data, hass)
+
+
+def _pool_cover_open(data: Mapping[str, Any], hass: HomeAssistant) -> bool | None:
+    """Invert the raw cover state to match BinarySensorDeviceClass.OPENING semantics."""
+    value = data.get("Pool Cover")
+    if value is None:
+        return None
+    return not bool(value)
 
 
 BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     "Device Time Out Of Sync": NeoPoolBinarySensorEntityDescription(
         key="Device Time Out Of Sync",
+        translation_key="device_time_out_of_sync",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_device_time_drift,
     ),
     # Relay states
     "pH Acid Pump": NeoPoolBinarySensorEntityDescription(
         key="pH Acid Pump",
+        translation_key="ph_acid_pump",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=_gpio_ok("MBF_PAR_PH_ACID_RELAY_GPIO"),
     ),
     "Filtration Pump": NeoPoolBinarySensorEntityDescription(
         key="Filtration Pump",
+        translation_key="filtration_pump",
         device_class=BinarySensorDeviceClass.RUNNING,
         supported_fn=_gpio_ok("MBF_PAR_FILT_GPIO"),
     ),
     "Pool Light": NeoPoolBinarySensorEntityDescription(
         key="Pool Light",
+        translation_key="pool_light",
         device_class=BinarySensorDeviceClass.LIGHT,
         supported_fn=lambda data, opts: (
             bool(opts.get("use_light"))
@@ -93,26 +111,31 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "AUX1": NeoPoolBinarySensorEntityDescription(
         key="AUX1",
+        translation_key="aux1",
         device_class=BinarySensorDeviceClass.POWER,
         supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
     ),
     "AUX2": NeoPoolBinarySensorEntityDescription(
         key="AUX2",
+        translation_key="aux2",
         device_class=BinarySensorDeviceClass.POWER,
         supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
     ),
     "AUX3": NeoPoolBinarySensorEntityDescription(
         key="AUX3",
+        translation_key="aux3",
         device_class=BinarySensorDeviceClass.POWER,
         supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
     ),
     "AUX4": NeoPoolBinarySensorEntityDescription(
         key="AUX4",
+        translation_key="aux4",
         device_class=BinarySensorDeviceClass.POWER,
         supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
     ),
     "pH module control status": NeoPoolBinarySensorEntityDescription(
         key="pH module control status",
+        translation_key="ph_module_control_status",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -120,6 +143,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "pH control module": NeoPoolBinarySensorEntityDescription(
         key="pH control module",
+        translation_key="ph_control_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -127,6 +151,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "pH measurement active": NeoPoolBinarySensorEntityDescription(
         key="pH measurement active",
+        translation_key="ph_measurement_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -134,6 +159,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Redox pump active": NeoPoolBinarySensorEntityDescription(
         key="Redox pump active",
+        translation_key="redox_pump_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -147,6 +173,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Redox control module": NeoPoolBinarySensorEntityDescription(
         key="Redox control module",
+        translation_key="redox_control_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -154,6 +181,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Redox measurement active": NeoPoolBinarySensorEntityDescription(
         key="Redox measurement active",
+        translation_key="redox_measurement_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -161,12 +189,14 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Chlorine flow sensor problem": NeoPoolBinarySensorEntityDescription(
         key="Chlorine flow sensor problem",
+        translation_key="chlorine_flow_sensor_problem",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=_module_detected("Chlorine measurement module detected"),
     ),
     "Chlorine pump active": NeoPoolBinarySensorEntityDescription(
         key="Chlorine pump active",
+        translation_key="chlorine_pump_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -180,6 +210,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Chlorine control module": NeoPoolBinarySensorEntityDescription(
         key="Chlorine control module",
+        translation_key="chlorine_control_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -187,6 +218,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Chlorine measurement active": NeoPoolBinarySensorEntityDescription(
         key="Chlorine measurement active",
+        translation_key="chlorine_measurement_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -194,6 +226,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Conductivity pump active": NeoPoolBinarySensorEntityDescription(
         key="Conductivity pump active",
+        translation_key="conductivity_pump_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -207,6 +240,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Conductivity control module": NeoPoolBinarySensorEntityDescription(
         key="Conductivity control module",
+        translation_key="conductivity_control_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -214,6 +248,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Conductivity measurement active": NeoPoolBinarySensorEntityDescription(
         key="Conductivity measurement active",
+        translation_key="conductivity_measurement_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -221,41 +256,49 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "ION On Target": NeoPoolBinarySensorEntityDescription(
         key="ION On Target",
+        translation_key="ion_on_target",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: is_ionization_present(data),  # pragma: no cover
     ),
     "ION Low Flow": NeoPoolBinarySensorEntityDescription(
         key="ION Low Flow",
+        translation_key="ion_low_flow",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=lambda data, opts: is_ionization_present(data),  # pragma: no cover
     ),
     "ION Program time exceeded": NeoPoolBinarySensorEntityDescription(
         key="ION Program time exceeded",
+        translation_key="ion_program_time_exceeded",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=lambda data, opts: is_ionization_present(data),  # pragma: no cover
     ),
     "HIDRO Low Flow": NeoPoolBinarySensorEntityDescription(
         key="HIDRO Low Flow",
+        translation_key="hidro_low_flow",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=_module_detected("Hydrolysis module detected"),
     ),
     "Pool Cover": NeoPoolBinarySensorEntityDescription(
         key="Pool Cover",
+        translation_key="pool_cover",
         device_class=BinarySensorDeviceClass.OPENING,
         supported_fn=lambda data, opts: bool(opts.get("use_cover_sensor")),
+        value_fn=_pool_cover_open,
     ),
     "HIDRO Module active": NeoPoolBinarySensorEntityDescription(
         key="HIDRO Module active",
+        translation_key="hidro_module_active",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=_module_detected("Hydrolysis module detected"),
     ),
     "HIDRO Module regulated": NeoPoolBinarySensorEntityDescription(
         key="HIDRO Module regulated",
+        translation_key="hidro_module_regulated",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -263,6 +306,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "HIDRO Activated by the RX module": NeoPoolBinarySensorEntityDescription(
         key="HIDRO Activated by the RX module",
+        translation_key="hidro_activated_by_the_rx_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=lambda data, opts: (
@@ -272,12 +316,14 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "HIDRO Chlorine shock mode": NeoPoolBinarySensorEntityDescription(
         key="HIDRO Chlorine shock mode",
+        translation_key="hidro_chlorine_shock_mode",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=_module_detected("Hydrolysis module detected"),
     ),
     "HIDRO Activated by the CL module": NeoPoolBinarySensorEntityDescription(
         key="HIDRO Activated by the CL module",
+        translation_key="hidro_activated_by_the_cl_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=lambda data, opts: (
@@ -287,12 +333,14 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "Heating": NeoPoolBinarySensorEntityDescription(
         key="Heating",
+        translation_key="heating",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=_gpio_ok("MBF_PAR_HEATING_GPIO"),
     ),
     "UV Lamp": NeoPoolBinarySensorEntityDescription(
         key="UV Lamp",
+        translation_key="uv_lamp",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=lambda data, opts: (
@@ -301,6 +349,9 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         ),
     ),
 }
+
+
+_MEASUREMENT_SUFFIXES = ("_measurement_active", "_module_active")
 
 
 async def async_setup_entry(
@@ -336,48 +387,20 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
         super().__init__(coordinator, entry_id)
         self.entity_description = description
         self._key = key
-        device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(key)
-
-    @override
-    async def async_added_to_hass(self) -> None:
-        """Run when the entity is added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self.translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-        await super().async_added_to_hass()
+        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
 
     @property
     @override
     def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
-        if self._key == "Device Time Out Of Sync":
-            if self.coordinator.data.get("MBF_PAR_TIME") is None:
-                return None
-            return is_device_time_out_of_sync(self.coordinator.data, self.hass)
+        if (value_fn := self.entity_description.value_fn) is not None:
+            return value_fn(self.coordinator.data, self.hass)
 
-        if self._key == "Pool Cover":
-            value = self.coordinator.data.get(self._key)
-            if value is None:
-                return None
-            return not bool(value)
-
-        key_slug = NeoPoolEntity.slugify(self._key)
-        if key_slug.endswith("_measurement_active") or key_slug.endswith(
-            "_module_active"
-        ):
+        translation_key = self.entity_description.translation_key or ""
+        if translation_key.endswith(_MEASUREMENT_SUFFIXES):
             filtration_state = self.coordinator.data.get("Filtration Pump")
             if filtration_state is not None and filtration_state is False:
                 return False
 
         value = self.coordinator.data.get(self._key)
         return None if value is None else bool(value)
-
-    @property
-    def native_value(self) -> bool | None:
-        """Return the actual sensor value."""
-        return self.coordinator.data.get(self._key)  # pragma: no cover
