@@ -12,6 +12,8 @@ script excludes this whole file via ``EXCLUDE_TEST_FILES``.
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from neopool_modbus.exceptions import NeoPoolError
+
 from custom_components.neopool import async_migrate_entry
 from custom_components.neopool.const import DEFAULT_PORT, DOMAIN
 
@@ -69,7 +71,7 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
 
     with (
         patch(
-            "custom_components.neopool.migration.async_get_device_serial",
+            "custom_components.neopool.migration.async_probe_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         patch(
@@ -131,13 +133,34 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable() -> None:
     config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
 
     with patch(
-        "custom_components.neopool.migration.async_get_device_serial",
+        "custom_components.neopool.migration.async_probe_serial",
         new=AsyncMock(return_value=None),
     ):
         result = await async_migrate_entry(hass, config_entry)
 
     assert result is True
     # Version must NOT be bumped, migration will retry on next HA restart
+    hass.config_entries.async_update_entry.assert_not_called()
+
+
+async def test_async_migrate_entry_v1_to_v2_probe_raises_neopool_error() -> None:
+    """A NeoPoolError from the lib probe is swallowed and the migration defers."""
+    hass = MagicMock()
+
+    config_entry = MagicMock()
+    config_entry.entry_id = "old_entry_id_789"
+    config_entry.unique_id = None
+    config_entry.version = 1
+    config_entry.title = "My Pool"
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+
+    with patch(
+        "custom_components.neopool.migration.async_probe_serial",
+        new=AsyncMock(side_effect=NeoPoolError("connection refused")),
+    ):
+        result = await async_migrate_entry(hass, config_entry)
+
+    assert result is True
     hass.config_entries.async_update_entry.assert_not_called()
 
 
@@ -376,7 +399,7 @@ async def test_async_migrate_entry_v1_to_v2_duplicate_detected() -> None:
     hass.config_entries.async_entries.return_value = [existing_entry]
 
     with patch(
-        "custom_components.neopool.migration.async_get_device_serial",
+        "custom_components.neopool.migration.async_probe_serial",
         new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
     ):
         result = await async_migrate_entry(hass, config_entry)
@@ -423,7 +446,7 @@ async def test_async_migrate_entry_entity_update_error() -> None:
 
     with (
         patch(
-            "custom_components.neopool.migration.async_get_device_serial",
+            "custom_components.neopool.migration.async_probe_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         patch(
@@ -484,7 +507,7 @@ async def test_async_migrate_entry_rollback_also_fails() -> None:
 
     with (
         patch(
-            "custom_components.neopool.migration.async_get_device_serial",
+            "custom_components.neopool.migration.async_probe_serial",
             new=AsyncMock(return_value=DEFAULT_SERIAL_STRING),
         ),
         patch(

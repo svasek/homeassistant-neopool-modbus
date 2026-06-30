@@ -1,16 +1,12 @@
 """Tests for the NeoPool helper functions."""
 
-import asyncio as _asyncio
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, patch
-from zoneinfo import ZoneInfo
+from unittest.mock import patch
 
 from neopool_modbus.capabilities import has_filtvalve
-from neopool_modbus.exceptions import NeoPoolError
 import pytest
 
 from custom_components.neopool.helpers import (
-    async_get_device_serial,
     calculate_next_interval_time,
     get_device_time,
     is_device_time_out_of_sync,
@@ -118,26 +114,13 @@ def test_is_device_time_out_of_sync_no_data() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_calculate_next_interval_time_with_hass(hass: HomeAssistant) -> None:
-    """With hass, the next-interval timestamp is in HA's local timezone."""
-    hass.config.time_zone = "Europe/Prague"
-    result = calculate_next_interval_time(3600, hass)
-    assert result is not None
-    assert result.tzinfo is not None
-    assert result.second == 0
-    assert result.microsecond == 0
-    expected = (
-        dt_util.now(ZoneInfo("Europe/Prague")) + timedelta(seconds=3600)
-    ).replace(second=0, microsecond=0)
-    assert abs((result - expected).total_seconds()) < 60
-
-
-def test_calculate_next_interval_time_without_hass() -> None:
-    """Without hass, calculation falls back to UTC."""
-    result = calculate_next_interval_time(7200, None)
+def test_calculate_next_interval_time_returns_utc() -> None:
+    """The next-interval timestamp is UTC, rounded to the nearest minute."""
+    result = calculate_next_interval_time(7200)
     assert result is not None
     assert result.tzinfo == UTC
     assert result.second == 0
+    assert result.microsecond == 0
     expected = (dt_util.utcnow() + timedelta(seconds=7200)).replace(
         second=0, microsecond=0
     )
@@ -147,7 +130,7 @@ def test_calculate_next_interval_time_without_hass() -> None:
 @pytest.mark.parametrize("invalid", [0, -100, None])
 def test_calculate_next_interval_time_invalid_input(invalid: float | None) -> None:
     """Zero, negative or None seconds yield None."""
-    assert calculate_next_interval_time(invalid, None) is None
+    assert calculate_next_interval_time(invalid) is None
 
 
 # ---------------------------------------------------------------------------
@@ -218,44 +201,3 @@ def test_parse_register_int_rejects_out_of_range(raw: int | str) -> None:
     """Values outside the 16-bit holding-register range are rejected."""
     with pytest.raises(ServiceValidationError):
         parse_register_int(raw, "value")
-
-
-# ---------------------------------------------------------------------------
-# async_get_device_serial
-# ---------------------------------------------------------------------------
-
-
-async def test_async_get_device_serial_success() -> None:
-    """async_get_device_serial returns the serial when the probe succeeds."""
-
-    config = {"host": "192.0.2.1", "port": 502, "unit_id": 1, "modbus_framer": "tcp"}
-    with patch(
-        "custom_components.neopool.helpers.async_probe_serial",
-        new=AsyncMock(return_value="ABCDEF1234"),
-    ):
-        assert await async_get_device_serial(config) == "ABCDEF1234"
-
-
-async def test_async_get_device_serial_neopool_error_returns_none() -> None:
-    """A NeoPoolError from the probe yields None and a warning log entry."""
-
-    config = {"host": "192.0.2.1", "port": 502}
-    with patch(
-        "custom_components.neopool.helpers.async_probe_serial",
-        new=AsyncMock(side_effect=NeoPoolError("connection refused")),
-    ):
-        assert await async_get_device_serial(config) is None
-
-
-async def test_async_get_device_serial_propagates_cancelled_error() -> None:
-    """async.CancelledError propagates so callers can act on cancellation."""
-
-    config = {"host": "192.0.2.1", "port": 502}
-    with (
-        patch(
-            "custom_components.neopool.helpers.async_probe_serial",
-            new=AsyncMock(side_effect=_asyncio.CancelledError),
-        ),
-        pytest.raises(_asyncio.CancelledError),
-    ):
-        await async_get_device_serial(config)

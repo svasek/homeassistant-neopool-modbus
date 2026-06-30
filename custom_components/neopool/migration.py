@@ -23,6 +23,9 @@ import shutil
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
+from neopool_modbus import async_probe_serial
+from neopool_modbus.exceptions import NeoPoolError
+from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
 import voluptuous as vol
 
 from homeassistant.config_entries import (
@@ -36,7 +39,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from .const import CURRENT_VERSION, DOMAIN
-from .helpers import async_get_device_serial
 
 if TYPE_CHECKING:
     from .config_flow import NeoPoolConfigFlow
@@ -289,7 +291,16 @@ async def _migrate_v1_to_v2(
     )
 
     # Trial read to get serial (dict() unwraps MappingProxy for the Modbus client)
-    serial = await async_get_device_serial(dict(config_entry.data))
+    config = dict(config_entry.data)
+    try:
+        serial = await async_probe_serial(
+            config[CONF_HOST],
+            port=config.get(CONF_PORT, 502),
+            unit_id=config.get("unit_id", 1),
+            framer=config.get("modbus_framer", DEFAULT_MODBUS_FRAMER),
+        )
+    except NeoPoolError:
+        serial = None
     if not serial:
         _LOGGER.warning(
             "Migration for %s: Cannot read device serial, "

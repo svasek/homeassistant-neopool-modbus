@@ -422,7 +422,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
             return PH_STATUS_ALARM_MAP.get(ph_alarm) if ph_alarm is not None else None
         if self._key == "MBF_PAR_INTELLIGENT_TT_NEXT_INTERVAL":
             seconds = self.coordinator.data.get(self._key)
-            return calculate_next_interval_time(seconds, self.hass)
+            return calculate_next_interval_time(seconds)
         return self.coordinator.data.get(self._key)
 
     @property
