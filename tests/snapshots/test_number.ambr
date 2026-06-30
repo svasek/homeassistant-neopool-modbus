@@ -239,7 +239,7 @@
       'supported_features': 0,
       'translation_key': 'rx1',
       'unique_id': '1234567890_mbf_par_rx1',
-      'unit_of_measurement': 'mV',
+      'unit_of_measurement': <UnitOfElectricPotential.MILLIVOLT: 'mV'>,
     }),
     EntityRegistryEntrySnapshot({
       'aliases': list([

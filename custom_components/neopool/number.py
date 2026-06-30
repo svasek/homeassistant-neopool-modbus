@@ -45,7 +45,13 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberMode,
 )
-from homeassistant.const import EntityCategory
+from homeassistant.const import (
+    CONCENTRATION_PARTS_PER_MILLION,
+    PERCENTAGE,
+    EntityCategory,
+    UnitOfElectricPotential,
+    UnitOfTemperature,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -57,8 +63,6 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
-type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
-
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolNumberEntityDescription(NumberEntityDescription):
@@ -69,7 +73,11 @@ class NeoPoolNumberEntityDescription(NumberEntityDescription):
     mask: int | None = None
     shift: int = 0
     data_key: str | None = None
-    supported_fn: SupportedFn | None = None
+    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
+    precision_fn: Callable[[Mapping[str, Any]], int | None] | None = None
+    unit_fn: Callable[[Mapping[str, Any]], str | None] | None = None
+    max_fn: Callable[[Mapping[str, Any]], float | None] | None = None
+    step_fn: Callable[[Mapping[str, Any]], float | None] | None = None
 
 
 def _support_heating_temp(data: dict[str, Any], opts: Mapping[str, Any]) -> bool:
@@ -80,10 +88,32 @@ def _support_heating_temp(data: dict[str, Any], opts: Mapping[str, Any]) -> bool
     return bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
 
 
+def _hidro_precision(data: Mapping[str, Any]) -> int:
+    """0 decimals in percent mode, 1 decimal in g/h mode."""
+    return 0 if is_hydrolysis_in_percent(data) else 1
+
+
+def _hidro_unit(data: Mapping[str, Any]) -> str:
+    """Surface the hydrolysis target unit dynamically: % or g/h."""
+    return PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h"
+
+
+def _hidro_max(data: Mapping[str, Any]) -> float | None:
+    """Use the device-reported nominal as the hidro maximum, or fall back to the static default."""
+    hidro_nom = data.get("MBF_PAR_HIDRO_NOM")
+    return float(hidro_nom) if hidro_nom is not None else None
+
+
+def _hidro_step(data: Mapping[str, Any]) -> float:
+    """Step is 1 in percent mode, 0.1 in g/h mode."""
+    return 1.0 if is_hydrolysis_in_percent(data) else 0.1
+
+
 NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     "MBF_PAR_HIDRO": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO",
-        native_unit_of_measurement="%",
+        translation_key="hidro",
+        native_unit_of_measurement=PERCENTAGE,
         native_min_value=0.0,
         native_max_value=100.0,
         native_step=1.0,
@@ -91,9 +121,14 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         scale=10.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=lambda data, opts: bool(data.get("Hydrolysis module detected")),
+        precision_fn=_hidro_precision,
+        unit_fn=_hidro_unit,
+        max_fn=_hidro_max,
+        step_fn=_hidro_step,
     ),
     "MBF_PAR_PH1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_PH1",
+        translation_key="ph1",
         device_class=NumberDeviceClass.PH,
         native_min_value=0.0,
         native_max_value=14.0,
@@ -108,6 +143,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_PH2": NeoPoolNumberEntityDescription(
         key="MBF_PAR_PH2",
+        translation_key="ph2",
         device_class=NumberDeviceClass.PH,
         native_min_value=0.0,
         native_max_value=14.0,
@@ -122,7 +158,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_RX1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_RX1",
-        native_unit_of_measurement="mV",
+        translation_key="rx1",
+        native_unit_of_measurement=UnitOfElectricPotential.MILLIVOLT,
         device_class=NumberDeviceClass.VOLTAGE,
         native_min_value=0.0,
         native_max_value=1000.0,
@@ -136,7 +173,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_CL1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_CL1",
-        native_unit_of_measurement="ppm",
+        translation_key="cl1",
+        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
         native_min_value=0.0,
         native_max_value=10.0,
         native_step=0.1,
@@ -149,7 +187,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_HEATING_TEMP": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HEATING_TEMP",
-        native_unit_of_measurement="°C",
+        translation_key="heating_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=0.0,
         native_max_value=40.0,
@@ -158,10 +197,12 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=_support_heating_temp,
+        precision_fn=lambda data: 0,
     ),
     "MBF_PAR_SMART_TEMP_HIGH": NeoPoolNumberEntityDescription(
         key="MBF_PAR_SMART_TEMP_HIGH",
-        native_unit_of_measurement="°C",
+        translation_key="smart_temp_high",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=0.0,
         native_max_value=40.0,
@@ -173,7 +214,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_SMART_TEMP_LOW": NeoPoolNumberEntityDescription(
         key="MBF_PAR_SMART_TEMP_LOW",
-        native_unit_of_measurement="°C",
+        translation_key="smart_temp_low",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=0.0,
         native_max_value=40.0,
@@ -185,7 +227,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_HIDRO_COVER_REDUCTION": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO_COVER_REDUCTION",
-        native_unit_of_measurement="%",
+        translation_key="hidro_cover_reduction",
+        native_unit_of_measurement=PERCENTAGE,
         native_min_value=0.0,
         native_max_value=100.0,
         native_step=1.0,
@@ -199,7 +242,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     ),
     "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE",
-        native_unit_of_measurement="°C",
+        translation_key="hidro_shutdown_temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=NumberDeviceClass.TEMPERATURE,
         native_min_value=1.0,
         native_max_value=40.0,
@@ -239,6 +283,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     """Representation of a NeoPool number entity."""
 
     entity_description: NeoPoolNumberEntityDescription
+    _attr_mode = NumberMode.BOX
 
     def __init__(
         self,
@@ -252,11 +297,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self.entity_description = description
         self._key = key
         self._data_key = description.data_key or key
-
-        device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(key)
-        self._attr_mode = NumberMode.BOX
+        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
 
         self._pending_write_task: asyncio.Task[None] | None = None
         self._pending_value: float | None = None
@@ -265,12 +306,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self.translation_key,
-            getattr(self, "has_entity_name", None),
-        )
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for reading registers")
@@ -339,11 +374,8 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @property
     def suggested_display_precision(self) -> int | None:
         """Return the suggested display precision for the number value."""
-        if self._key == "MBF_PAR_HIDRO":
-            # 0 decimals in percent mode, 1 decimal in g/h mode
-            return 0 if is_hydrolysis_in_percent(self.coordinator.data) else 1
-        if self._key == "MBF_PAR_HEATING_TEMP":
-            return 0
+        if (precision_fn := self.entity_description.precision_fn) is not None:
+            return precision_fn(self.coordinator.data)
         return None
 
     @property
@@ -367,24 +399,23 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @override
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement for the number value."""
-        if self._key == "MBF_PAR_HIDRO":
-            return "%" if is_hydrolysis_in_percent(self.coordinator.data) else "g/h"
+        if (unit_fn := self.entity_description.unit_fn) is not None:
+            return unit_fn(self.coordinator.data)
         return self.entity_description.native_unit_of_measurement
 
     @property
     @override
     def native_max_value(self) -> float:
         """Return the maximum value for the number entity."""
-        if self._key == "MBF_PAR_HIDRO":
-            hidro_nom = self.coordinator.data.get("MBF_PAR_HIDRO_NOM")
-            if hidro_nom is not None:
-                return float(hidro_nom)
+        if (max_fn := self.entity_description.max_fn) is not None:
+            if (dynamic_max := max_fn(self.coordinator.data)) is not None:
+                return dynamic_max
         return self.entity_description.native_max_value or super().native_max_value
 
     @property
     @override
     def native_step(self) -> float | None:
         """Return the step value for the number entity."""
-        if self._key == "MBF_PAR_HIDRO":
-            return 1.0 if is_hydrolysis_in_percent(self.coordinator.data) else 0.1
+        if (step_fn := self.entity_description.step_fn) is not None:
+            return step_fn(self.coordinator.data)
         return self.entity_description.native_step
