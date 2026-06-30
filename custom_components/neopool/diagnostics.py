@@ -53,7 +53,6 @@ async def async_get_config_entry_diagnostics(
         "update_interval": str(getattr(coordinator, "update_interval", None)),
         "last_exception": str(getattr(coordinator, "last_exception", "")),
         "firmware": getattr(coordinator, "firmware", None),
-        "model": getattr(coordinator, "model", None),
     }
 
     client = getattr(coordinator, "client", None)

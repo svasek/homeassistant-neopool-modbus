@@ -458,7 +458,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             if option == "backwash":
                 _LOGGER.info(
                     'Your pool "%s" has been switched to the BACKWASH mode!',
-                    NeoPoolEntity.slugify(self.coordinator.device_name),
+                    NeoPoolEntity.slugify(self.coordinator.entry.title),
                 )
         else:
             await client.async_write_register(desc.register, value)

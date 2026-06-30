@@ -135,17 +135,17 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
                     "- ignoring backwash command for %s",
                     self.coordinator.data.get("MBF_PAR_FILTVALVE_ENABLE"),
                     self.coordinator.data.get("MBF_PAR_FILTVALVE_GPIO"),
-                    self.coordinator.device_name,
+                    self.coordinator.entry.title,
                 )
                 return
             _LOGGER.info(
-                "Starting backwash on device '%s'", self.coordinator.device_name
+                "Starting backwash on device '%s'", self.coordinator.entry.title
             )
             await client.async_set_filtration_mode("backwash")
         elif self._key == "RESET_CELL_PARTIAL":
             _LOGGER.info(
                 "Resetting partial cell runtime counter on device '%s'",
-                self.coordinator.device_name,
+                self.coordinator.entry.title,
             )
             await client.async_reset_user_counters()
         await self.coordinator.async_request_refresh()

@@ -35,7 +35,6 @@ from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.util import slugify
 
 from .const import (
     CAPABILITY_KEYS,
@@ -45,8 +44,6 @@ from .const import (
     FOLLOW_UP_REFRESH_DELAY,
 )
 from .helpers import is_device_time_out_of_sync, prepare_device_time
-
-MAX_SCAN_INTERVAL = timedelta(seconds=180)
 
 _FILT_TIMERS = ("filtration1", "filtration2", "filtration3")
 
@@ -66,28 +63,22 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entry_id: str,
     ) -> None:
         """Initialise the NeoPool data update coordinator."""
-        self.normal_update_interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
         # CUSTOM-ONLY START, HACS-only per-instance polling-interval override.
-        self.normal_update_interval = timedelta(
+        update_interval = timedelta(
             seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
         )
         # CUSTOM-ONLY END
-        self.max_update_interval = min(
-            self.normal_update_interval * 4, MAX_SCAN_INTERVAL
-        )
-        self._consecutive_errors = 0
 
         super().__init__(
             hass,
             _LOGGER,
             name=f"{DOMAIN} coordinator",
-            update_interval=self.normal_update_interval,
+            update_interval=update_interval,
             config_entry=entry,
         )
         self.client = client
         self.entry = entry
         self.entry_id = entry_id
-        self.device_name = entry.title or DOMAIN
         self.auto_time_sync = self.entry.options.get("auto_time_sync", False)
         self.winter_mode = self.entry.options.get("winter_mode", False)
         # Persisted in options for winter mode (no Modbus reads).
@@ -95,7 +86,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry.options.get("_capabilities", {})
         )
         self._firmware = "?"
-        self._model = "Unknown"
         self._follow_up_unsub: CALLBACK_TYPE | None = None
         self._gpio_checked = False
 
@@ -303,18 +293,8 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hass.config_entries.async_update_entry(self.entry, options=options)
 
     async def _handle_modbus_failure(self, err: Exception) -> None:
-        """Increment the error counter and slow down polling exponentially."""
-        self._consecutive_errors += 1
+        """Log the Modbus failure for diagnostics; HA's coordinator handles the back-off."""
         _LOGGER.error("Modbus communication error: %s (%s)", err, type(err).__name__)
-        current_interval = self.update_interval or self.normal_update_interval
-        next_interval = min(current_interval * 2, self.max_update_interval)
-        if self.update_interval != next_interval:
-            _LOGGER.warning(
-                "Increasing update interval to %s seconds due to communication errors",
-                int(next_interval.total_seconds()),
-            )
-            self.update_interval = next_interval
-        _LOGGER.warning("Modbus error - marking all entities unavailable")
 
     @override
     async def _async_update_data(self) -> dict[str, Any]:
@@ -333,17 +313,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_placeholders={"error": str(err)},
             ) from err
 
-        self._consecutive_errors = 0
-
-        if self.update_interval != self.normal_update_interval:  # pragma: no cover
-            _LOGGER.info(
-                "Communication OK, resetting update interval to %s seconds",
-                self.normal_update_interval.total_seconds(),
-            )
-            self.update_interval = self.normal_update_interval
-
         self._firmware = parse_version(data.get("MBF_POWER_MODULE_VERSION"))
-        self._model = "NeoPool"
 
         if not self._gpio_checked:
             self._gpio_checked = True
@@ -400,13 +370,3 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def firmware(self) -> str:
         """Return the device firmware version string."""
         return self._firmware
-
-    @property
-    def model(self) -> str:
-        """Return the device model string."""
-        return self._model
-
-    @property
-    def device_slug(self) -> str:  # pragma: no cover
-        """Return the slugified device name used as object_id prefix."""
-        return slugify(self.device_name)

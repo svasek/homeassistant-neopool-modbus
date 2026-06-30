@@ -77,7 +77,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
 
         return DeviceInfo(
             identifiers={(DOMAIN, hw_identifier)},
-            name=getattr(self.coordinator, "device_name", NAME),
+            name=self.coordinator.entry.title or NAME,
             model=f"{model_prefix}{machine_type}".strip(),
             manufacturer="Hayward (Sugar Valley)",
             hw_version=f"Detected Modules: [{self._format_modules(data)}]",
