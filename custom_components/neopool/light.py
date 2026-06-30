@@ -43,8 +43,6 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
-type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
-
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolLightEntityDescription(LightEntityDescription):
@@ -54,12 +52,13 @@ class NeoPoolLightEntityDescription(LightEntityDescription):
     function_addr: int | None = None
     function_code: int | None = None
     timer_block_addr: int | None = None
-    supported_fn: SupportedFn | None = None
+    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
 
 
 LIGHT_DESCRIPTIONS: dict[str, NeoPoolLightEntityDescription] = {
     "light": NeoPoolLightEntityDescription(
         key="light",
+        translation_key="light",
         switch_type="relay_timer",
         timer_block_addr=LIGHT_TIMER_BLOCK_REGISTER,
         function_addr=LIGHT_FUNCTION_REGISTER,
@@ -107,20 +106,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         super().__init__(coordinator, entry_id)
         self.entity_description = description
         self._key = key
-        device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(key)
-
-    @override
-    async def async_added_to_hass(self) -> None:
-        """Run when the entity is added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self.translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-        await super().async_added_to_hass()
+        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
 
     @override
     async def async_turn_on(self, **kwargs: Any) -> None:
