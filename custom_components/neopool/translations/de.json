@@ -38,7 +38,6 @@
                     "filtration_pump_power": "Leistung der Filtrationspumpe (W, 0 = deaktiviert)",
                     "host": "Host",
                     "modbus_framer": "Modbus-Framer",
-                    "name_default": "Pool",
                     "port": "Port",
                     "unit_id": "Unit-ID"
                 },
@@ -211,7 +210,7 @@
             "cell_boost": {
                 "name": "Boost-Modus",
                 "state": {
-                    "active": "Aktiv",
+                    "active": "[%key:common::state::active%]",
                     "active_redox": "Aktiv (Redoxsteuerung)",
                     "inactive": "Inaktiv"
                 }
@@ -223,39 +222,39 @@
                     "backwash": "Rückspülung",
                     "heating": "Heizung",
                     "intelligent": "Intelligent",
-                    "manual": "Manuell",
+                    "manual": "[%key:common::state::manual%]",
                     "smart": "Smart"
                 }
             },
             "filtration1_speed": {
                 "name": "Timer 1 - Filtergeschwindigkeit",
                 "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Mittel"
                 }
             },
             "filtration2_speed": {
                 "name": "Timer 2 - Filtergeschwindigkeit",
                 "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Mittel"
                 }
             },
             "filtration3_speed": {
                 "name": "Timer 3 - Filtergeschwindigkeit",
                 "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Mittel"
                 }
             },
             "filtration_speed": {
                 "name": "Filtergeschwindigkeit",
                 "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Mittel"
                 }
             },
@@ -264,7 +263,7 @@
                 "state": {
                     "always_off": "Immer Aus",
                     "always_on": "Immer An",
-                    "enabled": "Automatisch"
+                    "enabled": "[%key:common::state::enabled%]"
                 }
             },
             "filtvalve_period_minutes": {
@@ -307,9 +306,9 @@
                 "state": {
                     "auto": "Automatisch",
                     "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "off": "Ausgeschaltet",
-                    "on": "Eingeschaltet"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux1_period": {
@@ -345,9 +344,9 @@
                 "state": {
                     "auto": "Automatisch",
                     "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "off": "Ausgeschaltet",
-                    "on": "Eingeschaltet"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux2_period": {
@@ -383,9 +382,9 @@
                 "state": {
                     "auto": "Automatisch",
                     "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "off": "Ausgeschaltet",
-                    "on": "Eingeschaltet"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux3_period": {
@@ -421,9 +420,9 @@
                 "state": {
                     "auto": "Automatisch",
                     "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "off": "Ausgeschaltet",
-                    "on": "Eingeschaltet"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux4_period": {
@@ -458,9 +457,9 @@
                 "name": "Lichtmodus",
                 "state": {
                     "auto": "Automatisch",
-                    "disabled": "Deaktiviert",
-                    "off": "Ausgeschaltet",
-                    "on": "Eingeschaltet"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_light_period": {
@@ -489,7 +488,7 @@
                     "backwash": "Rückspülung",
                     "heating": "Heizung",
                     "intelligent": "Intelligent",
-                    "manual": "Manuell",
+                    "manual": "[%key:common::state::manual%]",
                     "smart": "Smart"
                 }
             },
@@ -505,10 +504,10 @@
             "filtration_speed": {
                 "name": "Aktuelle Filtergeschwindigkeit",
                 "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Mittel",
-                    "off": "Aus"
+                    "off": "[%key:common::state::off%]"
                 }
             },
             "filtvalve_remaining": {
@@ -537,7 +536,7 @@
                 "state": {
                     "dead_time": "Totzeit",
                     "no_flow": "Kein Durchfluss",
-                    "off": "Aus",
+                    "off": "[%key:common::state::off%]",
                     "pol1": "Polarität 1",
                     "pol2": "Polarität 2"
                 }
@@ -558,7 +557,7 @@
                 "name": "Ionisator-Polarität",
                 "state": {
                     "dead_time": "Totzeit",
-                    "off": "Aus",
+                    "off": "[%key:common::state::off%]",
                     "pol1": "Polarität 1",
                     "pol2": "Polarität 2"
                 }
@@ -584,8 +583,8 @@
                     "acid": "Säurepumpe",
                     "base": "Basenpumpe",
                     "both": "Beide Pumpen",
-                    "idle": "Leerlauf",
-                    "off": "Aus"
+                    "idle": "[%key:common::state::idle%]",
+                    "off": "[%key:common::state::off%]"
                 }
             },
             "ph_status_alarm": {

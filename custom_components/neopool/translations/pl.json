@@ -38,7 +38,6 @@
                     "filtration_pump_power": "Moc pompy filtracyjnej (W, 0 = wyłączone)",
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
-                    "name_default": "Basen",
                     "port": "Port",
                     "unit_id": "Unit ID"
                 },
@@ -211,7 +210,7 @@
             "cell_boost": {
                 "name": "Tryb boost",
                 "state": {
-                    "active": "Aktywne",
+                    "active": "[%key:common::state::active%]",
                     "active_redox": "Aktywne (kontrola redoksu)",
                     "inactive": "Nieaktywne"
                 }
@@ -223,39 +222,39 @@
                     "backwash": "Płukanie wsteczne",
                     "heating": "Ogrzewanie",
                     "intelligent": "Inteligentny",
-                    "manual": "Ręczny",
+                    "manual": "[%key:common::state::manual%]",
                     "smart": "Smart"
                 }
             },
             "filtration1_speed": {
                 "name": "Timer 1 - Prędkość filtracji",
                 "state": {
-                    "high": "Wysoka",
-                    "low": "Niska",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Średnia"
                 }
             },
             "filtration2_speed": {
                 "name": "Timer 2 - Prędkość filtracji",
                 "state": {
-                    "high": "Wysoka",
-                    "low": "Niska",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Średnia"
                 }
             },
             "filtration3_speed": {
                 "name": "Timer 3 - Prędkość filtracji",
                 "state": {
-                    "high": "Wysoka",
-                    "low": "Niska",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Średnia"
                 }
             },
             "filtration_speed": {
                 "name": "Prędkość filtracji",
                 "state": {
-                    "high": "Wysoka",
-                    "low": "Niska",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Średnia"
                 }
             },
@@ -264,7 +263,7 @@
                 "state": {
                     "always_off": "Zawsze Wyłączony",
                     "always_on": "Zawsze Włączony",
-                    "enabled": "Automatyczny"
+                    "enabled": "[%key:common::state::enabled%]"
                 }
             },
             "filtvalve_period_minutes": {
@@ -307,9 +306,9 @@
                 "state": {
                     "auto": "Automatyczny",
                     "auto_linked": "Automatyczny (połączony)",
-                    "disabled": "Wyłączone",
-                    "off": "Wyłączone",
-                    "on": "Włączone"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux1_period": {
@@ -345,9 +344,9 @@
                 "state": {
                     "auto": "Automatyczny",
                     "auto_linked": "Automatyczny (połączony)",
-                    "disabled": "Wyłączone",
-                    "off": "Wyłączone",
-                    "on": "Włączone"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux2_period": {
@@ -383,9 +382,9 @@
                 "state": {
                     "auto": "Automatyczny",
                     "auto_linked": "Automatyczny (połączony)",
-                    "disabled": "Wyłączone",
-                    "off": "Wyłączone",
-                    "on": "Włączone"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux3_period": {
@@ -421,9 +420,9 @@
                 "state": {
                     "auto": "Automatyczny",
                     "auto_linked": "Automatyczny (połączony)",
-                    "disabled": "Wyłączone",
-                    "off": "Wyłączone",
-                    "on": "Włączone"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_aux4_period": {
@@ -458,9 +457,9 @@
                 "name": "Tryb światła",
                 "state": {
                     "auto": "Automatyczny",
-                    "disabled": "Wyłączone",
-                    "off": "Wyłączone",
-                    "on": "Włączone"
+                    "disabled": "[%key:common::state::disabled%]",
+                    "off": "[%key:common::state::off%]",
+                    "on": "[%key:common::state::on%]"
                 }
             },
             "relay_light_period": {
@@ -489,7 +488,7 @@
                     "backwash": "Płukanie wsteczne",
                     "heating": "Ogrzewanie",
                     "intelligent": "Inteligentny",
-                    "manual": "Ręczny",
+                    "manual": "[%key:common::state::manual%]",
                     "smart": "Smart"
                 }
             },
@@ -505,10 +504,10 @@
             "filtration_speed": {
                 "name": "Aktualna prędkość filtracji",
                 "state": {
-                    "high": "Wysoka",
-                    "low": "Niska",
+                    "high": "[%key:common::state::high%]",
+                    "low": "[%key:common::state::low%]",
                     "mid": "Średnia",
-                    "off": "Wyłączone"
+                    "off": "[%key:common::state::off%]"
                 }
             },
             "filtvalve_remaining": {
@@ -537,7 +536,7 @@
                 "state": {
                     "dead_time": "Martwy czas",
                     "no_flow": "Brak przepływu",
-                    "off": "Wyłączone",
+                    "off": "[%key:common::state::off%]",
                     "pol1": "Polaryzacja 1",
                     "pol2": "Polaryzacja 2"
                 }
@@ -558,7 +557,7 @@
                 "name": "Polaryzacja jonizatora",
                 "state": {
                     "dead_time": "Martwy czas",
-                    "off": "Wyłączone",
+                    "off": "[%key:common::state::off%]",
                     "pol1": "Polaryzacja 1",
                     "pol2": "Polaryzacja 2"
                 }
@@ -584,8 +583,8 @@
                     "acid": "Pompa kwasu",
                     "base": "Pompa zasady",
                     "both": "Obie pompy",
-                    "idle": "Bezczynny",
-                    "off": "Wyłączony"
+                    "idle": "[%key:common::state::idle%]",
+                    "off": "[%key:common::state::off%]"
                 }
             },
             "ph_status_alarm": {
