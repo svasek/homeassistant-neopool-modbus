@@ -76,6 +76,8 @@ class NeoPoolSensorEntityDescription(SensorEntityDescription):
     supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
     value_fn: Callable[[dict[str, Any]], Any] | None = None
     options_fn: Callable[[dict[str, Any]], list[str]] | None = None
+    unit_fn: Callable[[dict[str, Any]], str | None] | None = None
+    precision_fn: Callable[[dict[str, Any]], int | None] | None = None
 
 
 SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
@@ -93,6 +95,8 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         supported_fn=lambda data, opts: bool(data.get("Hydrolysis module detected")),
+        unit_fn=lambda data: PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h",
+        precision_fn=lambda data: 0 if is_hydrolysis_in_percent(data) else 1,
     ),
     "MBF_MEASURE_PH": NeoPoolSensorEntityDescription(
         key="MBF_MEASURE_PH",
@@ -384,20 +388,16 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     @override
     def suggested_display_precision(self) -> int | None:
         """Return the suggested display precision for the sensor value."""
-        if self._key == "MBF_HIDRO_CURRENT" and not is_hydrolysis_in_percent(
-            self.coordinator.data
-        ):
-            return 1
+        if (precision_fn := self.entity_description.precision_fn) is not None:
+            return precision_fn(self.coordinator.data)
         return self.entity_description.suggested_display_precision
 
     @property
     @override
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement for the sensor value."""
-        if self._key == "MBF_HIDRO_CURRENT" and not is_hydrolysis_in_percent(
-            self.coordinator.data
-        ):
-            return "g/h"
+        if (unit_fn := self.entity_description.unit_fn) is not None:
+            return unit_fn(self.coordinator.data)
         return self.entity_description.native_unit_of_measurement
 
     def _filtration_gate_blocks(self) -> bool:
@@ -406,19 +406,25 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
             return False
         return self.coordinator.data.get("Filtration Pump") is False
 
+    def _is_measurement_suppressed(self) -> bool:
+        """Return True if a measurement sensor should report None."""
+        if self._key not in _MEASURE_KEYS_REQUIRING_FILTRATION:
+            return False
+        return self._filtration_gate_blocks()
+
+    def _is_production_suppressed(self) -> bool:
+        """Return True if a production sensor should report 0."""
+        if self._key not in _PRODUCTION_KEYS_REQUIRING_FILTRATION:
+            return False
+        return self._filtration_gate_blocks()
+
     @property
     @override
     def native_value(self) -> float | int | str | datetime | None:
         """Return the actual sensor value from coordinator data."""
-        if (
-            self._key in _MEASURE_KEYS_REQUIRING_FILTRATION
-            and self._filtration_gate_blocks()
-        ):
+        if self._is_measurement_suppressed():
             return None
-        if (
-            self._key in _PRODUCTION_KEYS_REQUIRING_FILTRATION
-            and self._filtration_gate_blocks()
-        ):
+        if self._is_production_suppressed():
             return 0
         if (value_fn := self.entity_description.value_fn) is not None:
             value: float | int | str | datetime | None = value_fn(self.coordinator.data)
