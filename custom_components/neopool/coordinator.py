@@ -292,10 +292,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         options["_capabilities"] = new_snapshot
         self.hass.config_entries.async_update_entry(self.entry, options=options)
 
-    async def _handle_modbus_failure(self, err: Exception) -> None:
-        """Log the Modbus failure for diagnostics; HA's coordinator handles the back-off."""
-        _LOGGER.error("Modbus communication error: %s (%s)", err, type(err).__name__)
-
     @override
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch the latest data from the pool controller."""
@@ -306,7 +302,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             data = await self.client.async_read_all()
         except (NeoPoolError, OSError, TimeoutError) as err:
-            await self._handle_modbus_failure(err)
             raise UpdateFailed(
                 translation_domain=DOMAIN,
                 translation_key="modbus_communication_error",
