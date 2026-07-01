@@ -1,6 +1,6 @@
 {
   "domain": "neopool",
-  "name": "NeoPool Modbus",
+  "name": "NeoPool",
   "codeowners": ["@svasek"],
   "config_flow": true,
   "documentation": "https://github.com/svasek/homeassistant-neopool-modbus",
