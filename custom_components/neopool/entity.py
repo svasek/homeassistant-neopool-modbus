@@ -65,11 +65,15 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         data = self.coordinator.data or {}
         unique_id = self.coordinator.entry.unique_id
         machine_type = (get_machine_name(data) or "").strip()
+        # Hayward supplies the same NeoPool-compatible controller board to
+        # multiple pool brands (Bayrol, Brilix, Hidrolife, ...); prefix
+        # makes the OEM relationship explicit in the device card.
+        model_prefix = "NeoPool Compatible: " if machine_type else "NeoPool Compatible"
 
         return DeviceInfo(
             identifiers={(DOMAIN, unique_id)},
             name=NAME,
-            model=machine_type or NAME,
+            model=f"{model_prefix}{machine_type}".strip(),
             manufacturer="Hayward (Sugar Valley)",
             # CUSTOM-ONLY START, hw_version surface for detected modules.
             hw_version=f"Detected Modules: [{self._format_modules(data)}]",
