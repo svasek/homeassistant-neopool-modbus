@@ -21,7 +21,15 @@ import logging
 from typing import Any, override
 
 from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
-from neopool_modbus.decoders import decode_cell_boost, get_filtration_pump_type
+from neopool_modbus.decoders import (
+    CELL_BOOST_MODE_LABELS,
+    FILTRATION_MODE_LABELS,
+    FILTRATION_SPEED_LABELS,
+    FILTVALVE_MODE_LABELS,
+    decode_cell_boost,
+    decode_filtvalve_mode,
+    get_filtration_pump_type,
+)
 from neopool_modbus.registers import (
     AUX1_TIMER_BLOCK_REGISTER,
     AUX2_TIMER_BLOCK_REGISTER,
@@ -160,31 +168,22 @@ def _decode_filtvalve_mode(
     desc: "NeoPoolSelectEntityDescription", data: Mapping[str, Any]
 ) -> str | None:
     """Map the raw MBF_PAR_FILTVALVE_MODE register to its translation key."""
-    value = data.get("MBF_PAR_FILTVALVE_MODE")
-    if value is None:
-        return None
-    return desc.options_map.get(int(value))
+    del desc
+    return decode_filtvalve_mode(data.get("MBF_PAR_FILTVALVE_MODE"))
 
 
 SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "MBF_PAR_FILT_MODE": NeoPoolSelectEntityDescription(
         key="MBF_PAR_FILT_MODE",
         translation_key="filt_mode",
-        options_map={
-            0: "manual",
-            1: "auto",
-            2: "heating",
-            3: "smart",
-            4: "intelligent",
-            13: "backwash",
-        },
+        options_map=FILTRATION_MODE_LABELS,
         register=FILTRATION_MODE_REGISTER,
         options_fn=_filt_mode_options,
     ),
     "MBF_PAR_FILTRATION_SPEED": NeoPoolSelectEntityDescription(
         key="MBF_PAR_FILTRATION_SPEED",
         translation_key="filtration_speed",
-        options_map={0: "low", 1: "mid", 2: "high"},
+        options_map=FILTRATION_SPEED_LABELS,
         register=FILTRATION_CONF_REGISTER,
         shift=4,
         supported_fn=lambda data, opts: bool(  # pragma: no cover
@@ -195,7 +194,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "MBF_CELL_BOOST": NeoPoolSelectEntityDescription(
         key="MBF_CELL_BOOST",
         translation_key="cell_boost",
-        options_map={0: "inactive", 1: "active", 2: "active_redox"},
+        options_map=CELL_BOOST_MODE_LABELS,
         register=CELL_BOOST_REGISTER,
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: is_hydrolysis_present(data),  # pragma: no cover
@@ -206,13 +205,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="MBF_PAR_FILTVALVE_MODE",
         translation_key="filtvalve_mode",
         entity_category=EntityCategory.CONFIG,
-        options_map={
-            # 0: "disabled",
-            1: "enabled",
-            # 2: "auto_linked",
-            3: "always_on",
-            4: "always_off",
-        },
+        options_map=FILTVALVE_MODE_LABELS,
         register=FILTVALVE_MODE_REGISTER,
         supported_fn=lambda data, opts: has_filtvalve(data),
         current_option_fn=_decode_filtvalve_mode,
@@ -292,7 +285,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="filtration1_speed",
         translation_key="filtration1_speed",
         entity_category=EntityCategory.CONFIG,
-        options_map={0: "low", 1: "mid", 2: "high"},
+        options_map=FILTRATION_SPEED_LABELS,
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER1_SPEED_MASK,
         shift=FILTRATION_TIMER1_SPEED_SHIFT,
@@ -306,7 +299,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="filtration2_speed",
         translation_key="filtration2_speed",
         entity_category=EntityCategory.CONFIG,
-        options_map={0: "low", 1: "mid", 2: "high"},
+        options_map=FILTRATION_SPEED_LABELS,
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER2_SPEED_MASK,
         shift=FILTRATION_TIMER2_SPEED_SHIFT,
@@ -320,7 +313,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="filtration3_speed",
         translation_key="filtration3_speed",
         entity_category=EntityCategory.CONFIG,
-        options_map={0: "low", 1: "mid", 2: "high"},
+        options_map=FILTRATION_SPEED_LABELS,
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER3_SPEED_MASK,
         shift=FILTRATION_TIMER3_SPEED_SHIFT,
