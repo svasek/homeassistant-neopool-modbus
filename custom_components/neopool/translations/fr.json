@@ -26,9 +26,9 @@
                 },
                 "data_description": {
                     "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
-                    "modbus_framer": "Sélectionnez 'tcp' pour les passerelles qui convertissent entre TCP et RTU. Sélectionnez 'rtu' pour les passerelles transparentes qui transmettent les trames RTU brutes via TCP.",
+                    "modbus_framer": "Protocole utilisé par la passerelle. Sélectionnez TCP pour la trame MBAP (valeur par défaut pour les passerelles Ethernet natives). Sélectionnez RTU pour la trame RTU tunnelisée via un socket TCP, utilisée par les ponts série vers TCP en mode passthrough comme le stream_server d'ESPHome.",
                     "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard (par défaut : 502).",
-                    "unit_id": "ID d'unité (serveur) Modbus du contrôleur de piscine. La plupart des configurations utilisent 1."
+                    "unit_id": "Adresse du périphérique Modbus (1-247). Identifie le périphérique spécifique sur un bus partagé. La plupart des périphériques connectés directement utilisent 1. Les passerelles peuvent router les requêtes vers différentes adresses."
                 },
                 "description": "Mettez à jour les paramètres de connexion à votre contrôleur NeoPool.",
                 "title": "Reconfigurer la connexion NeoPool"
@@ -44,9 +44,9 @@
                 "data_description": {
                     "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique.",
                     "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
-                    "modbus_framer": "Sélectionnez 'tcp' pour les passerelles qui convertissent entre TCP et RTU. Sélectionnez 'rtu' pour les passerelles transparentes qui transmettent les trames RTU brutes via TCP.",
+                    "modbus_framer": "Protocole utilisé par la passerelle. Sélectionnez TCP pour la trame MBAP (valeur par défaut pour les passerelles Ethernet natives). Sélectionnez RTU pour la trame RTU tunnelisée via un socket TCP, utilisée par les ponts série vers TCP en mode passthrough comme le stream_server d'ESPHome.",
                     "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard (par défaut : 502).",
-                    "unit_id": "ID d'unité (serveur) Modbus du contrôleur de piscine. La plupart des configurations utilisent 1."
+                    "unit_id": "Adresse du périphérique Modbus (1-247). Identifie le périphérique spécifique sur un bus partagé. La plupart des périphériques connectés directement utilisent 1. Les passerelles peuvent router les requêtes vers différentes adresses."
                 },
                 "description": "Configurez la connexion à votre contrôleur NeoPool.",
                 "title": "Connexion NeoPool"

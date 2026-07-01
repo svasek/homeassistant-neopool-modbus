@@ -26,9 +26,9 @@
                 },
                 "data_description": {
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
-                    "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
+                    "modbus_framer": "Protocollo di trasmissione utilizzato dal gateway. Selezionare TCP per il framing MBAP (predefinito per gateway Ethernet nativi). Selezionare RTU per il framing RTU tunnelizzato tramite un socket TCP, usato dai bridge seriale-verso-TCP di tipo passthrough come lo stream_server di ESPHome.",
                     "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "unit_id": "L'ID unità (server) Modbus del controller della piscina. La maggior parte delle configurazioni usa 1."
+                    "unit_id": "Indirizzo del dispositivo Modbus (1-247). Identifica il dispositivo specifico su un bus condiviso. La maggior parte dei dispositivi collegati direttamente usa 1. I gateway possono instradare le richieste a indirizzi diversi."
                 },
                 "description": "Aggiorna le impostazioni di connessione al tuo controller NeoPool.",
                 "title": "Riconfigura connessione NeoPool"
@@ -44,9 +44,9 @@
                 "data_description": {
                     "filtration_pump_power": "Specificare la potenza nominale della pompa di filtrazione. Con un valore diverso da zero vengono creati due sensori: potenza istantanea (W) ed energia cumulata (Wh), entrambi utilizzabili nel pannello energetico.",
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
-                    "modbus_framer": "Selezionare 'tcp' per gateway che convertono tra TCP e RTU. Selezionare 'rtu' per gateway trasparenti che inoltrano frame RTU grezzi su TCP.",
+                    "modbus_framer": "Protocollo di trasmissione utilizzato dal gateway. Selezionare TCP per il framing MBAP (predefinito per gateway Ethernet nativi). Selezionare RTU per il framing RTU tunnelizzato tramite un socket TCP, usato dai bridge seriale-verso-TCP di tipo passthrough come lo stream_server di ESPHome.",
                     "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "unit_id": "L'ID unità (server) Modbus del controller della piscina. La maggior parte delle configurazioni usa 1."
+                    "unit_id": "Indirizzo del dispositivo Modbus (1-247). Identifica il dispositivo specifico su un bus condiviso. La maggior parte dei dispositivi collegati direttamente usa 1. I gateway possono instradare le richieste a indirizzi diversi."
                 },
                 "description": "Configura la connessione al tuo controller NeoPool.",
                 "title": "Connessione NeoPool"

@@ -26,9 +26,9 @@
                 },
                 "data_description": {
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
-                    "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
+                    "modbus_framer": "Přenosový protokol brány. Zvolte TCP pro rámování MBAP (výchozí pro brány s nativním Ethernetem). Zvolte RTU pro rámování RTU tunelované přes TCP soket, používané průchozími mosty sériové linky přes TCP jako ESPHome stream_server.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "unit_id": "Modbus unit (server) ID řadiče bazénu. Většina zařízení používá 1."
+                    "unit_id": "Adresa zařízení na sběrnici Modbus (1-247). Identifikuje konkrétní zařízení na sdílené sběrnici. Většina přímo připojených zařízení používá 1. Brány mohou směrovat požadavky na různé adresy."
                 },
                 "description": "Aktualizujte nastavení připojení k vašemu řadiči NeoPool.",
                 "title": "Překonfigurovat připojení NeoPool"
@@ -44,9 +44,9 @@
                 "data_description": {
                     "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
-                    "modbus_framer": "Vyberte 'tcp' pro brány, které převádějí mezi TCP a RTU. Vyberte 'rtu' pro transparentní brány, které přeposílají surové RTU rámce přes TCP.",
+                    "modbus_framer": "Přenosový protokol brány. Zvolte TCP pro rámování MBAP (výchozí pro brány s nativním Ethernetem). Zvolte RTU pro rámování RTU tunelované přes TCP soket, používané průchozími mosty sériové linky přes TCP jako ESPHome stream_server.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "unit_id": "Modbus unit (server) ID řadiče bazénu. Většina zařízení používá 1."
+                    "unit_id": "Adresa zařízení na sběrnici Modbus (1-247). Identifikuje konkrétní zařízení na sdílené sběrnici. Většina přímo připojených zařízení používá 1. Brány mohou směrovat požadavky na různé adresy."
                 },
                 "description": "Nakonfigurujte připojení k vašemu řadiči NeoPool.",
                 "title": "Připojení NeoPool"

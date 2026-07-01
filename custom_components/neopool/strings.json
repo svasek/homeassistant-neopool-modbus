@@ -38,9 +38,9 @@
         "data_description": {
           "filtration_pump_power": "Set the rated wattage of the filtration pump. When non-zero, two sensors are created: instantaneous power (W) and cumulative energy (Wh), both usable in the Energy dashboard.",
           "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
-          "modbus_framer": "Select 'tcp' for gateways that convert between TCP and RTU. Select 'rtu' for transparent gateways that forward raw RTU frames over TCP.",
+          "modbus_framer": "Wire protocol used by the gateway. Select TCP for MBAP framing (default for Ethernet-native gateways). Select RTU for RTU framing tunnelled through a TCP socket, used by passthrough serial-to-TCP bridges like ESPHome's stream_server.",
           "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
-          "unit_id": "The Modbus unit (server) ID of the pool controller. Most setups use 1."
+          "unit_id": "Modbus device address (1-247). Identifies the specific device on a shared bus. Most direct-connected devices use 1. Gateways may route requests to different addresses."
         },
         "description": "Configure the connection to your NeoPool controller.",
         "title": "NeoPool Connection"

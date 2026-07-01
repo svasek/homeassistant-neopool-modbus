@@ -26,9 +26,9 @@
                 },
                 "data_description": {
                     "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
-                    "modbus_framer": "Wybierz 'tcp' dla bramek konwertujących między TCP a RTU. Wybierz 'rtu' dla transparentnych bramek przesyłających surowe ramki RTU przez TCP.",
+                    "modbus_framer": "Protokół używany przez bramkę. Wybierz TCP dla ramkowania MBAP (domyślne dla bramek natywnych dla sieci Ethernet). Wybierz RTU dla ramkowania RTU tunelowanego przez gniazdo TCP, używanego przez przezroczyste mosty szeregowo-TCP takie jak stream_server w ESPHome.",
                     "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
-                    "unit_id": "ID jednostki (serwera) Modbus kontrolera basenu. Większość konfiguracji używa 1."
+                    "unit_id": "Adres urządzenia Modbus (1-247). Identyfikuje konkretne urządzenie na wspólnej magistrali. Większość urządzeń podłączonych bezpośrednio używa 1. Bramki mogą kierować żądania do różnych adresów."
                 },
                 "description": "Zaktualizuj ustawienia połączenia z kontrolerem NeoPool.",
                 "title": "Skonfiguruj ponownie połączenie NeoPool"
@@ -44,9 +44,9 @@
                 "data_description": {
                     "filtration_pump_power": "Podaj nominalną moc pompy filtracyjnej. Przy wartości różnej od zera tworzone są dwa czujniki: chwilowa moc (W) i skumulowana energia (Wh), oba możliwe do użycia na panelu energetycznym.",
                     "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
-                    "modbus_framer": "Wybierz 'tcp' dla bramek konwertujących między TCP a RTU. Wybierz 'rtu' dla transparentnych bramek przesyłających surowe ramki RTU przez TCP.",
+                    "modbus_framer": "Protokół używany przez bramkę. Wybierz TCP dla ramkowania MBAP (domyślne dla bramek natywnych dla sieci Ethernet). Wybierz RTU dla ramkowania RTU tunelowanego przez gniazdo TCP, używanego przez przezroczyste mosty szeregowo-TCP takie jak stream_server w ESPHome.",
                     "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
-                    "unit_id": "ID jednostki (serwera) Modbus kontrolera basenu. Większość konfiguracji używa 1."
+                    "unit_id": "Adres urządzenia Modbus (1-247). Identyfikuje konkretne urządzenie na wspólnej magistrali. Większość urządzeń podłączonych bezpośrednio używa 1. Bramki mogą kierować żądania do różnych adresów."
                 },
                 "description": "Skonfiguruj połączenie z kontrolerem NeoPool.",
                 "title": "Połączenie NeoPool"
