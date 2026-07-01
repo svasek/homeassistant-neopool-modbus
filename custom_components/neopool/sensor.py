@@ -23,11 +23,18 @@ from typing import Any, override
 
 from neopool_modbus.capabilities import has_filtvalve, is_ionization_present
 from neopool_modbus.decoders import (
+    FILTRATION_MODE_LABELS,
+    FILTRATION_SPEED_STATE_LABELS,
+    HIDRO_POLARITY_LABELS,
+    ION_POLARITY_LABELS,
+    PH_STATUS_ALARM_LABELS,
     decode_hidro_polarity,
     decode_ion_polarity,
+    decode_ph_alarm,
     decode_ph_pump_status,
     get_filtration_pump_type,
     is_hydrolysis_in_percent,
+    ph_pump_options,
 )
 
 from homeassistant.components.sensor import (
@@ -60,44 +67,6 @@ from .helpers import calculate_next_interval_time
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
-
-_FILTRATION_MODE_OPTIONS: list[str] = [
-    "manual",
-    "auto",
-    "heating",
-    "smart",
-    "intelligent",
-    "backwash",
-]
-_FILTRATION_SPEED_OPTIONS: list[str] = ["off", "low", "mid", "high"]
-_POLARITY_OPTIONS_HYDRO: list[str] = ["pol1", "pol2", "dead_time", "no_flow", "off"]
-_POLARITY_OPTIONS_ION: list[str] = ["pol1", "pol2", "dead_time", "off"]
-
-PH_STATUS_ALARM_MAP = {
-    0: "ok",
-    1: "ph_high",
-    2: "ph_low",
-    3: "pump_stopped",
-    4: "ph_over",
-    5: "ph_under",
-    6: "tank_level",
-}
-
-
-def _decode_ph_alarm(data: Mapping[str, Any]) -> str | None:
-    """Map the raw MBF_PH_STATUS_ALARM register value to a translation key."""
-    ph_alarm: int | None = data.get("MBF_PH_STATUS_ALARM")
-    return PH_STATUS_ALARM_MAP.get(ph_alarm) if ph_alarm is not None else None
-
-
-def _ph_pump_options(data: Mapping[str, Any]) -> list[str]:
-    """Return the pH pump status enum options narrowed by relay mode."""
-    relay_ph = data.get("MBF_PAR_RELAY_PH", 0) or 0
-    if relay_ph == 1:
-        return ["off", "idle", "acid"]
-    if relay_ph == 2:
-        return ["off", "idle", "base"]
-    return ["off", "idle", "acid", "base", "both"]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -186,7 +155,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         key="MBF_PAR_FILT_MODE",
         translation_key="filt_mode",
         device_class=SensorDeviceClass.ENUM,
-        options=_FILTRATION_MODE_OPTIONS,
+        options=list(FILTRATION_MODE_LABELS.values()),
         value_fn=lambda data: data.get("filtration_mode"),
     ),
     "MBF_PH_STATUS_ALARM": NeoPoolSensorEntityDescription(
@@ -194,8 +163,8 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         translation_key="ph_status_alarm",
         device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        options=list(PH_STATUS_ALARM_MAP.values()),
-        value_fn=_decode_ph_alarm,
+        options=list(PH_STATUS_ALARM_LABELS.values()),
+        value_fn=lambda data: decode_ph_alarm(data),
         supported_fn=lambda data, opts: (
             data.get("pH measurement module detected") is True
         ),
@@ -204,7 +173,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         key="HIDRO_POLARITY",
         translation_key="hidro_polarity",
         device_class=SensorDeviceClass.ENUM,
-        options=_POLARITY_OPTIONS_HYDRO,
+        options=list(HIDRO_POLARITY_LABELS),
         value_fn=lambda data: decode_hidro_polarity(data),
         supported_fn=lambda data, opts: bool(data.get("Hydrolysis module detected")),
     ),
@@ -212,7 +181,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         key="ION_POLARITY",
         translation_key="ion_polarity",
         device_class=SensorDeviceClass.ENUM,
-        options=_POLARITY_OPTIONS_ION,
+        options=list(ION_POLARITY_LABELS),
         value_fn=lambda data: decode_ion_polarity(data),
         supported_fn=lambda data, opts: is_ionization_present(data),
     ),
@@ -221,7 +190,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         translation_key="ph_pump_status",
         device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        options_fn=_ph_pump_options,
+        options_fn=lambda data: ph_pump_options(data),
         value_fn=lambda data: decode_ph_pump_status(data),
         supported_fn=lambda data, opts: (
             data.get("pH measurement module detected") is True
@@ -231,7 +200,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         key="FILTRATION_SPEED",
         translation_key="filtration_speed",
         device_class=SensorDeviceClass.ENUM,
-        options=_FILTRATION_SPEED_OPTIONS,
+        options=list(FILTRATION_SPEED_STATE_LABELS),
         value_fn=lambda data: data.get("filtration_speed_state"),
         supported_fn=lambda data, opts: bool(
             get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
