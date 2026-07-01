@@ -210,7 +210,7 @@
             "cell_boost": {
                 "name": "Boost mode",
                 "state": {
-                    "active": "[%key:common::state::active%]",
+                    "active": "Active",
                     "active_redox": "Active (Redox control)",
                     "inactive": "Inactive"
                 }
@@ -222,39 +222,39 @@
                     "backwash": "Backwash",
                     "heating": "Heating",
                     "intelligent": "Intelligent",
-                    "manual": "[%key:common::state::manual%]",
+                    "manual": "Manual",
                     "smart": "Smart"
                 }
             },
             "filtration1_speed": {
                 "name": "Timer 1 - filtration speed",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "High",
+                    "low": "Low",
                     "mid": "Medium"
                 }
             },
             "filtration2_speed": {
                 "name": "Timer 2 - filtration speed",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "High",
+                    "low": "Low",
                     "mid": "Medium"
                 }
             },
             "filtration3_speed": {
                 "name": "Timer 3 - filtration speed",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "High",
+                    "low": "Low",
                     "mid": "Medium"
                 }
             },
             "filtration_speed": {
                 "name": "Filtration speed",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "High",
+                    "low": "Low",
                     "mid": "Medium"
                 }
             },
@@ -306,9 +306,9 @@
                 "state": {
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Disabled",
+                    "off": "Off",
+                    "on": "On"
                 }
             },
             "relay_aux1_period": {
@@ -344,9 +344,9 @@
                 "state": {
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Disabled",
+                    "off": "Off",
+                    "on": "On"
                 }
             },
             "relay_aux2_period": {
@@ -382,9 +382,9 @@
                 "state": {
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Disabled",
+                    "off": "Off",
+                    "on": "On"
                 }
             },
             "relay_aux3_period": {
@@ -420,9 +420,9 @@
                 "state": {
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Disabled",
+                    "off": "Off",
+                    "on": "On"
                 }
             },
             "relay_aux4_period": {
@@ -457,9 +457,9 @@
                 "name": "Light mode",
                 "state": {
                     "auto": "Automatic",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Disabled",
+                    "off": "Off",
+                    "on": "On"
                 }
             },
             "relay_light_period": {
@@ -488,7 +488,7 @@
                     "backwash": "Backwash",
                     "heating": "Heating",
                     "intelligent": "Intelligent",
-                    "manual": "[%key:common::state::manual%]",
+                    "manual": "Manual",
                     "smart": "Smart"
                 }
             },
@@ -504,10 +504,10 @@
             "filtration_speed": {
                 "name": "Current filtration speed",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "High",
+                    "low": "Low",
                     "mid": "Medium",
-                    "off": "[%key:common::state::off%]"
+                    "off": "Off"
                 }
             },
             "filtvalve_remaining": {
@@ -536,7 +536,7 @@
                 "state": {
                     "dead_time": "Dead time",
                     "no_flow": "No flow",
-                    "off": "[%key:common::state::off%]",
+                    "off": "Off",
                     "pol1": "Polarity 1",
                     "pol2": "Polarity 2"
                 }
@@ -557,7 +557,7 @@
                 "name": "Ionizer polarity",
                 "state": {
                     "dead_time": "Dead time",
-                    "off": "[%key:common::state::off%]",
+                    "off": "Off",
                     "pol1": "Polarity 1",
                     "pol2": "Polarity 2"
                 }
@@ -583,8 +583,8 @@
                     "acid": "Acid pump",
                     "base": "Base pump",
                     "both": "Both pumps",
-                    "idle": "[%key:common::state::idle%]",
-                    "off": "[%key:common::state::off%]"
+                    "idle": "Idle",
+                    "off": "Off"
                 }
             },
             "ph_status_alarm": {

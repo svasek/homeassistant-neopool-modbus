@@ -210,7 +210,7 @@
             "cell_boost": {
                 "name": "Režim boost",
                 "state": {
-                    "active": "[%key:common::state::active%]",
+                    "active": "Aktivní",
                     "active_redox": "Aktivní (řízeno redoxem)",
                     "inactive": "Neaktivní"
                 }
@@ -222,39 +222,39 @@
                     "backwash": "Zpětný proplach",
                     "heating": "Ohřev",
                     "intelligent": "Inteligentní",
-                    "manual": "[%key:common::state::manual%]",
+                    "manual": "Ruční",
                     "smart": "Smart"
                 }
             },
             "filtration1_speed": {
                 "name": "Timer 1 - Rychlost filtrace",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "Vysoká",
+                    "low": "Nízká",
                     "mid": "Střední"
                 }
             },
             "filtration2_speed": {
                 "name": "Timer 2 - Rychlost filtrace",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "Vysoká",
+                    "low": "Nízká",
                     "mid": "Střední"
                 }
             },
             "filtration3_speed": {
                 "name": "Timer 3 - Rychlost filtrace",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "Vysoká",
+                    "low": "Nízká",
                     "mid": "Střední"
                 }
             },
             "filtration_speed": {
                 "name": "Rychlost filtrace",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "Vysoká",
+                    "low": "Nízká",
                     "mid": "Střední"
                 }
             },
@@ -263,7 +263,7 @@
                 "state": {
                     "always_off": "Vždy vypnuto",
                     "always_on": "Vždy zapnuto",
-                    "enabled": "[%key:common::state::enabled%]"
+                    "enabled": "Automatický"
                 }
             },
             "filtvalve_period_minutes": {
@@ -306,9 +306,9 @@
                 "state": {
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Zakázáno",
+                    "off": "Vypnuto",
+                    "on": "Zapnuto"
                 }
             },
             "relay_aux1_period": {
@@ -344,9 +344,9 @@
                 "state": {
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Zakázáno",
+                    "off": "Vypnuto",
+                    "on": "Zapnuto"
                 }
             },
             "relay_aux2_period": {
@@ -382,9 +382,9 @@
                 "state": {
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Zakázáno",
+                    "off": "Vypnuto",
+                    "on": "Zapnuto"
                 }
             },
             "relay_aux3_period": {
@@ -420,9 +420,9 @@
                 "state": {
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Zakázáno",
+                    "off": "Vypnuto",
+                    "on": "Zapnuto"
                 }
             },
             "relay_aux4_period": {
@@ -457,9 +457,9 @@
                 "name": "Režim světla",
                 "state": {
                     "auto": "Automaticky",
-                    "disabled": "[%key:common::state::disabled%]",
-                    "off": "[%key:common::state::off%]",
-                    "on": "[%key:common::state::on%]"
+                    "disabled": "Zakázáno",
+                    "off": "Vypnuto",
+                    "on": "Zapnuto"
                 }
             },
             "relay_light_period": {
@@ -488,7 +488,7 @@
                     "backwash": "Zpětný proplach",
                     "heating": "Ohřev",
                     "intelligent": "Inteligentní",
-                    "manual": "[%key:common::state::manual%]",
+                    "manual": "Ruční",
                     "smart": "Smart"
                 }
             },
@@ -504,10 +504,10 @@
             "filtration_speed": {
                 "name": "Aktuální rychlost filtrace",
                 "state": {
-                    "high": "[%key:common::state::high%]",
-                    "low": "[%key:common::state::low%]",
+                    "high": "Vysoká",
+                    "low": "Nízká",
                     "mid": "Střední",
-                    "off": "[%key:common::state::off%]"
+                    "off": "Vypnuto"
                 }
             },
             "filtvalve_remaining": {
@@ -536,7 +536,7 @@
                 "state": {
                     "dead_time": "Mrtvý čas",
                     "no_flow": "Bez průtoku",
-                    "off": "[%key:common::state::off%]",
+                    "off": "Vypnuto",
                     "pol1": "Polarita 1",
                     "pol2": "Polarita 2"
                 }
@@ -557,7 +557,7 @@
                 "name": "Polarita ionizátoru",
                 "state": {
                     "dead_time": "Mrtvý čas",
-                    "off": "[%key:common::state::off%]",
+                    "off": "Vypnuto",
                     "pol1": "Polarita 1",
                     "pol2": "Polarita 2"
                 }
@@ -583,8 +583,8 @@
                     "acid": "Čerpadlo kyseliny",
                     "base": "Čerpadlo báze",
                     "both": "Obě čerpadla",
-                    "idle": "[%key:common::state::idle%]",
-                    "off": "[%key:common::state::off%]"
+                    "idle": "Nečinné",
+                    "off": "Vypnuto"
                 }
             },
             "ph_status_alarm": {
