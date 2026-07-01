@@ -486,7 +486,7 @@ async def test_filtration_pump_energy_restores_native_value_after_restart(
 ) -> None:
     """RestoreSensor recovers the previous Wh counter after a HA restart."""
     fake_state = State(
-        "sensor.pool_filtration_pump_energy",
+        "sensor.neopool_filtration_pump_energy",
         STATE_UNKNOWN,
     )
     fake_extra_data = {
@@ -535,7 +535,7 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
 ) -> None:
     """A non-numeric restored native_value does not corrupt the counter."""
     fake_state = State(
-        "sensor.pool_filtration_pump_energy",
+        "sensor.neopool_filtration_pump_energy",
         STATE_UNKNOWN,
     )
     # `native_value` typed as Decimal/datetime/date isn't valid for an energy
@@ -665,7 +665,7 @@ async def test_cell_runtime_sensor_reads_combined_register(
     registry.async_get_or_create(
         "sensor",
         DOMAIN,
-        f"neopool_{MOCK_SERIAL}_{key.lower()}",
+        f"{MOCK_SERIAL}_{key.lower()}",
         config_entry=mock_config_entry,
         disabled_by=None,
     )
@@ -723,7 +723,7 @@ async def test_cell_runtime_sensor_returns_none_when_key_missing(
     registry.async_get_or_create(
         "sensor",
         DOMAIN,
-        f"neopool_{MOCK_SERIAL}_cell_runtime_part",
+        f"{MOCK_SERIAL}_cell_runtime_part",
         config_entry=mock_config_entry,
         disabled_by=None,
     )

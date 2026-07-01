@@ -38,7 +38,6 @@
                     "filtration_pump_power": "Puissance de la pompe de filtration (W, 0 = désactivé)",
                     "host": "Hôte",
                     "modbus_framer": "Framer Modbus",
-                    "name_default": "Piscine",
                     "port": "Port",
                     "unit_id": "Unit ID"
                 },

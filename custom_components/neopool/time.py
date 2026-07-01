@@ -37,8 +37,6 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
-type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
-
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolTimeEntityDescription(TimeEntityDescription):
@@ -46,7 +44,7 @@ class NeoPoolTimeEntityDescription(TimeEntityDescription):
 
     timer_block: str
     timer_field: Literal["start", "stop"]
-    supported_fn: SupportedFn | None = None
+    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
 
 
 _DEBOUNCE_DELAY = 10.0
@@ -75,6 +73,7 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
             key = f"{block}_{field}"
             out[key] = NeoPoolTimeEntityDescription(
                 key=key,
+                translation_key=key,
                 entity_category=EntityCategory.CONFIG,
                 entity_registry_enabled_default=enabled_default,
                 timer_block=block,
@@ -119,9 +118,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         super().__init__(coordinator, entry_id)
         self.entity_description = description
         self._key = key
-        device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(key)
+        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
 
         self._pending_write_task: asyncio.Task[None] | None = None
         self._debounce_delay = _DEBOUNCE_DELAY

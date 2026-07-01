@@ -38,7 +38,6 @@
                     "filtration_pump_power": "Moc pompy filtracyjnej (W, 0 = wyłączone)",
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
-                    "name_default": "Basen",
                     "port": "Port",
                     "unit_id": "Unit ID"
                 },

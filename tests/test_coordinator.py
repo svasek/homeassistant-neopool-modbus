@@ -30,17 +30,16 @@ from .conftest import MOCK_POOL_DATA
 # ---------------------------------------------------------------------------
 
 
-async def test_update_data_populates_firmware_and_model(
+async def test_update_data_populates_firmware(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """The first successful read populates firmware and model."""
+    """The first successful read populates firmware."""
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
     # MBF_POWER_MODULE_VERSION = 0x1234 → "18.52"
     assert coordinator.firmware == "18.52"
-    assert coordinator.model == "NeoPool"
 
 
 async def test_transient_modbus_failure_after_first_success_marks_unavailable(

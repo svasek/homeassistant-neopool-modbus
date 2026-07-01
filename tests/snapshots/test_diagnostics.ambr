@@ -42,8 +42,8 @@
         'use_light': True,
       }),
       'title': 'Pool',
-      'unique_id': 'neopool_1234567890',
-      'version': 5,
+      'unique_id': '1234567890',
+      'version': 6,
     }),
     'connection_stats': dict({
     }),
@@ -93,7 +93,6 @@
       'firmware': '18.52',
       'last_exception': 'None',
       'last_update_success': True,
-      'model': 'NeoPool',
     }),
   })
 # ---

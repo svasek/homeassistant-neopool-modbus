@@ -14,21 +14,23 @@
 
 """Config flow for the NeoPool integration."""
 
-import asyncio
-import logging
 from typing import Any, override
 
+from neopool_modbus import async_probe_serial
+from neopool_modbus.exceptions import (
+    NeoPoolConnectionError,
+    NeoPoolModbusError,
+    NeoPoolTimeoutError,
+)
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
-from homeassistant.helpers import translation as ha_translation
 
 from . import NeoPoolConfigEntry
-from .const import CURRENT_VERSION, DEFAULT_PORT, DEFAULT_UNIT_ID, DOMAIN, NAME
-from .helpers import async_get_device_serial
+from .const import CURRENT_VERSION, DEFAULT_PORT, DEFAULT_UNIT_ID, DOMAIN
 from .migration import (
     async_abort_if_unmigrated_v1_match,
     async_handle_import_step,
@@ -36,44 +38,27 @@ from .migration import (
 )
 from .options_flow import NeoPoolOptionsFlowHandler
 
-_LOGGER = logging.getLogger(__name__)
 
-
-async def is_host_port_open(host: str, port: int, timeout: int = 3) -> bool:
-    """Probe a TCP host:port to verify it accepts connections."""
+async def _async_probe(user_input: dict[str, Any]) -> tuple[str | None, str | None]:
+    """Probe a device using user-supplied connection parameters."""
     try:
-        _, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout)
-    except (TimeoutError, OSError):
-        return False
-    writer.close()
-    await writer.wait_closed()
-    return True
+        serial = await async_probe_serial(
+            user_input[CONF_HOST],
+            port=user_input[CONF_PORT],
+            unit_id=user_input["unit_id"],
+            framer=user_input["modbus_framer"],
+        )
+    except (NeoPoolConnectionError, NeoPoolTimeoutError):
+        return None, "cannot_connect"
+    except NeoPoolModbusError:
+        return None, "cannot_read_modbus"
+    return serial, None
 
 
 class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for NeoPool."""
 
     VERSION = CURRENT_VERSION
-
-    async def _async_validate_connection(self, user_input: dict) -> dict:
-        """Validate host/port connectivity and return an errors dict."""
-        errors = {}
-        host: str = user_input[CONF_HOST]
-        port: int = user_input.get(CONF_PORT, DEFAULT_PORT)
-        if not await is_host_port_open(host, port):
-            errors[CONF_HOST] = "cannot_connect"
-        return errors
-
-    async def _async_get_default_title(self) -> str:
-        """Return the localized default entry title."""
-        try:
-            t = await ha_translation.async_get_translations(
-                self.hass, self.hass.config.language, "config", {DOMAIN}
-            )
-            key = f"component.{DOMAIN}.config.step.user.data.name_default"
-            return t.get(key) or NAME
-        except Exception:  # noqa: BLE001
-            return NAME
 
     @override
     async def async_step_user(
@@ -86,9 +71,6 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
         # import step that migrates the entry, its entities and device-level
         # customizations to the new `neopool` domain. Otherwise fall through
         # to the regular new-entry form.
-        # Detect a legacy vistapool entry the user hasn't dealt with yet.
-        # We only offer the import on the first form display (user_input None);
-        # if they already started typing a fresh config we don't interrupt.
         if user_input is None:
             if (
                 result := await async_offer_vistapool_import_if_present(self)
@@ -107,55 +89,32 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
                 ): vol.In(("tcp", "rtu")),
             }
         )
-        errors = {}
+        errors: dict[str, str] = {}
         if user_input is not None:
-            errors = await self._async_validate_connection(user_input)
-            if errors:
-                return self.async_show_form(
-                    step_id="user",
-                    data_schema=data_schema,
-                    errors=errors,
+            serial, error_key = await _async_probe(user_input)
+            if error_key:
+                errors[CONF_HOST] = error_key
+            else:
+                assert serial is not None
+                await self.async_set_unique_id(serial)
+                self._abort_if_unique_id_configured()
+
+                # CUSTOM-ONLY START, historic v1 entries had no unique_id, so
+                # the abort_if_unique_id_configured check above can't catch them.
+                if (
+                    result := async_abort_if_unmigrated_v1_match(self, user_input)
+                ) is not None:
+                    return result
+                # CUSTOM-ONLY END
+
+                return self.async_create_entry(
+                    title=user_input[CONF_HOST], data=user_input
                 )
-
-            serial_number = await async_get_device_serial(user_input)
-            if not serial_number:
-                errors[CONF_HOST] = "cannot_read_modbus"
-                _LOGGER.warning(
-                    "User cannot read from Modbus device at %s:%s",
-                    user_input.get(CONF_HOST),
-                    user_input.get(CONF_PORT),
-                )
-                return self.async_show_form(
-                    step_id="user",
-                    data_schema=data_schema,
-                    errors=errors,
-                )
-
-            unique_id = f"neopool_{serial_number}"
-            await self.async_set_unique_id(unique_id)
-            self._abort_if_unique_id_configured()
-
-            # CUSTOM-ONLY START, historic v1 entries had no unique_id, so
-            # the abort_if_unique_id_configured check above can't catch them.
-            # Validation 3b: Catch unmigrated v1 entries (unique_id=None) by connection params
-            if (
-                result := async_abort_if_unmigrated_v1_match(self, user_input)
-            ) is not None:
-                return result
-            # CUSTOM-ONLY END
-
-            _LOGGER.info(
-                "Creating new NeoPool config entry (serial: …%s)",
-                serial_number[-6:],
-            )
-
-            return self.async_create_entry(
-                title=await self._async_get_default_title(), data=user_input
-            )
 
         return self.async_show_form(
             step_id="user",
             data_schema=data_schema,
+            errors=errors,
         )
 
     # CUSTOM-ONLY START, vistapool import step is HACS-only.
@@ -203,23 +162,16 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
             }
         )
 
-        errors = {}
+        errors: dict[str, str] = {}
         if user_input is not None:
-            errors = await self._async_validate_connection(user_input)
-            if not errors:
-                if entry.unique_id:
-                    serial = await async_get_device_serial({**current, **user_input})
-                    if serial and f"neopool_{serial}" != entry.unique_id:
-                        errors[CONF_HOST] = "serial_mismatch"
-                    elif not serial:
-                        errors[CONF_HOST] = "cannot_read_modbus"
-
-            if not errors:
-                new_data = {**current, **user_input}
-                return self.async_update_reload_and_abort(
-                    entry,
-                    data=new_data,
-                )
+            merged = {**current, **user_input}
+            serial, error_key = await _async_probe(merged)
+            if error_key:
+                errors[CONF_HOST] = error_key
+            elif entry.unique_id and serial != entry.unique_id:
+                errors[CONF_HOST] = "serial_mismatch"
+            else:
+                return self.async_update_reload_and_abort(entry, data=merged)
 
         return self.async_show_form(
             step_id="reconfigure",

@@ -57,8 +57,6 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
-type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
-
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolSwitchEntityDescription(SwitchEntityDescription):
@@ -70,26 +68,30 @@ class NeoPoolSwitchEntityDescription(SwitchEntityDescription):
     timer_block_addr: int | None = None
     mask_bit: int | None = None
     data_key: str | None = None
-    supported_fn: SupportedFn | None = None
+    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
 
 
 SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     "WINTER_MODE": NeoPoolSwitchEntityDescription(
         key="WINTER_MODE",
+        translation_key="winter_mode",
         entity_category=EntityCategory.CONFIG,
         switch_type="winter_mode",
     ),
     "TIME_AUTO_SYNC": NeoPoolSwitchEntityDescription(
         key="TIME_AUTO_SYNC",
+        translation_key="time_auto_sync",
         entity_category=EntityCategory.CONFIG,
         switch_type="auto_time_sync",
     ),
     "MBF_PAR_FILT_MANUAL_STATE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_FILT_MANUAL_STATE",
+        translation_key="filt_manual_state",
         switch_type="manual_filtration",
     ),
     "MBF_PAR_CLIMA_ONOFF": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_CLIMA_ONOFF",
+        translation_key="clima_onoff",
         entity_category=EntityCategory.CONFIG,
         switch_type="climate_mode",
         function_addr=CLIMA_ONOFF_REGISTER,
@@ -100,6 +102,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "MBF_PAR_SMART_ANTI_FREEZE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_SMART_ANTI_FREEZE",
+        translation_key="smart_anti_freeze",
         entity_category=EntityCategory.CONFIG,
         switch_type="smart_anti_freeze",
         function_addr=SMART_ANTI_FREEZE_REGISTER,
@@ -107,6 +110,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "MBF_PAR_UV_MODE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_UV_MODE",
+        translation_key="uv_mode",
         entity_category=EntityCategory.CONFIG,
         switch_type="uv_mode",
         function_addr=UV_MODE_REGISTER,
@@ -116,6 +120,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "MBF_PAR_HIDRO_COVER_ENABLE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_HIDRO_COVER_ENABLE",
+        translation_key="hidro_cover_enable",
         entity_category=EntityCategory.CONFIG,
         switch_type="bitmask",
         function_addr=HIDRO_COVER_ENABLE_REGISTER,
@@ -128,6 +133,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "MBF_PAR_HIDRO_TEMP_SHUTDOWN": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_HIDRO_TEMP_SHUTDOWN",
+        translation_key="hidro_temp_shutdown",
         entity_category=EntityCategory.CONFIG,
         switch_type="bitmask",
         function_addr=HIDRO_COVER_ENABLE_REGISTER,
@@ -141,6 +147,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "aux1": NeoPoolSwitchEntityDescription(
         key="aux1",
+        translation_key="aux1",
         switch_type="relay_timer",
         timer_block_addr=AUX1_TIMER_BLOCK_REGISTER,
         function_addr=AUX1_FUNCTION_REGISTER,
@@ -149,6 +156,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "aux2": NeoPoolSwitchEntityDescription(
         key="aux2",
+        translation_key="aux2",
         switch_type="relay_timer",
         timer_block_addr=AUX2_TIMER_BLOCK_REGISTER,
         function_addr=AUX2_FUNCTION_REGISTER,
@@ -157,6 +165,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "aux3": NeoPoolSwitchEntityDescription(
         key="aux3",
+        translation_key="aux3",
         switch_type="relay_timer",
         timer_block_addr=AUX3_TIMER_BLOCK_REGISTER,
         function_addr=AUX3_FUNCTION_REGISTER,
@@ -165,6 +174,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "aux4": NeoPoolSwitchEntityDescription(
         key="aux4",
+        translation_key="aux4",
         switch_type="relay_timer",
         timer_block_addr=AUX4_TIMER_BLOCK_REGISTER,
         function_addr=AUX4_FUNCTION_REGISTER,
@@ -206,9 +216,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         super().__init__(coordinator, entry_id)
         self.entity_description = description
         self._key = key
-        device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(key)
+        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
 
         # The winter_mode switch itself must remain available while winter mode is on
         if description.switch_type == "winter_mode":
@@ -357,17 +365,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         else:
             await self.coordinator.async_request_refresh()
             self.async_write_ha_state()
-
-    @override
-    async def async_added_to_hass(self) -> None:
-        """Handle entity which will be added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self.translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-        await super().async_added_to_hass()
 
     def _optimistic_update(self, state: bool) -> None:
         """Apply an optimistic state update to coordinator data."""

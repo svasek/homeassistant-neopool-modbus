@@ -32,7 +32,6 @@
           "filtration_pump_power": "Filtration pump power (W, 0 = disabled)",
           "host": "[%key:common::config_flow::data::host%]",
           "modbus_framer": "Modbus framer",
-          "name_default": "Pool",
           "port": "[%key:common::config_flow::data::port%]",
           "unit_id": "Unit ID"
         },
@@ -54,317 +53,317 @@
       "aux2": { "name": "Relay Aux2" },
       "aux3": { "name": "Relay Aux3" },
       "aux4": { "name": "Relay Aux4" },
-      "chlorine_control_module": { "name": "Chlorine Regulation Active" },
-      "chlorine_flow_sensor_problem": { "name": "Chlorine Flow Sensor" },
-      "chlorine_measurement_active": { "name": "Chlorine Measurement" },
-      "chlorine_pump_active": { "name": "Chlorine Pump Active" },
+      "chlorine_control_module": { "name": "Chlorine regulation active" },
+      "chlorine_flow_sensor_problem": { "name": "Chlorine flow sensor" },
+      "chlorine_measurement_active": { "name": "Chlorine measurement" },
+      "chlorine_pump_active": { "name": "Chlorine pump active" },
       "conductivity_control_module": {
-        "name": "Conductivity Regulation Active"
+        "name": "Conductivity regulation active"
       },
-      "conductivity_measurement_active": { "name": "Conductivity Measurement" },
-      "conductivity_pump_active": { "name": "Conductivity Pump Active" },
-      "device_time_out_of_sync": { "name": "Device Time Sync" },
-      "filtration_pump": { "name": "Filtration Active" },
+      "conductivity_measurement_active": { "name": "Conductivity measurement" },
+      "conductivity_pump_active": { "name": "Conductivity pump active" },
+      "device_time_out_of_sync": { "name": "Device time sync" },
+      "filtration_pump": { "name": "Filtration active" },
       "heating": { "name": "Heating" },
       "hidro_activated_by_the_cl_module": {
-        "name": "Hydrolysis Activated by Chlorine Module"
+        "name": "Hydrolysis activated by chlorine module"
       },
       "hidro_activated_by_the_rx_module": {
-        "name": "Hydrolysis Activated by Redox Module"
+        "name": "Hydrolysis activated by Redox module"
       },
       "hidro_chlorine_shock_mode": {
-        "name": "Hydrolysis Chlorine Shock Mode (Boost)"
+        "name": "Hydrolysis chlorine shock mode (boost)"
       },
-      "hidro_low_flow": { "name": "Hydrolysis Production Problem" },
-      "hidro_module_active": { "name": "Hydrolysis Enabled" },
-      "hidro_module_regulated": { "name": "Hydrolysis Regulation Active" },
-      "ion_low_flow": { "name": "Ionizer Production Problem" },
-      "ion_on_target": { "name": "Ionizer On Target" },
-      "ion_program_time_exceeded": { "name": "Ionizer Program Time Exceeded" },
-      "ph_acid_pump": { "name": "pH Acid Pump" },
-      "ph_control_module": { "name": "pH Regulation Active" },
-      "ph_measurement_active": { "name": "pH Measurement" },
-      "ph_module_control_status": { "name": "pH Flow Detection Control" },
-      "pool_cover": { "name": "Pool Cover" },
-      "pool_light": { "name": "Pool Light" },
-      "redox_control_module": { "name": "Redox Regulation Active" },
-      "redox_measurement_active": { "name": "Redox Measurement" },
-      "redox_pump_active": { "name": "Redox Pump Active" },
-      "uv_lamp": { "name": "UV Lamp" }
+      "hidro_low_flow": { "name": "Hydrolysis production problem" },
+      "hidro_module_active": { "name": "Hydrolysis enabled" },
+      "hidro_module_regulated": { "name": "Hydrolysis regulation active" },
+      "ion_low_flow": { "name": "Ionizer production problem" },
+      "ion_on_target": { "name": "Ionizer on target" },
+      "ion_program_time_exceeded": { "name": "Ionizer program time exceeded" },
+      "ph_acid_pump": { "name": "pH acid pump" },
+      "ph_control_module": { "name": "pH regulation active" },
+      "ph_measurement_active": { "name": "pH measurement" },
+      "ph_module_control_status": { "name": "pH flow detection control" },
+      "pool_cover": { "name": "Pool cover" },
+      "pool_light": { "name": "Pool light" },
+      "redox_control_module": { "name": "Redox regulation active" },
+      "redox_measurement_active": { "name": "Redox measurement" },
+      "redox_pump_active": { "name": "Redox pump active" },
+      "uv_lamp": { "name": "UV lamp" }
     },
     "button": {
-      "backwash": { "name": "Start Backwash" },
-      "escape": { "name": "Clear Error Messages" },
+      "backwash": { "name": "Start backwash" },
+      "escape": { "name": "Clear error messages" },
       "reset_cell_partial": { "name": "Reset cell runtime counter" },
-      "sync_time": { "name": "Synchronize Device Time" }
+      "sync_time": { "name": "Synchronize device time" }
     },
-    "light": { "light": { "name": "Pool Light" } },
+    "light": { "light": { "name": "Pool light" } },
     "number": {
-      "cl1": { "name": "Chlorine Setpoint" },
-      "heating_temp": { "name": "Temperature Setpoint" },
-      "hidro": { "name": "Hydrolisis Target Production Level" },
-      "hidro_cover_reduction": { "name": "Cover Reduction (when covered)" },
+      "cl1": { "name": "Chlorine setpoint" },
+      "heating_temp": { "name": "Temperature setpoint" },
+      "hidro": { "name": "Hydrolisis target production level" },
+      "hidro_cover_reduction": { "name": "Cover reduction (when covered)" },
       "hidro_shutdown_temperature": {
-        "name": "Hydrolysis Shutdown Temp. Threshold"
+        "name": "Hydrolysis shutdown temp. threshold"
       },
-      "ph1": { "name": "pH Max Limit" },
-      "ph2": { "name": "pH Min Limit" },
-      "rx1": { "name": "Redox Setpoint" },
+      "ph1": { "name": "pH max limit" },
+      "ph2": { "name": "pH min limit" },
+      "rx1": { "name": "Redox setpoint" },
       "smart_temp_high": { "name": "Smart upper temperature" },
       "smart_temp_low": { "name": "Smart lower temperature" }
     },
     "select": {
       "cell_boost": {
-        "name": "Boost Mode",
+        "name": "Boost mode",
         "state": {
-          "active": "Active",
+          "active": "[%key:common::state::active%]",
           "active_redox": "Active (Redox control)",
           "inactive": "Inactive"
         }
       },
       "filt_mode": {
-        "name": "Filtration Mode",
+        "name": "Filtration mode",
         "state": {
           "auto": "Automatic",
           "backwash": "Backwash",
           "heating": "Heating",
           "intelligent": "Intelligent",
-          "manual": "Manual",
+          "manual": "[%key:common::state::manual%]",
           "smart": "Smart"
         }
       },
       "filtration1_speed": {
-        "name": "Timer 1 - Filtration Speed",
-        "state": { "high": "High", "low": "Low", "mid": "Medium" }
+        "name": "Timer 1 - filtration speed",
+        "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium" }
       },
       "filtration2_speed": {
-        "name": "Timer 2 - Filtration Speed",
-        "state": { "high": "High", "low": "Low", "mid": "Medium" }
+        "name": "Timer 2 - filtration speed",
+        "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium" }
       },
       "filtration3_speed": {
-        "name": "Timer 3 - Filtration Speed",
-        "state": { "high": "High", "low": "Low", "mid": "Medium" }
+        "name": "Timer 3 - filtration speed",
+        "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium" }
       },
       "filtration_speed": {
         "name": "Filtration speed",
-        "state": { "high": "High", "low": "Low", "mid": "Medium" }
+        "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium" }
       },
       "filtvalve_mode": {
-        "name": "Backwash Valve Mode",
+        "name": "Backwash valve mode",
         "state": {
-          "always_off": "Always Off",
-          "always_on": "Always On",
+          "always_off": "Always off",
+          "always_on": "Always on",
           "enabled": "Automatic"
         }
       },
       "filtvalve_period_minutes": {
-        "name": "Backwash Repeat Interval",
+        "name": "Backwash repeat interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "intelligent_filt_min_time": {
-        "name": "Intelligent: Minimum Filtration Time"
+        "name": "Intelligent: minimum filtration time"
       },
       "relay_activation_delay": {
         "name": "pH pump activation delay",
         "state": {
-          "10": "10 seconds",
-          "20": "20 seconds",
-          "30": "30 seconds",
-          "40": "40 seconds",
-          "50": "50 seconds",
-          "60": "1 minute",
-          "120": "2 minutes",
-          "180": "3 minutes",
-          "300": "5 minutes",
-          "900": "15 minutes",
-          "1800": "30 minutes",
-          "3600": "1 hour",
-          "10800": "3 hours"
+          "10": "10 Seconds",
+          "20": "20 Seconds",
+          "30": "30 Seconds",
+          "40": "40 Seconds",
+          "50": "50 Seconds",
+          "60": "1 Minute",
+          "120": "2 Minutes",
+          "180": "3 Minutes",
+          "300": "5 Minutes",
+          "900": "15 Minutes",
+          "1800": "30 Minutes",
+          "3600": "1 Hour",
+          "10800": "3 Hours"
         }
       },
       "relay_aux1_mode": {
-        "name": "Relay Aux1 Mode",
+        "name": "Relay Aux1 mode",
         "state": {
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
-          "disabled": "Disabled",
-          "off": "Off",
-          "on": "On"
+          "disabled": "[%key:common::state::disabled%]",
+          "off": "[%key:common::state::off%]",
+          "on": "[%key:common::state::on%]"
         }
       },
       "relay_aux1_period": {
-        "name": "Timer Aux1 (1) - Interval",
+        "name": "Timer Aux1 (1) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_aux1b_period": {
-        "name": "Timer Aux1 (2) - Interval",
+        "name": "Timer Aux1 (2) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_aux2_mode": {
-        "name": "Relay Aux2 Mode",
+        "name": "Relay Aux2 mode",
         "state": {
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
-          "disabled": "Disabled",
-          "off": "Off",
-          "on": "On"
+          "disabled": "[%key:common::state::disabled%]",
+          "off": "[%key:common::state::off%]",
+          "on": "[%key:common::state::on%]"
         }
       },
       "relay_aux2_period": {
-        "name": "Timer Aux2 (1) - Interval",
+        "name": "Timer Aux2 (1) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_aux2b_period": {
-        "name": "Timer Aux2 (2) - Interval",
+        "name": "Timer Aux2 (2) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_aux3_mode": {
-        "name": "Relay Aux3 Mode",
+        "name": "Relay Aux3 mode",
         "state": {
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
-          "disabled": "Disabled",
-          "off": "Off",
-          "on": "On"
+          "disabled": "[%key:common::state::disabled%]",
+          "off": "[%key:common::state::off%]",
+          "on": "[%key:common::state::on%]"
         }
       },
       "relay_aux3_period": {
-        "name": "Timer Aux3 (1) - Interval",
+        "name": "Timer Aux3 (1) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_aux3b_period": {
-        "name": "Timer Aux3 (2) - Interval",
+        "name": "Timer Aux3 (2) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_aux4_mode": {
-        "name": "Relay Aux4 Mode",
+        "name": "Relay Aux4 mode",
         "state": {
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
-          "disabled": "Disabled",
-          "off": "Off",
-          "on": "On"
+          "disabled": "[%key:common::state::disabled%]",
+          "off": "[%key:common::state::off%]",
+          "on": "[%key:common::state::on%]"
         }
       },
       "relay_aux4_period": {
-        "name": "Timer Aux4 (1) - Interval",
+        "name": "Timer Aux4 (1) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_aux4b_period": {
-        "name": "Timer Aux4 (2) - Interval",
+        "name": "Timer Aux4 (2) - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       },
       "relay_light_mode": {
-        "name": "Light Mode",
+        "name": "Light mode",
         "state": {
           "auto": "Automatic",
-          "disabled": "Disabled",
-          "off": "Off",
-          "on": "On"
+          "disabled": "[%key:common::state::disabled%]",
+          "off": "[%key:common::state::off%]",
+          "on": "[%key:common::state::on%]"
         }
       },
       "relay_light_period": {
-        "name": "Light Timer - Interval",
+        "name": "Light timer - interval",
         "state": {
-          "1_day": "1 day",
-          "1_week": "1 week",
-          "2_days": "2 days",
-          "2_weeks": "2 weeks",
-          "3_days": "3 days",
-          "3_weeks": "3 weeks",
-          "4_days": "4 days",
-          "4_weeks": "4 weeks",
-          "5_days": "5 days"
+          "1_day": "1 Day",
+          "1_week": "1 Week",
+          "2_days": "2 Days",
+          "2_weeks": "2 Weeks",
+          "3_days": "3 Days",
+          "3_weeks": "3 Weeks",
+          "4_days": "4 Days",
+          "4_weeks": "4 Weeks",
+          "5_days": "5 Days"
         }
       }
     },
@@ -374,71 +373,71 @@
       "cell_runtime_pola": { "name": "Cell runtime in polarity 1" },
       "cell_runtime_polb": { "name": "Cell runtime in polarity 2" },
       "cell_runtime_total": { "name": "Cell runtime total" },
-      "device_time": { "name": "Device Time" },
+      "device_time": { "name": "Device time" },
       "filt_mode": {
-        "name": "Filtration Mode",
+        "name": "Filtration mode",
         "state": {
           "auto": "Automatic",
           "backwash": "Backwash",
           "heating": "Heating",
           "intelligent": "Intelligent",
-          "manual": "Manual",
+          "manual": "[%key:common::state::manual%]",
           "smart": "Smart"
         }
       },
-      "filtration_pump_energy": { "name": "Filtration Pump Energy" },
-      "filtration_pump_power": { "name": "Filtration Pump Power" },
-      "filtration_remaining": { "name": "Filtration Time Remaining" },
+      "filtration_pump_energy": { "name": "Filtration pump energy" },
+      "filtration_pump_power": { "name": "Filtration pump power" },
+      "filtration_remaining": { "name": "Filtration time remaining" },
       "filtration_speed": {
         "name": "Current filtration speed",
-        "state": { "high": "High", "low": "Low", "mid": "Medium", "off": "Off" }
+        "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium", "off": "[%key:common::state::off%]" }
       },
-      "filtvalve_remaining": { "name": "Backwash Time Remaining" },
-      "hidro_current": { "name": "Hydrolysis Intensity" },
+      "filtvalve_remaining": { "name": "Backwash time remaining" },
+      "hidro_current": { "name": "Hydrolysis intensity" },
       "hidro_polarity": {
-        "name": "Hydrolysis Polarity",
+        "name": "Hydrolysis polarity",
         "state": {
-          "dead_time": "Dead Time",
-          "no_flow": "No Flow",
-          "off": "Off",
+          "dead_time": "Dead time",
+          "no_flow": "No flow",
+          "off": "[%key:common::state::off%]",
           "pol1": "Polarity 1",
           "pol2": "Polarity 2"
         }
       },
-      "hidro_voltage": { "name": "Hydrolysis Voltage" },
-      "intelligent_intervals": { "name": "Intelligent Mode Intervals" },
+      "hidro_voltage": { "name": "Hydrolysis voltage" },
+      "intelligent_intervals": { "name": "Intelligent mode intervals" },
       "intelligent_tt_next_interval": {
-        "name": "Intelligent Mode Next Interval Start"
+        "name": "Intelligent mode next interval start"
       },
-      "ion_current": { "name": "Ionization Level" },
+      "ion_current": { "name": "Ionization level" },
       "ion_polarity": {
-        "name": "Ionizer Polarity",
+        "name": "Ionizer polarity",
         "state": {
-          "dead_time": "Dead Time",
-          "off": "Off",
+          "dead_time": "Dead time",
+          "off": "[%key:common::state::off%]",
           "pol1": "Polarity 1",
           "pol2": "Polarity 2"
         }
       },
-      "measure_cl": { "name": "Salt Level" },
-      "measure_conductivity": { "name": "Conductivity Level" },
-      "measure_ph": { "name": "pH Level" },
-      "measure_rx": { "name": "Redox Potential" },
-      "measure_temperature": { "name": "Water Temperature" },
+      "measure_cl": { "name": "Salt level" },
+      "measure_conductivity": { "name": "Conductivity level" },
+      "measure_ph": { "name": "pH level" },
+      "measure_rx": { "name": "Redox potential" },
+      "measure_temperature": { "name": "Water temperature" },
       "ph_pump_status": {
-        "name": "pH Pump Status",
+        "name": "pH pump status",
         "state": {
-          "acid": "Acid Pump",
-          "base": "Base Pump",
-          "both": "Both Pumps",
-          "idle": "Idle",
-          "off": "Off"
+          "acid": "Acid pump",
+          "base": "Base pump",
+          "both": "Both pumps",
+          "idle": "[%key:common::state::idle%]",
+          "off": "[%key:common::state::off%]"
         }
       },
       "ph_status_alarm": {
-        "name": "pH Alarm",
+        "name": "pH alarm",
         "state": {
-          "ok": "OK",
+          "ok": "Ok",
           "ph_high": "pH too high",
           "ph_low": "pH too low",
           "ph_over": "pH higher than the set point",
@@ -454,41 +453,41 @@
       "aux3": { "name": "Relay Aux3" },
       "aux4": { "name": "Relay Aux4" },
       "clima_onoff": { "name": "Climate mode for heating" },
-      "filt_manual_state": { "name": "Manual Filtration" },
+      "filt_manual_state": { "name": "Manual filtration" },
       "hidro_cover_enable": { "name": "Enable cover reduction (when covered)" },
       "hidro_temp_shutdown": {
         "name": "Enable hydrolysis shutdown on high temperature"
       },
       "smart_anti_freeze": { "name": "Smart antifreeze" },
-      "time_auto_sync": { "name": "Time Auto Sync" },
-      "uv_mode": { "name": "UV Mode" },
-      "winter_mode": { "name": "Winter Mode" }
+      "time_auto_sync": { "name": "Time auto sync" },
+      "uv_mode": { "name": "UV mode" },
+      "winter_mode": { "name": "Winter mode" }
     },
     "time": {
-      "filtration1_start": { "name": "Timer 1 - Filtration Start" },
-      "filtration1_stop": { "name": "Timer 1 - Filtration Stop" },
-      "filtration2_start": { "name": "Timer 2 - Filtration Start" },
-      "filtration2_stop": { "name": "Timer 2 - Filtration Stop" },
-      "filtration3_start": { "name": "Timer 3 - Filtration Start" },
-      "filtration3_stop": { "name": "Timer 3 - Filtration Stop" },
-      "relay_aux1_start": { "name": "Timer Aux1 (1) - Start" },
-      "relay_aux1_stop": { "name": "Timer Aux1 (1) - Stop" },
-      "relay_aux1b_start": { "name": "Timer Aux1 (2) - Start" },
-      "relay_aux1b_stop": { "name": "Timer Aux1 (2) - Stop" },
-      "relay_aux2_start": { "name": "Timer Aux2 (1) - Start" },
-      "relay_aux2_stop": { "name": "Timer Aux2 (1) - Stop" },
-      "relay_aux2b_start": { "name": "Timer Aux2 (2) - Start" },
-      "relay_aux2b_stop": { "name": "Timer Aux2 (2) - Stop" },
-      "relay_aux3_start": { "name": "Timer Aux3 (1) - Start" },
-      "relay_aux3_stop": { "name": "Timer Aux3 (1) - Stop" },
-      "relay_aux3b_start": { "name": "Timer Aux3 (2) - Start" },
-      "relay_aux3b_stop": { "name": "Timer Aux3 (2) - Stop" },
-      "relay_aux4_start": { "name": "Timer Aux4 (1) - Start" },
-      "relay_aux4_stop": { "name": "Timer Aux4 (1) - Stop" },
-      "relay_aux4b_start": { "name": "Timer Aux4 (2) - Start" },
-      "relay_aux4b_stop": { "name": "Timer Aux4 (2) - Stop" },
-      "relay_light_start": { "name": "Light Timer - Start" },
-      "relay_light_stop": { "name": "Light Timer - Stop" }
+      "filtration1_start": { "name": "Timer 1 - filtration start" },
+      "filtration1_stop": { "name": "Timer 1 - filtration stop" },
+      "filtration2_start": { "name": "Timer 2 - filtration start" },
+      "filtration2_stop": { "name": "Timer 2 - filtration stop" },
+      "filtration3_start": { "name": "Timer 3 - filtration start" },
+      "filtration3_stop": { "name": "Timer 3 - filtration stop" },
+      "relay_aux1_start": { "name": "Timer Aux1 (1) - start" },
+      "relay_aux1_stop": { "name": "Timer Aux1 (1) - stop" },
+      "relay_aux1b_start": { "name": "Timer Aux1 (2) - start" },
+      "relay_aux1b_stop": { "name": "Timer Aux1 (2) - stop" },
+      "relay_aux2_start": { "name": "Timer Aux2 (1) - start" },
+      "relay_aux2_stop": { "name": "Timer Aux2 (1) - stop" },
+      "relay_aux2b_start": { "name": "Timer Aux2 (2) - start" },
+      "relay_aux2b_stop": { "name": "Timer Aux2 (2) - stop" },
+      "relay_aux3_start": { "name": "Timer Aux3 (1) - start" },
+      "relay_aux3_stop": { "name": "Timer Aux3 (1) - stop" },
+      "relay_aux3b_start": { "name": "Timer Aux3 (2) - start" },
+      "relay_aux3b_stop": { "name": "Timer Aux3 (2) - stop" },
+      "relay_aux4_start": { "name": "Timer Aux4 (1) - start" },
+      "relay_aux4_stop": { "name": "Timer Aux4 (1) - stop" },
+      "relay_aux4b_start": { "name": "Timer Aux4 (2) - start" },
+      "relay_aux4b_stop": { "name": "Timer Aux4 (2) - stop" },
+      "relay_light_start": { "name": "Light timer - start" },
+      "relay_light_stop": { "name": "Light timer - stop" }
     }
   },
   "exceptions": {

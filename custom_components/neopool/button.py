@@ -14,7 +14,7 @@
 
 """Button platform for the NeoPool integration."""
 
-from collections.abc import Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 import logging
 from typing import Any, override
@@ -35,34 +35,81 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
-type SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
-
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolButtonEntityDescription(ButtonEntityDescription):
     """Describes a NeoPool button entity."""
 
-    supported_fn: SupportedFn | None = None
+    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
+    press_fn: Callable[["NeoPoolButton"], Awaitable[None]]
+
+
+async def _press_sync_time(entity: "NeoPoolButton") -> None:
+    """Push the current HA wall-clock to the device."""
+    _LOGGER.debug("Syncing time with device")
+    await entity.coordinator.client.async_sync_device_time(
+        prepare_device_time(entity.hass)
+    )
+
+
+async def _press_clear_errors(entity: "NeoPoolButton") -> None:
+    """Clear all possible device errors."""
+    _LOGGER.debug("Clearing all possible errors")
+    await entity.coordinator.client.async_clear_errors()
+
+
+async def _press_backwash(entity: "NeoPoolButton") -> None:
+    """Start the backwash cycle if the filtration valve is configured."""
+    data = entity.coordinator.data
+    if not has_filtvalve(data):
+        _LOGGER.warning(
+            "Backwash valve not configured "
+            "(MBF_PAR_FILTVALVE_ENABLE=%r, MBF_PAR_FILTVALVE_GPIO=%r) "
+            "- ignoring backwash command for %s",
+            data.get("MBF_PAR_FILTVALVE_ENABLE"),
+            data.get("MBF_PAR_FILTVALVE_GPIO"),
+            entity.coordinator.entry.title,
+        )
+        return
+    _LOGGER.info("Starting backwash on device '%s'", entity.coordinator.entry.title)
+    await entity.coordinator.client.async_set_filtration_mode("backwash")
+
+
+async def _press_reset_cell_partial(entity: "NeoPoolButton") -> None:
+    """Reset the partial cell-runtime counter on the device."""
+    _LOGGER.info(
+        "Resetting partial cell runtime counter on device '%s'",
+        entity.coordinator.entry.title,
+    )
+    await entity.coordinator.client.async_reset_user_counters()
 
 
 BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
     "SYNC_TIME": NeoPoolButtonEntityDescription(
         key="SYNC_TIME",
+        translation_key="sync_time",
         entity_category=EntityCategory.CONFIG,
+        press_fn=_press_sync_time,
     ),
     "MBF_ESCAPE": NeoPoolButtonEntityDescription(
         key="MBF_ESCAPE",
+        translation_key="escape",
         entity_category=EntityCategory.CONFIG,
+        press_fn=_press_clear_errors,
     ),
     "BACKWASH": NeoPoolButtonEntityDescription(
         key="BACKWASH",
+        translation_key="backwash",
         supported_fn=lambda data, opts: has_filtvalve(data),
+        press_fn=_press_backwash,
     ),
     "RESET_CELL_PARTIAL": NeoPoolButtonEntityDescription(
         key="RESET_CELL_PARTIAL",
+        translation_key="reset_cell_partial",
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
         supported_fn=lambda data, opts: bool(data.get("Hydrolysis module detected")),
+        press_fn=_press_reset_cell_partial,
     ),
 }
 
@@ -99,53 +146,13 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         super().__init__(coordinator, entry_id)
         self.entity_description = description
         self._key = key
-        device_id = self.coordinator.entry.unique_id or self._entry_id
-        self._attr_unique_id = f"{device_id}_{key.lower()}"
-        self._attr_translation_key = NeoPoolEntity.slugify(key)
-
-    @override
-    async def async_added_to_hass(self) -> None:
-        """Run when the entity is added to hass."""
-        _LOGGER.debug(
-            "ADDED: entity_id=%s, translation_key=%s, has_entity_name=%s",
-            self.entity_id,
-            self.translation_key,
-            getattr(self, "has_entity_name", None),
-        )
-        await super().async_added_to_hass()
+        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
 
     @override
     async def async_press(self) -> None:
-        """Perform button action depending on key."""
+        """Dispatch to the description's press handler."""
         if self.coordinator.winter_mode:
             _LOGGER.warning("Winter mode is active, ignoring press for %s", self._key)
             return
-        client = self.coordinator.client
-        if self._key == "SYNC_TIME":
-            _LOGGER.debug("Syncing time with device")
-            await client.async_sync_device_time(prepare_device_time(self.hass))
-        elif self._key == "MBF_ESCAPE":
-            _LOGGER.debug("Clearing all possible errors")
-            await client.async_clear_errors()
-        elif self._key == "BACKWASH":
-            if not has_filtvalve(self.coordinator.data):
-                _LOGGER.warning(
-                    "Backwash valve not configured "
-                    "(MBF_PAR_FILTVALVE_ENABLE=%r, MBF_PAR_FILTVALVE_GPIO=%r) "
-                    "- ignoring backwash command for %s",
-                    self.coordinator.data.get("MBF_PAR_FILTVALVE_ENABLE"),
-                    self.coordinator.data.get("MBF_PAR_FILTVALVE_GPIO"),
-                    self.coordinator.device_name,
-                )
-                return
-            _LOGGER.info(
-                "Starting backwash on device '%s'", self.coordinator.device_name
-            )
-            await client.async_set_filtration_mode("backwash")
-        elif self._key == "RESET_CELL_PARTIAL":
-            _LOGGER.info(
-                "Resetting partial cell runtime counter on device '%s'",
-                self.coordinator.device_name,
-            )
-            await client.async_reset_user_counters()
+        await self.entity_description.press_fn(self)
         await self.coordinator.async_request_refresh()

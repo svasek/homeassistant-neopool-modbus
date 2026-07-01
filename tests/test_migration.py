@@ -91,12 +91,12 @@ async def test_single_v2_entry_success():
 
     # Two entity registry rows under platform="vistapool"
     e1 = MagicMock()
-    e1.entity_id = "sensor.pool_ph"
+    e1.entity_id = "sensor.neopool_ph"
     e1.unique_id = f"{NEW_UID}_mbf_ph_measure"
     e1.platform = OLD_DOMAIN
     e1.config_entry_id = old.entry_id
     e2 = MagicMock()
-    e2.entity_id = "sensor.pool_temperature"
+    e2.entity_id = "sensor.neopool_temperature"
     e2.unique_id = f"{NEW_UID}_mbf_temperature"
     e2.platform = OLD_DOMAIN
     e2.config_entry_id = old.entry_id
@@ -173,7 +173,7 @@ async def test_single_v2_entry_success():
     targets = {
         c.args[0] for c in entity_registry.async_update_entity_platform.call_args_list
     }
-    assert targets == {"sensor.pool_ph", "sensor.pool_temperature"}
+    assert targets == {"sensor.neopool_ph", "sensor.neopool_temperature"}
 
     # Device retargeted: add new -> change identifiers -> remove old
     assert device_registry.async_update_device.call_count == 3
@@ -340,12 +340,12 @@ async def test_entity_retarget_failure_rolls_back():
     hass.config_entries.async_entries.return_value = [old]
 
     e1 = MagicMock()
-    e1.entity_id = "sensor.pool_ph"
+    e1.entity_id = "sensor.neopool_ph"
     e1.unique_id = f"{NEW_UID}_mbf_ph_measure"
     e1.platform = OLD_DOMAIN
     e1.config_entry_id = old.entry_id
     e2 = MagicMock()
-    e2.entity_id = "sensor.pool_temperature"
+    e2.entity_id = "sensor.neopool_temperature"
     e2.unique_id = f"{NEW_UID}_mbf_temperature"
     e2.platform = OLD_DOMAIN
     e2.config_entry_id = old.entry_id
@@ -769,12 +769,12 @@ async def test_entity_retarget_failure_rollback_also_fails():
     hass.config_entries.async_entries.return_value = [old]
 
     e1 = MagicMock()
-    e1.entity_id = "sensor.pool_ph"
+    e1.entity_id = "sensor.neopool_ph"
     e1.unique_id = f"{NEW_UID}_mbf_ph_measure"
     e1.platform = OLD_DOMAIN
     e1.config_entry_id = old.entry_id
     e2 = MagicMock()
-    e2.entity_id = "sensor.pool_temperature"
+    e2.entity_id = "sensor.neopool_temperature"
     e2.unique_id = f"{NEW_UID}_mbf_temperature"
     e2.platform = OLD_DOMAIN
     e2.config_entry_id = old.entry_id

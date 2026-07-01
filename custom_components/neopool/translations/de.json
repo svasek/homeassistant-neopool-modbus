@@ -38,7 +38,6 @@
                     "filtration_pump_power": "Leistung der Filtrationspumpe (W, 0 = deaktiviert)",
                     "host": "Host",
                     "modbus_framer": "Modbus-Framer",
-                    "name_default": "Pool",
                     "port": "Port",
                     "unit_id": "Unit-ID"
                 },
