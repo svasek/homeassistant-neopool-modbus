@@ -74,8 +74,8 @@ class NeoPoolSensorEntityDescription(SensorEntityDescription):
     """Describes a NeoPool sensor entity."""
 
     supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
-    value_fn: Callable[[Mapping[str, Any]], Any] | None = None
-    options_fn: Callable[[Mapping[str, Any]], list[str]] | None = None
+    value_fn: Callable[[dict[str, Any]], Any] | None = None
+    options_fn: Callable[[dict[str, Any]], list[str]] | None = None
 
 
 SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
@@ -421,7 +421,8 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         ):
             return 0
         if (value_fn := self.entity_description.value_fn) is not None:
-            return value_fn(self.coordinator.data)
+            value: float | int | str | datetime | None = value_fn(self.coordinator.data)
+            return value
         return self.coordinator.data.get(self._key)
 
     @property

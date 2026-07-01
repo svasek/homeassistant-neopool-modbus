@@ -64,6 +64,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
         """Return device information for the entity."""
         data = self.coordinator.data or {}
         unique_id = self.coordinator.entry.unique_id
+        assert unique_id is not None
         machine_type = (get_machine_name(data) or "").strip()
         # Hayward supplies the same NeoPool-compatible controller board to
         # multiple pool brands (Bayrol, Brilix, Hidrolife, ...); prefix

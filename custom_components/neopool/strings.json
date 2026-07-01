@@ -437,7 +437,7 @@
       "ph_status_alarm": {
         "name": "pH alarm",
         "state": {
-          "ok": "Ok",
+          "ok": "OK",
           "ph_high": "pH too high",
           "ph_low": "pH too low",
           "ph_over": "pH higher than the set point",
