@@ -1,10 +1,9 @@
 """Tests for the NeoPool helper functions."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 from neopool_modbus.capabilities import has_filtvalve
-from neopool_modbus.decoders import calculate_next_interval_time
 import pytest
 
 from custom_components.neopool.helpers import (
@@ -50,8 +49,8 @@ def test_get_device_time_with_hass(hass: HomeAssistant) -> None:
     """Passing hass interprets the device's epoch in HA's local timezone.
 
     The controller stores 'seconds since 1970-01-01 00:00:00 LOCAL TIME'
-    rather than UTC epoch, see the WORKAROUND in helpers.get_device_time.
-    The result is then converted back to UTC for HA's state machine.
+    rather than UTC epoch; the library's ``decode_device_time`` reads that
+    wall-clock value in the caller-provided tz and returns a UTC datetime.
     """
     hass.config.time_zone = "UTC"
     ts = 1_234_567_890
@@ -107,30 +106,6 @@ def test_is_device_time_out_of_sync_above_threshold() -> None:
 def test_is_device_time_out_of_sync_no_data() -> None:
     """Missing time registers means we cannot detect drift, so return False."""
     assert is_device_time_out_of_sync({}, None, threshold_seconds=60) is False
-
-
-# ---------------------------------------------------------------------------
-# calculate_next_interval_time
-# ---------------------------------------------------------------------------
-
-
-def test_calculate_next_interval_time_returns_utc() -> None:
-    """The next-interval timestamp is UTC, truncated to the minute."""
-    result = calculate_next_interval_time(7200)
-    assert result is not None
-    assert result.tzinfo == UTC
-    assert result.second == 0
-    assert result.microsecond == 0
-    expected = (dt_util.utcnow() + timedelta(seconds=7200)).replace(
-        second=0, microsecond=0
-    )
-    assert abs((result - expected).total_seconds()) < 60
-
-
-@pytest.mark.parametrize("invalid", [0, -100, None])
-def test_calculate_next_interval_time_invalid_input(invalid: float | None) -> None:
-    """Zero, negative or None seconds yield None."""
-    assert calculate_next_interval_time(invalid) is None
 
 
 # ---------------------------------------------------------------------------
