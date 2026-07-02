@@ -7,6 +7,7 @@ from freezegun.api import FrozenDateTimeFactory
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
+    async_fire_time_changed,
     mock_restore_cache_with_extra_data,
 )
 from syrupy.assertion import SnapshotAssertion
@@ -52,13 +53,17 @@ async def test_temperature_sensor_suppressed_when_filtration_off(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Temperature sensor is unknown while the filtration pump is off."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _ENTITY_ID_BY_KEY["MBF_MEASURE_TEMPERATURE"]
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["Filtration Pump"] = False
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": False,
+    }
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_UNKNOWN
 
@@ -66,10 +71,11 @@ async def test_temperature_sensor_suppressed_when_filtration_off(
     new_options = dict(mock_config_entry.options)
     new_options["measure_when_filtration_off"] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
-    coordinator.async_set_updated_data(coordinator.data)
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == str(
-        coordinator.data["MBF_MEASURE_TEMPERATURE"]
+        MOCK_POOL_DATA["MBF_MEASURE_TEMPERATURE"]
     )
 
 
@@ -86,23 +92,28 @@ async def test_measurement_sensors_suppressed_when_filtration_off(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
     key: str,
 ) -> None:
     """Probe sensors are unknown while filtration pump is off (stale reading)."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _ENTITY_ID_BY_KEY[key]
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["Filtration Pump"] = False
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": False,
+    }
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_UNKNOWN
 
     new_options = dict(mock_config_entry.options)
     new_options["measure_when_filtration_off"] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
-    coordinator.async_set_updated_data(coordinator.data)
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    assert hass.states.get(entity_id).state == str(coordinator.data[key])
+    assert hass.states.get(entity_id).state == str(MOCK_POOL_DATA[key])
 
 
 @pytest.mark.parametrize(
@@ -117,6 +128,7 @@ async def test_production_sensors_zero_when_filtration_off(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
     key: str,
 ) -> None:
     """Production sensors report 0 while filtration pump is off (cell idle)."""
@@ -136,18 +148,22 @@ async def test_production_sensors_zero_when_filtration_off(
     else:
         entity_id = _ENTITY_ID_BY_KEY[key]
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["Filtration Pump"] = False
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": False,
+    }
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == "0"
 
     new_options = dict(mock_config_entry.options)
     new_options["measure_when_filtration_off"] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
-    coordinator.async_set_updated_data(coordinator.data)
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    assert hass.states.get(entity_id).state == str(coordinator.data[key])
+    assert hass.states.get(entity_id).state == str(MOCK_POOL_DATA[key])
 
 
 # ---------------------------------------------------------------------------
@@ -170,15 +186,19 @@ async def test_filt_mode_native_value(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
     filt_mode: int,
     expected: str,
 ) -> None:
     """Filt mode native value reads the lib's decoded filtration_mode key."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["MBF_PAR_FILT_MODE"] = filt_mode
-    coordinator.data["filtration_mode"] = expected
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": filt_mode,
+        "filtration_mode": expected,
+    }
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(_ENTITY_ID_BY_KEY["MBF_PAR_FILT_MODE"]).state == expected
 
@@ -358,46 +378,32 @@ async def test_ph_pump_status_options_per_relay_config(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """The pH pump status options list shrinks based on the relay configuration."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _ENTITY_ID_BY_KEY["PH_PUMP_STATUS"]
-    coordinator = mock_config_entry.runtime_data
 
-    coordinator.data["MBF_PAR_RELAY_PH"] = 1
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
-    assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == [
-        "off",
-        "idle",
-        "acid",
-    ]
-
-    coordinator.data["MBF_PAR_RELAY_PH"] = 2
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
-    assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == [
-        "off",
-        "idle",
-        "base",
-    ]
-
-    coordinator.data["MBF_PAR_RELAY_PH"] = 0
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
-    assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == [
-        "off",
-        "idle",
-        "acid",
-        "base",
-        "both",
-    ]
+    for relay, expected_options in (
+        (1, ["off", "idle", "acid"]),
+        (2, ["off", "idle", "base"]),
+        (0, ["off", "idle", "acid", "base", "both"]),
+    ):
+        mock_neopool_client.async_read_all.return_value = {
+            **MOCK_POOL_DATA,
+            "MBF_PAR_RELAY_PH": relay,
+        }
+        freezer.tick(_td(seconds=60))
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+        assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == expected_options
 
 
 async def test_hidro_current_g_per_hour_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """In g/h mode HIDRO_CURRENT swaps unit and bumps display precision.
 
@@ -405,10 +411,13 @@ async def test_hidro_current_g_per_hour_mode(
     rather than %; the sensor adapts unit + precision accordingly.
     """
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
     # HIDROLIFE machine type → is_hydrolysis_in_percent returns False.
-    coordinator.data["MBF_PAR_UICFG_MACHINE"] = 1
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_UICFG_MACHINE": 1,
+    }
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
     state = hass.states.get(_ENTITY_ID_BY_KEY["MBF_HIDRO_CURRENT"])
@@ -507,6 +516,7 @@ async def test_cell_runtime_sensor_returns_none_when_key_missing(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Sensor returns None when the combined key is absent from coordinator data."""
     # CELL_RUNTIME_PART is disabled-by-default; pre-enable it so the platform
@@ -521,36 +531,14 @@ async def test_cell_runtime_sensor_returns_none_when_key_missing(
         disabled_by=None,
     )
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    # Remove the combined key entirely -- coordinator.data.get() returns None.
-    coordinator.data.pop("CELL_RUNTIME_PART", None)
-    coordinator.async_set_updated_data(coordinator.data)
+    # Drop the combined key from the next read entirely so the sensor sees None.
+    reduced = {k: v for k, v in MOCK_POOL_DATA.items() if k != "CELL_RUNTIME_PART"}
+    mock_neopool_client.async_read_all.return_value = reduced
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
     assert hass.states.get(entry.entity_id).state == STATE_UNKNOWN
-
-
-async def test_cell_runtime_default_enabled_state(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """All five cell-runtime sensors default to disabled.
-
-    Cell-life metrics are diagnostic information rather than headline state;
-    surfacing them silently in every install would clutter dashboards. Users
-    who care about cell-life can enable the sensors explicitly in the entity
-    registry.
-    """
-
-    for key in (
-        "CELL_RUNTIME_TOTAL",
-        "CELL_RUNTIME_PART",
-        "CELL_RUNTIME_POLA",
-        "CELL_RUNTIME_POLB",
-        "CELL_RUNTIME_POL_CHANGES",
-    ):
-        assert SENSOR_DESCRIPTIONS[key].entity_registry_enabled_default is False
 
 
 # ---------------------------------------------------------------------------

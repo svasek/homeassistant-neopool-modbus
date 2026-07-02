@@ -1,11 +1,14 @@
 """Tests for the NeoPool time platform."""
 
 import asyncio
-from datetime import time as dt_time
+from datetime import time as dt_time, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 from syrupy.assertion import SnapshotAssertion
 
 from homeassistant.components.time import DOMAIN as TIME_DOMAIN, SERVICE_SET_VALUE
@@ -14,6 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
+from .conftest import MOCK_POOL_DATA
 
 
 def _time_entity_id(
@@ -81,12 +85,17 @@ async def test_native_value_decodes_seconds_since_midnight(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Coordinator seconds become HH:MM:SS state."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["filtration1_start"] = 6 * 3600 + 30 * 60  # 06:30
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "filtration1_start": 6 * 3600 + 30 * 60,  # 06:30
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_id = _time_entity_id(hass, mock_config_entry, "filtration1_start")
     state = hass.states.get(entity_id)
@@ -98,12 +107,15 @@ async def test_native_value_returns_none_when_data_missing(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Missing coordinator key surfaces as 'unknown'."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data.pop("filtration1_start", None)
-    coordinator.async_set_updated_data(coordinator.data)
+    reduced = {k: v for k, v in MOCK_POOL_DATA.items() if k != "filtration1_start"}
+    mock_neopool_client.async_read_all.return_value = reduced
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_id = _time_entity_id(hass, mock_config_entry, "filtration1_start")
     state = hass.states.get(entity_id)
@@ -115,12 +127,17 @@ async def test_native_value_handles_out_of_range_seconds(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Values >= 86400 wrap modulo 86400."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["filtration1_start"] = 86400 + 3600  # 25:00 -> 01:00
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "filtration1_start": 86400 + 3600,  # 25:00 -> 01:00
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_id = _time_entity_id(hass, mock_config_entry, "filtration1_start")
     state = hass.states.get(entity_id)
@@ -137,13 +154,18 @@ async def test_set_value_on_start_calls_set_timer(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Setting *_start preserves the existing stop."""
     await setup_integration(hass, mock_config_entry)
     _disable_debounce(hass)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["filtration1_stop"] = 10 * 3600
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "filtration1_stop": 10 * 3600,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_id = _time_entity_id(hass, mock_config_entry, "filtration1_start")
     mock_neopool_client.write_timer.reset_mock()
@@ -161,13 +183,18 @@ async def test_set_value_on_stop_calls_set_timer(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Setting *_stop preserves the existing start."""
     await setup_integration(hass, mock_config_entry)
     _disable_debounce(hass)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["filtration1_start"] = 6 * 3600
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "filtration1_start": 6 * 3600,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_id = _time_entity_id(hass, mock_config_entry, "filtration1_stop")
     mock_neopool_client.write_timer.reset_mock()
@@ -185,14 +212,19 @@ async def test_rapid_set_value_coalesces_via_debounce(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Sibling start/stop writes both reach the device with the latest pair."""
     await setup_integration(hass, mock_config_entry)
     _disable_debounce(hass)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["filtration1_start"] = 0
-    coordinator.data["filtration1_stop"] = 0
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "filtration1_start": 0,
+        "filtration1_stop": 0,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     start_id = _time_entity_id(hass, mock_config_entry, "filtration1_start")
     stop_id = _time_entity_id(hass, mock_config_entry, "filtration1_stop")
@@ -217,10 +249,11 @@ async def test_repeated_set_value_on_same_entity_coalesces(
     mock_neopool_client: MagicMock,
 ) -> None:
     """A second set_value cancels the first pending task; only the latest writes."""
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "filtration1_stop": 12 * 3600,
+    }
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["filtration1_stop"] = 12 * 3600
-    coordinator.async_set_updated_data(coordinator.data)
 
     entity_id = _time_entity_id(hass, mock_config_entry, "filtration1_start")
     entity_obj = _time_entity(hass, entity_id)

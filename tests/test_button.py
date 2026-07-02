@@ -1,9 +1,13 @@
 """Tests for the NeoPool button platform."""
 
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.const import DOMAIN
@@ -13,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
-from .conftest import MOCK_SERIAL
+from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
 
 
 def _button_entity_id(
@@ -115,17 +119,21 @@ async def test_backwash_button_aborts_when_valve_disappears(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """If the valve disappears between setup and press, the press logs and exits."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _button_entity_id(hass, mock_config_entry, "backwash")
 
-    # Drop the filt valve from coordinator data after the entity is registered.
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["MBF_PAR_FILTVALVE_GPIO"] = 0
-    coordinator.data["MBF_PAR_FILTVALVE_ENABLE"] = 0
-    coordinator.async_set_updated_data(coordinator.data)
+    # Drop the filt valve from the next read after the entity is registered.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_GPIO": 0,
+        "MBF_PAR_FILTVALVE_ENABLE": 0,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
     mock_neopool_client.async_set_filtration_mode.reset_mock()
