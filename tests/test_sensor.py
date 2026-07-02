@@ -28,6 +28,8 @@ _ENTITY_ID_BY_KEY = {
     "MBF_MEASURE_TEMPERATURE": "sensor.neopool_water_temperature",
     "MBF_MEASURE_PH": "sensor.neopool_ph_level",
     "MBF_MEASURE_RX": "sensor.neopool_redox_potential",
+    "MBF_MEASURE_CL": "sensor.neopool_salt_level",
+    "MBF_MEASURE_CONDUCTIVITY": "sensor.neopool_conductivity_level",
     "MBF_HIDRO_CURRENT": "sensor.neopool_hydrolysis_intensity",
     "MBF_HIDRO_VOLTAGE": "sensor.neopool_hydrolysis_voltage",
     "MBF_ION_CURRENT": "sensor.neopool_ionization_level",
@@ -75,6 +77,9 @@ async def test_temperature_sensor_suppressed_when_filtration_off(
     "key",
     [
         "MBF_MEASURE_PH",
+        "MBF_MEASURE_RX",
+        "MBF_MEASURE_CL",
+        "MBF_MEASURE_CONDUCTIVITY",
     ],
 )
 async def test_measurement_sensors_suppressed_when_filtration_off(
@@ -142,9 +147,7 @@ async def test_production_sensors_zero_when_filtration_off(
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
-    # The fixture omits raw production values; without the gate the sensor
-    # reads coordinator.data[key], which is missing -> STATE_UNKNOWN.
-    assert hass.states.get(entity_id).state == STATE_UNKNOWN
+    assert hass.states.get(entity_id).state == str(coordinator.data[key])
 
 
 # ---------------------------------------------------------------------------

@@ -7,7 +7,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'supported_color_modes': list([
+        <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
           <ColorMode.ONOFF: 'onoff'>,
         ]),
       }),

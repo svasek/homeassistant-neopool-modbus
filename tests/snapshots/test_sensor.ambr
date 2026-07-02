@@ -7,7 +7,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -47,7 +47,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -84,7 +84,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -124,7 +124,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -164,7 +164,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -204,7 +204,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -244,7 +244,47 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      }),
+      'config_entry_id': <ANY>,
+      'config_subentry_id': <ANY>,
+      'device_class': None,
+      'device_id': <ANY>,
+      'disabled_by': None,
+      'domain': 'sensor',
+      'entity_category': None,
+      'entity_id': 'sensor.neopool_conductivity_level',
+      'has_entity_name': True,
+      'hidden_by': None,
+      'icon': None,
+      'id': <ANY>,
+      'labels': set({
+      }),
+      'name': None,
+      'object_id_base': 'Conductivity level',
+      'options': dict({
+        'sensor': dict({
+          'suggested_display_precision': 0,
+        }),
+      }),
+      'original_device_class': None,
+      'original_icon': None,
+      'original_name': 'Conductivity level',
+      'platform': 'neopool',
+      'previous_unique_id': None,
+      'suggested_object_id': None,
+      'supported_features': 0,
+      'translation_key': 'measure_conductivity',
+      'unique_id': '1234567890_mbf_measure_conductivity',
+      'unit_of_measurement': '%',
+    }),
+    EntityRegistryEntrySnapshot({
+      'aliases': list([
+        None,
+      ]),
+      'area_id': None,
+      'capabilities': dict({
+        <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'off',
           'low',
           'mid',
@@ -286,7 +326,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'manual',
           'auto',
           'heating',
@@ -365,7 +405,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -405,7 +445,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'pol1',
           'pol2',
           'dead_time',
@@ -448,7 +488,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -485,7 +525,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -557,7 +597,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -594,7 +634,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'pol1',
           'pol2',
           'dead_time',
@@ -636,7 +676,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'ok',
           'ph_high',
           'ph_low',
@@ -681,7 +721,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -718,7 +758,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'off',
           'idle',
           'acid',
@@ -761,7 +801,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -801,7 +841,44 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      }),
+      'config_entry_id': <ANY>,
+      'config_subentry_id': <ANY>,
+      'device_class': None,
+      'device_id': <ANY>,
+      'disabled_by': None,
+      'domain': 'sensor',
+      'entity_category': None,
+      'entity_id': 'sensor.neopool_salt_level',
+      'has_entity_name': True,
+      'hidden_by': None,
+      'icon': None,
+      'id': <ANY>,
+      'labels': set({
+      }),
+      'name': None,
+      'object_id_base': 'Salt level',
+      'options': dict({
+      }),
+      'original_device_class': None,
+      'original_icon': None,
+      'original_name': 'Salt level',
+      'platform': 'neopool',
+      'previous_unique_id': None,
+      'suggested_object_id': None,
+      'supported_features': 0,
+      'translation_key': 'measure_cl',
+      'unique_id': '1234567890_mbf_measure_cl',
+      'unit_of_measurement': 'ppm',
+    }),
+    EntityRegistryEntrySnapshot({
+      'aliases': list([
+        None,
+      ]),
+      'area_id': None,
+      'capabilities': dict({
+        <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
       }),
       'config_entry_id': <ANY>,
       'config_subentry_id': <ANY>,
@@ -845,7 +922,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'manual',
           'auto',
           'heating',
