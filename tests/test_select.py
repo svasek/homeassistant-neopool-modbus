@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
+from .conftest import MOCK_POOL_DATA
 
 
 def _select_entity_id(
@@ -75,13 +76,13 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
     must first write 0 to MANUAL_FILTRATION_REGISTER before the lib write.
     """
 
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 0,
+        "filtration_mode": "manual",
+        "MBF_PAR_FILT_MANUAL_STATE": 1,
+    }
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["MBF_PAR_FILT_MODE"] = 0
-    coordinator.data["filtration_mode"] = "manual"
-    coordinator.data["MBF_PAR_FILT_MANUAL_STATE"] = 1
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
     mock_neopool_client.async_write_register.reset_mock()
@@ -105,12 +106,12 @@ async def test_filt_mode_backwash_with_auto_valve_keeps_pump_running(
     The Besgo valve needs the pump running to open correctly.
     """
 
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 0,
+        "filtration_mode": "manual",
+    }
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["MBF_PAR_FILT_MODE"] = 0
-    coordinator.data["filtration_mode"] = "manual"
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
     mock_neopool_client.async_write_register.reset_mock()
@@ -270,12 +271,12 @@ async def test_timer_period_options_and_current_option(
     mock_neopool_client: MagicMock,
 ) -> None:
     """timer_period select reads options + current_option from coordinator data."""
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
     # Pre-set the relay_aux1_period to a known PERIOD_MAP value (1 day).
-    coordinator.data["relay_aux1_period"] = 86400
-    coordinator.async_set_updated_data(coordinator.data)
-    await hass.async_block_till_done()
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "relay_aux1_period": 86400,
+    }
+    await setup_integration(hass, mock_config_entry)
 
     entity_obj = None
     for platforms in ep.async_get_platforms(hass, "neopool"):

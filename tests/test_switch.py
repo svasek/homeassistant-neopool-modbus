@@ -1,9 +1,13 @@
 """Tests for the NeoPool switch platform."""
 
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.const import CURRENT_VERSION
@@ -20,6 +24,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
+from .conftest import MOCK_POOL_DATA
 
 
 async def _turn_on(hass: HomeAssistant, entity_id: str) -> None:
@@ -176,23 +181,32 @@ async def test_manual_filtration_is_on_reflects_state(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """is_on tracks MBF_PAR_FILT_MANUAL_STATE, available tracks FILT_MODE."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
 
     # Set FILT_MODE=0 (manual) and MANUAL_STATE=1 (on)
-    coordinator.data["MBF_PAR_FILT_MODE"] = 0
-    coordinator.data["MBF_PAR_FILT_MANUAL_STATE"] = 1
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 0,
+        "MBF_PAR_FILT_MANUAL_STATE": 1,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     state = hass.states.get("switch.neopool_manual_filtration")
     assert state is not None
     assert state.state == STATE_ON
 
     # Switch FILT_MODE to non-manual → entity becomes unavailable
-    coordinator.data["MBF_PAR_FILT_MODE"] = 1
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 1,
+        "MBF_PAR_FILT_MANUAL_STATE": 1,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     state = hass.states.get("switch.neopool_manual_filtration")
     assert state is not None
@@ -203,6 +217,7 @@ async def test_manual_filtration_is_on_returns_false_when_filt_mode_is_auto(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """is_on returns False directly when FILT_MODE is in auto (1).
 
@@ -211,10 +226,14 @@ async def test_manual_filtration_is_on_returns_false_when_filt_mode_is_auto(
     """
 
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["MBF_PAR_FILT_MODE"] = 1  # auto
-    coordinator.data["MBF_PAR_FILT_MANUAL_STATE"] = 1
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 1,  # auto
+        "MBF_PAR_FILT_MANUAL_STATE": 1,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_obj = None
     for platforms in ep.async_get_platforms(hass, "neopool"):

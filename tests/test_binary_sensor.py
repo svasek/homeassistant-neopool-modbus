@@ -1,8 +1,12 @@
 """Tests for the NeoPool binary_sensor platform value decoders."""
 
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.const import DOMAIN
@@ -11,7 +15,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
-from .conftest import MOCK_SERIAL
+from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
 
 
 def _binary_by_key(hass: HomeAssistant, key: str):
@@ -44,20 +48,28 @@ async def test_direct_key_reflects_coordinator_value(
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """A simple boolean key from coordinator.data flows straight through is_on."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
 
-    coordinator.data["Filtration Pump"] = True
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": True,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     state = _binary_state(hass, entity_registry, "Filtration Pump")
     assert state is not None
     assert state.state == STATE_ON
 
-    coordinator.data["Filtration Pump"] = False
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": False,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     state = _binary_state(hass, entity_registry, "Filtration Pump")
     assert state is not None
@@ -74,6 +86,7 @@ async def test_pool_cover_inverts_hardware_value(
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Pool Cover: hardware 1 (covered) → HA OFF; hardware 0 → HA ON.
 
@@ -81,17 +94,24 @@ async def test_pool_cover_inverts_hardware_value(
     register, so the entity inverts the value before returning is_on.
     """
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
 
-    coordinator.data["Pool Cover"] = True
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Pool Cover": True,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     state = _binary_state(hass, entity_registry, "Pool Cover")
     assert state is not None
     assert state.state == STATE_OFF
 
-    coordinator.data["Pool Cover"] = False
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Pool Cover": False,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     state = _binary_state(hass, entity_registry, "Pool Cover")
     assert state is not None
@@ -103,13 +123,17 @@ async def test_pool_cover_none_yields_unknown(
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Missing Pool Cover key surfaces as STATE_UNKNOWN, not on/off."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
 
-    coordinator.data["Pool Cover"] = None
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Pool Cover": None,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     state = _binary_state(hass, entity_registry, "Pool Cover")
     assert state is not None

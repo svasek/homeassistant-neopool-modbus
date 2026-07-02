@@ -1,9 +1,13 @@
 """Tests for the NeoPool light platform."""
 
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.light import LIGHT_DESCRIPTIONS
@@ -20,6 +24,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
+from .conftest import MOCK_POOL_DATA
 
 
 def _light_entity_id(hass: HomeAssistant, entry: MockConfigEntry) -> str:
@@ -92,19 +97,27 @@ async def test_light_is_on_reflects_relay_enable(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """is_on tracks coordinator.data['relay_light_enable']."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
 
-    coordinator.data["relay_light_enable"] = 3  # always ON
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "relay_light_enable": 3,  # always ON
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_ON
 
-    coordinator.data["relay_light_enable"] = 4  # always OFF
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "relay_light_enable": 4,  # always OFF
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_OFF
 
@@ -113,14 +126,18 @@ async def test_light_unavailable_when_relay_in_auto_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """When the relay is set to auto (1), the light entity goes UNAVAILABLE."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
 
-    coordinator.data["relay_light_enable"] = 1  # auto
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "relay_light_enable": 1,  # auto
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_UNAVAILABLE
 

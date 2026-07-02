@@ -1,10 +1,14 @@
 """Tests for the NeoPool number platform."""
 
 import asyncio
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 from syrupy.assertion import SnapshotAssertion
 
 from homeassistant.components.number import (
@@ -17,6 +21,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
+from .conftest import MOCK_POOL_DATA
 
 
 def _number_entity_id(
@@ -158,13 +163,17 @@ async def test_number_native_value_returns_rounded_raw(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """native_value returns round(raw, 2) when coordinator has the register."""
 
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["MBF_PAR_PH1"] = 7.55
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_PH1": 7.55,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
     entity_obj = None
@@ -187,14 +196,18 @@ async def test_hidro_native_value_in_percent_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """MBF_PAR_HIDRO with hidro_nom set surfaces it as native_max_value."""
 
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data["MBF_PAR_HIDRO_NOM"] = 100
-    coordinator.data["MBF_PAR_MODEL"] = 0x0002  # has hydro
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_HIDRO_NOM": 100,
+        "MBF_PAR_MODEL": 0x0002,  # has hydro
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
     entity_obj = None
@@ -217,6 +230,7 @@ async def test_masked_number_native_value_decodes_via_mask_shift(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Test that masked compound numbers decode via _mask/_shift.
 
@@ -225,10 +239,13 @@ async def test_masked_number_native_value_decodes_via_mask_shift(
     temperature. native_value must isolate each via _mask/_shift.
     """
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
     # Pack: cover reduction = 25 (0x19), shutdown temp = 12 (0x0C) → 0x0C19.
-    coordinator.data["MBF_PAR_HIDRO_COVER_REDUCTION"] = 0x0C19
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C19,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
     cover, shutdown = None, None
@@ -253,14 +270,18 @@ async def test_masked_number_write_preserves_other_byte(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Writing one masked number must read-modify-write to preserve the other byte."""
     await setup_integration(hass, mock_config_entry)
     _disable_debounce(hass)
-    coordinator = mock_config_entry.runtime_data
     # Existing combined register: cover=25, shutdown=12 (0x0C19).
-    coordinator.data["MBF_PAR_HIDRO_COVER_REDUCTION"] = 0x0C19
-    coordinator.async_set_updated_data(coordinator.data)
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C19,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
     cover_entity_id = None
