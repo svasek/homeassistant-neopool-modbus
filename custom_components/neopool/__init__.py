@@ -14,8 +14,6 @@
 
 """NeoPool integration for Home Assistant."""
 
-import logging
-
 from neopool_modbus import NeoPoolModbusClient
 
 from homeassistant.config_entries import ConfigEntry
@@ -41,8 +39,6 @@ __all__ = ["async_migrate_entry"]
 type NeoPoolConfigEntry = ConfigEntry[NeoPoolCoordinator]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

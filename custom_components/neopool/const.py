@@ -14,8 +14,6 @@
 
 """Constants for the NeoPool integration."""
 
-import logging
-
 from neopool_modbus.capabilities import CAPABILITY_KEYS as LIB_CAPABILITY_KEYS
 
 from homeassistant.const import Platform
@@ -33,8 +31,6 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
     Platform.TIME,
 ]
-
-LOGGER = logging.getLogger(__name__)
 
 DEFAULT_SCAN_INTERVAL = 20  # in seconds
 FOLLOW_UP_REFRESH_DELAY = 2.0  # seconds  (delay before a 2nd refresh for IO entity)

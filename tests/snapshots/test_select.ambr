@@ -7,7 +7,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -54,7 +54,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'enabled',
           'always_on',
           'always_off',
@@ -95,7 +95,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'inactive',
           'active',
           'active_redox',
@@ -136,7 +136,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'manual',
           'auto',
           'heating',
@@ -180,7 +180,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'low',
           'mid',
           'high',
@@ -221,7 +221,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '2h',
           '3h',
           '4h',
@@ -270,7 +270,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -311,7 +311,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -358,7 +358,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '10',
           '20',
           '30',
@@ -409,7 +409,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -450,7 +450,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -491,7 +491,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -532,7 +532,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -573,7 +573,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'low',
           'mid',
           'high',
@@ -614,7 +614,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'low',
           'mid',
           'high',
@@ -655,7 +655,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'low',
           'mid',
           'high',
@@ -696,7 +696,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -743,7 +743,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -790,7 +790,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -837,7 +837,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -884,7 +884,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -931,7 +931,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -978,7 +978,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1025,7 +1025,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1076,7 +1076,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'manual',
           'auto',
         ]),
@@ -1116,7 +1116,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -1157,7 +1157,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1204,7 +1204,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -1245,7 +1245,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -1286,7 +1286,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -1327,7 +1327,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
           'on',
           'off',
@@ -1368,7 +1368,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1415,7 +1415,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1462,7 +1462,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1509,7 +1509,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1556,7 +1556,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1603,7 +1603,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1650,7 +1650,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',
@@ -1697,7 +1697,7 @@
       ]),
       'area_id': None,
       'capabilities': dict({
-        'options': list([
+        <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           '1_day',
           '2_days',
           '3_days',

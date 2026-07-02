@@ -81,8 +81,8 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
         data_schema = vol.Schema(
             {
                 vol.Required(CONF_HOST): str,
-                vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
-                vol.Optional("unit_id", default=DEFAULT_UNIT_ID): int,
+                vol.Optional(CONF_PORT, default=DEFAULT_PORT): vol.Coerce(int),
+                vol.Optional("unit_id", default=DEFAULT_UNIT_ID): vol.Coerce(int),
                 vol.Optional(
                     "modbus_framer",
                     default=DEFAULT_MODBUS_FRAMER,
@@ -150,11 +150,11 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_HOST, default=current.get(CONF_HOST, "")): str,
                 vol.Optional(
                     CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)
-                ): int,
+                ): vol.Coerce(int),
                 vol.Optional(
                     "unit_id",
                     default=current.get("unit_id", DEFAULT_UNIT_ID),
-                ): int,
+                ): vol.Coerce(int),
                 vol.Optional(
                     "modbus_framer",
                     default=current.get("modbus_framer", DEFAULT_MODBUS_FRAMER),

@@ -84,14 +84,44 @@ MOCK_POOL_DATA: dict[str, Any] = {
     # Capability flags so all the conditional climate / hydro switches
     # also register their entities.
     "MBF_PAR_TEMPERATURE_ACTIVE": 1,
+    "MBF_PAR_UICFG_MACHINE": 0,
+    "MBF_PAR_RELAY_PH": 0,
     "Hydrolysis module detected": True,
     "Redox measurement module detected": True,
     "pH measurement module detected": True,
+    "Chlorine measurement module detected": True,
+    "Conductivity measurement module detected": True,
+    "Ionization module detected": True,
     "MBF_PAR_FILT_MODE": 0,  # manual
     "filtration_mode": "manual",
     "filtration_speed_state": "off",
     "MBF_MEASURE_TEMPERATURE": 250,  # 25.0°C
     "MBF_MEASURE_PH": 720,  # 7.20
+    "MBF_MEASURE_RX": 650,  # 650 mV
+    "MBF_MEASURE_CL": 120,  # 1.20 ppm
+    "MBF_MEASURE_CONDUCTIVITY": 45,  # 45 %
+    "MBF_HIDRO_CURRENT": 70,  # 70 %
+    "MBF_HIDRO_VOLTAGE": 24,  # 2.4 V
+    "MBF_ION_CURRENT": 50,  # 50 %
+    "MBF_PAR_INTELLIGENT_INTERVALS": 4,
+    "MBF_PAR_INTELLIGENT_TT_NEXT_INTERVAL": 7200,
+    "MBF_PAR_FILTVALVE_REMAINING": 0,
+    # Decoded polarity / pH pump keys populated by the library on real reads;
+    # pre-seed them so ENUM sensors read a valid option without an extra tick.
+    "HIDRO_POLARITY": "off",
+    "ION_POLARITY": "off",
+    "PH_PUMP_STATUS": "off",
+    # Raw pH-pump bits the ENUM decoder reads.
+    "pH control module": True,
+    "pH pump active": False,
+    "pH acid pump active": False,
+    # Raw polarity bits the ENUM decoder reads.
+    "HIDRO in Pol1": False,
+    "HIDRO in Pol2": False,
+    "HIDRO in dead time": False,
+    "ION in Pol1": False,
+    "ION in Pol2": False,
+    "ION in dead time": False,
     "Filtration Pump": False,
     # Combined cover reduction / shutdown temperature register
     # (lower byte = cover reduction %, upper byte = shutdown temperature).

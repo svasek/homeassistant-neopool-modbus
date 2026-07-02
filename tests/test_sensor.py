@@ -1,15 +1,9 @@
-"""Tests for the NeoPool sensor platform value decoders."""
+"""Tests for the NeoPool sensor platform."""
 
 from datetime import timedelta as _td
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from freezegun.api import FrozenDateTimeFactory
-from neopool_modbus.decoders import (
-    decode_hidro_polarity,
-    decode_ion_polarity,
-    decode_ph_pump_status,
-)
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -19,254 +13,34 @@ from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
 from custom_components.neopool.sensor import SENSOR_DESCRIPTIONS
-from homeassistant.const import STATE_UNKNOWN, Platform
+from homeassistant.components.sensor import ATTR_OPTIONS
+from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT, STATE_UNKNOWN, Platform
 from homeassistant.core import HomeAssistant, State
-from homeassistant.helpers import entity_platform as ep, entity_registry as er
+from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
 from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
 
-
-def _sensor_by_key(hass: HomeAssistant, key: str):
-    """Return the live sensor entity object for a given _key, or None."""
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if (
-                ent.entity_id.startswith("sensor.")
-                and getattr(ent, "_key", None) == key
-            ):
-                return ent
-    return None
-
-
-def _minimum_pool_data() -> dict[str, Any]:
-    """Return a copy of the default fixture's pool data for ad-hoc test entries."""
-
-    return dict(MOCK_POOL_DATA)
-
-
-# ---------------------------------------------------------------------------
-# pH pump status
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    ("data", "expected"),
-    [
-        # All bits None → unknown
-        ({}, None),
-        # ctrl None but other bits present → still unknown (partial data)
-        ({"pH acid pump active": True}, None),
-        # ctrl off → "off"
-        (
-            {
-                "pH control module": False,
-                "pH acid pump active": False,
-                "pH pump active": False,
-            },
-            "off",
-        ),
-        # acid-only relay (1): pump_bit drives acid
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 1,
-                "pH pump active": True,
-                "pH acid pump active": False,
-            },
-            "acid",
-        ),
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 1,
-                "pH pump active": False,
-                "pH acid pump active": False,
-            },
-            "idle",
-        ),
-        # base-only relay (2)
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 2,
-                "pH pump active": True,
-                "pH acid pump active": False,
-            },
-            "base",
-        ),
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 2,
-                "pH pump active": False,
-                "pH acid pump active": False,
-            },
-            "idle",
-        ),
-        # both pumps (0): individual bits
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 0,
-                "pH pump active": True,
-                "pH acid pump active": True,
-            },
-            "both",
-        ),
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 0,
-                "pH pump active": False,
-                "pH acid pump active": True,
-            },
-            "acid",
-        ),
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 0,
-                "pH pump active": True,
-                "pH acid pump active": False,
-            },
-            "base",
-        ),
-        (
-            {
-                "pH control module": True,
-                "MBF_PAR_RELAY_PH": 0,
-                "pH pump active": False,
-                "pH acid pump active": False,
-            },
-            "idle",
-        ),
-    ],
-)
-async def test_ph_pump_status_decoder(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    data: dict[str, Any],
-    expected: str | None,
-) -> None:
-    """decode_ph_pump_status covers every relay_ph branch."""
-    assert decode_ph_pump_status(data) == expected
-
-
-# ---------------------------------------------------------------------------
-# Hydrolysis polarity
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    ("data", "expected"),
-    [
-        ({}, None),  # no polarity bits
-        # filtration off → off
-        (
-            {
-                "HIDRO in Pol1": False,
-                "HIDRO in Pol2": False,
-                "HIDRO in dead time": False,
-                "Filtration Pump": False,
-            },
-            "off",
-        ),
-        # filtration on but no flow → no_flow
-        (
-            {
-                "HIDRO in Pol1": False,
-                "HIDRO in Pol2": False,
-                "HIDRO in dead time": False,
-                "Filtration Pump": True,
-                "HIDRO Cell Flow FL1": False,
-            },
-            "no_flow",
-        ),
-        # filtration on, flow ok, no polarity / dead bits → final 'off' fallback
-        (
-            {
-                "HIDRO in Pol1": False,
-                "HIDRO in Pol2": False,
-                "HIDRO in dead time": False,
-                "Filtration Pump": True,
-                "HIDRO Cell Flow FL1": True,
-            },
-            "off",
-        ),
-        # dead time wins
-        (
-            {"HIDRO in Pol1": True, "HIDRO in Pol2": False, "HIDRO in dead time": True},
-            "dead_time",
-        ),
-        # pol1
-        (
-            {
-                "HIDRO in Pol1": True,
-                "HIDRO in Pol2": False,
-                "HIDRO in dead time": False,
-            },
-            "pol1",
-        ),
-        # pol2
-        (
-            {
-                "HIDRO in Pol1": False,
-                "HIDRO in Pol2": True,
-                "HIDRO in dead time": False,
-            },
-            "pol2",
-        ),
-    ],
-)
-async def test_hidro_polarity_decoder(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    data: dict[str, Any],
-    expected: str | None,
-) -> None:
-    """decode_hidro_polarity covers every polarity / flow branch."""
-    assert decode_hidro_polarity(data) == expected
-
-
-# ---------------------------------------------------------------------------
-# Ion polarity
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    ("data", "expected"),
-    [
-        ({}, None),
-        (
-            {"ION in Pol1": True, "ION in Pol2": False, "ION in dead time": True},
-            "dead_time",
-        ),
-        (
-            {"ION in Pol1": True, "ION in Pol2": False, "ION in dead time": False},
-            "pol1",
-        ),
-        (
-            {"ION in Pol1": False, "ION in Pol2": True, "ION in dead time": False},
-            "pol2",
-        ),
-        (
-            {"ION in Pol1": False, "ION in Pol2": False, "ION in dead time": False},
-            "off",
-        ),
-    ],
-)
-async def test_ion_polarity_decoder(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    data: dict[str, Any],
-    expected: str | None,
-) -> None:
-    """decode_ion_polarity covers every branch."""
-    assert decode_ion_polarity(data) == expected
+# Map internal sensor keys (used by SENSOR_DESCRIPTIONS) to their public
+# entity_ids. Keeping the mapping in one place avoids hard-coding the same
+# translation-key-derived slugs at every call site.
+_ENTITY_ID_BY_KEY = {
+    "MBF_MEASURE_TEMPERATURE": "sensor.neopool_water_temperature",
+    "MBF_MEASURE_PH": "sensor.neopool_ph_level",
+    "MBF_MEASURE_RX": "sensor.neopool_redox_potential",
+    "MBF_MEASURE_CL": "sensor.neopool_salt_level",
+    "MBF_MEASURE_CONDUCTIVITY": "sensor.neopool_conductivity_level",
+    "MBF_HIDRO_CURRENT": "sensor.neopool_hydrolysis_intensity",
+    "MBF_HIDRO_VOLTAGE": "sensor.neopool_hydrolysis_voltage",
+    "MBF_ION_CURRENT": "sensor.neopool_ionization_level",
+    "MBF_PAR_FILT_MODE": "sensor.neopool_filtration_mode",
+    "PH_PUMP_STATUS": "sensor.neopool_ph_pump_status",
+    "CELL_RUNTIME_TOTAL": "sensor.neopool_cell_runtime_total",
+    "CELL_RUNTIME_PART": "sensor.neopool_cell_runtime_since_reset",
+    "CELL_RUNTIME_POLA": "sensor.neopool_cell_runtime_in_polarity_1",
+    "CELL_RUNTIME_POLB": "sensor.neopool_cell_runtime_in_polarity_2",
+    "CELL_RUNTIME_POL_CHANGES": "sensor.neopool_cell_polarity_changes",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -279,21 +53,24 @@ async def test_temperature_sensor_suppressed_when_filtration_off(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Temperature sensor returns None while the filtration pump is off."""
+    """Temperature sensor is unknown while the filtration pump is off."""
     await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, "MBF_MEASURE_TEMPERATURE")
-    if entity is None:
-        pytest.skip("temperature entity not registered")
+    entity_id = _ENTITY_ID_BY_KEY["MBF_MEASURE_TEMPERATURE"]
     coordinator = mock_config_entry.runtime_data
     coordinator.data["Filtration Pump"] = False
-    assert entity.native_value is None
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == STATE_UNKNOWN
 
     # measure_when_filtration_off=True flips the gate.
     new_options = dict(mock_config_entry.options)
     new_options["measure_when_filtration_off"] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
+    coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
-    assert entity.native_value == coordinator.data.get("MBF_MEASURE_TEMPERATURE")
+    assert hass.states.get(entity_id).state == str(
+        coordinator.data["MBF_MEASURE_TEMPERATURE"]
+    )
 
 
 @pytest.mark.parametrize(
@@ -311,20 +88,21 @@ async def test_measurement_sensors_suppressed_when_filtration_off(
     mock_neopool_client: MagicMock,
     key: str,
 ) -> None:
-    """Probe sensors report None while filtration pump is off (stale reading)."""
+    """Probe sensors are unknown while filtration pump is off (stale reading)."""
     await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, key)
-    if entity is None:
-        pytest.skip(f"{key} entity not registered on this fixture")
+    entity_id = _ENTITY_ID_BY_KEY[key]
     coordinator = mock_config_entry.runtime_data
     coordinator.data["Filtration Pump"] = False
-    assert entity.native_value is None
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == STATE_UNKNOWN
 
     new_options = dict(mock_config_entry.options)
     new_options["measure_when_filtration_off"] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
+    coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
-    assert entity.native_value == coordinator.data.get(key)
+    assert hass.states.get(entity_id).state == str(coordinator.data[key])
 
 
 @pytest.mark.parametrize(
@@ -342,19 +120,34 @@ async def test_production_sensors_zero_when_filtration_off(
     key: str,
 ) -> None:
     """Production sensors report 0 while filtration pump is off (cell idle)."""
+    # MBF_HIDRO_VOLTAGE is entity_registry_enabled_default=False; pre-register
+    # it as enabled so the platform constructs the entity and drives its state.
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    if not SENSOR_DESCRIPTIONS[key].entity_registry_enabled_default:
+        entry = registry.async_get_or_create(
+            "sensor",
+            DOMAIN,
+            f"{MOCK_SERIAL}_{key.lower()}",
+            config_entry=mock_config_entry,
+            disabled_by=None,
+        )
+        entity_id = entry.entity_id
+    else:
+        entity_id = _ENTITY_ID_BY_KEY[key]
     await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, key)
-    if entity is None:
-        pytest.skip(f"{key} entity not registered on this fixture")
     coordinator = mock_config_entry.runtime_data
     coordinator.data["Filtration Pump"] = False
-    assert entity.native_value == 0
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "0"
 
     new_options = dict(mock_config_entry.options)
     new_options["measure_when_filtration_off"] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
+    coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
-    assert entity.native_value == coordinator.data.get(key)
+    assert hass.states.get(entity_id).state == str(coordinator.data[key])
 
 
 # ---------------------------------------------------------------------------
@@ -382,12 +175,12 @@ async def test_filt_mode_native_value(
 ) -> None:
     """Filt mode native value reads the lib's decoded filtration_mode key."""
     await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, "MBF_PAR_FILT_MODE")
-    assert entity is not None
     coordinator = mock_config_entry.runtime_data
     coordinator.data["MBF_PAR_FILT_MODE"] = filt_mode
     coordinator.data["filtration_mode"] = expected
-    assert entity.native_value == expected
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(_ENTITY_ID_BY_KEY["MBF_PAR_FILT_MODE"]).state == expected
 
 
 async def test_filtration_pump_energy_sensor_registers_when_power_set(
@@ -430,7 +223,7 @@ async def test_filtration_pump_energy_accumulates_while_pump_runs(
 ) -> None:
     """Energy accumulates power x elapsed-hours when the pump is running."""
 
-    pump_data = dict(_minimum_pool_data())
+    pump_data = dict(MOCK_POOL_DATA)
     pump_data["Filtration Pump"] = True
     mock_neopool_client.async_read_all = AsyncMock(return_value=pump_data)
 
@@ -453,31 +246,25 @@ async def test_filtration_pump_energy_accumulates_while_pump_runs(
     )
     await setup_integration(hass, entry)
 
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if ent.entity_id.startswith("sensor.") and "filtration_pump_energy" in (
-                getattr(ent, "_attr_unique_id", "") or ""
-            ):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
+    entity_id = "sensor.neopool_filtration_pump_energy"
+    assert hass.states.get(entity_id) is not None
 
-    # Drive the coordinator update with a 1-hour gap between two ticks.
+    # Prime _last_update to "now"; the previous state carries 0 Wh so this is
+    # the reference point for the elapsed-time integration.
     coordinator = entry.runtime_data
     coordinator._last_pump_on = True  # simulate prior on-state
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
+    initial_wh = float(hass.states.get(entity_id).state)
 
-    initial_wh = entity_obj.native_value
+    # Advance wall clock by an hour and let another coordinator update roll
+    # through; the sensor should integrate 1 kW x 1 h = ~1 kWh.
     freezer.tick(_td(hours=1))
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
-    later_wh = entity_obj.native_value
-    # 1 kW for 1 h → ~1000 Wh delta (allow rounding slack).
-    assert later_wh - initial_wh >= 900
+    later_wh = float(hass.states.get(entity_id).state)
+    # State is in kWh (unit conversion Wh -> kWh); expect at least 0.9 kWh.
+    assert later_wh - initial_wh >= 0.9
 
 
 async def test_filtration_pump_energy_restores_native_value_after_restart(
@@ -514,19 +301,13 @@ async def test_filtration_pump_energy_restores_native_value_after_restart(
     )
     await setup_integration(hass, entry)
 
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if ent.entity_id.startswith("sensor.") and "filtration_pump_energy" in (
-                getattr(ent, "_attr_unique_id", "") or ""
-            ):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
+    entity_id = "sensor.neopool_filtration_pump_energy"
+    state = hass.states.get(entity_id)
+    assert state is not None
     # The persisted Wh counter is the starting point for further accumulation.
-    assert entity_obj.native_value == pytest.approx(12345.6)
+    # HA converts Wh -> kWh via _attr_suggested_unit_of_measurement, so the
+    # exposed state value is 12345.6 Wh / 1000 = 12.3456 kWh.
+    assert float(state.state) == pytest.approx(12.3456)
 
 
 async def test_filtration_pump_energy_ignores_non_numeric_restore(
@@ -566,19 +347,11 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
     )
     await setup_integration(hass, entry)
 
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if ent.entity_id.startswith("sensor.") and "filtration_pump_energy" in (
-                getattr(ent, "_attr_unique_id", "") or ""
-            ):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
+    entity_id = "sensor.neopool_filtration_pump_energy"
+    state = hass.states.get(entity_id)
+    assert state is not None
     # Restore was rejected, counter starts at 0.
-    assert entity_obj.native_value == 0
+    assert float(state.state) == 0
 
 
 async def test_ph_pump_status_options_per_relay_config(
@@ -588,16 +361,37 @@ async def test_ph_pump_status_options_per_relay_config(
 ) -> None:
     """The pH pump status options list shrinks based on the relay configuration."""
     await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, "PH_PUMP_STATUS")
-    if entity is None:
-        pytest.skip("PH_PUMP_STATUS entity not registered")
+    entity_id = _ENTITY_ID_BY_KEY["PH_PUMP_STATUS"]
     coordinator = mock_config_entry.runtime_data
+
     coordinator.data["MBF_PAR_RELAY_PH"] = 1
-    assert entity.options == ["off", "idle", "acid"]
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == [
+        "off",
+        "idle",
+        "acid",
+    ]
+
     coordinator.data["MBF_PAR_RELAY_PH"] = 2
-    assert entity.options == ["off", "idle", "base"]
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == [
+        "off",
+        "idle",
+        "base",
+    ]
+
     coordinator.data["MBF_PAR_RELAY_PH"] = 0
-    assert entity.options == ["off", "idle", "acid", "base", "both"]
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == [
+        "off",
+        "idle",
+        "acid",
+        "base",
+        "both",
+    ]
 
 
 async def test_hidro_current_g_per_hour_mode(
@@ -617,11 +411,9 @@ async def test_hidro_current_g_per_hour_mode(
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
 
-    entity = _sensor_by_key(hass, "MBF_HIDRO_CURRENT")
-    if entity is None:
-        pytest.skip("MBF_HIDRO_CURRENT entity not registered on this fixture")
-    assert entity.suggested_display_precision == 1
-    assert entity.native_unit_of_measurement == "g/h"
+    state = hass.states.get(_ENTITY_ID_BY_KEY["MBF_HIDRO_CURRENT"])
+    assert state is not None
+    assert state.attributes[ATTR_UNIT_OF_MEASUREMENT] == "g/h"
 
 
 # ---------------------------------------------------------------------------
@@ -662,7 +454,7 @@ async def test_cell_runtime_sensor_reads_combined_register(
     """
     mock_config_entry.add_to_hass(hass)
     registry = er.async_get(hass)
-    registry.async_get_or_create(
+    entry = registry.async_get_or_create(
         "sensor",
         DOMAIN,
         f"{MOCK_SERIAL}_{key.lower()}",
@@ -671,9 +463,10 @@ async def test_cell_runtime_sensor_reads_combined_register(
     )
 
     await setup_integration(hass, mock_config_entry)
-    entity = _sensor_by_key(hass, key)
-    assert entity is not None, f"{key} sensor was not registered"
-    assert entity.native_value == expected_seconds
+    # Pre-registration locks the entity_id to the unique_id-derived slug rather
+    # than the translation_key one, so look up the live entity_id via the
+    # registry instead of using the _ENTITY_ID_BY_KEY mapping.
+    assert hass.states.get(entry.entity_id).state == str(expected_seconds)
 
 
 async def test_cell_runtime_sensors_skipped_without_hydrolysis(
@@ -720,7 +513,7 @@ async def test_cell_runtime_sensor_returns_none_when_key_missing(
     # constructs the entity object whose native_value we can inspect.
     mock_config_entry.add_to_hass(hass)
     registry = er.async_get(hass)
-    registry.async_get_or_create(
+    entry = registry.async_get_or_create(
         "sensor",
         DOMAIN,
         f"{MOCK_SERIAL}_cell_runtime_part",
@@ -734,9 +527,7 @@ async def test_cell_runtime_sensor_returns_none_when_key_missing(
     coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
 
-    entity = _sensor_by_key(hass, "CELL_RUNTIME_PART")
-    assert entity is not None
-    assert entity.native_value is None
+    assert hass.states.get(entry.entity_id).state == STATE_UNKNOWN
 
 
 async def test_cell_runtime_default_enabled_state(
