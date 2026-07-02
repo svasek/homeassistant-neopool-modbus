@@ -28,6 +28,7 @@ from neopool_modbus.decoders import (
     HIDRO_POLARITY_LABELS,
     ION_POLARITY_LABELS,
     PH_STATUS_ALARM_LABELS,
+    calculate_next_interval_time,
     decode_hidro_polarity,
     decode_ion_polarity,
     decode_ph_alarm,
@@ -62,7 +63,6 @@ from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER
 from .coordinator import NeoPoolCoordinator
 from .entity import NeoPoolEntity
-from .helpers import calculate_next_interval_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -360,7 +360,6 @@ _MEASURE_KEYS_REQUIRING_FILTRATION = frozenset(
         "MBF_MEASURE_RX",
         "MBF_MEASURE_CL",
         "MBF_MEASURE_CONDUCTIVITY",
-        "FILTRATION_SPEED",
     }
 )
 

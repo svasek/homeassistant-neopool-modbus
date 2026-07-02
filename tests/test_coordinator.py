@@ -132,6 +132,59 @@ async def test_clean_gpio_does_not_create_issue(
     assert issue_registry.async_get_issue(DOMAIN, "corrupted_gpio") is None
 
 
+async def test_corrupt_gpio_self_heals_on_next_clean_read(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """The corrupted_gpio issue clears once a subsequent poll reads clean values."""
+    bad_data = dict(MOCK_POOL_DATA)
+    bad_data["MBF_PAR_FILT_GPIO"] = MAX_RELAY_GPIO + 1
+    mock_neopool_client.async_read_all = AsyncMock(return_value=bad_data)
+    await setup_integration(hass, mock_config_entry)
+
+    issue_registry = ir.async_get(hass)
+    assert issue_registry.async_get_issue(DOMAIN, "corrupted_gpio") is not None
+
+    # Recovery: registers return to valid range on the next poll.
+    mock_neopool_client.async_read_all = AsyncMock(return_value=dict(MOCK_POOL_DATA))
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    assert issue_registry.async_get_issue(DOMAIN, "corrupted_gpio") is None
+
+
+async def test_corrupt_gpio_logs_error_only_on_state_change(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ERROR log fires only when the set of corrupted register keys changes."""
+    bad_data = dict(MOCK_POOL_DATA)
+    bad_data["MBF_PAR_FILT_GPIO"] = MAX_RELAY_GPIO + 1
+    mock_neopool_client.async_read_all = AsyncMock(return_value=bad_data)
+    await setup_integration(hass, mock_config_entry)
+
+    initial_errors = sum(
+        1 for r in caplog.records if "Corrupted GPIO register" in r.getMessage()
+    )
+    assert initial_errors == 1
+
+    # A follow-up poll with the same corruption must not re-log.
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    total_errors = sum(
+        1 for r in caplog.records if "Corrupted GPIO register" in r.getMessage()
+    )
+    assert total_errors == 1
+
+
 # ---------------------------------------------------------------------------
 # Capability snapshot
 # ---------------------------------------------------------------------------

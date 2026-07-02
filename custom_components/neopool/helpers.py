@@ -18,6 +18,12 @@ import datetime
 import logging
 from typing import Any
 
+from neopool_modbus.decoders import (
+    decode_device_time,
+    encode_device_time,
+    parse_register_int as _lib_parse_register_int,
+)
+
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 import homeassistant.util.dt as dt_util
@@ -30,28 +36,22 @@ _LOGGER = logging.getLogger(__name__)
 def get_device_time(
     data: dict[str, Any], hass: HomeAssistant | None = None
 ) -> datetime.datetime | None:
-    """Get device time and convert to datetime object."""
+    """Decode ``MBF_PAR_TIME`` as UTC-normalised wall-clock time."""
     unix_ts = data.get("MBF_PAR_TIME")
     if unix_ts is None:
         return None
-    if hass:
-        local_tz = dt_util.get_time_zone(hass.config.time_zone)
-        # WORKAROUND: This is the naive datetime object, without timezone info
-        dt_naive = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=unix_ts)
-        dt_local = dt_naive.replace(tzinfo=local_tz)
-        return dt_local.astimezone(datetime.UTC)
-    return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.UTC)
+    tz = (
+        dt_util.get_time_zone(hass.config.time_zone) if hass else datetime.UTC
+    ) or datetime.UTC
+    return decode_device_time(unix_ts, tz)
 
 
 def prepare_device_time(hass: HomeAssistant | None = None) -> int:
     """Return the unix timestamp the device should display as local wall-clock."""
     if hass:
-        ha_tz = dt_util.get_time_zone(hass.config.time_zone)
-        now_local = dt_util.now(ha_tz)
-        # WORKAROUND: the device's naive display shows the correct wall-clock time
-        epoch_local = datetime.datetime(1970, 1, 1, tzinfo=ha_tz)
-        return int((now_local - epoch_local).total_seconds())
-    return int(dt_util.now().timestamp())  # pragma: no cover
+        tz = dt_util.get_time_zone(hass.config.time_zone) or datetime.UTC
+        return encode_device_time(dt_util.now(tz))
+    return encode_device_time(dt_util.utcnow())  # pragma: no cover
 
 
 def is_device_time_out_of_sync(
@@ -66,44 +66,22 @@ def is_device_time_out_of_sync(
     return diff > threshold_seconds
 
 
-def calculate_next_interval_time(seconds: float | None) -> datetime.datetime | None:
-    """Return the timestamp for the next interval start, rounded to the nearest minute.
-
-    Returns None if seconds is None or <= 0. Always returns UTC; the HA
-    frontend localises the display.
-    """
-    if not seconds or seconds <= 0:
-        return None
-    target = dt_util.utcnow() + datetime.timedelta(seconds=seconds)
-    return target.replace(second=0, microsecond=0)
-
-
 def parse_register_int(raw: int | str, name: str) -> int:
-    """Parse an integer from decimal or hex string (e.g. '1539' or '0x0603')."""
-    if isinstance(raw, bool):
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="invalid_register_type",
-            translation_placeholders={"name": name, "value": str(raw)},
-        )
-    if isinstance(raw, float):
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="invalid_register_float",
-            translation_placeholders={"name": name, "value": str(raw)},
-        )
+    """Parse a Modbus register value, raising a translated ServiceValidationError."""
     try:
-        val = int(raw, 0) if isinstance(raw, str) else int(raw)
-    except (ValueError, TypeError) as err:
+        return _lib_parse_register_int(raw)
+    except ValueError as err:
+        msg = str(err)
+        if msg.startswith("register value out of range"):
+            key = "register_out_of_range"
+        elif msg.startswith("register value must not be a float"):
+            key = "invalid_register_float"
+        else:
+            # bool / unparsable string / unsupported type all collapse to
+            # the generic "invalid type" translation.
+            key = "invalid_register_type"
         raise ServiceValidationError(
             translation_domain=DOMAIN,
-            translation_key="invalid_register_type",
+            translation_key=key,
             translation_placeholders={"name": name, "value": str(raw)},
         ) from err
-    if not 0 <= val <= 65535:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="register_out_of_range",
-            translation_placeholders={"name": name, "value": str(val)},
-        )
-    return val

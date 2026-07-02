@@ -4,10 +4,10 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 from neopool_modbus.capabilities import has_filtvalve
+from neopool_modbus.decoders import calculate_next_interval_time
 import pytest
 
 from custom_components.neopool.helpers import (
-    calculate_next_interval_time,
     get_device_time,
     is_device_time_out_of_sync,
     parse_register_int,
@@ -115,7 +115,7 @@ def test_is_device_time_out_of_sync_no_data() -> None:
 
 
 def test_calculate_next_interval_time_returns_utc() -> None:
-    """The next-interval timestamp is UTC, rounded to the nearest minute."""
+    """The next-interval timestamp is UTC, truncated to the minute."""
     result = calculate_next_interval_time(7200)
     assert result is not None
     assert result.tzinfo == UTC

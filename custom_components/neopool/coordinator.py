@@ -23,11 +23,11 @@ from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import aggregate_filtration_remaining, parse_version
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
-    GPIO_REGISTERS,
     HEATING_SETPOINT_REGISTER,
     INTELLIGENT_SETPOINT_REGISTER,
     MAX_RELAY_GPIO,
     TIMER_BLOCKS,
+    find_corrupted_gpio_registers,
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -87,7 +87,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self._firmware = "?"
         self._follow_up_unsub: CALLBACK_TYPE | None = None
-        self._gpio_checked = False
+        self._corrupted_gpio_keys: frozenset[str] = frozenset()
 
     def request_refresh_with_followup(
         self, delay: float = FOLLOW_UP_REFRESH_DELAY
@@ -119,12 +119,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._follow_up_unsub = async_call_later(self.hass, delay, _do_refresh)
 
     def _check_gpio_registers(self, data: dict) -> None:
-        """Validate GPIO register values after first successful read."""
-        corrupted = []
-        for key, label in GPIO_REGISTERS.items():
-            value = data.get(key)
-            if value is not None and not (0 <= value <= MAX_RELAY_GPIO):
-                corrupted.append((key, label, value))
+        """Validate GPIO register values and (re-)raise or clear the repair issue."""
+        corrupted = find_corrupted_gpio_registers(data)
+        corrupted_keys = frozenset(key for key, _, _ in corrupted)
+        if corrupted_keys != self._corrupted_gpio_keys:
+            for key, label, value in corrupted:
                 _LOGGER.error(
                     "Corrupted GPIO register %s (%s): value %d (0x%04X) is outside "
                     "valid range 0-%d. The pool controller may malfunction",
@@ -134,6 +133,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     value & 0xFFFF,
                     MAX_RELAY_GPIO,
                 )
+        self._corrupted_gpio_keys = corrupted_keys
 
         if corrupted:
             details = "\n".join(
@@ -152,7 +152,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             # Clear previous repair issues if registers are OK.
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
-            _LOGGER.info("GPIO registers passed sanity check: all values are valid")
 
     def _get_enabled_timers(self) -> list[str]:
         """Return the list of timer block names enabled in entry options."""
@@ -310,9 +309,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._firmware = parse_version(data.get("MBF_POWER_MODULE_VERSION"))
 
-        if not self._gpio_checked:
-            self._gpio_checked = True
-            self._check_gpio_registers(data)
+        self._check_gpio_registers(data)
 
         await self._read_timers_into_data(data)
 
