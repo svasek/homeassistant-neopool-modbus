@@ -374,29 +374,34 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
     assert float(state.state) == 0
 
 
+@pytest.mark.parametrize(
+    ("relay", "expected_options"),
+    [
+        pytest.param(1, ["off", "idle", "acid"], id="acid_only"),
+        pytest.param(2, ["off", "idle", "base"], id="base_only"),
+        pytest.param(0, ["off", "idle", "acid", "base", "both"], id="both_relays"),
+    ],
+)
 async def test_ph_pump_status_options_per_relay_config(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
+    relay: int,
+    expected_options: list[str],
 ) -> None:
     """The pH pump status options list shrinks based on the relay configuration."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _ENTITY_ID_BY_KEY["PH_PUMP_STATUS"]
 
-    for relay, expected_options in (
-        (1, ["off", "idle", "acid"]),
-        (2, ["off", "idle", "base"]),
-        (0, ["off", "idle", "acid", "base", "both"]),
-    ):
-        mock_neopool_client.async_read_all.return_value = {
-            **MOCK_POOL_DATA,
-            "MBF_PAR_RELAY_PH": relay,
-        }
-        freezer.tick(_td(seconds=60))
-        async_fire_time_changed(hass)
-        await hass.async_block_till_done()
-        assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == expected_options
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_RELAY_PH": relay,
+    }
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).attributes[ATTR_OPTIONS] == expected_options
 
 
 async def test_hidro_current_g_per_hour_mode(
