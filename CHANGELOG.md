@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.1.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.1.0...v6.1.1) (2026-07-01)
+
+
+### ♻️ Refactoring
+
+* ♻️ adopt neopool-modbus 3.5.0 labels and codecs ([#207](https://github.com/svasek/homeassistant-neopool-modbus/issues/207)) ([9dae796](https://github.com/svasek/homeassistant-neopool-modbus/commit/9dae796dca776d5484c9b98dec49d67ccf7226ed))
+
+
+### 🎨 Style
+
+* **manifest:** 🎨 drop the "Modbus" suffix from the integration name ([77466e9](https://github.com/svasek/homeassistant-neopool-modbus/commit/77466e982b78b97c33d7bc194e11048c53e2442c))
+
 ## [6.1.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.0.0...v6.1.0) (2026-06-29)
 
 
