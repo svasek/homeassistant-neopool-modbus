@@ -74,10 +74,10 @@ class NeoPoolNumberEntityDescription(NumberEntityDescription):
     shift: int = 0
     data_key: str | None = None
     supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
-    precision_fn: Callable[[Mapping[str, Any]], int | None] | None = None
-    unit_fn: Callable[[Mapping[str, Any]], str | None] | None = None
-    max_fn: Callable[[Mapping[str, Any]], float | None] | None = None
-    step_fn: Callable[[Mapping[str, Any]], float | None] | None = None
+    precision_fn: Callable[[dict[str, Any]], int | None] | None = None
+    unit_fn: Callable[[dict[str, Any]], str | None] | None = None
+    max_fn: Callable[[dict[str, Any]], float | None] | None = None
+    step_fn: Callable[[dict[str, Any]], float | None] | None = None
 
 
 def _support_heating_temp(data: dict[str, Any], opts: Mapping[str, Any]) -> bool:
@@ -88,23 +88,23 @@ def _support_heating_temp(data: dict[str, Any], opts: Mapping[str, Any]) -> bool
     return bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
 
 
-def _hidro_precision(data: Mapping[str, Any]) -> int:
+def _hidro_precision(data: dict[str, Any]) -> int:
     """0 decimals in percent mode, 1 decimal in g/h mode."""
     return 0 if is_hydrolysis_in_percent(data) else 1
 
 
-def _hidro_unit(data: Mapping[str, Any]) -> str:
+def _hidro_unit(data: dict[str, Any]) -> str:
     """Surface the hydrolysis target unit dynamically: % or g/h."""
     return PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h"
 
 
-def _hidro_max(data: Mapping[str, Any]) -> float | None:
+def _hidro_max(data: dict[str, Any]) -> float | None:
     """Use the device-reported nominal as the hidro maximum, or fall back to the static default."""
     hidro_nom = data.get("MBF_PAR_HIDRO_NOM")
     return float(hidro_nom) if hidro_nom is not None else None
 
 
-def _hidro_step(data: Mapping[str, Any]) -> float:
+def _hidro_step(data: dict[str, Any]) -> float:
     """Step is 1 in percent mode, 0.1 in g/h mode."""
     return 1.0 if is_hydrolysis_in_percent(data) else 0.1
 

@@ -45,7 +45,7 @@ class NeoPoolBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes a NeoPool binary sensor entity."""
 
     supported_fn: _SupportedFn | None = None
-    value_fn: Callable[[Mapping[str, Any], HomeAssistant], bool | None] | None = None
+    value_fn: Callable[[dict[str, Any], HomeAssistant], bool | None] | None = None
 
 
 def _gpio_ok(gpio_key: str) -> _SupportedFn:
@@ -60,14 +60,14 @@ def _module_detected(module_key: str) -> _SupportedFn:
     return lambda data, opts: bool(data.get(module_key))
 
 
-def _device_time_drift(data: Mapping[str, Any], hass: HomeAssistant) -> bool | None:
+def _device_time_drift(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
     """Compute whether the device clock is out of sync with HA."""
     if data.get("MBF_PAR_TIME") is None:
         return None
     return is_device_time_out_of_sync(data, hass)
 
 
-def _pool_cover_open(data: Mapping[str, Any], hass: HomeAssistant) -> bool | None:
+def _pool_cover_open(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
     """Invert the raw cover state to match BinarySensorDeviceClass.OPENING semantics."""
     value = data.get("Pool Cover")
     if value is None:
