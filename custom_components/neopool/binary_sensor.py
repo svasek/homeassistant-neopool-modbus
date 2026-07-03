@@ -395,12 +395,14 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
         """Return True if the binary sensor is on."""
         if (value_fn := self.entity_description.value_fn) is not None:
             return value_fn(self.coordinator.data, self.hass)
-
-        translation_key = self.entity_description.translation_key or ""
-        if translation_key.endswith(_MEASUREMENT_SUFFIXES):
-            filtration_state = self.coordinator.data.get("Filtration Pump")
-            if filtration_state is not None and filtration_state is False:
-                return False
-
+        if self._is_measurement_active_suppressed():
+            return False
         value = self.coordinator.data.get(self._key)
         return None if value is None else bool(value)
+
+    def _is_measurement_active_suppressed(self) -> bool:
+        """Return True if a "*_measurement_active" / "*_module_active" flag should be forced off."""
+        translation_key = self.entity_description.translation_key or ""
+        if not translation_key.endswith(_MEASUREMENT_SUFFIXES):
+            return False
+        return self.coordinator.data.get("Filtration Pump") is False
