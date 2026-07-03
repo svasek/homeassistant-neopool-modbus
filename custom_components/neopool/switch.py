@@ -57,6 +57,13 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
+# Switch types that are HA-side settings, not device state: they don't need a
+# client, don't participate in the winter-mode guard, and stay available even
+# while winter mode is active.
+_HA_SETTING_TYPES = frozenset({"winter_mode", "auto_time_sync"})
+
+_SIMPLE_REGISTER_TYPES = frozenset({"climate_mode", "smart_anti_freeze", "uv_mode"})
+
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolSwitchEntityDescription(SwitchEntityDescription):
@@ -227,30 +234,67 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch ON."""
+        await self._async_set_state(True)
+
+    @override
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the switch OFF."""
+        await self._async_set_state(False)
+
+    async def _async_set_state(self, state: bool) -> None:
+        """Dispatch turn_on / turn_off to the per-type writer."""
         desc = self.entity_description
-        if (
-            desc.switch_type not in ("winter_mode", "auto_time_sync")
-            and self.coordinator.winter_mode
-        ):
-            _LOGGER.warning("Winter mode is active, ignoring turn_on for %s", self._key)
+        action = "turn_on" if state else "turn_off"
+        if desc.switch_type not in _HA_SETTING_TYPES and self.coordinator.winter_mode:
+            _LOGGER.warning(
+                "Winter mode is active, ignoring %s for %s", action, self._key
+            )
             return
+
+        if desc.switch_type == "winter_mode":
+            await self.coordinator.set_winter_mode(state)
+            await self.coordinator.async_request_refresh()
+            self.async_write_ha_state()
+            return
+        if desc.switch_type == "auto_time_sync":
+            await self.coordinator.set_auto_time_sync(state)
+            await self.coordinator.async_request_refresh()
+            self.async_write_ha_state()
+            return
+
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers")
             return
+
         if desc.switch_type == "manual_filtration":
-            await client.async_write_register(MANUAL_FILTRATION_REGISTER, 1)
-        elif desc.switch_type == "auto_time_sync":
-            await self.coordinator.set_auto_time_sync(True)
-        elif desc.switch_type == "winter_mode":
-            await self.coordinator.set_winter_mode(True)
+            await self._write_manual_filtration(client, state)
         elif desc.switch_type == "relay_timer":
+            await self._write_relay_timer(client, state)
+        elif desc.switch_type in _SIMPLE_REGISTER_TYPES:
+            await self._write_simple_register(client, state)
+        elif desc.switch_type == "bitmask":
+            await self._write_bitmask(client, state)
+
+        self._optimistic_update(state)
+        self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.request_refresh_with_followup()
+
+    async def _write_manual_filtration(self, client: Any, state: bool) -> None:
+        """Write the manual filtration on/off register."""
+        await client.async_write_register(MANUAL_FILTRATION_REGISTER, 1 if state else 0)
+
+    async def _write_relay_timer(self, client: Any, state: bool) -> None:
+        """Turn an auxiliary relay on/off via its timer block."""
+        desc = self.entity_description
+        if desc.timer_block_addr is None:  # pragma: no cover
+            _LOGGER.error("Missing timer_block_addr for %s", self._key)
+            return
+        if state:
             if (
-                desc.function_addr is None
-                or desc.function_code is None
-                or desc.timer_block_addr is None
+                desc.function_addr is None or desc.function_code is None
             ):  # pragma: no cover
-                _LOGGER.error("Missing relay_timer config for %s", self._key)
+                _LOGGER.error("Missing relay_timer function config for %s", self._key)
                 return
             _LOGGER.debug(
                 "Turning ON relay %s: function_addr=0x%04X, timer_block_addr=0x%04X",
@@ -262,67 +306,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             await client.async_write_register(
                 desc.timer_block_addr, TimerRelayMode.ALWAYS_ON
             )
-            await client.async_write_register(EXEC_REGISTER, 1)  # Commit
-        elif desc.switch_type in ("climate_mode", "smart_anti_freeze", "uv_mode"):
-            if desc.function_addr is None:  # pragma: no cover
-                _LOGGER.error("Missing function_addr for %s", self._key)
-                return
-            _LOGGER.debug(
-                "Setting %s ON via register 0x%04X",
-                desc.switch_type,
-                desc.function_addr,
-            )
-            await client.async_write_register(desc.function_addr, 1)
-        elif desc.switch_type == "bitmask":
-            if desc.function_addr is None or desc.mask_bit is None:  # pragma: no cover
-                _LOGGER.error("Missing bitmask config for %s", self._key)
-                return
-            current = int(self.coordinator.data.get(self._data_key, 0) or 0)
-            new_value = current | desc.mask_bit
-            _LOGGER.debug(
-                "Bitmask ON %s: reg=0x%04X mask=0x%04X current=%s new=%s",
-                self._key,
-                desc.function_addr,
-                desc.mask_bit,
-                current,
-                new_value,
-            )
-            await client.async_write_register(desc.function_addr, new_value, apply=True)
-
-        if desc.switch_type not in ("auto_time_sync", "winter_mode"):
-            self._optimistic_update(True)
-            self.coordinator.async_set_updated_data(self.coordinator.data)
-            self.coordinator.request_refresh_with_followup()
         else:
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
-
-    @override
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch OFF."""
-        desc = self.entity_description
-        if (
-            desc.switch_type not in ("winter_mode", "auto_time_sync")
-            and self.coordinator.winter_mode
-        ):
-            _LOGGER.warning(
-                "Winter mode is active, ignoring turn_off for %s", self._key
-            )
-            return
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers")
-            return
-        if desc.switch_type == "manual_filtration":
-            await client.async_write_register(MANUAL_FILTRATION_REGISTER, 0)
-        elif desc.switch_type == "auto_time_sync":
-            await self.coordinator.set_auto_time_sync(False)
-        elif desc.switch_type == "winter_mode":
-            await self.coordinator.set_winter_mode(False)
-        elif desc.switch_type == "relay_timer":
-            if desc.timer_block_addr is None:  # pragma: no cover
-                _LOGGER.error("Missing timer_block_addr for %s", self._key)
-                return
             _LOGGER.debug(
                 "Turning OFF relay %s: timer_block_addr=0x%04X",
                 self._key,
@@ -331,40 +315,40 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             await client.async_write_register(
                 desc.timer_block_addr, TimerRelayMode.ALWAYS_OFF
             )
-            await client.async_write_register(EXEC_REGISTER, 1)  # Commit
-        elif desc.switch_type in ("climate_mode", "smart_anti_freeze", "uv_mode"):
-            if desc.function_addr is None:  # pragma: no cover
-                _LOGGER.error("Missing function_addr for %s", self._key)
-                return
-            _LOGGER.debug(
-                "Setting %s OFF via register 0x%04X",
-                desc.switch_type,
-                desc.function_addr,
-            )
-            await client.async_write_register(desc.function_addr, 0)
-        elif desc.switch_type == "bitmask":
-            if desc.function_addr is None or desc.mask_bit is None:  # pragma: no cover
-                _LOGGER.error("Missing bitmask config for %s", self._key)
-                return
-            current = int(self.coordinator.data.get(self._data_key, 0) or 0)
-            new_value = current & ~desc.mask_bit
-            _LOGGER.debug(
-                "Bitmask OFF %s: reg=0x%04X mask=0x%04X current=%s new=%s",
-                self._key,
-                desc.function_addr,
-                desc.mask_bit,
-                current,
-                new_value,
-            )
-            await client.async_write_register(desc.function_addr, new_value, apply=True)
+        await client.async_write_register(EXEC_REGISTER, 1)  # Commit
 
-        if desc.switch_type not in ("auto_time_sync", "winter_mode"):
-            self._optimistic_update(False)
-            self.coordinator.async_set_updated_data(self.coordinator.data)
-            self.coordinator.request_refresh_with_followup()
-        else:
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
+    async def _write_simple_register(self, client: Any, state: bool) -> None:
+        """Write 1/0 into a simple on/off register."""
+        desc = self.entity_description
+        if desc.function_addr is None:  # pragma: no cover
+            _LOGGER.error("Missing function_addr for %s", self._key)
+            return
+        _LOGGER.debug(
+            "Setting %s %s via register 0x%04X",
+            desc.switch_type,
+            "ON" if state else "OFF",
+            desc.function_addr,
+        )
+        await client.async_write_register(desc.function_addr, 1 if state else 0)
+
+    async def _write_bitmask(self, client: Any, state: bool) -> None:
+        """Flip a single bit inside a packed register."""
+        desc = self.entity_description
+        if desc.function_addr is None or desc.mask_bit is None:  # pragma: no cover
+            _LOGGER.error("Missing bitmask config for %s", self._key)
+            return
+        current = int(self.coordinator.data.get(self._data_key, 0) or 0)
+        new_value = current | desc.mask_bit if state else current & ~desc.mask_bit
+        _LOGGER.debug(
+            "Bitmask %s %s: reg=0x%04X mask=0x%04X current=%s new=%s",
+            "ON" if state else "OFF",
+            self._key,
+            desc.function_addr,
+            desc.mask_bit,
+            current,
+            new_value,
+        )
+        await client.async_write_register(desc.function_addr, new_value, apply=True)
 
     def _optimistic_update(self, state: bool) -> None:
         """Apply an optimistic state update to coordinator data."""
@@ -394,25 +378,26 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     def is_on(self) -> bool:
         """Return True if the switch is on."""
         desc = self.entity_description
+        data = self.coordinator.data
         if desc.switch_type == "manual_filtration":
-            if self.coordinator.data.get("MBF_PAR_FILT_MODE") == 1:
+            if data.get("MBF_PAR_FILT_MODE") == 1:
                 return False
-            return self.coordinator.data.get("MBF_PAR_FILT_MANUAL_STATE") == 1
+            return data.get("MBF_PAR_FILT_MANUAL_STATE") == 1
         if desc.switch_type == "auto_time_sync":
             return getattr(self.coordinator, "auto_time_sync", False)
         if desc.switch_type == "winter_mode":
             return getattr(self.coordinator, "winter_mode", False)
         if desc.switch_type == "relay_timer":
-            enable_val = self.coordinator.data.get(f"relay_{self._key}_enable", None)
+            enable_val = data.get(f"relay_{self._key}_enable", None)
             return enable_val == TimerRelayMode.ALWAYS_ON
         if desc.switch_type == "climate_mode":
-            return bool(self.coordinator.data.get("MBF_PAR_CLIMA_ONOFF", 0))
+            return bool(data.get("MBF_PAR_CLIMA_ONOFF", 0))
         if desc.switch_type == "smart_anti_freeze":
-            return bool(self.coordinator.data.get("MBF_PAR_SMART_ANTI_FREEZE", 0))
+            return bool(data.get("MBF_PAR_SMART_ANTI_FREEZE", 0))
         if desc.switch_type == "uv_mode":
-            return bool(self.coordinator.data.get("MBF_PAR_UV_MODE", 0))
+            return bool(data.get("MBF_PAR_UV_MODE", 0))
         if desc.switch_type == "bitmask" and desc.mask_bit is not None:
-            raw = int(self.coordinator.data.get(self._data_key, 0) or 0)
+            raw = int(data.get(self._data_key, 0) or 0)
             return bool(raw & desc.mask_bit)
         return False  # pragma: no cover
 
@@ -422,20 +407,24 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         """Return True if the switch is available."""
         desc = self.entity_description
         # These switches are HA settings (not device state)
-        if desc.switch_type in ("winter_mode", "auto_time_sync"):
+        if desc.switch_type in _HA_SETTING_TYPES:
             return True
         if not super().available:
             return False
         if desc.switch_type == "manual_filtration":
             return self.coordinator.data.get("MBF_PAR_FILT_MODE") == 0
         if desc.switch_type == "relay_timer":
-            if self._key.startswith("aux"):
-                timer_name = f"relay_{self._key}_enable"
-            elif self._key == "light":  # pragma: no cover
-                timer_name = "relay_light_enable"
-            else:
-                return True  # pragma: no cover
-            mode_val = self.coordinator.data.get(timer_name, None)
-            # 3 = on, 4 = off → available; 0 (disabled) or 1 (auto) → not available
-            return mode_val in (3, 4)
+            return self._relay_timer_available()
         return True
+
+    def _relay_timer_available(self) -> bool:
+        """Report a relay-timer switch as available only when it is user-controlled."""
+        if self._key.startswith("aux"):
+            timer_name = f"relay_{self._key}_enable"
+        elif self._key == "light":  # pragma: no cover
+            timer_name = "relay_light_enable"
+        else:
+            return True  # pragma: no cover
+        mode_val = self.coordinator.data.get(timer_name, None)
+        # 3 = on, 4 = off → available; 0 (disabled) or 1 (auto) → not available
+        return mode_val in (3, 4)
