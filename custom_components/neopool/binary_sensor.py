@@ -394,7 +394,8 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
         if (value_fn := self.entity_description.value_fn) is not None:
-            return value_fn(self.coordinator.data, self.hass)
+            value: bool | None = value_fn(self.coordinator.data, self.hass)
+            return value
         if self._is_measurement_active_suppressed():
             return False
         value = self.coordinator.data.get(self._key)
