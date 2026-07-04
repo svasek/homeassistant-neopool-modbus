@@ -568,9 +568,6 @@
             "measure_conductivity": {
                 "name": "Livello di conducibilità"
             },
-            "measure_ph": {
-                "name": "pH"
-            },
             "measure_rx": {
                 "name": "Potenziale redox"
             },

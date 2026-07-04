@@ -421,7 +421,6 @@
       },
       "measure_cl": { "name": "Salt level" },
       "measure_conductivity": { "name": "Conductivity level" },
-      "measure_ph": { "name": "pH level" },
       "measure_rx": { "name": "Redox potential" },
       "measure_temperature": { "name": "Water temperature" },
       "ph_pump_status": {

@@ -59,9 +59,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from . import NeoPoolConfigEntry
 from .const import CONF_FILTRATION_PUMP_POWER
-from .coordinator import NeoPoolCoordinator
+from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -100,7 +99,6 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
     ),
     "MBF_MEASURE_PH": NeoPoolSensorEntityDescription(
         key="MBF_MEASURE_PH",
-        translation_key="measure_ph",
         device_class=SensorDeviceClass.PH,
         state_class=SensorStateClass.MEASUREMENT,
         supported_fn=lambda data, opts: (
@@ -389,7 +387,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Return the suggested display precision for the sensor value."""
         if (precision_fn := self.entity_description.precision_fn) is not None:
             return precision_fn(self.coordinator.data)
-        return self.entity_description.suggested_display_precision
+        return super().suggested_display_precision
 
     @property
     @override
@@ -397,7 +395,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Return the unit of measurement for the sensor value."""
         if (unit_fn := self.entity_description.unit_fn) is not None:
             return unit_fn(self.coordinator.data)
-        return self.entity_description.native_unit_of_measurement
+        return super().native_unit_of_measurement
 
     def _filtration_gate_blocks(self) -> bool:
         """Return True if the filtration-off gate hides the live reading."""
@@ -436,7 +434,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         """Return the list of options for the sensor."""
         if (options_fn := self.entity_description.options_fn) is not None:
             return options_fn(self.coordinator.data)
-        return self.entity_description.options
+        return super().options
 
 
 class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):

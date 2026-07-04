@@ -568,9 +568,6 @@
             "measure_conductivity": {
                 "name": "Vodivost"
             },
-            "measure_ph": {
-                "name": "Hladina pH"
-            },
             "measure_rx": {
                 "name": "Redox potenciál"
             },
