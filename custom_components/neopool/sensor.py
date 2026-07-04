@@ -480,7 +480,7 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
             restored = float(value)
         except (TypeError, ValueError):  # pragma: no cover
             return
-        if math.isfinite(restored) and restored >= 0:  # pragma: no cover
+        if math.isfinite(restored) and restored >= 0:
             self._total_wh = restored
 
     @override
