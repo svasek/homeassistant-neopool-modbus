@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.2.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.1.0...v6.2.0) (2026-07-04)
+
+
+### 🐛 Bug Fixes
+
+* 🐛 unload platforms before closing the Modbus client ([#214](https://github.com/svasek/homeassistant-neopool-modbus/issues/214)) ([f81b79b](https://github.com/svasek/homeassistant-neopool-modbus/commit/f81b79b8820c1e975571c52c2e8362c9c8cbae8a))
+* 🔒️ harden diagnostics, GPIO repair and platform tests ([#213](https://github.com/svasek/homeassistant-neopool-modbus/issues/213)) ([60a8ebc](https://github.com/svasek/homeassistant-neopool-modbus/commit/60a8ebca88cb5aec4bf8896b621e642ab0855758))
+
+
+### ♻️ Refactoring
+
+* ♻️ adopt neopool-modbus 3.5.0 labels and codecs ([#207](https://github.com/svasek/homeassistant-neopool-modbus/issues/207)) ([9dae796](https://github.com/svasek/homeassistant-neopool-modbus/commit/9dae796dca776d5484c9b98dec49d67ccf7226ed))
+* ♻️ coordinator and sensor cleanup ([#212](https://github.com/svasek/homeassistant-neopool-modbus/issues/212)) ([2d10ac0](https://github.com/svasek/homeassistant-neopool-modbus/commit/2d10ac0b73776d1d70ab73e6d95319409a9a4976))
+* ♻️ self-heal GPIO repair, drop config slider, quieter logs ([#209](https://github.com/svasek/homeassistant-neopool-modbus/issues/209)) ([fa36b4b](https://github.com/svasek/homeassistant-neopool-modbus/commit/fa36b4b04f4deea501f9f729eeb356eb5ad54b41))
+
+
+### 🎨 Style
+
+* **manifest:** 🎨 drop the "Modbus" suffix from the integration name ([77466e9](https://github.com/svasek/homeassistant-neopool-modbus/commit/77466e982b78b97c33d7bc194e11048c53e2442c))
+
 ## [6.1.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.0.0...v6.1.0) (2026-06-29)
 
 
