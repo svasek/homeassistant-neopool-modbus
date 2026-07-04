@@ -31,14 +31,17 @@ async def async_get_config_entry_diagnostics(
 
     diagnostics: dict[str, Any] = {}
 
-    diagnostics["config_entry"] = {
-        "data": async_redact_data(dict(entry.data), TO_REDACT),
-        "options": dict(entry.options),
-        "title": entry.title,
-        "entry_id": entry.entry_id,
-        "unique_id": entry.unique_id,
-        "version": entry.version,
-    }
+    diagnostics["config_entry"] = async_redact_data(
+        {
+            "data": dict(entry.data),
+            "options": dict(entry.options),
+            "title": entry.title,
+            "entry_id": entry.entry_id,
+            "unique_id": entry.unique_id,
+            "version": entry.version,
+        },
+        TO_REDACT | {"title", "unique_id"},
+    )
 
     coordinator = getattr(entry, "runtime_data", None)
 

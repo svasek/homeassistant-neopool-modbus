@@ -91,7 +91,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self._firmware = "?"
         self._follow_up_unsub: CALLBACK_TYPE | None = None
-        self._corrupted_gpio_keys: frozenset[str] = frozenset()
+        # None (not frozenset()) so the first poll clears any stale issue
+        # persisted from a previous session.
+        self._corrupted_gpio_keys: frozenset[str] | None = None
 
     def request_refresh_with_followup(
         self, delay: float = FOLLOW_UP_REFRESH_DELAY

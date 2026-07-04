@@ -150,6 +150,7 @@ async def test_measurement_module_off_when_filtration_off(
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer,
 ) -> None:
     """Measurement-module sensors report OFF when the filtration pump is idle."""
     mock_config_entry.add_to_hass(hass)
@@ -162,20 +163,40 @@ async def test_measurement_module_off_when_filtration_off(
         disabled_by=None,
     )
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
 
     entity = _binary_by_key(hass, "pH measurement active")
     assert entity is not None
+    entity_id = entity.entity_id
 
-    coordinator.data["pH measurement active"] = True
-    coordinator.data["Filtration Pump"] = False
-    assert entity.is_on is False
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "pH measurement active": True,
+        "Filtration Pump": False,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == STATE_OFF
 
-    coordinator.data["Filtration Pump"] = True
-    assert entity.is_on is True
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "pH measurement active": True,
+        "Filtration Pump": True,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == STATE_ON
 
-    coordinator.data["Filtration Pump"] = None
-    assert entity.is_on is True
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "pH measurement active": True,
+        "Filtration Pump": None,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == STATE_ON
 
 
 # ---------------------------------------------------------------------------

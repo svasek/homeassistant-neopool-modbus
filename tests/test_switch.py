@@ -298,12 +298,23 @@ async def test_climate_smart_uv_writes_to_function_register(
 
     mock_neopool_client.async_write_register.reset_mock()
     await _turn_on(hass, entity_id)
-    await _turn_off(hass, entity_id)
-
-    addresses = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
+    on_calls = [
+        (c.args[0], c.args[1])
+        for c in mock_neopool_client.async_write_register.await_args_list
     ]
-    assert addresses.count(function_addr) >= 2
+    assert (function_addr, 1) in on_calls, (
+        f"expected write ({function_addr}, 1); got: {on_calls}"
+    )
+
+    mock_neopool_client.async_write_register.reset_mock()
+    await _turn_off(hass, entity_id)
+    off_calls = [
+        (c.args[0], c.args[1])
+        for c in mock_neopool_client.async_write_register.await_args_list
+    ]
+    assert (function_addr, 0) in off_calls, (
+        f"expected write ({function_addr}, 0); got: {off_calls}"
+    )
 
 
 # ---------------------------------------------------------------------------
