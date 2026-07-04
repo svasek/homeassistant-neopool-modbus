@@ -69,6 +69,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> 
     """Unload a NeoPool config entry."""
     coordinator = entry.runtime_data
     coordinator.cancel_follow_up_refresh()
-    if coordinator.client is not None:
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok and coordinator.client is not None:
         await coordinator.client.close()
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    return unload_ok
