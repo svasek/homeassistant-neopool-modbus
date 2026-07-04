@@ -45,7 +45,7 @@
         'use_light': True,
       }),
       'title': '**REDACTED**',
-      'unique_id': '1234567890',
+      'unique_id': '**REDACTED**',
       'version': 6,
     }),
     'connection_stats': dict({

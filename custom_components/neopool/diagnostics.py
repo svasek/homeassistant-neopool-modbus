@@ -40,7 +40,7 @@ async def async_get_config_entry_diagnostics(
             "unique_id": entry.unique_id,
             "version": entry.version,
         },
-        TO_REDACT | {"title"},
+        TO_REDACT | {"title", "unique_id"},
     )
 
     coordinator = getattr(entry, "runtime_data", None)
