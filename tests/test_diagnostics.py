@@ -59,3 +59,14 @@ async def test_entry_diagnostics_without_runtime_data(
     assert result["coordinator"] == {"status": "not loaded"}
     # Host is still redacted on the data block.
     assert result["config_entry"]["data"]["host"] == "**REDACTED**"
+
+
+async def test_entry_diagnostics_redacts_host_in_title(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """entry.title holds the raw host since PR #206; ensure it is redacted."""
+    mock_config_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(mock_config_entry, title="192.0.2.15")
+    result = await async_get_config_entry_diagnostics(hass, mock_config_entry)
+    assert result["config_entry"]["title"] == "**REDACTED**"
