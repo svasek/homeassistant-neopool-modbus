@@ -29,8 +29,8 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 
-from . import NeoPoolConfigEntry
 from .const import CURRENT_VERSION, DEFAULT_PORT, DEFAULT_UNIT_ID, DOMAIN
+from .coordinator import NeoPoolConfigEntry
 from .migration import (
     async_abort_if_unmigrated_v1_match,
     async_handle_import_step,

@@ -57,9 +57,8 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import NeoPoolConfigEntry
 from .const import DOMAIN, PERIOD_MAP, PERIOD_SECONDS_TO_KEY
-from .coordinator import NeoPoolCoordinator
+from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
 _LOGGER = logging.getLogger(__name__)

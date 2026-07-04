@@ -50,16 +50,20 @@ _FILT_TIMERS = ("filtration1", "filtration2", "filtration3")
 _LOGGER = logging.getLogger(__name__)
 
 
+type NeoPoolConfigEntry = ConfigEntry["NeoPoolCoordinator"]
+
+
 class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator for NeoPool platform."""
 
     client: NeoPoolModbusClient
+    config_entry: NeoPoolConfigEntry
 
     def __init__(
         self,
         hass: HomeAssistant,
         client: NeoPoolModbusClient,
-        entry: ConfigEntry,
+        entry: NeoPoolConfigEntry,
         entry_id: str,
     ) -> None:
         """Initialise the NeoPool data update coordinator."""
@@ -122,17 +126,21 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Validate GPIO register values and (re-)raise or clear the repair issue."""
         corrupted = find_corrupted_gpio_registers(data)
         corrupted_keys = frozenset(key for key, _, _ in corrupted)
-        if corrupted_keys != self._corrupted_gpio_keys:
-            for key, label, value in corrupted:
-                _LOGGER.error(
-                    "Corrupted GPIO register %s (%s): value %d (0x%04X) is outside "
-                    "valid range 0-%d. The pool controller may malfunction",
-                    key,
-                    label,
-                    value,
-                    value & 0xFFFF,
-                    MAX_RELAY_GPIO,
-                )
+
+        if corrupted_keys == self._corrupted_gpio_keys:
+            return
+
+        for key, label, value in corrupted:
+            _LOGGER.error(
+                "Corrupted GPIO register %s (%s): value %d (0x%04X) is outside "
+                "valid range 0-%d. The pool controller may malfunction",
+                key,
+                label,
+                value,
+                value & 0xFFFF,
+                MAX_RELAY_GPIO,
+            )
+
         self._corrupted_gpio_keys = corrupted_keys
 
         if corrupted:
@@ -150,7 +158,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_placeholders={"details": details},
             )
         else:
-            # Clear previous repair issues if registers are OK.
+            # Clear a previously raised repair issue once the device is healthy.
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
 
     def _get_enabled_timers(self) -> list[str]:

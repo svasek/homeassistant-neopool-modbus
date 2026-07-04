@@ -158,7 +158,6 @@
       "ion_current": { "default": "mdi:atom" },
       "ion_polarity": { "default": "mdi:plus-minus-variant" },
       "measure_cl": { "default": "mdi:shaker-outline" },
-      "measure_ph": { "default": "mdi:ph" },
       "measure_rx": { "default": "mdi:gradient-vertical" },
       "ph_pump_status": { "default": "mdi:pump" },
       "ph_status_alarm": {

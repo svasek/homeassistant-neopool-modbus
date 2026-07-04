@@ -16,13 +16,12 @@
 
 from neopool_modbus import NeoPoolModbusClient
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, PLATFORMS
-from .coordinator import NeoPoolCoordinator
+from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 
 # Re-exported for Home Assistant, HA discovers async_migrate_entry from __init__.
 from .migration import (
@@ -35,8 +34,6 @@ from .services import async_setup_services
 # CUSTOM-ONLY START, re-exports the migration symbol for HA's discovery.
 __all__ = ["async_migrate_entry"]
 # CUSTOM-ONLY END
-
-type NeoPoolConfigEntry = ConfigEntry[NeoPoolCoordinator]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 

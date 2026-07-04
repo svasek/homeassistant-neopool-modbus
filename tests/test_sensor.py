@@ -27,7 +27,7 @@ from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
 # translation-key-derived slugs at every call site.
 _ENTITY_ID_BY_KEY = {
     "MBF_MEASURE_TEMPERATURE": "sensor.neopool_water_temperature",
-    "MBF_MEASURE_PH": "sensor.neopool_ph_level",
+    "MBF_MEASURE_PH": "sensor.neopool_ph",
     "MBF_MEASURE_RX": "sensor.neopool_redox_potential",
     "MBF_MEASURE_CL": "sensor.neopool_salt_level",
     "MBF_MEASURE_CONDUCTIVITY": "sensor.neopool_conductivity_level",
