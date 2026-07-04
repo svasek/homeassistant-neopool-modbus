@@ -89,20 +89,19 @@ class NeoPoolSelectEntityDescription(SelectEntityDescription):
     supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
     options_fn: (
         Callable[
-            ["NeoPoolSelectEntityDescription", Mapping[str, Any], Mapping[str, Any]],
+            ["NeoPoolSelectEntityDescription", dict[str, Any], Mapping[str, Any]],
             list[str],
         ]
         | None
     ) = None
     current_option_fn: (
-        Callable[["NeoPoolSelectEntityDescription", Mapping[str, Any]], str | None]
-        | None
+        Callable[["NeoPoolSelectEntityDescription", dict[str, Any]], str | None] | None
     ) = None
 
 
 def _filt_mode_options(
     desc: "NeoPoolSelectEntityDescription",
-    data: Mapping[str, Any],
+    data: dict[str, Any],
     opts: Mapping[str, Any],
 ) -> list[str]:
     """Narrow the filtration mode option list based on detected hardware."""
@@ -131,7 +130,7 @@ def _filt_mode_options(
 
 def _cell_boost_options(
     desc: "NeoPoolSelectEntityDescription",
-    data: Mapping[str, Any],
+    data: dict[str, Any],
     opts: Mapping[str, Any],
 ) -> list[str]:
     """Drop the active_redox option when no redox module is detected."""
@@ -142,7 +141,7 @@ def _cell_boost_options(
 
 
 def _decode_cell_boost(
-    desc: "NeoPoolSelectEntityDescription", data: Mapping[str, Any]
+    desc: "NeoPoolSelectEntityDescription", data: dict[str, Any]
 ) -> str | None:
     """Surface the current cell boost mode via the lib decoder."""
     reg_val = data.get("MBF_CELL_BOOST")
@@ -152,7 +151,7 @@ def _decode_cell_boost(
 
 
 def _decode_filtration_speed(
-    desc: "NeoPoolSelectEntityDescription", data: Mapping[str, Any]
+    desc: "NeoPoolSelectEntityDescription", data: dict[str, Any]
 ) -> str | None:
     """Decode the filtration speed from the packed MBF_PAR_FILTRATION_CONF register."""
     raw = data.get("MBF_PAR_FILTRATION_CONF")
@@ -165,7 +164,7 @@ def _decode_filtration_speed(
 
 
 def _decode_filtvalve_mode(
-    desc: "NeoPoolSelectEntityDescription", data: Mapping[str, Any]
+    desc: "NeoPoolSelectEntityDescription", data: dict[str, Any]
 ) -> str | None:
     """Map the raw MBF_PAR_FILTVALVE_MODE register to its translation key."""
     del desc

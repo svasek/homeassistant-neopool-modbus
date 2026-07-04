@@ -45,7 +45,7 @@ class NeoPoolBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes a NeoPool binary sensor entity."""
 
     supported_fn: _SupportedFn | None = None
-    value_fn: Callable[[Mapping[str, Any], HomeAssistant], bool | None] | None = None
+    value_fn: Callable[[dict[str, Any], HomeAssistant], bool | None] | None = None
 
 
 def _gpio_ok(gpio_key: str) -> _SupportedFn:
@@ -60,14 +60,14 @@ def _module_detected(module_key: str) -> _SupportedFn:
     return lambda data, opts: bool(data.get(module_key))
 
 
-def _device_time_drift(data: Mapping[str, Any], hass: HomeAssistant) -> bool | None:
+def _device_time_drift(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
     """Compute whether the device clock is out of sync with HA."""
     if data.get("MBF_PAR_TIME") is None:
         return None
     return is_device_time_out_of_sync(data, hass)
 
 
-def _pool_cover_open(data: Mapping[str, Any], hass: HomeAssistant) -> bool | None:
+def _pool_cover_open(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
     """Invert the raw cover state to match BinarySensorDeviceClass.OPENING semantics."""
     value = data.get("Pool Cover")
     if value is None:
@@ -394,13 +394,16 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return True if the binary sensor is on."""
         if (value_fn := self.entity_description.value_fn) is not None:
-            return value_fn(self.coordinator.data, self.hass)
-
-        translation_key = self.entity_description.translation_key or ""
-        if translation_key.endswith(_MEASUREMENT_SUFFIXES):
-            filtration_state = self.coordinator.data.get("Filtration Pump")
-            if filtration_state is not None and filtration_state is False:
-                return False
-
+            value: bool | None = value_fn(self.coordinator.data, self.hass)
+            return value
+        if self._is_measurement_active_suppressed():
+            return False
         value = self.coordinator.data.get(self._key)
         return None if value is None else bool(value)
+
+    def _is_measurement_active_suppressed(self) -> bool:
+        """Return True if a "*_measurement_active" / "*_module_active" flag should be forced off."""
+        translation_key = self.entity_description.translation_key or ""
+        if not translation_key.endswith(_MEASUREMENT_SUFFIXES):
+            return False
+        return self.coordinator.data.get("Filtration Pump") is False

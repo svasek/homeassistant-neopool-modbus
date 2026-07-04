@@ -111,8 +111,20 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
     @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light ON."""
+        await self._async_set_state(True)
+
+    @override
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the light OFF."""
+        await self._async_set_state(False)
+
+    async def _async_set_state(self, state: bool) -> None:
+        """Dispatch turn_on / turn_off to the per-type writer."""
+        action = "turn_on" if state else "turn_off"
         if self.coordinator.winter_mode:
-            _LOGGER.warning("Winter mode is active, ignoring turn_on for %s", self._key)
+            _LOGGER.warning(
+                "Winter mode is active, ignoring %s for %s", action, self._key
+            )
             return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
@@ -120,12 +132,24 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             return
         desc = self.entity_description
         if desc.switch_type == "relay_timer":
+            await self._write_relay_timer(client, state)
+
+        # Optimistic update + schedule follow-up
+        self._optimistic_update(state)
+        self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.request_refresh_with_followup()
+
+    async def _write_relay_timer(self, client: Any, state: bool) -> None:
+        """Drive the relay light via its timer block."""
+        desc = self.entity_description
+        if desc.timer_block_addr is None:  # pragma: no cover
+            _LOGGER.error("Missing timer_block_addr for %s", self._key)
+            return
+        if state:
             if (
-                desc.function_addr is None
-                or desc.function_code is None
-                or desc.timer_block_addr is None
+                desc.function_addr is None or desc.function_code is None
             ):  # pragma: no cover
-                _LOGGER.error("Missing relay_timer config for %s", self._key)
+                _LOGGER.error("Missing relay_timer function config for %s", self._key)
                 return
             _LOGGER.debug(
                 "Turning ON %s: function_addr=0x%04X, timer_block_addr=0x%04X",
@@ -137,30 +161,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             await client.async_write_register(
                 desc.timer_block_addr, TimerRelayMode.ALWAYS_ON
             )
-            await client.async_write_register(EXEC_REGISTER, 1)  # Commit
-
-        # Optimistic update + schedule follow-up
-        self._optimistic_update(True)
-        self.coordinator.async_set_updated_data(self.coordinator.data)
-        self.coordinator.request_refresh_with_followup()
-
-    @override
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the light OFF."""
-        if self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active, ignoring turn_off for %s", self._key
-            )
-            return
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers")
-            return
-        desc = self.entity_description
-        if desc.switch_type == "relay_timer":
-            if desc.timer_block_addr is None:  # pragma: no cover
-                _LOGGER.error("Missing timer_block_addr for %s", self._key)
-                return
+        else:
             _LOGGER.debug(
                 "Turning OFF %s: timer_block_addr=0x%04X",
                 self._key,
@@ -169,12 +170,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             await client.async_write_register(
                 desc.timer_block_addr, TimerRelayMode.ALWAYS_OFF
             )
-            await client.async_write_register(EXEC_REGISTER, 1)  # Commit
-
-        # Optimistic update + schedule follow-up
-        self._optimistic_update(False)
-        self.coordinator.async_set_updated_data(self.coordinator.data)
-        self.coordinator.request_refresh_with_followup()
+        await client.async_write_register(EXEC_REGISTER, 1)  # Commit
 
     def _optimistic_update(self, state: bool) -> None:
         """Apply an optimistic state update to coordinator data."""
