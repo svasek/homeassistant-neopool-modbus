@@ -50,6 +50,7 @@ from neopool_modbus.registers import (
     LIGHT_TIMER_BLOCK_REGISTER,
     MANUAL_FILTRATION_REGISTER,
     RELAY_ACTIVATION_DELAY_REGISTER,
+    TimerRelayMode,
 )
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
@@ -392,7 +393,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "relay_aux1_mode": NeoPoolSelectEntityDescription(
         key="relay_aux1_mode",
         translation_key="relay_aux1_mode",
-        options_map={1: "auto", 3: "on", 4: "off"},
+        options_map={1: "auto", 4: "manual"},
         register=AUX1_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
@@ -400,7 +401,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "relay_aux2_mode": NeoPoolSelectEntityDescription(
         key="relay_aux2_mode",
         translation_key="relay_aux2_mode",
-        options_map={1: "auto", 3: "on", 4: "off"},
+        options_map={1: "auto", 4: "manual"},
         register=AUX2_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
@@ -408,7 +409,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "relay_aux3_mode": NeoPoolSelectEntityDescription(
         key="relay_aux3_mode",
         translation_key="relay_aux3_mode",
-        options_map={1: "auto", 3: "on", 4: "off"},
+        options_map={1: "auto", 4: "manual"},
         register=AUX3_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
@@ -416,7 +417,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "relay_aux4_mode": NeoPoolSelectEntityDescription(
         key="relay_aux4_mode",
         translation_key="relay_aux4_mode",
-        options_map={1: "auto", 3: "on", 4: "off"},
+        options_map={1: "auto", 4: "manual"},
         register=AUX4_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
@@ -424,7 +425,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "relay_light_mode": NeoPoolSelectEntityDescription(
         key="relay_light_mode",
         translation_key="relay_light_mode",
-        options_map={1: "auto", 3: "on", 4: "off"},
+        options_map={1: "auto", 4: "manual"},
         register=LIGHT_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         supported_fn=lambda data, opts: bool(opts.get("use_light")),
@@ -502,24 +503,19 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             },
         )
 
-    async def _select_relay_mode(self, option: str) -> None:
-        """Update a relay's automatic/on/off mode via the set_timer service."""
-        desc = self.entity_description
+    async def _select_relay_mode(self, client: Any, option: str) -> None:
+        """Switch the relay between automatic (timer-driven) and manual modes."""
         timer_name = self._key.rsplit("_", 1)[0]
-        reverse_map = {v: k for k, v in desc.options_map.items()}
-        value = reverse_map.get(option)
-        if value is None:  # pragma: no cover
+        current = int(self.coordinator.data.get(f"{timer_name}_enable", 0) or 0)
+        if option == "manual" and current in (
+            TimerRelayMode.ALWAYS_ON,
+            TimerRelayMode.ALWAYS_OFF,
+        ):
+            # Already in a manual mode; do not touch the physical relay state.
             return
-        await self.hass.services.async_call(
-            DOMAIN,
-            "set_timer",
-            {
-                "entry_id": self._entry_id,
-                "timer": timer_name,
-                desc.timer_field: value,
-            },
-        )
-        self._optimistic_update(value)
+        target = 1 if option == "auto" else TimerRelayMode.ALWAYS_OFF
+        await client.write_timer(timer_name, {"enable": target})
+        self._optimistic_update(target)
         self.coordinator.async_set_updated_data(self.coordinator.data)
 
     async def _select_cell_boost(self, client: Any, option: str) -> None:
@@ -596,7 +592,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             await self._select_timer_period(option)
             return
         if desc.select_type == "relay_mode":
-            await self._select_relay_mode(option)
+            await self._select_relay_mode(client, option)
             return
         if self._key == "MBF_CELL_BOOST":
             await self._select_cell_boost(client, option)
@@ -689,11 +685,14 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             value = data.get(f"{timer_name}_enable")
             if value is None:  # pragma: no cover
                 return None
-            if int(value) == 0:
+            int_value = int(value)
+            if int_value == 0:
                 return "disabled"
-            if int(value) == 2:  # pragma: no cover
+            if int_value == 2:  # pragma: no cover
                 return "auto_linked"
-            return desc.options_map.get(int(value))  # pragma: no cover
+            if int_value in (TimerRelayMode.ALWAYS_ON, TimerRelayMode.ALWAYS_OFF):
+                return "manual"
+            return desc.options_map.get(int_value)  # pragma: no cover
 
         if desc.select_type == "mapped_register":
             value = data.get(self._key)

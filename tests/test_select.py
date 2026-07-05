@@ -399,12 +399,31 @@ async def test_relay_mode_select_calls_set_timer_service(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """A relay_mode select forwards an enable value to set_timer."""
+    """A relay_mode select writes the enable value through the lib."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(hass, mock_config_entry, "relay_aux1_mode")
     mock_neopool_client.write_timer.reset_mock()
     await _select_option(hass, entity_id, "auto")
     assert mock_neopool_client.write_timer.await_count == 1
+    mock_neopool_client.write_timer.assert_awaited_with("relay_aux1", {"enable": 1})
+
+
+async def test_relay_mode_manual_to_manual_is_noop(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Selecting 'manual' when the relay already is in a manual state does not write."""
+    await setup_integration(hass, mock_config_entry)
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["relay_aux1_enable"] = 3  # ALWAYS_ON = manual on
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    entity_id = _select_entity_id(hass, mock_config_entry, "relay_aux1_mode")
+    mock_neopool_client.write_timer.reset_mock()
+    await _select_option(hass, entity_id, "manual")
+    assert mock_neopool_client.write_timer.await_count == 0
 
 
 # ---------------------------------------------------------------------------

@@ -307,8 +307,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux1_period": {
@@ -345,8 +344,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux2_period": {
@@ -383,8 +381,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux3_period": {
@@ -421,8 +418,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux4_period": {
@@ -458,8 +454,7 @@
                 "state": {
                     "auto": "Automatic",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_light_period": {
