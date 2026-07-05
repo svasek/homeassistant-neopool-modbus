@@ -16,11 +16,12 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
+    STATE_OFF,
     STATE_ON,
-    STATE_UNAVAILABLE,
     Platform,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
@@ -58,7 +59,7 @@ async def test_manual_filtration_turn_on_off(
     """Manual filtration writes 1 to start the pump and 0 to stop it."""
     await setup_integration(hass, mock_config_entry)
 
-    await _turn_on(hass, "switch.neopool_manual_filtration")  # manual_filtration entity
+    await _turn_on(hass, "switch.neopool_filtration")  # manual_filtration entity
     # MANUAL_FILTRATION_REGISTER write
     addresses_written = [
         c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
@@ -66,10 +67,39 @@ async def test_manual_filtration_turn_on_off(
     assert addresses_written, "expected at least one register write"
 
     mock_neopool_client.async_write_register.reset_mock()
-    await _turn_off(hass, "switch.neopool_manual_filtration")
+    await _turn_off(hass, "switch.neopool_filtration")
     # any write with value 0 to MANUAL_FILTRATION_REGISTER
     write_calls = mock_neopool_client.async_write_register.await_args_list
     assert any(c.args[1] == 0 for c in write_calls)
+
+
+async def test_manual_filtration_turn_on_raises_when_not_manual_mode(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer,
+) -> None:
+    """turn_on raises ServiceValidationError when filtration mode is not manual."""
+    await setup_integration(hass, mock_config_entry)
+
+    # Push controller into auto mode (FILT_MODE=1).
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 1,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_write_register.reset_mock()
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, "switch.neopool_filtration")
+    # No write should have happened.
+    assert mock_neopool_client.async_write_register.await_count == 0
+
+    with pytest.raises(ServiceValidationError):
+        await _turn_off(hass, "switch.neopool_filtration")
+    assert mock_neopool_client.async_write_register.await_count == 0
 
 
 # ---------------------------------------------------------------------------
@@ -183,53 +213,49 @@ async def test_manual_filtration_is_on_reflects_state(
     mock_neopool_client: MagicMock,
     freezer,
 ) -> None:
-    """is_on tracks MBF_PAR_FILT_MANUAL_STATE, available tracks FILT_MODE."""
+    """is_on tracks the "Filtration Pump" relay state, regardless of mode."""
     await setup_integration(hass, mock_config_entry)
 
-    # Set FILT_MODE=0 (manual) and MANUAL_STATE=1 (on)
+    # Pump running: entity is ON.
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
         "MBF_PAR_FILT_MODE": 0,
-        "MBF_PAR_FILT_MANUAL_STATE": 1,
+        "Filtration Pump": True,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    state = hass.states.get("switch.neopool_manual_filtration")
+    state = hass.states.get("switch.neopool_filtration")
     assert state is not None
     assert state.state == STATE_ON
 
-    # Switch FILT_MODE to non-manual → entity becomes unavailable
+    # Pump stopped: entity is OFF (but still available in auto mode).
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
         "MBF_PAR_FILT_MODE": 1,
-        "MBF_PAR_FILT_MANUAL_STATE": 1,
+        "Filtration Pump": False,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    state = hass.states.get("switch.neopool_manual_filtration")
+    state = hass.states.get("switch.neopool_filtration")
     assert state is not None
-    assert state.state == STATE_UNAVAILABLE
+    assert state.state == STATE_OFF
 
 
-async def test_manual_filtration_is_on_returns_false_when_filt_mode_is_auto(
+async def test_manual_filtration_is_on_true_when_pump_running_in_auto(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
 ) -> None:
-    """is_on returns False directly when FILT_MODE is in auto (1).
-
-    The entity is also UNAVAILABLE in that mode (covered above), but the
-    is_on early-return is on a separate code path and needs its own assert.
-    """
+    """is_on returns True when the pump is running under an automatic schedule."""
 
     await setup_integration(hass, mock_config_entry)
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
         "MBF_PAR_FILT_MODE": 1,  # auto
-        "MBF_PAR_FILT_MANUAL_STATE": 1,
+        "Filtration Pump": True,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
@@ -247,7 +273,7 @@ async def test_manual_filtration_is_on_returns_false_when_filt_mode_is_auto(
         if entity_obj is not None:
             break
     assert entity_obj is not None
-    assert entity_obj.is_on is False
+    assert entity_obj.is_on is True
 
 
 # ---------------------------------------------------------------------------
@@ -348,6 +374,40 @@ async def test_aux_relay_turn_on_writes_relay_index(
     mock_neopool_client.async_write_register.reset_mock()
     await _turn_off(hass, entity_id)
     assert mock_neopool_client.async_write_register.await_count >= 2
+
+
+async def test_aux_relay_turn_on_raises_when_in_auto_mode(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer,
+) -> None:
+    """Toggling an aux relay while the timer is in auto mode raises ServiceValidationError."""
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "relay_aux1_enable": 1,  # auto
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_write_register.reset_mock()
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    assert mock_neopool_client.async_write_register.await_count == 0
+    with pytest.raises(ServiceValidationError):
+        await _turn_off(hass, entity_id)
+    assert mock_neopool_client.async_write_register.await_count == 0
 
 
 # ---------------------------------------------------------------------------

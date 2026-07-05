@@ -92,7 +92,7 @@
                 "name": "Device time sync"
             },
             "filtration_pump": {
-                "name": "Filtration active"
+                "name": "Filtration"
             },
             "heating": {
                 "name": "Heating"
@@ -307,8 +307,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux1_period": {
@@ -345,8 +344,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux2_period": {
@@ -383,8 +381,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux3_period": {
@@ -421,8 +418,7 @@
                     "auto": "Automatic",
                     "auto_linked": "Automatic (linked)",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_aux4_period": {
@@ -458,8 +454,7 @@
                 "state": {
                     "auto": "Automatic",
                     "disabled": "Disabled",
-                    "off": "Off",
-                    "on": "On"
+                    "manual": "Manual"
                 }
             },
             "relay_light_period": {
@@ -614,7 +609,7 @@
                 "name": "Climate mode for heating"
             },
             "filt_manual_state": {
-                "name": "Manual filtration"
+                "name": "Filtration"
             },
             "hidro_cover_enable": {
                 "name": "Enable cover reduction (when covered)"
@@ -714,6 +709,12 @@
         "entry_not_found": {
             "message": "No NeoPool config entry found for entry_id {entry_id}"
         },
+        "filtration_not_manual_mode": {
+            "message": "Filtration can only be switched on or off when the controller is in manual filtration mode. Change the filtration mode to Manual first."
+        },
+        "filtration_speed_not_manual_mode": {
+            "message": "Filtration speed can only be changed when the controller is in manual filtration mode. Change the filtration mode to Manual first."
+        },
         "invalid_apply": {
             "message": "Invalid apply {apply}: must be a boolean (true/false)"
         },
@@ -740,6 +741,9 @@
         },
         "no_loaded_entry": {
             "message": "No loaded NeoPool config entry available"
+        },
+        "relay_in_auto_mode": {
+            "message": "This relay is currently in automatic mode. Change the mode to manual first to control it directly."
         },
         "register_out_of_range": {
             "message": "{name} {value} out of range (0-65535)"

@@ -33,8 +33,10 @@ from homeassistant.components.light import (
     LightEntityDescription,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -144,6 +146,15 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         if desc.timer_block_addr is None:  # pragma: no cover
             _LOGGER.error("Missing timer_block_addr for %s", self._key)
             return
+        current_mode = self.coordinator.data.get("relay_light_enable")
+        if current_mode not in (
+            TimerRelayMode.ALWAYS_ON,
+            TimerRelayMode.ALWAYS_OFF,
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="relay_in_auto_mode",
+            )
         if state:
             if (
                 desc.function_addr is None or desc.function_code is None
@@ -179,28 +190,13 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             data["relay_light_enable"] = (
                 TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
             )
+            data["Pool Light"] = state
 
     @property
     @override
     def is_on(self) -> bool:
         """Return True if the light is ON."""
-        desc = self.entity_description
-        if desc.switch_type == "relay_timer":
-            enable_val = self.coordinator.data.get("relay_light_enable", None)
-            return enable_val == TimerRelayMode.ALWAYS_ON
-        return False  # pragma: no cover
-
-    @property
-    @override
-    def available(self) -> bool:
-        """Return True if the light is available."""
-        if not super().available:
-            return False
-        desc = self.entity_description
-        if desc.switch_type == "relay_timer":
-            mode_val = self.coordinator.data.get("relay_light_enable", None)
-            return mode_val in (0, TimerRelayMode.ALWAYS_ON, TimerRelayMode.ALWAYS_OFF)
-        return True  # pragma: no cover
+        return bool(self.coordinator.data.get("Pool Light"))
 
     @property
     @override

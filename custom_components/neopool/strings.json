@@ -63,7 +63,7 @@
       "conductivity_measurement_active": { "name": "Conductivity measurement" },
       "conductivity_pump_active": { "name": "Conductivity pump active" },
       "device_time_out_of_sync": { "name": "Device time sync" },
-      "filtration_pump": { "name": "Filtration active" },
+      "filtration_pump": { "name": "Filtration" },
       "heating": { "name": "Heating" },
       "hidro_activated_by_the_cl_module": {
         "name": "Hydrolysis activated by chlorine module"
@@ -197,8 +197,7 @@
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
           "disabled": "[%key:common::state::disabled%]",
-          "off": "[%key:common::state::off%]",
-          "on": "[%key:common::state::on%]"
+          "manual": "[%key:common::state::manual%]"
         }
       },
       "relay_aux1_period": {
@@ -235,8 +234,7 @@
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
           "disabled": "[%key:common::state::disabled%]",
-          "off": "[%key:common::state::off%]",
-          "on": "[%key:common::state::on%]"
+          "manual": "[%key:common::state::manual%]"
         }
       },
       "relay_aux2_period": {
@@ -273,8 +271,7 @@
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
           "disabled": "[%key:common::state::disabled%]",
-          "off": "[%key:common::state::off%]",
-          "on": "[%key:common::state::on%]"
+          "manual": "[%key:common::state::manual%]"
         }
       },
       "relay_aux3_period": {
@@ -311,8 +308,7 @@
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
           "disabled": "[%key:common::state::disabled%]",
-          "off": "[%key:common::state::off%]",
-          "on": "[%key:common::state::on%]"
+          "manual": "[%key:common::state::manual%]"
         }
       },
       "relay_aux4_period": {
@@ -348,8 +344,7 @@
         "state": {
           "auto": "Automatic",
           "disabled": "[%key:common::state::disabled%]",
-          "off": "[%key:common::state::off%]",
-          "on": "[%key:common::state::on%]"
+          "manual": "[%key:common::state::manual%]"
         }
       },
       "relay_light_period": {
@@ -452,7 +447,7 @@
       "aux3": { "name": "Relay Aux3" },
       "aux4": { "name": "Relay Aux4" },
       "clima_onoff": { "name": "Climate mode for heating" },
-      "filt_manual_state": { "name": "Manual filtration" },
+      "filt_manual_state": { "name": "Filtration" },
       "hidro_cover_enable": { "name": "Enable cover reduction (when covered)" },
       "hidro_temp_shutdown": {
         "name": "Enable hydrolysis shutdown on high temperature"
@@ -493,6 +488,12 @@
     "entry_not_found": {
       "message": "No NeoPool config entry found for entry_id {entry_id}"
     },
+    "filtration_not_manual_mode": {
+      "message": "Filtration can only be switched on or off when the controller is in manual filtration mode. Change the filtration mode to Manual first."
+    },
+    "filtration_speed_not_manual_mode": {
+      "message": "Filtration speed can only be changed when the controller is in manual filtration mode. Change the filtration mode to Manual first."
+    },
     "invalid_apply": {
       "message": "Invalid apply {apply}: must be a boolean (true/false)"
     },
@@ -519,6 +520,9 @@
     },
     "no_loaded_entry": {
       "message": "No loaded NeoPool config entry available"
+    },
+    "relay_in_auto_mode": {
+      "message": "This relay is currently in automatic mode. Change the mode to manual first to control it directly."
     },
     "register_out_of_range": {
       "message": "{name} {value} out of range (0-65535)"

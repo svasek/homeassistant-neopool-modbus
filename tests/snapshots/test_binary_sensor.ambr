@@ -259,7 +259,7 @@
       'disabled_by': None,
       'domain': 'binary_sensor',
       'entity_category': None,
-      'entity_id': 'binary_sensor.neopool_filtration_active',
+      'entity_id': 'binary_sensor.neopool_filtration',
       'has_entity_name': True,
       'hidden_by': None,
       'icon': None,
@@ -267,12 +267,12 @@
       'labels': set({
       }),
       'name': None,
-      'object_id_base': 'Filtration active',
+      'object_id_base': 'Filtration',
       'options': dict({
       }),
       'original_device_class': <BinarySensorDeviceClass.RUNNING: 'running'>,
       'original_icon': None,
-      'original_name': 'Filtration active',
+      'original_name': 'Filtration',
       'platform': 'neopool',
       'previous_unique_id': None,
       'suggested_object_id': None,

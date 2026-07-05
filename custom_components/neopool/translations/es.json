@@ -92,7 +92,7 @@
                 "name": "Sincronización de hora del dispositivo"
             },
             "filtration_pump": {
-                "name": "Filtración activa"
+                "name": "Filtración"
             },
             "heating": {
                 "name": "Calentamiento"
@@ -307,8 +307,7 @@
                     "auto": "Automático",
                     "auto_linked": "Automático (enlazado)",
                     "disabled": "Desactivado",
-                    "off": "Apagado",
-                    "on": "Encendido"
+                    "manual": "Manual"
                 }
             },
             "relay_aux1_period": {
@@ -345,8 +344,7 @@
                     "auto": "Automático",
                     "auto_linked": "Automático (enlazado)",
                     "disabled": "Desactivado",
-                    "off": "Apagado",
-                    "on": "Encendido"
+                    "manual": "Manual"
                 }
             },
             "relay_aux2_period": {
@@ -383,8 +381,7 @@
                     "auto": "Automático",
                     "auto_linked": "Automático (enlazado)",
                     "disabled": "Desactivado",
-                    "off": "Apagado",
-                    "on": "Encendido"
+                    "manual": "Manual"
                 }
             },
             "relay_aux3_period": {
@@ -421,8 +418,7 @@
                     "auto": "Automático",
                     "auto_linked": "Automático (enlazado)",
                     "disabled": "Desactivado",
-                    "off": "Apagado",
-                    "on": "Encendido"
+                    "manual": "Manual"
                 }
             },
             "relay_aux4_period": {
@@ -458,8 +454,7 @@
                 "state": {
                     "auto": "Automático",
                     "disabled": "Desactivado",
-                    "off": "Apagado",
-                    "on": "Encendido"
+                    "manual": "Manual"
                 }
             },
             "relay_light_period": {
@@ -614,7 +609,7 @@
                 "name": "Modo clima para calefacción"
             },
             "filt_manual_state": {
-                "name": "Filtración manual"
+                "name": "Filtración"
             },
             "hidro_cover_enable": {
                 "name": "Habilitar reducción con cubierta"
@@ -714,6 +709,12 @@
         "entry_not_found": {
             "message": "No se encontró la entrada de configuración NeoPool para entry_id {entry_id}"
         },
+        "filtration_not_manual_mode": {
+            "message": "La filtración solo se puede encender o apagar cuando el controlador está en modo de filtración manual. Cambie primero el modo de filtración a Manual."
+        },
+        "filtration_speed_not_manual_mode": {
+            "message": "La velocidad de filtración solo se puede cambiar cuando el controlador está en modo de filtración manual. Cambie primero el modo de filtración a Manual."
+        },
         "invalid_apply": {
             "message": "Valor de apply no válido {apply}: debe ser un booleano (true/false)"
         },
@@ -740,6 +741,9 @@
         },
         "no_loaded_entry": {
             "message": "No hay ninguna entrada de configuración NeoPool cargada disponible"
+        },
+        "relay_in_auto_mode": {
+            "message": "Este relé está actualmente en modo automático. Cambie primero al modo manual para controlarlo directamente."
         },
         "register_out_of_range": {
             "message": "{name} {value} fuera de rango (0-65535)"

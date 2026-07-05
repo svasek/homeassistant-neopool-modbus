@@ -272,8 +272,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -411,8 +410,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -452,8 +450,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -493,8 +490,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -534,8 +530,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -1118,8 +1113,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -1206,8 +1200,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -1247,8 +1240,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -1288,8 +1280,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,
@@ -1329,8 +1320,7 @@
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
           'auto',
-          'on',
-          'off',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,

@@ -51,6 +51,31 @@ async def test_set_timer_writes_to_client(
     )
 
 
+async def test_set_timer_forwards_enable_field(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """The enable field of set_timer is forwarded verbatim to the client."""
+    await setup_integration(hass, mock_config_entry)
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_SET_TIMER,
+        {
+            "entry_id": mock_config_entry.entry_id,
+            "timer": "relay_aux1",
+            "enable": 3,
+        },
+        blocking=True,
+    )
+
+    mock_neopool_client.write_timer.assert_awaited_once_with(
+        "relay_aux1",
+        {"enable": 3},
+    )
+
+
 async def test_set_timer_falls_back_to_first_loaded_entry(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,

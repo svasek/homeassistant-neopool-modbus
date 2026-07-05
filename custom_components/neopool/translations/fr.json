@@ -92,7 +92,7 @@
                 "name": "Synchronisation de l’heure de l’appareil"
             },
             "filtration_pump": {
-                "name": "Filtration active"
+                "name": "Filtration"
             },
             "heating": {
                 "name": "Chauffage"
@@ -307,8 +307,7 @@
                     "auto": "Automatique",
                     "auto_linked": "Automatique (lié)",
                     "disabled": "Désactivé",
-                    "off": "Éteint",
-                    "on": "Allumé"
+                    "manual": "Manuel"
                 }
             },
             "relay_aux1_period": {
@@ -345,8 +344,7 @@
                     "auto": "Automatique",
                     "auto_linked": "Automatique (lié)",
                     "disabled": "Désactivé",
-                    "off": "Éteint",
-                    "on": "Allumé"
+                    "manual": "Manuel"
                 }
             },
             "relay_aux2_period": {
@@ -383,8 +381,7 @@
                     "auto": "Automatique",
                     "auto_linked": "Automatique (lié)",
                     "disabled": "Désactivé",
-                    "off": "Éteint",
-                    "on": "Allumé"
+                    "manual": "Manuel"
                 }
             },
             "relay_aux3_period": {
@@ -421,8 +418,7 @@
                     "auto": "Automatique",
                     "auto_linked": "Automatique (lié)",
                     "disabled": "Désactivé",
-                    "off": "Éteint",
-                    "on": "Allumé"
+                    "manual": "Manuel"
                 }
             },
             "relay_aux4_period": {
@@ -458,8 +454,7 @@
                 "state": {
                     "auto": "Automatique",
                     "disabled": "Désactivé",
-                    "off": "Éteint",
-                    "on": "Allumé"
+                    "manual": "Manuel"
                 }
             },
             "relay_light_period": {
@@ -614,7 +609,7 @@
                 "name": "Mode climat pour chauffage"
             },
             "filt_manual_state": {
-                "name": "Filtration manuelle"
+                "name": "Filtration"
             },
             "hidro_cover_enable": {
                 "name": "Activer la réduction de production à couvert"
@@ -714,6 +709,12 @@
         "entry_not_found": {
             "message": "Aucune entrée de configuration NeoPool trouvée pour entry_id {entry_id}"
         },
+        "filtration_not_manual_mode": {
+            "message": "La filtration ne peut être activée ou désactivée qu'en mode de filtration manuel. Changez d'abord le mode de filtration sur Manuel."
+        },
+        "filtration_speed_not_manual_mode": {
+            "message": "La vitesse de filtration ne peut être modifiée qu'en mode de filtration manuel. Changez d'abord le mode de filtration sur Manuel."
+        },
         "invalid_apply": {
             "message": "Valeur apply non valide {apply} : doit être un booléen (true/false)"
         },
@@ -740,6 +741,9 @@
         },
         "no_loaded_entry": {
             "message": "Aucune entrée de configuration NeoPool chargée disponible"
+        },
+        "relay_in_auto_mode": {
+            "message": "Ce relais est actuellement en mode automatique. Passez d'abord en mode manuel pour le contrôler directement."
         },
         "register_out_of_range": {
             "message": "{name} {value} hors limites (0-65535)"

@@ -92,7 +92,7 @@
                 "name": "Čas v zařízení"
             },
             "filtration_pump": {
-                "name": "Filtrace aktivní"
+                "name": "Filtrace"
             },
             "heating": {
                 "name": "Ohřev"
@@ -307,8 +307,7 @@
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
                     "disabled": "Zakázáno",
-                    "off": "Vypnuto",
-                    "on": "Zapnuto"
+                    "manual": "Ruční"
                 }
             },
             "relay_aux1_period": {
@@ -345,8 +344,7 @@
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
                     "disabled": "Zakázáno",
-                    "off": "Vypnuto",
-                    "on": "Zapnuto"
+                    "manual": "Ruční"
                 }
             },
             "relay_aux2_period": {
@@ -383,8 +381,7 @@
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
                     "disabled": "Zakázáno",
-                    "off": "Vypnuto",
-                    "on": "Zapnuto"
+                    "manual": "Ruční"
                 }
             },
             "relay_aux3_period": {
@@ -421,8 +418,7 @@
                     "auto": "Automaticky",
                     "auto_linked": "Automaticky (propojeno)",
                     "disabled": "Zakázáno",
-                    "off": "Vypnuto",
-                    "on": "Zapnuto"
+                    "manual": "Ruční"
                 }
             },
             "relay_aux4_period": {
@@ -458,8 +454,7 @@
                 "state": {
                     "auto": "Automaticky",
                     "disabled": "Zakázáno",
-                    "off": "Vypnuto",
-                    "on": "Zapnuto"
+                    "manual": "Ruční"
                 }
             },
             "relay_light_period": {
@@ -614,7 +609,7 @@
                 "name": "Režim klimatizace pro ohřev"
             },
             "filt_manual_state": {
-                "name": "Manuální filtrace"
+                "name": "Filtrace"
             },
             "hidro_cover_enable": {
                 "name": "Povolit snížení produkce při zakrytí"
@@ -714,6 +709,12 @@
         "entry_not_found": {
             "message": "Nebyla nalezena konfigurace NeoPool pro entry_id {entry_id}"
         },
+        "filtration_not_manual_mode": {
+            "message": "Filtraci lze zapnout nebo vypnout jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
+        },
+        "filtration_speed_not_manual_mode": {
+            "message": "Rychlost filtrace lze měnit jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
+        },
         "invalid_apply": {
             "message": "Neplatná hodnota apply {apply}: musí být boolean (true/false)"
         },
@@ -740,6 +741,9 @@
         },
         "no_loaded_entry": {
             "message": "Není k dispozici žádná načtená konfigurace NeoPool"
+        },
+        "relay_in_auto_mode": {
+            "message": "Toto relé je aktuálně v automatickém režimu. Nejprve změňte režim na ruční, abyste jej mohli přímo ovládat."
         },
         "register_out_of_range": {
             "message": "{name} {value} mimo rozsah (0-65535)"
