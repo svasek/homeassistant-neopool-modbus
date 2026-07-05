@@ -517,6 +517,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         await client.write_timer(timer_name, {"enable": target})
         self._optimistic_update(target)
         self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.request_refresh_with_followup()
 
     async def _select_cell_boost(self, client: Any, option: str) -> None:
         """Encode the cell boost mode into the composite cell-status register."""
