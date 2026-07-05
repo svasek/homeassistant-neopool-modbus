@@ -717,6 +717,9 @@
         "filtration_not_manual_mode": {
             "message": "Filtraci lze zapnout nebo vypnout jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
         },
+        "filtration_speed_not_manual_mode": {
+            "message": "Rychlost filtrace lze měnit jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
+        },
         "invalid_apply": {
             "message": "Neplatná hodnota apply {apply}: musí být boolean (true/false)"
         },

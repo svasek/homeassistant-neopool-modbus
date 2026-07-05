@@ -10,6 +10,7 @@ from syrupy.assertion import SnapshotAssertion
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
@@ -352,6 +353,25 @@ async def test_filtration_speed_packs_into_filtration_conf(
     mock_neopool_client.async_set_filtration_speed.reset_mock()
     await _select_option(hass, entity_id, "high")
     mock_neopool_client.async_set_filtration_speed.assert_awaited_once_with("high")
+
+
+async def test_filtration_speed_raises_when_not_manual_mode(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Changing filtration speed raises ServiceValidationError outside manual mode."""
+    await setup_integration(hass, mock_config_entry)
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["MBF_PAR_FILT_MODE"] = 1  # auto
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtration_speed")
+    mock_neopool_client.async_set_filtration_speed.reset_mock()
+    with pytest.raises(ServiceValidationError):
+        await _select_option(hass, entity_id, "high")
+    mock_neopool_client.async_set_filtration_speed.assert_not_awaited()
 
 
 # ---------------------------------------------------------------------------

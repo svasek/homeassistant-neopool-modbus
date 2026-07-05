@@ -717,6 +717,9 @@
         "filtration_not_manual_mode": {
             "message": "Filtrację można włączyć lub wyłączyć tylko w ręcznym trybie filtracji. Najpierw zmień tryb filtracji na Ręczny."
         },
+        "filtration_speed_not_manual_mode": {
+            "message": "Prędkość filtracji można zmienić tylko w ręcznym trybie filtracji. Najpierw zmień tryb filtracji na Ręczny."
+        },
         "invalid_apply": {
             "message": "Nieprawidłowa wartość apply {apply}: musi być wartością logiczną (true/false)"
         },

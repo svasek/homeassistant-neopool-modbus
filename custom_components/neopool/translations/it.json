@@ -717,6 +717,9 @@
         "filtration_not_manual_mode": {
             "message": "La filtrazione può essere accesa o spenta solo quando il controller è in modalità filtrazione manuale. Impostare prima la modalità di filtrazione su Manuale."
         },
+        "filtration_speed_not_manual_mode": {
+            "message": "La velocità di filtrazione può essere modificata solo quando il controller è in modalità filtrazione manuale. Impostare prima la modalità di filtrazione su Manuale."
+        },
         "invalid_apply": {
             "message": "Valore apply non valido {apply}: deve essere un booleano (true/false)"
         },

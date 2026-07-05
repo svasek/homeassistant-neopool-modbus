@@ -55,6 +55,7 @@ from neopool_modbus.registers import (
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN, PERIOD_MAP, PERIOD_SECONDS_TO_KEY
@@ -528,6 +529,14 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
     async def _select_filtration_speed(self, client: Any, option: str) -> None:
         """Pack the filtration speed into the composite filtration_conf register."""
+        if (
+            self._key == "MBF_PAR_FILTRATION_SPEED"
+            and self.coordinator.data.get("MBF_PAR_FILT_MODE") != 0
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="filtration_speed_not_manual_mode",
+            )
         await client.async_set_filtration_speed(option)
         await asyncio.sleep(0.2)
 
@@ -697,13 +706,3 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if value is None:  # pragma: no cover
             return None
         return desc.options_map.get(value)
-
-    @property
-    @override
-    def available(self) -> bool:
-        """Return whether the select entity should be presented as available."""
-        if self._key == "MBF_PAR_FILTRATION_SPEED":
-            if not super().available:
-                return False
-            return bool(self.coordinator.data.get("MBF_PAR_FILT_MODE", 0) == 0)
-        return super().available
