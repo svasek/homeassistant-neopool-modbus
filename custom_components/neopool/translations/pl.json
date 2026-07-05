@@ -92,7 +92,7 @@
                 "name": "Synchronizacja czasu urządzenia"
             },
             "filtration_pump": {
-                "name": "Filtracja aktywna"
+                "name": "Filtracja"
             },
             "heating": {
                 "name": "Ogrzewanie"
@@ -609,7 +609,7 @@
                 "name": "Tryb klimatu dla ogrzewania"
             },
             "filt_manual_state": {
-                "name": "Filtracja ręczna"
+                "name": "Filtracja"
             },
             "hidro_cover_enable": {
                 "name": "Włącz redukcję produkcji przy przykryciu"

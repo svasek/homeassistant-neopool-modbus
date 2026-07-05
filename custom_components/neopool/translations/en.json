@@ -92,7 +92,7 @@
                 "name": "Device time sync"
             },
             "filtration_pump": {
-                "name": "Filtration active"
+                "name": "Filtration"
             },
             "heating": {
                 "name": "Heating"
@@ -609,7 +609,7 @@
                 "name": "Climate mode for heating"
             },
             "filt_manual_state": {
-                "name": "Manual filtration"
+                "name": "Filtration"
             },
             "hidro_cover_enable": {
                 "name": "Enable cover reduction (when covered)"

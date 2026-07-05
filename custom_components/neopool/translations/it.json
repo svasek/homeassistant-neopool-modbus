@@ -92,7 +92,7 @@
                 "name": "Sincronizzazione orario dispositivo"
             },
             "filtration_pump": {
-                "name": "Filtrazione attiva"
+                "name": "Filtrazione"
             },
             "heating": {
                 "name": "Riscaldamento"
@@ -609,7 +609,7 @@
                 "name": "Modalità clima per riscaldamento"
             },
             "filt_manual_state": {
-                "name": "Filtrazione manuale"
+                "name": "Filtrazione"
             },
             "hidro_cover_enable": {
                 "name": "Abilita riduzione produzione con copertura"

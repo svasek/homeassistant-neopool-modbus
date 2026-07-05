@@ -92,7 +92,7 @@
                 "name": "Čas v zařízení"
             },
             "filtration_pump": {
-                "name": "Filtrace aktivní"
+                "name": "Filtrace"
             },
             "heating": {
                 "name": "Ohřev"
@@ -609,7 +609,7 @@
                 "name": "Režim klimatizace pro ohřev"
             },
             "filt_manual_state": {
-                "name": "Manuální filtrace"
+                "name": "Filtrace"
             },
             "hidro_cover_enable": {
                 "name": "Povolit snížení produkce při zakrytí"

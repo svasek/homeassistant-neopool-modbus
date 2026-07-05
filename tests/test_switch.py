@@ -59,7 +59,7 @@ async def test_manual_filtration_turn_on_off(
     """Manual filtration writes 1 to start the pump and 0 to stop it."""
     await setup_integration(hass, mock_config_entry)
 
-    await _turn_on(hass, "switch.neopool_manual_filtration")  # manual_filtration entity
+    await _turn_on(hass, "switch.neopool_filtration")  # manual_filtration entity
     # MANUAL_FILTRATION_REGISTER write
     addresses_written = [
         c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
@@ -67,7 +67,7 @@ async def test_manual_filtration_turn_on_off(
     assert addresses_written, "expected at least one register write"
 
     mock_neopool_client.async_write_register.reset_mock()
-    await _turn_off(hass, "switch.neopool_manual_filtration")
+    await _turn_off(hass, "switch.neopool_filtration")
     # any write with value 0 to MANUAL_FILTRATION_REGISTER
     write_calls = mock_neopool_client.async_write_register.await_args_list
     assert any(c.args[1] == 0 for c in write_calls)
@@ -93,12 +93,12 @@ async def test_manual_filtration_turn_on_raises_when_not_manual_mode(
 
     mock_neopool_client.async_write_register.reset_mock()
     with pytest.raises(ServiceValidationError):
-        await _turn_on(hass, "switch.neopool_manual_filtration")
+        await _turn_on(hass, "switch.neopool_filtration")
     # No write should have happened.
     assert mock_neopool_client.async_write_register.await_count == 0
 
     with pytest.raises(ServiceValidationError):
-        await _turn_off(hass, "switch.neopool_manual_filtration")
+        await _turn_off(hass, "switch.neopool_filtration")
     assert mock_neopool_client.async_write_register.await_count == 0
 
 
@@ -225,7 +225,7 @@ async def test_manual_filtration_is_on_reflects_state(
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    state = hass.states.get("switch.neopool_manual_filtration")
+    state = hass.states.get("switch.neopool_filtration")
     assert state is not None
     assert state.state == STATE_ON
 
@@ -238,7 +238,7 @@ async def test_manual_filtration_is_on_reflects_state(
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    state = hass.states.get("switch.neopool_manual_filtration")
+    state = hass.states.get("switch.neopool_filtration")
     assert state is not None
     assert state.state == STATE_OFF
 

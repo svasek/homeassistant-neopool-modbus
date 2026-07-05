@@ -92,7 +92,7 @@
                 "name": "Gerätezeitsynchronisierung"
             },
             "filtration_pump": {
-                "name": "Filtration aktiv"
+                "name": "Filtration"
             },
             "heating": {
                 "name": "Heizung"
@@ -609,7 +609,7 @@
                 "name": "Klimamodus für Heizung"
             },
             "filt_manual_state": {
-                "name": "Manuelle Filtration"
+                "name": "Filtration"
             },
             "hidro_cover_enable": {
                 "name": "Abdeckungsreduktion aktivieren"

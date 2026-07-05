@@ -92,7 +92,7 @@
                 "name": "Synchronisation de l’heure de l’appareil"
             },
             "filtration_pump": {
-                "name": "Filtration active"
+                "name": "Filtration"
             },
             "heating": {
                 "name": "Chauffage"
@@ -609,7 +609,7 @@
                 "name": "Mode climat pour chauffage"
             },
             "filt_manual_state": {
-                "name": "Filtration manuelle"
+                "name": "Filtration"
             },
             "hidro_cover_enable": {
                 "name": "Activer la réduction de production à couvert"
