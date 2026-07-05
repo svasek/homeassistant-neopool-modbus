@@ -376,6 +376,40 @@ async def test_aux_relay_turn_on_writes_relay_index(
     assert mock_neopool_client.async_write_register.await_count >= 2
 
 
+async def test_aux_relay_turn_on_raises_when_in_auto_mode(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer,
+) -> None:
+    """Toggling an aux relay while the timer is in auto mode raises ServiceValidationError."""
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "relay_aux1_enable": 1,  # auto
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_write_register.reset_mock()
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    assert mock_neopool_client.async_write_register.await_count == 0
+    with pytest.raises(ServiceValidationError):
+        await _turn_off(hass, entity_id)
+    assert mock_neopool_client.async_write_register.await_count == 0
+
+
 # ---------------------------------------------------------------------------
 # bitmask write paths (MBF_PAR_HIDRO_COVER_ENABLE / MBF_PAR_HIDRO_TEMP_SHUTDOWN)
 # ---------------------------------------------------------------------------

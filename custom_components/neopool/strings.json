@@ -521,6 +521,9 @@
     "no_loaded_entry": {
       "message": "No loaded NeoPool config entry available"
     },
+    "relay_in_auto_mode": {
+      "message": "This relay is currently in automatic mode. Change the mode to manual first to control it directly."
+    },
     "register_out_of_range": {
       "message": "{name} {value} out of range (0-65535)"
     },

@@ -17,10 +17,10 @@ from homeassistant.const import (
     SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
-    STATE_UNAVAILABLE,
     Platform,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
@@ -99,36 +99,51 @@ async def test_light_is_on_reflects_relay_enable(
     mock_neopool_client: MagicMock,
     freezer,
 ) -> None:
-    """is_on tracks coordinator.data['relay_light_enable']."""
+    """is_on tracks the "Pool Light" relay state, regardless of mode."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
+    # Manual on: relay active.
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
-        "relay_light_enable": 3,  # always ON
+        "relay_light_enable": 3,
+        "Pool Light": True,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_ON
 
+    # Manual off: relay inactive.
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
-        "relay_light_enable": 4,  # always OFF
+        "relay_light_enable": 4,
+        "Pool Light": False,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_OFF
 
+    # Auto mode with relay currently energized: entity is ON (real state).
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "relay_light_enable": 1,
+        "Pool Light": True,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == STATE_ON
 
-async def test_light_unavailable_when_relay_in_auto_mode(
+
+async def test_light_turn_on_raises_when_in_auto_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
 ) -> None:
-    """When the relay is set to auto (1), the light entity goes UNAVAILABLE."""
+    """Toggling the light while its relay is in auto mode raises ServiceValidationError."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
@@ -139,7 +154,14 @@ async def test_light_unavailable_when_relay_in_auto_mode(
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    assert hass.states.get(entity_id).state == STATE_UNAVAILABLE
+
+    mock_neopool_client.async_write_register.reset_mock()
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    assert mock_neopool_client.async_write_register.await_count == 0
+    with pytest.raises(ServiceValidationError):
+        await _turn_off(hass, entity_id)
+    assert mock_neopool_client.async_write_register.await_count == 0
 
 
 async def test_light_winter_mode_guard_when_called_directly(

@@ -742,6 +742,9 @@
         "no_loaded_entry": {
             "message": "Brak załadowanego wpisu konfiguracji NeoPool"
         },
+        "relay_in_auto_mode": {
+            "message": "To przekaźnik jest obecnie w trybie automatycznym. Najpierw zmień tryb na ręczny, aby móc go bezpośrednio sterować."
+        },
         "register_out_of_range": {
             "message": "{name} {value} poza zakresem (0-65535)"
         },

@@ -742,6 +742,9 @@
         "no_loaded_entry": {
             "message": "Aucune entrée de configuration NeoPool chargée disponible"
         },
+        "relay_in_auto_mode": {
+            "message": "Ce relais est actuellement en mode automatique. Passez d'abord en mode manuel pour le contrôler directement."
+        },
         "register_out_of_range": {
             "message": "{name} {value} hors limites (0-65535)"
         },

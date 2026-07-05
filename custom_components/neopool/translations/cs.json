@@ -742,6 +742,9 @@
         "no_loaded_entry": {
             "message": "Není k dispozici žádná načtená konfigurace NeoPool"
         },
+        "relay_in_auto_mode": {
+            "message": "Toto relé je aktuálně v automatickém režimu. Nejprve změňte režim na ruční, abyste jej mohli přímo ovládat."
+        },
         "register_out_of_range": {
             "message": "{name} {value} mimo rozsah (0-65535)"
         },

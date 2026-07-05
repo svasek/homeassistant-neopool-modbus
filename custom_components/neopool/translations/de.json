@@ -742,6 +742,9 @@
         "no_loaded_entry": {
             "message": "Kein geladener NeoPool-Konfigurationseintrag verfügbar"
         },
+        "relay_in_auto_mode": {
+            "message": "Dieses Relais befindet sich derzeit im Automatikmodus. Wechseln Sie zuerst in den manuellen Modus, um es direkt steuern zu können."
+        },
         "register_out_of_range": {
             "message": "{name} {value} außerhalb des Bereichs (0-65535)"
         },

@@ -742,6 +742,9 @@
         "no_loaded_entry": {
             "message": "Nessuna voce di configurazione NeoPool caricata disponibile"
         },
+        "relay_in_auto_mode": {
+            "message": "Questo relè è attualmente in modalità automatica. Passare prima alla modalità manuale per controllarlo direttamente."
+        },
         "register_out_of_range": {
             "message": "{name} {value} fuori intervallo (0-65535)"
         },

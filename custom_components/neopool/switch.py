@@ -296,6 +296,15 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         if desc.timer_block_addr is None:  # pragma: no cover
             _LOGGER.error("Missing timer_block_addr for %s", self._key)
             return
+        current_mode = self.coordinator.data.get(f"relay_{self._key}_enable")
+        if current_mode not in (
+            TimerRelayMode.ALWAYS_ON,
+            TimerRelayMode.ALWAYS_OFF,
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="relay_in_auto_mode",
+            )
         if state:
             if (
                 desc.function_addr is None or desc.function_code is None
@@ -366,6 +375,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             data[f"relay_{self._key}_enable"] = (
                 TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
             )
+            data[self._key.upper()] = state
         elif desc.switch_type == "climate_mode":
             data["MBF_PAR_CLIMA_ONOFF"] = 1 if state else 0
         elif desc.switch_type == "smart_anti_freeze":
@@ -392,8 +402,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         if desc.switch_type == "winter_mode":
             return getattr(self.coordinator, "winter_mode", False)
         if desc.switch_type == "relay_timer":
-            enable_val = data.get(f"relay_{self._key}_enable", None)
-            return enable_val == TimerRelayMode.ALWAYS_ON
+            return bool(data.get(self._key.upper()))
         if desc.switch_type == "climate_mode":
             return bool(data.get("MBF_PAR_CLIMA_ONOFF", 0))
         if desc.switch_type == "smart_anti_freeze":
@@ -413,20 +422,4 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         # These switches are HA settings (not device state)
         if desc.switch_type in _HA_SETTING_TYPES:
             return True
-        if not super().available:
-            return False
-        if desc.switch_type == "relay_timer":
-            return self._relay_timer_available()
-        return True
-
-    def _relay_timer_available(self) -> bool:
-        """Report a relay-timer switch as available only when it is user-controlled."""
-        if self._key.startswith("aux"):
-            timer_name = f"relay_{self._key}_enable"
-        elif self._key == "light":  # pragma: no cover
-            timer_name = "relay_light_enable"
-        else:
-            return True  # pragma: no cover
-        mode_val = self.coordinator.data.get(timer_name, None)
-        # 3 = on, 4 = off → available; 0 (disabled) or 1 (auto) → not available
-        return mode_val in (3, 4)
+        return super().available
