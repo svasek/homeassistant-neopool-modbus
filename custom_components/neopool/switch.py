@@ -47,8 +47,10 @@ from neopool_modbus.registers import (
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -281,6 +283,11 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
 
     async def _write_manual_filtration(self, client: Any, state: bool) -> None:
         """Write the manual filtration on/off register."""
+        if self.coordinator.data.get("MBF_PAR_FILT_MODE") != 0:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="filtration_not_manual_mode",
+            )
         await client.async_write_register(MANUAL_FILTRATION_REGISTER, 1 if state else 0)
 
     async def _write_relay_timer(self, client: Any, state: bool) -> None:
@@ -354,7 +361,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         desc = self.entity_description
         data = self.coordinator.data
         if desc.switch_type == "manual_filtration":
-            data["MBF_PAR_FILT_MANUAL_STATE"] = 1 if state else 0
+            data["Filtration Pump"] = state
         elif desc.switch_type == "relay_timer":
             data[f"relay_{self._key}_enable"] = (
                 TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
@@ -379,9 +386,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         desc = self.entity_description
         data = self.coordinator.data
         if desc.switch_type == "manual_filtration":
-            if data.get("MBF_PAR_FILT_MODE") == 1:
-                return False
-            return data.get("MBF_PAR_FILT_MANUAL_STATE") == 1
+            return bool(data.get("Filtration Pump"))
         if desc.switch_type == "auto_time_sync":
             return getattr(self.coordinator, "auto_time_sync", False)
         if desc.switch_type == "winter_mode":
@@ -410,8 +415,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             return True
         if not super().available:
             return False
-        if desc.switch_type == "manual_filtration":
-            return self.coordinator.data.get("MBF_PAR_FILT_MODE") == 0
         if desc.switch_type == "relay_timer":
             return self._relay_timer_available()
         return True

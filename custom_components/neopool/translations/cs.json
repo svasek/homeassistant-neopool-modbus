@@ -714,6 +714,9 @@
         "entry_not_found": {
             "message": "Nebyla nalezena konfigurace NeoPool pro entry_id {entry_id}"
         },
+        "filtration_not_manual_mode": {
+            "message": "Filtraci lze zapnout nebo vypnout jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
+        },
         "invalid_apply": {
             "message": "Neplatná hodnota apply {apply}: musí být boolean (true/false)"
         },

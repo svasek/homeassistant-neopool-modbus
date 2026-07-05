@@ -714,6 +714,9 @@
         "entry_not_found": {
             "message": "Aucune entrée de configuration NeoPool trouvée pour entry_id {entry_id}"
         },
+        "filtration_not_manual_mode": {
+            "message": "La filtration ne peut être activée ou désactivée qu'en mode de filtration manuel. Changez d'abord le mode de filtration sur Manuel."
+        },
         "invalid_apply": {
             "message": "Valeur apply non valide {apply} : doit être un booléen (true/false)"
         },
