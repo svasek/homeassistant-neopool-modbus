@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.3.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.2.0...v6.3.0) (2026-07-06)
+
+
+### ♻️ Refactoring
+
+* ♻️ consolidate platform dispatch and adopt library capability predicates ([#217](https://github.com/svasek/homeassistant-neopool-modbus/issues/217)) ([5340eb0](https://github.com/svasek/homeassistant-neopool-modbus/commit/5340eb0d55d551d4e048d0d8aec64b326c010177))
+* ♻️ untangle filtration and relay switches from mode selectors ([#215](https://github.com/svasek/homeassistant-neopool-modbus/issues/215)) ([f3efd78](https://github.com/svasek/homeassistant-neopool-modbus/commit/f3efd78fff317b28048c1ff73bfbd812c11ad8f2))
+
 ## [6.2.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.1.0...v6.2.0) (2026-07-04)
 
 
