@@ -127,6 +127,49 @@ async def test_filt_mode_backwash_with_auto_valve_keeps_pump_running(
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("backwash")
 
 
+# CUSTOM-ONLY START, HACS-only manual backwash override coverage.
+async def test_filt_mode_options_include_backwash_via_hacs_override(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """`enable_backwash_option` in entry options exposes backwash on setups without auto valve."""
+    from custom_components.neopool.const import CURRENT_VERSION
+
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_GPIO": 0,  # no auto valve
+        "MBF_PAR_FILTVALVE_ENABLE": 0,
+        "MBF_PAR_FILT_MODE": 1,  # auto (not currently backwash)
+    }
+
+    entry = MockConfigEntry(
+        domain="neopool",
+        title="Backwash Override Pool",
+        unique_id="neopool_backwash_override",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.42",
+            "port": 502,
+            "name": "Backwash Override Pool",
+            "unit_id": 1,
+            "modbus_framer": "tcp",
+        },
+        options={
+            "modbus_framer": "tcp",
+            "enable_backwash_option": True,
+            "_capabilities": {"MBF_PAR_FILT_GPIO": 1},
+        },
+    )
+    await setup_integration(hass, entry)
+    entity_id = _select_entity_id(hass, entry, "mbf_par_filt_mode")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert "backwash" in state.attributes["options"], state.attributes["options"]
+
+
+# CUSTOM-ONLY END
+
+
 # ---------------------------------------------------------------------------
 # mapped_register dispatch
 # ---------------------------------------------------------------------------
@@ -213,7 +256,7 @@ async def test_cell_boost_current_option_decodes_register_bits(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("select.")
-                and getattr(ent, "_key", None) == "MBF_CELL_BOOST"
+                and getattr(ent, "key", None) == "MBF_CELL_BOOST"
             ):
                 entity_obj = ent
                 break
@@ -255,7 +298,7 @@ async def test_relay_mode_current_option_handles_disabled_state(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("select.")
-                and getattr(ent, "_key", None) == "relay_aux1_mode"
+                and getattr(ent, "key", None) == "relay_aux1_mode"
             ):
                 entity_obj = ent
                 break
@@ -284,7 +327,7 @@ async def test_timer_period_options_and_current_option(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("select.")
-                and getattr(ent, "_key", None) == "relay_aux1_period"
+                and getattr(ent, "key", None) == "relay_aux1_period"
             ):
                 entity_obj = ent
                 break
@@ -322,7 +365,7 @@ async def test_cell_boost_options_drop_active_redox_when_no_redox_module(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("select.")
-                and getattr(ent, "_key", None) == "MBF_CELL_BOOST"
+                and getattr(ent, "key", None) == "MBF_CELL_BOOST"
             ):
                 entity_obj = ent
                 break
@@ -447,7 +490,7 @@ async def test_select_blocked_in_winter_mode(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("select.")
-                and getattr(ent, "_key", None) == "MBF_PAR_FILT_MODE"
+                and getattr(ent, "key", None) == "MBF_PAR_FILT_MODE"
             ):
                 entity_obj = ent
                 break
