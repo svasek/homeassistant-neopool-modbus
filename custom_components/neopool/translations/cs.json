@@ -304,8 +304,8 @@
             "relay_aux1_mode": {
                 "name": "Režim relé Aux1",
                 "state": {
-                    "auto": "Automaticky",
-                    "auto_linked": "Automaticky (propojeno)",
+                    "auto": "Automatický",
+                    "auto_linked": "Automatický (propojený)",
                     "disabled": "Zakázáno",
                     "manual": "Ruční"
                 }
@@ -341,8 +341,8 @@
             "relay_aux2_mode": {
                 "name": "Režim relé Aux2",
                 "state": {
-                    "auto": "Automaticky",
-                    "auto_linked": "Automaticky (propojeno)",
+                    "auto": "Automatický",
+                    "auto_linked": "Automatický (propojený)",
                     "disabled": "Zakázáno",
                     "manual": "Ruční"
                 }
@@ -378,8 +378,8 @@
             "relay_aux3_mode": {
                 "name": "Režim relé Aux3",
                 "state": {
-                    "auto": "Automaticky",
-                    "auto_linked": "Automaticky (propojeno)",
+                    "auto": "Automatický",
+                    "auto_linked": "Automatický (propojený)",
                     "disabled": "Zakázáno",
                     "manual": "Ruční"
                 }
@@ -415,8 +415,8 @@
             "relay_aux4_mode": {
                 "name": "Režim relé Aux4",
                 "state": {
-                    "auto": "Automaticky",
-                    "auto_linked": "Automaticky (propojeno)",
+                    "auto": "Automatický",
+                    "auto_linked": "Automatický (propojený)",
                     "disabled": "Zakázáno",
                     "manual": "Ruční"
                 }
@@ -452,7 +452,7 @@
             "relay_light_mode": {
                 "name": "Režim světla",
                 "state": {
-                    "auto": "Automaticky",
+                    "auto": "Automatický",
                     "disabled": "Zakázáno",
                     "manual": "Ruční"
                 }

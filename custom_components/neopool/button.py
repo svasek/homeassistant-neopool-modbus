@@ -14,12 +14,12 @@
 
 """Button platform for the NeoPool integration."""
 
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import logging
 from typing import Any, override
 
-from neopool_modbus.capabilities import has_filtvalve
+from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.const import EntityCategory
@@ -39,7 +39,7 @@ PARALLEL_UPDATES = 1
 class NeoPoolButtonEntityDescription(ButtonEntityDescription):
     """Describes a NeoPool button entity."""
 
-    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
+    supported_fn: Callable[[dict[str, Any]], bool] | None = None
     press_fn: Callable[["NeoPoolButton"], Awaitable[None]]
 
 
@@ -99,7 +99,7 @@ BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
     "BACKWASH": NeoPoolButtonEntityDescription(
         key="BACKWASH",
         translation_key="backwash",
-        supported_fn=lambda data, opts: has_filtvalve(data),
+        supported_fn=has_filtvalve,
         press_fn=_press_backwash,
     ),
     "RESET_CELL_PARTIAL": NeoPoolButtonEntityDescription(
@@ -107,7 +107,7 @@ BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
         translation_key="reset_cell_partial",
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(data.get("Hydrolysis module detected")),
+        supported_fn=is_hydrolysis_present,
         press_fn=_press_reset_cell_partial,
     ),
 }
@@ -124,8 +124,7 @@ async def async_setup_entry(
     async_add_entities(
         NeoPoolButton(coordinator, entry.entry_id, key, desc)
         for key, desc in BUTTON_DESCRIPTIONS.items()
-        if desc.supported_fn is None
-        or desc.supported_fn(coordinator.data, entry.options)
+        if desc.supported_fn is None or desc.supported_fn(coordinator.data)
     )
 
 
