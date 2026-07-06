@@ -3,6 +3,7 @@
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
+from neopool_modbus.registers import LIGHT_FUNCTION_REGISTER, LIGHT_TIMER_BLOCK_REGISTER
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -10,7 +11,6 @@ from pytest_homeassistant_custom_component.common import (
 )
 from syrupy.assertion import SnapshotAssertion
 
-from custom_components.neopool.light import LIGHT_DESCRIPTIONS
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
@@ -66,9 +66,8 @@ async def test_light_turn_on_off_writes_to_relay_timer(
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
-    light_desc = LIGHT_DESCRIPTIONS["light"]
-    timer_block = light_desc.timer_block_addr
-    function_addr = light_desc.function_addr
+    timer_block = LIGHT_TIMER_BLOCK_REGISTER
+    function_addr = LIGHT_FUNCTION_REGISTER
 
     mock_neopool_client.async_write_register.reset_mock()
     await _turn_on(hass, entity_id)

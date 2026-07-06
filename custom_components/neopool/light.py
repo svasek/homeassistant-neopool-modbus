@@ -44,15 +44,15 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
+# Light function code (LIGHTING) written into the function register when
+# turning the relay on for the first time.
+_LIGHT_FUNCTION_CODE = 2
+
 
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolLightEntityDescription(LightEntityDescription):
     """Describes a NeoPool light entity."""
 
-    switch_type: str = ""
-    function_addr: int | None = None
-    function_code: int | None = None
-    timer_block_addr: int | None = None
     supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
 
 
@@ -60,10 +60,6 @@ LIGHT_DESCRIPTIONS: dict[str, NeoPoolLightEntityDescription] = {
     "light": NeoPoolLightEntityDescription(
         key="light",
         translation_key="light",
-        switch_type="relay_timer",
-        timer_block_addr=LIGHT_TIMER_BLOCK_REGISTER,
-        function_addr=LIGHT_FUNCTION_REGISTER,
-        function_code=2,  # LIGHTING
         supported_fn=lambda data, opts: (
             bool(opts.get("use_light"))
             and (
@@ -95,6 +91,8 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
     """Representation of a NeoPool light entity."""
 
     entity_description: NeoPoolLightEntityDescription
+    _attr_supported_color_modes = {ColorMode.ONOFF}
+    _attr_color_mode = ColorMode.ONOFF
 
     def __init__(
         self,
@@ -120,7 +118,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         await self._async_set_state(False)
 
     async def _async_set_state(self, state: bool) -> None:
-        """Dispatch turn_on / turn_off to the per-type writer."""
+        """Drive the light relay via its timer block."""
         action = "turn_on" if state else "turn_off"
         if self.coordinator.winter_mode:
             _LOGGER.warning(
@@ -131,21 +129,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers")
             return
-        desc = self.entity_description
-        if desc.switch_type == "relay_timer":
-            await self._write_relay_timer(client, state)
 
-        # Optimistic update + schedule follow-up
-        self._optimistic_update(state)
-        self.coordinator.async_set_updated_data(self.coordinator.data)
-        self.coordinator.request_refresh_with_followup()
-
-    async def _write_relay_timer(self, client: Any, state: bool) -> None:
-        """Drive the relay light via its timer block."""
-        desc = self.entity_description
-        if desc.timer_block_addr is None:  # pragma: no cover
-            _LOGGER.error("Missing timer_block_addr for %s", self._key)
-            return
         current_mode = self.coordinator.data.get("relay_light_enable")
         if current_mode not in (
             TimerRelayMode.ALWAYS_ON,
@@ -155,57 +139,42 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
                 translation_domain=DOMAIN,
                 translation_key="relay_in_auto_mode",
             )
+
         if state:
-            if (
-                desc.function_addr is None or desc.function_code is None
-            ):  # pragma: no cover
-                _LOGGER.error("Missing relay_timer function config for %s", self._key)
-                return
             _LOGGER.debug(
                 "Turning ON %s: function_addr=0x%04X, timer_block_addr=0x%04X",
                 self._key,
-                desc.function_addr,
-                desc.timer_block_addr,
+                LIGHT_FUNCTION_REGISTER,
+                LIGHT_TIMER_BLOCK_REGISTER,
             )
-            await client.async_write_register(desc.function_addr, desc.function_code)
             await client.async_write_register(
-                desc.timer_block_addr, TimerRelayMode.ALWAYS_ON
+                LIGHT_FUNCTION_REGISTER, _LIGHT_FUNCTION_CODE
+            )
+            await client.async_write_register(
+                LIGHT_TIMER_BLOCK_REGISTER, TimerRelayMode.ALWAYS_ON
             )
         else:
             _LOGGER.debug(
                 "Turning OFF %s: timer_block_addr=0x%04X",
                 self._key,
-                desc.timer_block_addr,
+                LIGHT_TIMER_BLOCK_REGISTER,
             )
             await client.async_write_register(
-                desc.timer_block_addr, TimerRelayMode.ALWAYS_OFF
+                LIGHT_TIMER_BLOCK_REGISTER, TimerRelayMode.ALWAYS_OFF
             )
         await client.async_write_register(EXEC_REGISTER, 1)  # Commit
 
-    def _optimistic_update(self, state: bool) -> None:
-        """Apply an optimistic state update to coordinator data."""
-        desc = self.entity_description
+        # Optimistic update + schedule follow-up.
         data = self.coordinator.data
-        if desc.switch_type == "relay_timer":
-            data["relay_light_enable"] = (
-                TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
-            )
-            data["Pool Light"] = state
+        data["relay_light_enable"] = (
+            TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
+        )
+        data["Pool Light"] = state
+        self.coordinator.async_set_updated_data(data)
+        self.coordinator.request_refresh_with_followup()
 
     @property
     @override
     def is_on(self) -> bool:
         """Return True if the light is ON."""
         return bool(self.coordinator.data.get("Pool Light"))
-
-    @property
-    @override
-    def supported_color_modes(self) -> set[ColorMode]:
-        """Return the color modes supported by this light."""
-        return {ColorMode.ONOFF}
-
-    @property
-    @override
-    def color_mode(self) -> ColorMode:
-        """Return the current color mode of the light."""
-        return ColorMode.ONOFF
