@@ -15,7 +15,6 @@
 """Helper functions for the NeoPool integration."""
 
 import datetime
-import logging
 from typing import Any
 
 from neopool_modbus.decoders import (
@@ -29,8 +28,6 @@ from homeassistant.exceptions import ServiceValidationError
 import homeassistant.util.dt as dt_util
 
 from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def get_device_time(
