@@ -93,7 +93,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._follow_up_unsub: CALLBACK_TYPE | None = None
         # None (not frozenset()) so the first poll clears any stale issue
         # persisted from a previous session.
-        self._corrupted_gpio_keys: frozenset[str] | None = None
+        self._corrupted_gpio_state: frozenset[tuple[str, int]] | None = None
 
     def request_refresh_with_followup(
         self, delay: float = FOLLOW_UP_REFRESH_DELAY
@@ -127,9 +127,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _check_gpio_registers(self, data: dict) -> None:
         """Validate GPIO register values and (re-)raise or clear the repair issue."""
         corrupted = find_corrupted_gpio_registers(data)
-        corrupted_keys = frozenset(key for key, _, _ in corrupted)
+        corrupted_state = frozenset((key, value) for key, _, value in corrupted)
 
-        if corrupted_keys == self._corrupted_gpio_keys:
+        if corrupted_state == self._corrupted_gpio_state:
             return
 
         for key, label, value in corrupted:
@@ -143,7 +143,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 MAX_RELAY_GPIO,
             )
 
-        self._corrupted_gpio_keys = corrupted_keys
+        self._corrupted_gpio_state = corrupted_state
 
         if corrupted:
             details = "\n".join(
