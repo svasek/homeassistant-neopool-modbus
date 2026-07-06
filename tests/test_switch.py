@@ -3,6 +3,11 @@
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
+from neopool_modbus.registers import (
+    CLIMA_ONOFF_REGISTER,
+    SMART_ANTI_FREEZE_REGISTER,
+    UV_MODE_REGISTER,
+)
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -11,7 +16,6 @@ from pytest_homeassistant_custom_component.common import (
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.const import CURRENT_VERSION
-from custom_components.neopool.switch import SWITCH_DESCRIPTIONS
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
@@ -192,8 +196,7 @@ async def test_io_switch_blocked_in_winter_mode(
     entity = next(
         e
         for e in platform.entities.values()
-        if getattr(e, "entity_description", None) is not None
-        and e.entity_description.switch_type == "manual_filtration"
+        if getattr(e, "key", None) == "MBF_PAR_FILT_MANUAL_STATE"
     )
     mock_neopool_client.async_write_register.reset_mock()
     await entity.async_turn_on()
@@ -266,7 +269,7 @@ async def test_manual_filtration_is_on_true_when_pump_running_in_auto(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("switch.")
-                and getattr(ent, "_key", None) == "MBF_PAR_FILT_MANUAL_STATE"
+                and getattr(ent, "key", None) == "MBF_PAR_FILT_MANUAL_STATE"
             ):
                 entity_obj = ent
                 break
@@ -282,11 +285,11 @@ async def test_manual_filtration_is_on_true_when_pump_running_in_auto(
 
 
 @pytest.mark.parametrize(
-    "register_key",
+    ("register_key", "function_addr"),
     [
-        "MBF_PAR_CLIMA_ONOFF",
-        "MBF_PAR_SMART_ANTI_FREEZE",
-        "MBF_PAR_UV_MODE",
+        ("MBF_PAR_CLIMA_ONOFF", CLIMA_ONOFF_REGISTER),
+        ("MBF_PAR_SMART_ANTI_FREEZE", SMART_ANTI_FREEZE_REGISTER),
+        ("MBF_PAR_UV_MODE", UV_MODE_REGISTER),
     ],
 )
 async def test_climate_smart_uv_writes_to_function_register(
@@ -294,13 +297,11 @@ async def test_climate_smart_uv_writes_to_function_register(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     register_key: str,
+    function_addr: int,
 ) -> None:
-    """The grouped switches all write 1/0 to their own function_addr."""
+    """The grouped switches all write 1/0 to their own function register."""
 
     await setup_integration(hass, mock_config_entry)
-
-    function_addr = SWITCH_DESCRIPTIONS[register_key].function_addr
-    assert function_addr is not None
 
     # Unique IDs are lower-case slugified by NeoPoolEntity.
     suffix = f"_{register_key.lower()}"
@@ -474,7 +475,7 @@ async def test_io_switch_winter_mode_short_circuits(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("switch.")
-                and getattr(ent, "_key", None) == switch_key
+                and getattr(ent, "key", None) == switch_key
             ):
                 entity_obj = ent
                 break
