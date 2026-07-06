@@ -20,6 +20,13 @@ from dataclasses import dataclass
 import logging
 from typing import Any, override
 
+from neopool_modbus.capabilities import (
+    has_heating_relay,
+    is_chlorine_module_present,
+    is_hydrolysis_present,
+    is_redox_module_present,
+    is_temperature_active,
+)
 from neopool_modbus.decoders import is_hydrolysis_in_percent
 from neopool_modbus.registers import (
     CHLORINE_SETPOINT_REGISTER,
@@ -80,11 +87,7 @@ class NeoPoolNumberEntityDescription(NumberEntityDescription):
 
 
 def _support_heating_temp(data: dict[str, Any]) -> bool:
-    if "MBF_PAR_HEATING_GPIO" in data and not is_valid_relay_gpio(
-        data["MBF_PAR_HEATING_GPIO"] or 0
-    ):
-        return False
-    return bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
+    return has_heating_relay(data) and is_temperature_active(data)
 
 
 def _hidro_precision(data: dict[str, Any]) -> int:
@@ -119,7 +122,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         register=HIDRO_SETPOINT_REGISTER,
         scale=10.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data: bool(data.get("Hydrolysis module detected")),
+        supported_fn=is_hydrolysis_present,
         precision_fn=_hidro_precision,
         unit_fn=_hidro_unit,
         max_fn=_hidro_max,
@@ -166,7 +169,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         register=REDOX_SETPOINT_REGISTER,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data: bool(data.get("Redox measurement module detected")),
+        supported_fn=is_redox_module_present,
     ),
     "MBF_PAR_CL1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_CL1",
@@ -178,9 +181,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         register=CHLORINE_SETPOINT_REGISTER,
         scale=100.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data: bool(
-            data.get("Chlorine measurement module detected")
-        ),
+        supported_fn=is_chlorine_module_present,
     ),
     "MBF_PAR_HEATING_TEMP": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HEATING_TEMP",
@@ -207,7 +208,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         register=SMART_TEMP_HIGH_REGISTER,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data: bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")),
+        supported_fn=is_temperature_active,
     ),
     "MBF_PAR_SMART_TEMP_LOW": NeoPoolNumberEntityDescription(
         key="MBF_PAR_SMART_TEMP_LOW",
@@ -220,7 +221,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         register=SMART_TEMP_LOW_REGISTER,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
-        supported_fn=lambda data: bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")),
+        supported_fn=is_temperature_active,
     ),
     "MBF_PAR_HIDRO_COVER_REDUCTION": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO_COVER_REDUCTION",
@@ -251,8 +252,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=lambda data: (
-            bool(data.get("Hydrolysis module detected"))
-            and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
+            is_hydrolysis_present(data) and is_temperature_active(data)
         ),
     ),
 }

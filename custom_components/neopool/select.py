@@ -20,7 +20,15 @@ from dataclasses import dataclass, field
 import logging
 from typing import Any, override
 
-from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
+from neopool_modbus.capabilities import (
+    has_filtvalve,
+    has_heating_relay,
+    has_variable_speed_pump,
+    is_hydrolysis_present,
+    is_ph_module_present,
+    is_redox_module_present,
+    is_temperature_active,
+)
 from neopool_modbus.decoders import (
     CELL_BOOST_MODE_LABELS,
     FILTRATION_MODE_LABELS,
@@ -28,7 +36,6 @@ from neopool_modbus.decoders import (
     FILTVALVE_MODE_LABELS,
     decode_cell_boost,
     decode_filtvalve_mode,
-    get_filtration_pump_type,
 )
 from neopool_modbus.registers import (
     AUX1_TIMER_BLOCK_REGISTER,
@@ -98,9 +105,9 @@ class NeoPoolSelectEntityDescription(SelectEntityDescription):
 def _filt_mode_options(data: dict[str, Any]) -> list[str]:
     """Narrow the filtration mode option list based on detected hardware."""
     option_keys = list(FILTRATION_MODE_LABELS.keys())
-    no_heating_gpio = not bool(data.get("MBF_PAR_HEATING_GPIO"))
-    temp_inactive = not bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
-    if no_heating_gpio or temp_inactive:
+    no_heating = not has_heating_relay(data)
+    temp_inactive = not is_temperature_active(data)
+    if no_heating or temp_inactive:
         # Remove keys for "heating" (2) and "intelligent" (4)
         option_keys = [k for k in option_keys if k not in (2, 4)]
     if temp_inactive:
@@ -119,7 +126,7 @@ def _filt_mode_options(data: dict[str, Any]) -> list[str]:
 def _cell_boost_options(data: dict[str, Any]) -> list[str]:
     """Drop the active_redox option when no redox module is detected."""
     option_keys = list(CELL_BOOST_MODE_LABELS.keys())
-    if not bool(data.get("Redox measurement module detected")):
+    if not is_redox_module_present(data):
         option_keys = [k for k in option_keys if k != 2]
     return [CELL_BOOST_MODE_LABELS[k] for k in option_keys]
 
@@ -307,9 +314,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map=FILTRATION_SPEED_LABELS,
         register=FILTRATION_CONF_REGISTER,
         shift=4,
-        supported_fn=lambda data: bool(  # pragma: no cover
-            get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
-        ),
+        supported_fn=has_variable_speed_pump,  # pragma: no cover
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(None, 4),
     ),
@@ -319,7 +324,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map=CELL_BOOST_MODE_LABELS,
         register=CELL_BOOST_REGISTER,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data: is_hydrolysis_present(data),  # pragma: no cover
+        supported_fn=is_hydrolysis_present,  # pragma: no cover
         write_fn=_write_cell_boost,
         options_fn=_cell_boost_options,
         current_option_fn=_decode_cell_boost,
@@ -330,7 +335,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         options_map=FILTVALVE_MODE_LABELS,
         register=FILTVALVE_MODE_REGISTER,
-        supported_fn=lambda data: has_filtvalve(data),
+        supported_fn=has_filtvalve,
         write_fn=_write_default_register,
         current_option_fn=_decode_filtvalve_mode,
     ),
@@ -352,7 +357,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             40320: "4_weeks",
         },
         register=FILTVALVE_PERIOD_REGISTER,
-        supported_fn=lambda data: has_filtvalve(data),
+        supported_fn=has_filtvalve,
         write_fn=_write_mapped_register,
     ),
     "MBF_PAR_INTELLIGENT_FILT_MIN_TIME": NeoPoolSelectEntityDescription(
@@ -376,8 +381,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         },
         register=INTELLIGENT_FILT_MIN_TIME_REGISTER,
         supported_fn=lambda data: (
-            bool(data.get("MBF_PAR_HEATING_GPIO"))
-            and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
+            has_heating_relay(data) and is_temperature_active(data)
         ),
         write_fn=_write_mapped_register,
     ),
@@ -403,7 +407,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             10800: "10800",
         },
         register=RELAY_ACTIVATION_DELAY_REGISTER,
-        supported_fn=lambda data: data.get("pH measurement module detected") is True,
+        supported_fn=is_ph_module_present,
         write_fn=_write_mapped_register,
     ),
     "filtration1_speed": NeoPoolSelectEntityDescription(
@@ -414,9 +418,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER1_SPEED_MASK,
         shift=FILTRATION_TIMER1_SPEED_SHIFT,
-        supported_fn=lambda data: bool(
-            get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
-        ),
+        supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
             FILTRATION_TIMER1_SPEED_MASK, FILTRATION_TIMER1_SPEED_SHIFT
@@ -430,9 +432,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER2_SPEED_MASK,
         shift=FILTRATION_TIMER2_SPEED_SHIFT,
-        supported_fn=lambda data: bool(
-            get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
-        ),
+        supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
             FILTRATION_TIMER2_SPEED_MASK, FILTRATION_TIMER2_SPEED_SHIFT
@@ -446,9 +446,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER3_SPEED_MASK,
         shift=FILTRATION_TIMER3_SPEED_SHIFT,
-        supported_fn=lambda data: bool(
-            get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
-        ),
+        supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
             FILTRATION_TIMER3_SPEED_MASK, FILTRATION_TIMER3_SPEED_SHIFT

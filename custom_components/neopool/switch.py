@@ -19,6 +19,11 @@ from dataclasses import dataclass
 import logging
 from typing import Any, override
 
+from neopool_modbus.capabilities import (
+    has_heating_relay,
+    is_hydrolysis_present,
+    is_temperature_active,
+)
 from neopool_modbus.registers import (
     AUX1_FUNCTION_CODE,
     AUX1_FUNCTION_REGISTER,
@@ -263,8 +268,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         is_on_fn=_make_is_on_int_flag("MBF_PAR_CLIMA_ONOFF"),
         optimistic_fn=_make_optimistic_int_flag("MBF_PAR_CLIMA_ONOFF"),
         supported_fn=lambda data: (
-            bool(data.get("MBF_PAR_HEATING_GPIO"))
-            and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
+            has_heating_relay(data) and is_temperature_active(data)
         ),
     ),
     "MBF_PAR_SMART_ANTI_FREEZE": NeoPoolSwitchEntityDescription(
@@ -274,7 +278,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         write_fn=_make_write_simple_register(SMART_ANTI_FREEZE_REGISTER),
         is_on_fn=_make_is_on_int_flag("MBF_PAR_SMART_ANTI_FREEZE"),
         optimistic_fn=_make_optimistic_int_flag("MBF_PAR_SMART_ANTI_FREEZE"),
-        supported_fn=lambda data: bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")),
+        supported_fn=is_temperature_active,
     ),
     "MBF_PAR_UV_MODE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_UV_MODE",
@@ -302,7 +306,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         optimistic_fn=_make_optimistic_bitmask(
             "MBF_PAR_HIDRO_COVER_ENABLE", HIDRO_COVER_ENABLE_BIT
         ),
-        supported_fn=lambda data: bool(data.get("Hydrolysis module detected")),
+        supported_fn=is_hydrolysis_present,
     ),
     "MBF_PAR_HIDRO_TEMP_SHUTDOWN": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_HIDRO_TEMP_SHUTDOWN",
@@ -320,8 +324,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
             "MBF_PAR_HIDRO_COVER_ENABLE", HIDRO_TEMP_SHUTDOWN_BIT
         ),
         supported_fn=lambda data: (
-            bool(data.get("Hydrolysis module detected"))
-            and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
+            is_hydrolysis_present(data) and is_temperature_active(data)
         ),
     ),
     "aux1": NeoPoolSwitchEntityDescription(

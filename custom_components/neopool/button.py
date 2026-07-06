@@ -19,7 +19,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, override
 
-from neopool_modbus.capabilities import has_filtvalve
+from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.const import EntityCategory
@@ -99,7 +99,7 @@ BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
     "BACKWASH": NeoPoolButtonEntityDescription(
         key="BACKWASH",
         translation_key="backwash",
-        supported_fn=lambda data: has_filtvalve(data),
+        supported_fn=has_filtvalve,
         press_fn=_press_backwash,
     ),
     "RESET_CELL_PARTIAL": NeoPoolButtonEntityDescription(
@@ -107,7 +107,7 @@ BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
         translation_key="reset_cell_partial",
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data: bool(data.get("Hydrolysis module detected")),
+        supported_fn=is_hydrolysis_present,
         press_fn=_press_reset_cell_partial,
     ),
 }
