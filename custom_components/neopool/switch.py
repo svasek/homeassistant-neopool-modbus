@@ -14,7 +14,7 @@
 
 """Switch platform for the NeoPool integration."""
 
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import logging
 from typing import Any, override
@@ -76,7 +76,7 @@ class NeoPoolSwitchEntityDescription(SwitchEntityDescription):
     """Describes a NeoPool switch entity."""
 
     ha_setting: str | None = None
-    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
+    supported_fn: Callable[[dict[str, Any]], bool] | None = None
     write_fn: _WriteFn | None = None
     is_on_fn: _IsOnFn | None = None
     optimistic_fn: _OptimisticFn | None = None
@@ -262,7 +262,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         write_fn=_make_write_simple_register(CLIMA_ONOFF_REGISTER),
         is_on_fn=_make_is_on_int_flag("MBF_PAR_CLIMA_ONOFF"),
         optimistic_fn=_make_optimistic_int_flag("MBF_PAR_CLIMA_ONOFF"),
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             bool(data.get("MBF_PAR_HEATING_GPIO"))
             and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
         ),
@@ -274,7 +274,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         write_fn=_make_write_simple_register(SMART_ANTI_FREEZE_REGISTER),
         is_on_fn=_make_is_on_int_flag("MBF_PAR_SMART_ANTI_FREEZE"),
         optimistic_fn=_make_optimistic_int_flag("MBF_PAR_SMART_ANTI_FREEZE"),
-        supported_fn=lambda data, opts: bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")),
+        supported_fn=lambda data: bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE")),
     ),
     "MBF_PAR_UV_MODE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_UV_MODE",
@@ -283,7 +283,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         write_fn=_make_write_simple_register(UV_MODE_REGISTER),
         is_on_fn=_make_is_on_int_flag("MBF_PAR_UV_MODE"),
         optimistic_fn=_make_optimistic_int_flag("MBF_PAR_UV_MODE"),
-        supported_fn=lambda data, opts: is_valid_relay_gpio(
+        supported_fn=lambda data: is_valid_relay_gpio(
             data.get("MBF_PAR_UV_RELAY_GPIO", 0) or 0
         ),
     ),
@@ -302,10 +302,7 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         optimistic_fn=_make_optimistic_bitmask(
             "MBF_PAR_HIDRO_COVER_ENABLE", HIDRO_COVER_ENABLE_BIT
         ),
-        supported_fn=lambda data, opts: (
-            bool(opts.get("use_cover_sensor"))
-            and bool(data.get("Hydrolysis module detected"))
-        ),
+        supported_fn=lambda data: bool(data.get("Hydrolysis module detected")),
     ),
     "MBF_PAR_HIDRO_TEMP_SHUTDOWN": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_HIDRO_TEMP_SHUTDOWN",
@@ -322,9 +319,8 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         optimistic_fn=_make_optimistic_bitmask(
             "MBF_PAR_HIDRO_COVER_ENABLE", HIDRO_TEMP_SHUTDOWN_BIT
         ),
-        supported_fn=lambda data, opts: (
-            bool(opts.get("use_cover_sensor"))
-            and bool(data.get("Hydrolysis module detected"))
+        supported_fn=lambda data: (
+            bool(data.get("Hydrolysis module detected"))
             and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
         ),
     ),
@@ -336,7 +332,6 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         ),
         is_on_fn=_make_is_on_from_key("AUX1"),
         optimistic_fn=_optimistic_relay_timer,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
     ),
     "aux2": NeoPoolSwitchEntityDescription(
         key="aux2",
@@ -346,7 +341,6 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         ),
         is_on_fn=_make_is_on_from_key("AUX2"),
         optimistic_fn=_optimistic_relay_timer,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
     ),
     "aux3": NeoPoolSwitchEntityDescription(
         key="aux3",
@@ -356,7 +350,6 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         ),
         is_on_fn=_make_is_on_from_key("AUX3"),
         optimistic_fn=_optimistic_relay_timer,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
     ),
     "aux4": NeoPoolSwitchEntityDescription(
         key="aux4",
@@ -366,8 +359,18 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         ),
         is_on_fn=_make_is_on_from_key("AUX4"),
         optimistic_fn=_optimistic_relay_timer,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
     ),
+}
+
+
+# Entities gated on a config-entry option (in addition to their supported_fn).
+_ENTITY_OPTION_KEY: dict[str, str] = {
+    "MBF_PAR_HIDRO_COVER_ENABLE": "use_cover_sensor",
+    "MBF_PAR_HIDRO_TEMP_SHUTDOWN": "use_cover_sensor",
+    "aux1": "use_aux1",
+    "aux2": "use_aux2",
+    "aux3": "use_aux3",
+    "aux4": "use_aux4",
 }
 
 
@@ -378,12 +381,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up NeoPool switches from a config entry."""
     coordinator = entry.runtime_data
+    options = entry.options
 
     async_add_entities(
         NeoPoolSwitch(coordinator, entry.entry_id, key, desc)
         for key, desc in SWITCH_DESCRIPTIONS.items()
-        if desc.supported_fn is None
-        or desc.supported_fn(coordinator.data, entry.options)
+        if (
+            (option_key := _ENTITY_OPTION_KEY.get(key)) is None
+            or bool(options.get(option_key))
+        )
+        and (desc.supported_fn is None or desc.supported_fn(coordinator.data))
     )
 
 

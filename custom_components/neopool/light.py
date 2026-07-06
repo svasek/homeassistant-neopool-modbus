@@ -14,7 +14,7 @@
 
 """Light platform for the NeoPool integration."""
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 import logging
 from typing import Any, override
@@ -53,19 +53,16 @@ _LIGHT_FUNCTION_CODE = 2
 class NeoPoolLightEntityDescription(LightEntityDescription):
     """Describes a NeoPool light entity."""
 
-    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
+    supported_fn: Callable[[dict[str, Any]], bool] | None = None
 
 
 LIGHT_DESCRIPTIONS: dict[str, NeoPoolLightEntityDescription] = {
     "light": NeoPoolLightEntityDescription(
         key="light",
         translation_key="light",
-        supported_fn=lambda data, opts: (
-            bool(opts.get("use_light"))
-            and (
-                "MBF_PAR_LIGHTING_GPIO" not in data
-                or is_valid_relay_gpio(data["MBF_PAR_LIGHTING_GPIO"] or 0)
-            )
+        supported_fn=lambda data: (
+            "MBF_PAR_LIGHTING_GPIO" not in data
+            or is_valid_relay_gpio(data["MBF_PAR_LIGHTING_GPIO"] or 0)
         ),
     ),
 }
@@ -79,11 +76,13 @@ async def async_setup_entry(
     """Set up NeoPool lights from a config entry."""
     coordinator = entry.runtime_data
 
+    if not entry.options.get("use_light"):
+        return
+
     async_add_entities(
         NeoPoolLight(coordinator, entry.entry_id, key, desc)
         for key, desc in LIGHT_DESCRIPTIONS.items()
-        if desc.supported_fn is None
-        or desc.supported_fn(coordinator.data, entry.options)
+        if desc.supported_fn is None or desc.supported_fn(coordinator.data)
     )
 
 

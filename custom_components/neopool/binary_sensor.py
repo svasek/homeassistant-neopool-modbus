@@ -14,7 +14,7 @@
 
 """Binary sensor platform for the NeoPool integration."""
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, override
 
@@ -36,7 +36,7 @@ from .helpers import is_device_time_out_of_sync
 
 PARALLEL_UPDATES = 0
 
-type _SupportedFn = Callable[[dict[str, Any], Mapping[str, Any]], bool]
+type _SupportedFn = Callable[[dict[str, Any]], bool]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -49,14 +49,12 @@ class NeoPoolBinarySensorEntityDescription(BinarySensorEntityDescription):
 
 def _gpio_ok(gpio_key: str) -> _SupportedFn:
     """Return a supported_fn that checks a relay GPIO key is valid."""
-    return lambda data, opts: (
-        gpio_key not in data or is_valid_relay_gpio(data[gpio_key] or 0)
-    )
+    return lambda data: gpio_key not in data or is_valid_relay_gpio(data[gpio_key] or 0)
 
 
 def _module_detected(module_key: str) -> _SupportedFn:
     """Return a supported_fn that requires a measurement module to be detected."""
-    return lambda data, opts: bool(data.get(module_key))
+    return lambda data: bool(data.get(module_key))
 
 
 def _device_time_drift(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
@@ -100,37 +98,27 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         key="Pool Light",
         translation_key="pool_light",
         device_class=BinarySensorDeviceClass.LIGHT,
-        supported_fn=lambda data, opts: (
-            bool(opts.get("use_light"))
-            and (
-                "MBF_PAR_LIGHTING_GPIO" not in data
-                or is_valid_relay_gpio(data["MBF_PAR_LIGHTING_GPIO"] or 0)
-            )
-        ),
+        supported_fn=_gpio_ok("MBF_PAR_LIGHTING_GPIO"),
     ),
     "AUX1": NeoPoolBinarySensorEntityDescription(
         key="AUX1",
         translation_key="aux1",
         device_class=BinarySensorDeviceClass.POWER,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
     ),
     "AUX2": NeoPoolBinarySensorEntityDescription(
         key="AUX2",
         translation_key="aux2",
         device_class=BinarySensorDeviceClass.POWER,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
     ),
     "AUX3": NeoPoolBinarySensorEntityDescription(
         key="AUX3",
         translation_key="aux3",
         device_class=BinarySensorDeviceClass.POWER,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
     ),
     "AUX4": NeoPoolBinarySensorEntityDescription(
         key="AUX4",
         translation_key="aux4",
         device_class=BinarySensorDeviceClass.POWER,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
     ),
     "pH module control status": NeoPoolBinarySensorEntityDescription(
         key="pH module control status",
@@ -162,7 +150,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             bool(data.get("Redox measurement module detected"))
             and (
                 "MBF_PAR_RX_RELAY_GPIO" not in data
@@ -199,7 +187,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             bool(data.get("Chlorine measurement module detected"))
             and (
                 "MBF_PAR_CL_RELAY_GPIO" not in data
@@ -229,7 +217,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             bool(data.get("Conductivity measurement module detected"))
             and (
                 "MBF_PAR_CD_RELAY_GPIO" not in data
@@ -258,21 +246,21 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         translation_key="ion_on_target",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: is_ionization_present(data),  # pragma: no cover
+        supported_fn=lambda data: is_ionization_present(data),  # pragma: no cover
     ),
     "ION Low Flow": NeoPoolBinarySensorEntityDescription(
         key="ION Low Flow",
         translation_key="ion_low_flow",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        supported_fn=lambda data, opts: is_ionization_present(data),  # pragma: no cover
+        supported_fn=lambda data: is_ionization_present(data),  # pragma: no cover
     ),
     "ION Program time exceeded": NeoPoolBinarySensorEntityDescription(
         key="ION Program time exceeded",
         translation_key="ion_program_time_exceeded",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        supported_fn=lambda data, opts: is_ionization_present(data),  # pragma: no cover
+        supported_fn=lambda data: is_ionization_present(data),  # pragma: no cover
     ),
     "HIDRO Low Flow": NeoPoolBinarySensorEntityDescription(
         key="HIDRO Low Flow",
@@ -285,7 +273,6 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         key="Pool Cover",
         translation_key="pool_cover",
         device_class=BinarySensorDeviceClass.OPENING,
-        supported_fn=lambda data, opts: bool(opts.get("use_cover_sensor")),
         value_fn=_pool_cover_open,
     ),
     "HIDRO Module active": NeoPoolBinarySensorEntityDescription(
@@ -308,7 +295,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         translation_key="hidro_activated_by_the_rx_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             bool(data.get("Hydrolysis module detected"))
             and bool(data.get("Redox measurement module detected"))
         ),  # pragma: no cover
@@ -325,7 +312,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         translation_key="hidro_activated_by_the_cl_module",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             bool(data.get("Hydrolysis module detected"))
             and bool(data.get("Chlorine measurement module detected"))
         ),
@@ -342,7 +329,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         translation_key="uv_lamp",
         device_class=BinarySensorDeviceClass.RUNNING,
         entity_category=EntityCategory.DIAGNOSTIC,
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             "MBF_PAR_UV_RELAY_GPIO" not in data
             or is_valid_relay_gpio(data["MBF_PAR_UV_RELAY_GPIO"] or 0)
         ),
@@ -353,6 +340,17 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
 _MEASUREMENT_SUFFIXES = ("_measurement_active", "_module_active")
 
 
+# Entities gated on a config-entry option (in addition to their supported_fn).
+_ENTITY_OPTION_KEY: dict[str, str] = {
+    "Pool Light": "use_light",
+    "AUX1": "use_aux1",
+    "AUX2": "use_aux2",
+    "AUX3": "use_aux3",
+    "AUX4": "use_aux4",
+    "Pool Cover": "use_cover_sensor",
+}
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NeoPoolConfigEntry,
@@ -360,12 +358,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up NeoPool binary sensors from a config entry."""
     coordinator = entry.runtime_data
+    options = entry.options
 
     async_add_entities(
         NeoPoolBinarySensor(coordinator, entry.entry_id, key, desc)
         for key, desc in BINARY_SENSOR_DESCRIPTIONS.items()
-        if desc.supported_fn is None
-        or desc.supported_fn(coordinator.data, entry.options)
+        if (
+            (option_key := _ENTITY_OPTION_KEY.get(key)) is None
+            or bool(options.get(option_key))
+        )
+        and (desc.supported_fn is None or desc.supported_fn(coordinator.data))
     )
 
 

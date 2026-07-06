@@ -15,7 +15,7 @@
 """Select platform for the NeoPool integration."""
 
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 import logging
 from typing import Any, override
@@ -84,7 +84,7 @@ class NeoPoolSelectEntityDescription(SelectEntityDescription):
     write_offset: int = 0
     fallback_suffix: str = ""
     timer_field: str = "enable"
-    supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
+    supported_fn: Callable[[dict[str, Any]], bool] | None = None
     write_fn: _WriteFn | None = None
     options_fn: _OptionsFn | None = None
     current_option_fn: _CurrentOptionFn | None = None
@@ -307,7 +307,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map=FILTRATION_SPEED_LABELS,
         register=FILTRATION_CONF_REGISTER,
         shift=4,
-        supported_fn=lambda data, opts: bool(  # pragma: no cover
+        supported_fn=lambda data: bool(  # pragma: no cover
             get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
         ),
         write_fn=_write_filtration_speed,
@@ -319,7 +319,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map=CELL_BOOST_MODE_LABELS,
         register=CELL_BOOST_REGISTER,
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: is_hydrolysis_present(data),  # pragma: no cover
+        supported_fn=lambda data: is_hydrolysis_present(data),  # pragma: no cover
         write_fn=_write_cell_boost,
         options_fn=_cell_boost_options,
         current_option_fn=_decode_cell_boost,
@@ -330,7 +330,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         options_map=FILTVALVE_MODE_LABELS,
         register=FILTVALVE_MODE_REGISTER,
-        supported_fn=lambda data, opts: has_filtvalve(data),
+        supported_fn=lambda data: has_filtvalve(data),
         write_fn=_write_default_register,
         current_option_fn=_decode_filtvalve_mode,
     ),
@@ -352,7 +352,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             40320: "4_weeks",
         },
         register=FILTVALVE_PERIOD_REGISTER,
-        supported_fn=lambda data, opts: has_filtvalve(data),
+        supported_fn=lambda data: has_filtvalve(data),
         write_fn=_write_mapped_register,
     ),
     "MBF_PAR_INTELLIGENT_FILT_MIN_TIME": NeoPoolSelectEntityDescription(
@@ -375,7 +375,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             720: "12h",
         },
         register=INTELLIGENT_FILT_MIN_TIME_REGISTER,
-        supported_fn=lambda data, opts: (
+        supported_fn=lambda data: (
             bool(data.get("MBF_PAR_HEATING_GPIO"))
             and bool(data.get("MBF_PAR_TEMPERATURE_ACTIVE"))
         ),
@@ -403,9 +403,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             10800: "10800",
         },
         register=RELAY_ACTIVATION_DELAY_REGISTER,
-        supported_fn=lambda data, opts: (
-            data.get("pH measurement module detected") is True
-        ),
+        supported_fn=lambda data: data.get("pH measurement module detected") is True,
         write_fn=_write_mapped_register,
     ),
     "filtration1_speed": NeoPoolSelectEntityDescription(
@@ -416,9 +414,8 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER1_SPEED_MASK,
         shift=FILTRATION_TIMER1_SPEED_SHIFT,
-        supported_fn=lambda data, opts: (
-            bool(opts.get("use_filtration1"))
-            and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
+        supported_fn=lambda data: bool(
+            get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
         ),
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
@@ -433,9 +430,8 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER2_SPEED_MASK,
         shift=FILTRATION_TIMER2_SPEED_SHIFT,
-        supported_fn=lambda data, opts: (
-            bool(opts.get("use_filtration2"))
-            and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
+        supported_fn=lambda data: bool(
+            get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
         ),
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
@@ -450,9 +446,8 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         register=FILTRATION_CONF_REGISTER,
         mask=FILTRATION_TIMER3_SPEED_MASK,
         shift=FILTRATION_TIMER3_SPEED_SHIFT,
-        supported_fn=lambda data, opts: (
-            bool(opts.get("use_filtration3"))
-            and bool(get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0)))
+        supported_fn=lambda data: bool(
+            get_filtration_pump_type(data.get("MBF_PAR_FILTRATION_CONF", 0))
         ),
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
@@ -464,7 +459,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="relay_aux1_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
         write_fn=_write_timer_period,
     ),
     "relay_aux1b_period": NeoPoolSelectEntityDescription(
@@ -473,7 +467,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
         write_fn=_write_timer_period,
     ),
     "relay_aux2_period": NeoPoolSelectEntityDescription(
@@ -481,7 +474,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="relay_aux2_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
         write_fn=_write_timer_period,
     ),
     "relay_aux2b_period": NeoPoolSelectEntityDescription(
@@ -490,7 +482,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
         write_fn=_write_timer_period,
     ),
     "relay_aux3_period": NeoPoolSelectEntityDescription(
@@ -498,7 +489,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="relay_aux3_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
         write_fn=_write_timer_period,
     ),
     "relay_aux3b_period": NeoPoolSelectEntityDescription(
@@ -507,7 +497,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
         write_fn=_write_timer_period,
     ),
     "relay_aux4_period": NeoPoolSelectEntityDescription(
@@ -515,7 +504,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="relay_aux4_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
         write_fn=_write_timer_period,
     ),
     "relay_aux4b_period": NeoPoolSelectEntityDescription(
@@ -524,7 +512,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
         entity_registry_enabled_default=False,
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
         write_fn=_write_timer_period,
     ),
     "relay_light_period": NeoPoolSelectEntityDescription(
@@ -532,7 +519,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="relay_light_period",
         entity_category=EntityCategory.CONFIG,
         select_type="timer_period",
-        supported_fn=lambda data, opts: bool(opts.get("use_light")),
         write_fn=_write_timer_period,
     ),
     "relay_aux1_mode": NeoPoolSelectEntityDescription(
@@ -541,7 +527,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map={1: "auto", 4: "manual"},
         register=AUX1_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux1")),
         write_fn=_write_relay_mode,
     ),
     "relay_aux2_mode": NeoPoolSelectEntityDescription(
@@ -550,7 +535,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map={1: "auto", 4: "manual"},
         register=AUX2_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux2")),
         write_fn=_write_relay_mode,
     ),
     "relay_aux3_mode": NeoPoolSelectEntityDescription(
@@ -559,7 +543,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map={1: "auto", 4: "manual"},
         register=AUX3_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux3")),
         write_fn=_write_relay_mode,
     ),
     "relay_aux4_mode": NeoPoolSelectEntityDescription(
@@ -568,7 +551,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map={1: "auto", 4: "manual"},
         register=AUX4_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
-        supported_fn=lambda data, opts: bool(opts.get("use_aux4")),
         write_fn=_write_relay_mode,
     ),
     "relay_light_mode": NeoPoolSelectEntityDescription(
@@ -577,9 +559,30 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         options_map={1: "auto", 4: "manual"},
         register=LIGHT_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
-        supported_fn=lambda data, opts: bool(opts.get("use_light")),
         write_fn=_write_relay_mode,
     ),
+}
+
+
+# Entities gated on a config-entry option (in addition to their supported_fn).
+_ENTITY_OPTION_KEY: dict[str, str] = {
+    "filtration1_speed": "use_filtration1",
+    "filtration2_speed": "use_filtration2",
+    "filtration3_speed": "use_filtration3",
+    "relay_aux1_period": "use_aux1",
+    "relay_aux1b_period": "use_aux1",
+    "relay_aux2_period": "use_aux2",
+    "relay_aux2b_period": "use_aux2",
+    "relay_aux3_period": "use_aux3",
+    "relay_aux3b_period": "use_aux3",
+    "relay_aux4_period": "use_aux4",
+    "relay_aux4b_period": "use_aux4",
+    "relay_light_period": "use_light",
+    "relay_aux1_mode": "use_aux1",
+    "relay_aux2_mode": "use_aux2",
+    "relay_aux3_mode": "use_aux3",
+    "relay_aux4_mode": "use_aux4",
+    "relay_light_mode": "use_light",
 }
 
 
@@ -590,12 +593,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up NeoPool select entities from a config entry."""
     coordinator = entry.runtime_data
+    options = entry.options
 
     async_add_entities(
         NeoPoolSelect(coordinator, entry.entry_id, key, desc)
         for key, desc in SELECT_DESCRIPTIONS.items()
-        if desc.supported_fn is None
-        or desc.supported_fn(coordinator.data, entry.options)
+        if (
+            (option_key := _ENTITY_OPTION_KEY.get(key)) is None
+            or bool(options.get(option_key))
+        )
+        and (desc.supported_fn is None or desc.supported_fn(coordinator.data))
     )
 
 
