@@ -36,7 +36,32 @@ DEFAULT_SCAN_INTERVAL = 20  # in seconds
 FOLLOW_UP_REFRESH_DELAY = 2.0  # seconds  (delay before a 2nd refresh for IO entity)
 DEFAULT_PORT = 502
 DEFAULT_UNIT_ID = 1
+
+# Config-entry data keys (connection settings).
+CONF_UNIT_ID = "unit_id"
+CONF_MODBUS_FRAMER = "modbus_framer"
+
+# Options-flow keys.
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
+CONF_MEASURE_WHEN_FILTRATION_OFF = "measure_when_filtration_off"
+CONF_USE_FILTRATION1 = "use_filtration1"
+CONF_USE_FILTRATION2 = "use_filtration2"
+CONF_USE_FILTRATION3 = "use_filtration3"
+CONF_USE_LIGHT = "use_light"
+CONF_USE_COVER_SENSOR = "use_cover_sensor"
+CONF_USE_AUX1 = "use_aux1"
+CONF_USE_AUX2 = "use_aux2"
+CONF_USE_AUX3 = "use_aux3"
+CONF_USE_AUX4 = "use_aux4"
+CONF_ENABLE_BACKWASH_OPTION = "enable_backwash_option"
+
+# Internal/HACS-only option keys (not surfaced in the base options step).
+CONF_SCAN_INTERVAL = "scan_interval"
+CONF_AUTO_TIME_SYNC = "auto_time_sync"
+CONF_WINTER_MODE = "winter_mode"
+CONF_CAPABILITIES = "_capabilities"
+CONF_DEV_OVERRIDES_ENABLED = "dev_overrides_enabled"
+CONF_DEV_OVERRIDES = "dev_overrides"
 
 CURRENT_VERSION = 6
 

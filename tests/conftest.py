@@ -4,6 +4,7 @@ from collections.abc import Generator
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from neopool_modbus.registers import TimerRelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -13,6 +14,18 @@ from syrupy.assertion import SnapshotAssertion
 
 # CUSTOM-ONLY END
 from custom_components.neopool.const import (
+    CONF_MODBUS_FRAMER,
+    CONF_SCAN_INTERVAL,
+    CONF_UNIT_ID,
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
+    CONF_USE_COVER_SENSOR,
+    CONF_USE_FILTRATION1,
+    CONF_USE_FILTRATION2,
+    CONF_USE_FILTRATION3,
+    CONF_USE_LIGHT,
     CURRENT_VERSION,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
@@ -131,7 +144,7 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "Pool Cover": 0,
     # Timer-block enable mirrors so light/aux relay-timer entities
     # report the correct state (3 = always ON, 4 = always OFF, 1 = auto).
-    "relay_light_enable": 4,  # OFF
+    "relay_light_enable": TimerRelayMode.ALWAYS_OFF,
     "relay_aux1_enable": 4,
     "relay_aux2_enable": 4,
     "relay_aux3_enable": 4,
@@ -173,23 +186,23 @@ def mock_config_entry() -> MockConfigEntry:
             CONF_HOST: MOCK_HOST,
             CONF_PORT: MOCK_PORT,
             CONF_NAME: MOCK_NAME,
-            "unit_id": DEFAULT_UNIT_ID,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
             # CUSTOM-ONLY START
-            "scan_interval": 30,
+            CONF_SCAN_INTERVAL: 30,
             # CUSTOM-ONLY END
-            "modbus_framer": "tcp",
-            "use_filtration1": True,
-            "use_filtration2": True,
-            "use_filtration3": True,
-            "use_light": True,
-            "use_cover_sensor": True,
-            "use_aux1": True,
-            "use_aux2": True,
-            "use_aux3": True,
-            "use_aux4": True,
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_USE_FILTRATION1: True,
+            CONF_USE_FILTRATION2: True,
+            CONF_USE_FILTRATION3: True,
+            CONF_USE_LIGHT: True,
+            CONF_USE_COVER_SENSOR: True,
+            CONF_USE_AUX1: True,
+            CONF_USE_AUX2: True,
+            CONF_USE_AUX3: True,
+            CONF_USE_AUX4: True,
         },
     )
 

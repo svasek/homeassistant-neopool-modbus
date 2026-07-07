@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from neopool_modbus.exceptions import NeoPoolError
 
 from custom_components.neopool import async_migrate_entry
-from custom_components.neopool.const import DEFAULT_PORT, DOMAIN
+from custom_components.neopool.const import CONF_UNIT_ID, DEFAULT_PORT, DOMAIN
 
 # ---------------------------------------------------------------------------
 # async_migrate_entry, version transitions
@@ -39,7 +39,7 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     hass.config_entries.async_entries.return_value = []
 
@@ -130,7 +130,7 @@ async def test_async_migrate_entry_v1_to_v2_serial_unavailable() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     with patch(
         "custom_components.neopool.migration.async_probe_serial",
@@ -152,7 +152,7 @@ async def test_async_migrate_entry_v1_to_v2_probe_raises_neopool_error() -> None
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     with patch(
         "custom_components.neopool.migration.async_probe_serial",
@@ -179,7 +179,7 @@ async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
     config_entry.unique_id = "neopool_AABBCCDD11223344EEFF0011"
     config_entry.version = 3
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     def _update_entry(entry: MagicMock, **kwargs: Any) -> None:
         for k, v in kwargs.items():
@@ -212,7 +212,7 @@ async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
     hass.config_entries.async_update_entry.assert_any_call(config_entry, version=4)
     hass.config_entries.async_update_entry.assert_any_call(
         config_entry,
-        data={"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1},
+        data={"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1},
         version=5,
     )
     hass.config_entries.async_update_entry.assert_any_call(
@@ -262,7 +262,7 @@ async def test_async_migrate_entry_v4_to_v5_slave_id_renamed() -> None:
     assert hass.config_entries.async_update_entry.call_count == 2
     hass.config_entries.async_update_entry.assert_any_call(
         config_entry,
-        data={"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 3},
+        data={"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 3},
         version=5,
     )
     hass.config_entries.async_update_entry.assert_any_call(
@@ -281,7 +281,7 @@ async def test_async_migrate_entry_v5_to_v6_drops_legacy_prefix() -> None:
     config_entry.unique_id = "neopool_AABBCCDD11223344EEFF0011"
     config_entry.version = 5
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     mock_entity1 = MagicMock()
     mock_entity1.entity_id = "sensor.neopool_temperature"
@@ -355,7 +355,7 @@ async def test_async_migrate_entry_v5_to_v6_already_bare_just_bumps_version() ->
     config_entry.unique_id = "AABBCCDD11223344EEFF0011"
     config_entry.version = 5
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     result = await async_migrate_entry(hass, config_entry)
 
@@ -374,7 +374,7 @@ async def test_async_migrate_entry_already_at_current_version_is_noop() -> None:
     config_entry.unique_id = "AABBCCDD11223344EEFF0011"
     config_entry.version = 6
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     result = await async_migrate_entry(hass, config_entry)
 
@@ -391,7 +391,7 @@ async def test_async_migrate_entry_v1_to_v2_duplicate_detected() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     existing_entry = MagicMock()
     existing_entry.entry_id = "entry_bbb"
@@ -417,7 +417,7 @@ async def test_async_migrate_entry_entity_update_error() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     hass.config_entries.async_entries.return_value = []
 
@@ -481,7 +481,7 @@ async def test_async_migrate_entry_rollback_also_fails() -> None:
     config_entry.unique_id = None
     config_entry.version = 1
     config_entry.title = "My Pool"
-    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, "unit_id": 1}
+    config_entry.data = {"host": "192.168.1.100", "port": DEFAULT_PORT, CONF_UNIT_ID: 1}
 
     hass.config_entries.async_entries.return_value = []
 

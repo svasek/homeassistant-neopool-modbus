@@ -29,7 +29,14 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 
-from .const import CURRENT_VERSION, DEFAULT_PORT, DEFAULT_UNIT_ID, DOMAIN
+from .const import (
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    CURRENT_VERSION,
+    DEFAULT_PORT,
+    DEFAULT_UNIT_ID,
+    DOMAIN,
+)
 from .coordinator import NeoPoolConfigEntry
 from .migration import (
     async_abort_if_unmigrated_v1_match,
@@ -45,8 +52,8 @@ async def _async_probe(user_input: dict[str, Any]) -> tuple[str | None, str | No
         serial = await async_probe_serial(
             user_input[CONF_HOST],
             port=user_input[CONF_PORT],
-            unit_id=user_input["unit_id"],
-            framer=user_input["modbus_framer"],
+            unit_id=user_input[CONF_UNIT_ID],
+            framer=user_input[CONF_MODBUS_FRAMER],
         )
     except (NeoPoolConnectionError, NeoPoolTimeoutError):
         return None, "cannot_connect"
@@ -82,9 +89,9 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
             {
                 vol.Required(CONF_HOST): str,
                 vol.Optional(CONF_PORT, default=DEFAULT_PORT): vol.Coerce(int),
-                vol.Optional("unit_id", default=DEFAULT_UNIT_ID): vol.Coerce(int),
+                vol.Optional(CONF_UNIT_ID, default=DEFAULT_UNIT_ID): vol.Coerce(int),
                 vol.Optional(
-                    "modbus_framer",
+                    CONF_MODBUS_FRAMER,
                     default=DEFAULT_MODBUS_FRAMER,
                 ): vol.In(("tcp", "rtu")),
             }
@@ -152,12 +159,12 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)
                 ): vol.Coerce(int),
                 vol.Optional(
-                    "unit_id",
-                    default=current.get("unit_id", DEFAULT_UNIT_ID),
+                    CONF_UNIT_ID,
+                    default=current.get(CONF_UNIT_ID, DEFAULT_UNIT_ID),
                 ): vol.Coerce(int),
                 vol.Optional(
-                    "modbus_framer",
-                    default=current.get("modbus_framer", DEFAULT_MODBUS_FRAMER),
+                    CONF_MODBUS_FRAMER,
+                    default=current.get(CONF_MODBUS_FRAMER, DEFAULT_MODBUS_FRAMER),
                 ): vol.In(("tcp", "rtu")),
             }
         )

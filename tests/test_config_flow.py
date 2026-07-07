@@ -12,7 +12,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool import config_flow
 from custom_components.neopool.config_flow import NeoPoolConfigFlow
-from custom_components.neopool.const import DOMAIN
+from custom_components.neopool.const import CONF_MODBUS_FRAMER, CONF_UNIT_ID, DOMAIN
 from custom_components.neopool.options_flow import NeoPoolOptionsFlowHandler
 from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
@@ -147,8 +147,8 @@ async def test_reconfigure_flow_happy_path(
         {
             CONF_HOST: "192.0.2.50",
             CONF_PORT: 1502,
-            "unit_id": 2,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 2,
+            CONF_MODBUS_FRAMER: "tcp",
         },
     )
     assert result["type"] is FlowResultType.ABORT
@@ -196,8 +196,8 @@ async def test_reconfigure_flow_probe_errors(
             {
                 CONF_HOST: "192.0.2.99",
                 CONF_PORT: 502,
-                "unit_id": 1,
-                "modbus_framer": "tcp",
+                CONF_UNIT_ID: 1,
+                CONF_MODBUS_FRAMER: "tcp",
             },
         )
     assert result["type"] is FlowResultType.FORM
@@ -225,8 +225,8 @@ async def test_reconfigure_flow_serial_mismatch(
             {
                 CONF_HOST: "192.0.2.50",
                 CONF_PORT: 502,
-                "unit_id": 1,
-                "modbus_framer": "tcp",
+                CONF_UNIT_ID: 1,
+                CONF_MODBUS_FRAMER: "tcp",
             },
         )
     assert result["type"] is FlowResultType.FORM

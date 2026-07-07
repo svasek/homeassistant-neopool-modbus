@@ -15,7 +15,14 @@ from pytest_homeassistant_custom_component.common import (
 )
 from syrupy.assertion import SnapshotAssertion
 
-from custom_components.neopool.const import CURRENT_VERSION
+from custom_components.neopool.const import (
+    CONF_CAPABILITIES,
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    CONF_USE_FILTRATION1,
+    CONF_WINTER_MODE,
+    CURRENT_VERSION,
+)
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
     SERVICE_TURN_OFF,
@@ -178,14 +185,14 @@ async def test_io_switch_blocked_in_winter_mode(
             "host": "192.0.2.7",
             "port": 502,
             "name": "Winter Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "winter_mode": True,
-            "use_filtration1": True,
-            "_capabilities": {"MBF_PAR_FILT_GPIO": 1},
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_WINTER_MODE: True,
+            CONF_USE_FILTRATION1: True,
+            CONF_CAPABILITIES: {"MBF_PAR_FILT_GPIO": 1},
         },
     )
     await setup_integration(hass, entry)

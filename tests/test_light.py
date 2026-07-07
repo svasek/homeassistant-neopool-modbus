@@ -3,7 +3,11 @@
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
-from neopool_modbus.registers import LIGHT_FUNCTION_REGISTER, LIGHT_TIMER_BLOCK_REGISTER
+from neopool_modbus.registers import (
+    LIGHT_FUNCTION_REGISTER,
+    LIGHT_TIMER_BLOCK_REGISTER,
+    TimerRelayMode,
+)
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -80,16 +84,18 @@ async def test_light_turn_on_off_writes_to_relay_timer(
     assert timer_block in addresses_on
     # EXEC_REGISTER write at the end
     write_calls = mock_neopool_client.async_write_register.await_args_list
-    assert any(c.args[0] == timer_block and c.args[1] == 3 for c in write_calls), (
-        f"expected timer_block write with value 3, got {write_calls}"
-    )
+    assert any(
+        c.args[0] == timer_block and c.args[1] == TimerRelayMode.ALWAYS_ON
+        for c in write_calls
+    ), f"expected timer_block write with ALWAYS_ON, got {write_calls}"
 
     mock_neopool_client.async_write_register.reset_mock()
     await _turn_off(hass, entity_id)
     write_calls_off = mock_neopool_client.async_write_register.await_args_list
-    assert any(c.args[0] == timer_block and c.args[1] == 4 for c in write_calls_off), (
-        f"expected timer_block write with value 4, got {write_calls_off}"
-    )
+    assert any(
+        c.args[0] == timer_block and c.args[1] == TimerRelayMode.ALWAYS_OFF
+        for c in write_calls_off
+    ), f"expected timer_block write with ALWAYS_OFF, got {write_calls_off}"
 
 
 async def test_light_is_on_reflects_relay_enable(
@@ -105,7 +111,7 @@ async def test_light_is_on_reflects_relay_enable(
     # Manual on: relay active.
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
-        "relay_light_enable": 3,
+        "relay_light_enable": TimerRelayMode.ALWAYS_ON,
         "Pool Light": True,
     }
     freezer.tick(timedelta(seconds=60))
@@ -116,7 +122,7 @@ async def test_light_is_on_reflects_relay_enable(
     # Manual off: relay inactive.
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
-        "relay_light_enable": 4,
+        "relay_light_enable": TimerRelayMode.ALWAYS_OFF,
         "Pool Light": False,
     }
     freezer.tick(timedelta(seconds=60))
@@ -127,7 +133,7 @@ async def test_light_is_on_reflects_relay_enable(
     # Auto mode with relay currently energized: entity is ON (real state).
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
-        "relay_light_enable": 1,
+        "relay_light_enable": TimerRelayMode.ENABLED,
         "Pool Light": True,
     }
     freezer.tick(timedelta(seconds=60))
@@ -148,7 +154,7 @@ async def test_light_turn_on_raises_when_in_auto_mode(
 
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
-        "relay_light_enable": 1,  # auto
+        "relay_light_enable": TimerRelayMode.ENABLED,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)

@@ -38,7 +38,14 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CAPABILITY_KEYS,
+    CONF_AUTO_TIME_SYNC,
+    CONF_CAPABILITIES,
+    CONF_DEV_OVERRIDES,
+    CONF_DEV_OVERRIDES_ENABLED,
     CONF_FILTRATION_PUMP_POWER,
+    CONF_SCAN_INTERVAL,
+    CONF_USE_LIGHT,
+    CONF_WINTER_MODE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     FOLLOW_UP_REFRESH_DELAY,
@@ -69,7 +76,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Initialise the NeoPool data update coordinator."""
         # CUSTOM-ONLY START, HACS-only per-instance polling-interval override.
         update_interval = timedelta(
-            seconds=entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
+            seconds=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
         # CUSTOM-ONLY END
 
@@ -83,11 +90,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.entry = entry
         self.entry_id = entry_id
-        self.auto_time_sync = self.entry.options.get("auto_time_sync", False)
-        self.winter_mode = self.entry.options.get("winter_mode", False)
+        self.auto_time_sync = self.entry.options.get(CONF_AUTO_TIME_SYNC, False)
+        self.winter_mode = self.entry.options.get(CONF_WINTER_MODE, False)
         # Persisted in options for winter mode (no Modbus reads).
         self._capability_snapshot: dict[str, Any] = dict(
-            entry.options.get("_capabilities", {})
+            entry.options.get(CONF_CAPABILITIES, {})
         )
         self._follow_up_unsub: CALLBACK_TYPE | None = None
         # None (not frozenset()) so the first poll clears any stale issue
@@ -170,7 +177,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if key.startswith("relay_aux"):
                 option_key = f"use_aux{key[len('relay_aux')]}"
             elif key == "relay_light":
-                option_key = "use_light"
+                option_key = CONF_USE_LIGHT
             else:
                 option_key = f"use_{key}"
             if options.get(option_key, False):
@@ -203,9 +210,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     # CUSTOM-ONLY START, HACS-only dev override hatch for live data injection.
     def _apply_dev_overrides(self, data: dict[str, Any]) -> None:
         """Apply developer override values to data, if enabled."""
-        if not self.entry.options.get("dev_overrides_enabled", False):
+        if not self.entry.options.get(CONF_DEV_OVERRIDES_ENABLED, False):
             return
-        raw = self.entry.options.get("dev_overrides", "{}")
+        raw = self.entry.options.get(CONF_DEV_OVERRIDES, "{}")
         try:
             overrides = json.loads(raw) if isinstance(raw, str) else raw
         except (
@@ -297,7 +304,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         self._capability_snapshot = new_snapshot
         options = dict(self.entry.options)
-        options["_capabilities"] = new_snapshot
+        options[CONF_CAPABILITIES] = new_snapshot
         self.hass.config_entries.async_update_entry(self.entry, options=options)
 
     @override
@@ -347,20 +354,20 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Persist the auto_time_sync flag and refresh the entry options."""
         self.auto_time_sync = enabled
         options = dict(self.entry.options)
-        options["auto_time_sync"] = enabled
+        options[CONF_AUTO_TIME_SYNC] = enabled
         self.hass.config_entries.async_update_entry(self.entry, options=options)
 
     async def set_winter_mode(self, enabled: bool) -> None:
         """Toggle winter mode and persist the capability snapshot."""
         self.winter_mode = enabled
         options = dict(self.entry.options)
-        options["winter_mode"] = enabled
+        options[CONF_WINTER_MODE] = enabled
         if enabled:
             if self.data:
                 self._capability_snapshot = {
                     k: self.data[k] for k in CAPABILITY_KEYS if k in self.data
                 }
-            options["_capabilities"] = dict(self._capability_snapshot)
+            options[CONF_CAPABILITIES] = dict(self._capability_snapshot)
         self.hass.config_entries.async_update_entry(self.entry, options=options)
         if enabled:
             self.async_set_updated_data(dict(self._capability_snapshot))

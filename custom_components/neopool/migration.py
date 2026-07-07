@@ -38,7 +38,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
-from .const import CURRENT_VERSION, DOMAIN
+from .const import CONF_MODBUS_FRAMER, CONF_UNIT_ID, CURRENT_VERSION, DOMAIN
 
 if TYPE_CHECKING:
     from .config_flow import NeoPoolConfigFlow
@@ -198,8 +198,8 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
     if config_entry.version == 4:
         new_data = dict(config_entry.data)
-        if "slave_id" in new_data and "unit_id" not in new_data:
-            new_data["unit_id"] = new_data.pop("slave_id")
+        if "slave_id" in new_data and CONF_UNIT_ID not in new_data:
+            new_data[CONF_UNIT_ID] = new_data.pop("slave_id")
         else:
             new_data.pop("slave_id", None)
         hass.config_entries.async_update_entry(config_entry, data=new_data, version=5)
@@ -296,8 +296,8 @@ async def _migrate_v1_to_v2(
         serial = await async_probe_serial(
             config[CONF_HOST],
             port=config.get(CONF_PORT, 502),
-            unit_id=config.get("unit_id", 1),
-            framer=config.get("modbus_framer", DEFAULT_MODBUS_FRAMER),
+            unit_id=config.get(CONF_UNIT_ID, 1),
+            framer=config.get(CONF_MODBUS_FRAMER, DEFAULT_MODBUS_FRAMER),
         )
     except NeoPoolError:
         serial = None
@@ -1069,12 +1069,12 @@ def find_unmigrated_v1_entry(
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id is not None:
             continue
-        entry_unit_id = entry.data.get("unit_id", entry.data.get("slave_id"))
+        entry_unit_id = entry.data.get(CONF_UNIT_ID, entry.data.get("slave_id"))
         if (
             entry.data.get(CONF_HOST) == host
             and entry.data.get(CONF_PORT) == port
             and entry_unit_id == unit_id
-            and entry.data.get("modbus_framer") == modbus_framer
+            and entry.data.get(CONF_MODBUS_FRAMER) == modbus_framer
         ):
             return entry
     return None
@@ -1094,8 +1094,8 @@ def async_abort_if_unmigrated_v1_match(
         flow.hass,
         user_input.get(CONF_HOST),
         user_input.get(CONF_PORT),
-        user_input.get("unit_id", user_input.get("slave_id")),
-        user_input.get("modbus_framer"),
+        user_input.get(CONF_UNIT_ID, user_input.get("slave_id")),
+        user_input.get(CONF_MODBUS_FRAMER),
     ):
         return flow.async_abort(reason="already_configured")
     return None

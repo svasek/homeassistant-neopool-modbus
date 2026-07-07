@@ -36,7 +36,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN
+from .const import CONF_USE_LIGHT, DOMAIN
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -44,9 +44,10 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
-# Light function code (LIGHTING) written into the function register when
-# turning the relay on for the first time.
-_LIGHT_FUNCTION_CODE = 2
+# Values written to well-known registers when driving the light relay.
+# See neopool_modbus.registers for the register spec.
+_LIGHTING_FUNCTION_CODE = 2
+_EXEC_COMMIT = 1
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -76,7 +77,7 @@ async def async_setup_entry(
     """Set up NeoPool lights from a config entry."""
     coordinator = entry.runtime_data
 
-    if not entry.options.get("use_light"):
+    if not entry.options.get(CONF_USE_LIGHT):
         return
 
     async_add_entities(
@@ -147,7 +148,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
                 LIGHT_TIMER_BLOCK_REGISTER,
             )
             await client.async_write_register(
-                LIGHT_FUNCTION_REGISTER, _LIGHT_FUNCTION_CODE
+                LIGHT_FUNCTION_REGISTER, _LIGHTING_FUNCTION_CODE
             )
             await client.async_write_register(
                 LIGHT_TIMER_BLOCK_REGISTER, TimerRelayMode.ALWAYS_ON
@@ -161,7 +162,7 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             await client.async_write_register(
                 LIGHT_TIMER_BLOCK_REGISTER, TimerRelayMode.ALWAYS_OFF
             )
-        await client.async_write_register(EXEC_REGISTER, 1)  # Commit
+        await client.async_write_register(EXEC_REGISTER, _EXEC_COMMIT)
 
         # Optimistic update + schedule follow-up.
         data = self.coordinator.data

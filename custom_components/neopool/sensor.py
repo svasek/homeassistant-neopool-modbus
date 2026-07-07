@@ -68,7 +68,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import CONF_FILTRATION_PUMP_POWER
+from .const import CONF_FILTRATION_PUMP_POWER, CONF_MEASURE_WHEN_FILTRATION_OFF
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -395,7 +395,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
 
     def _filtration_gate_blocks(self) -> bool:
         """Return True if the filtration-off gate hides the live reading."""
-        if self.coordinator.entry.options.get("measure_when_filtration_off", False):
+        if self.coordinator.entry.options.get(CONF_MEASURE_WHEN_FILTRATION_OFF, False):
             return False
         return self.coordinator.data.get("Filtration Pump") is False
 

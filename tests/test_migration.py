@@ -19,6 +19,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from custom_components.neopool.const import CONF_MODBUS_FRAMER, CONF_UNIT_ID
 from custom_components.neopool.migration import (
     LEGACY_FILES_REMOVED_IN_V4,
     OLD_DOMAIN,
@@ -55,7 +56,7 @@ def _make_old_entry(
     entry.minor_version = 1
     entry.unique_id = unique_id
     entry.title = title
-    entry.data = data or {"host": "192.168.1.100", "port": 502, "unit_id": 1}
+    entry.data = data or {"host": "192.168.1.100", "port": 502, CONF_UNIT_ID: 1}
     entry.options = options or {}
     entry.state = state
     entry.source = source
@@ -1186,7 +1187,7 @@ def _v1_entry(host: str, port: int, unit_id: int, framer: str) -> MagicMock:
         "host": host,
         "port": port,
         "slave_id": unit_id,
-        "modbus_framer": framer,
+        CONF_MODBUS_FRAMER: framer,
     }
     return entry
 
@@ -1198,8 +1199,8 @@ def _entry_with_unit_id(host: str, port: int, unit_id: int, framer: str) -> Magi
     entry.data = {
         "host": host,
         "port": port,
-        "unit_id": unit_id,
-        "modbus_framer": framer,
+        CONF_UNIT_ID: unit_id,
+        CONF_MODBUS_FRAMER: framer,
     }
     return entry
 
@@ -1247,7 +1248,7 @@ def test_find_unmigrated_v1_entry_matches_unit_id_data():
     """An entry storing the bus address under the new ``unit_id`` key is matched too."""
     hass = MagicMock()
     fresh = _entry_with_unit_id("10.0.0.1", 502, 7, "tcp")
-    assert "unit_id" in fresh.data
+    assert CONF_UNIT_ID in fresh.data
     hass.config_entries.async_entries = MagicMock(return_value=[fresh])
     found = find_unmigrated_v1_entry(hass, "10.0.0.1", 502, 7, "tcp")
     assert found is fresh

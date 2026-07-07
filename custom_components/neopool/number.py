@@ -62,6 +62,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import CONF_USE_COVER_SENSOR
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -260,8 +261,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
 
 # Entities gated on a config-entry option (in addition to their supported_fn).
 _ENTITY_OPTION_KEY: dict[str, str] = {
-    "MBF_PAR_HIDRO_COVER_REDUCTION": "use_cover_sensor",
-    "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE": "use_cover_sensor",
+    "MBF_PAR_HIDRO_COVER_REDUCTION": CONF_USE_COVER_SENSOR,
+    "MBF_PAR_HIDRO_SHUTDOWN_TEMPERATURE": CONF_USE_COVER_SENSOR,
 }
 
 

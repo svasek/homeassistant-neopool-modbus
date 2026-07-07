@@ -5,7 +5,14 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
+from custom_components.neopool.const import (
+    CONF_CAPABILITIES,
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    CONF_WINTER_MODE,
+    CURRENT_VERSION,
+    DOMAIN,
+)
 
 # CUSTOM-ONLY START
 from custom_components.neopool.migration import REMOVED_ENTITY_KEYS
@@ -70,13 +77,13 @@ async def test_setup_in_winter_mode(
             "host": "192.0.2.2",
             "port": 502,
             "name": "Winter Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "winter_mode": True,
-            "_capabilities": snapshot,
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_WINTER_MODE: True,
+            CONF_CAPABILITIES: snapshot,
         },
     )
     await setup_integration(hass, entry)
