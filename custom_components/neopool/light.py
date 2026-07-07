@@ -122,7 +122,10 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             _LOGGER.error("Modbus client not available for writing registers")
             return
 
-        if self.coordinator.data.get(_LIGHT_TIMER_ENABLE_KEY) == TimerRelayMode.ENABLED:
+        if self.coordinator.data.get(_LIGHT_TIMER_ENABLE_KEY) not in (
+            TimerRelayMode.ALWAYS_ON,
+            TimerRelayMode.ALWAYS_OFF,
+        ):
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="relay_in_auto_mode",

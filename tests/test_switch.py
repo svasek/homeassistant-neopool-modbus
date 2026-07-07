@@ -1,6 +1,7 @@
 """Tests for the NeoPool switch platform."""
 
 from datetime import timedelta
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 from neopool_modbus import NeoPoolInvalidStateError
@@ -391,20 +392,25 @@ async def test_aux_relay_turn_on_writes_relay_index(
         ("aux4", "relay_aux4_enable"),
     ],
 )
-async def test_aux_relay_turn_on_raises_when_in_auto_mode(
+@pytest.mark.parametrize(
+    "enable_value",
+    [
+        pytest.param(TimerRelayMode.ENABLED, id="auto"),
+        pytest.param(None, id="missing"),
+        pytest.param(0, id="disabled"),
+        pytest.param(2, id="unknown-state"),
+    ],
+)
+async def test_aux_relay_turn_on_raises_when_not_in_manual_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
     aux_key: str,
     enable_key: str,
+    enable_value: int | None,
 ) -> None:
-    """Aux relay switches refuse to fire when the relay is timer-driven (AUTO).
-
-    The custom integration guards up-front via ``coordinator.data`` before the
-    write reaches the library so the user gets a translated
-    ``ServiceValidationError``. Mirrors the filtration switch guard.
-    """
+    """Aux relay refuses to fire unless the relay is in a manual mode."""
     await setup_integration(hass, mock_config_entry)
     registry = er.async_get(hass)
     entries = [
@@ -415,10 +421,12 @@ async def test_aux_relay_turn_on_raises_when_in_auto_mode(
     assert entries
     entity_id = entries[0].entity_id
 
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        enable_key: TimerRelayMode.ENABLED,
-    }
+    data: dict[str, Any] = {**MOCK_POOL_DATA}
+    if enable_value is None:
+        data.pop(enable_key, None)
+    else:
+        data[enable_key] = enable_value
+    mock_neopool_client.async_read_all.return_value = data
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()

@@ -136,25 +136,32 @@ async def test_light_is_on_reflects_relay_enable(
     assert hass.states.get(entity_id).state == STATE_ON
 
 
-async def test_light_turn_on_raises_when_in_auto_mode(
+@pytest.mark.parametrize(
+    "enable_value",
+    [
+        pytest.param(TimerRelayMode.ENABLED, id="auto"),
+        pytest.param(None, id="missing"),
+        pytest.param(0, id="disabled"),
+        pytest.param(2, id="unknown-state"),
+    ],
+)
+async def test_light_turn_on_raises_when_not_in_manual_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
+    enable_value: int | None,
 ) -> None:
-    """Toggling the light while its relay is in auto mode raises ServiceValidationError.
-
-    The custom integration guards against timer-driven (ENABLED) mode up-front
-    using ``coordinator.data['relay_light_enable']`` so the user gets a
-    translated error before the write reaches the library.
-    """
+    """Light refuses to fire unless the relay is in a manual mode."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        "relay_light_enable": TimerRelayMode.ENABLED,
-    }
+    data = {**MOCK_POOL_DATA}
+    if enable_value is None:
+        data.pop("relay_light_enable", None)
+    else:
+        data["relay_light_enable"] = enable_value
+    mock_neopool_client.async_read_all.return_value = data
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()

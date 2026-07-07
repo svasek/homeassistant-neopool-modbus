@@ -117,7 +117,11 @@ def _make_write_relay_state(relay: RelayKind) -> _WriteFn:
     async def _write(
         entity: "NeoPoolSwitch", client: Any, state: bool
     ) -> dict[str, Any]:
-        if entity.coordinator.data.get(enable_key) == TimerRelayMode.ENABLED:
+        # Fail-safe: only fire when the relay is confirmed manual.
+        if entity.coordinator.data.get(enable_key) not in (
+            TimerRelayMode.ALWAYS_ON,
+            TimerRelayMode.ALWAYS_OFF,
+        ):
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="relay_in_auto_mode",
