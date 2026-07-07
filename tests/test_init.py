@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
@@ -21,10 +22,10 @@ from . import setup_integration
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_setup_and_unload(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Set up the integration end-to-end and tear it down again."""
     await setup_integration(hass, mock_config_entry)
@@ -50,9 +51,9 @@ async def test_setup_first_refresh_fails_marks_retry(
     assert mock_config_entry.state is ConfigEntryState.SETUP_RETRY
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_setup_in_winter_mode(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Winter mode loads the entry from the persisted capability snapshot.
 
@@ -83,10 +84,10 @@ async def test_setup_in_winter_mode(
 
 
 # CUSTOM-ONLY START, legacy v1→v4 migration cleanup tests (migration is HACS-only).
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_setup_cleans_orphaned_entity_registry_entries(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Orphaned entries (matching REMOVED_ENTITY_KEYS) are wiped on setup."""
 
@@ -110,10 +111,10 @@ async def test_setup_cleans_orphaned_entity_registry_entries(
     assert registry.async_get(orphan.entity_id) is None
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_setup_cleans_legacy_select_timer_rows(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Legacy select.X_start/stop rows are removed after time-platform move.
 
@@ -143,10 +144,10 @@ async def test_setup_cleans_legacy_select_timer_rows(
     assert registry.async_get(sibling_entity_id) is not None
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_setup_does_not_touch_unrelated_select_entities(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """The select wildcards target only ``*_start`` / ``*_stop`` keys.
 

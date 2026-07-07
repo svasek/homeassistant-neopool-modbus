@@ -233,10 +233,10 @@ async def test_cell_boost_active_redox_writes_composite_value(
     mock_neopool_client.async_set_cell_boost.assert_awaited_once_with("active_redox")
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_cell_boost_current_option_decodes_register_bits(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """current_option for MBF_CELL_BOOST decodes the register bit pattern."""
     mock_config_entry.add_to_hass(hass)
@@ -278,10 +278,10 @@ async def test_cell_boost_current_option_decodes_register_bits(
     assert entity_obj.current_option == "inactive"
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_relay_mode_current_option_handles_disabled_state(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Verify the disabled-state branch of a relay_mode select.
 
@@ -341,10 +341,10 @@ async def test_timer_period_options_and_current_option(
     assert "1_week" in entity_obj.options
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_cell_boost_options_drop_active_redox_when_no_redox_module(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Without the Redox module flag, the cell-boost options drop 'active_redox'."""
     mock_config_entry.add_to_hass(hass)
@@ -509,12 +509,12 @@ async def test_select_blocked_in_winter_mode(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_all_entities(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Snapshot every entity registered by the select platform.
 

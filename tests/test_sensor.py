@@ -203,9 +203,9 @@ async def test_filt_mode_native_value(
     assert hass.states.get(_ENTITY_ID_BY_KEY["MBF_PAR_FILT_MODE"]).state == expected
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_filtration_pump_energy_sensor_registers_when_power_set(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """A non-zero filtration_pump_power option creates the energy sensor."""
 
@@ -287,9 +287,9 @@ async def test_filtration_pump_energy_accumulates_while_pump_runs(
     assert later_wh - initial_wh >= 0.9
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_filtration_pump_energy_restores_native_value_after_restart(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """RestoreSensor recovers the previous Wh counter after a HA restart."""
     fake_state = State(
@@ -330,9 +330,9 @@ async def test_filtration_pump_energy_restores_native_value_after_restart(
     assert float(state.state) == pytest.approx(12.3456)
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_filtration_pump_energy_ignores_non_numeric_restore(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """A non-numeric restored native_value does not corrupt the counter."""
     fake_state = State(
@@ -450,10 +450,10 @@ async def test_hidro_current_g_per_hour_mode(
         ("CELL_RUNTIME_POL_CHANGES", 7),
     ],
 )
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_cell_runtime_sensor_reads_combined_register(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
     key: str,
     expected_seconds: int,
 ) -> None:
@@ -551,12 +551,12 @@ async def test_cell_runtime_sensor_returns_none_when_key_missing(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_all_entities(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Snapshot every entity registered by the sensor platform.
 

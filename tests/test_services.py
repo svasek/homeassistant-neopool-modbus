@@ -97,10 +97,10 @@ async def test_set_timer_falls_back_to_first_loaded_entry(
     assert mock_neopool_client.write_timer.await_count == 1
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_set_timer_unknown_entry_id_raises(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """An entry_id that does not exist raises with translation key."""
     await setup_integration(hass, mock_config_entry)
@@ -120,10 +120,10 @@ async def test_set_timer_unknown_entry_id_raises(
     assert exc_info.value.translation_key == "entry_not_found"
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_set_timer_explicit_entry_id_must_be_loaded(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Explicit entry_id pointing at a NOT_LOADED entry is rejected.
 
@@ -351,10 +351,10 @@ async def test_write_register_invalid_hex_raises(
     mock_neopool_client.async_write_register.assert_not_awaited()
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_write_register_out_of_range_raises(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Values above 65535 are rejected by parse_register_int."""
     await setup_integration(hass, mock_config_entry)

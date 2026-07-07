@@ -1,9 +1,9 @@
 """Tests for the NeoPool options flow."""
 
 from datetime import datetime
-from unittest.mock import MagicMock
 
 from freezegun.api import FrozenDateTimeFactory
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import CURRENT_VERSION
@@ -14,10 +14,10 @@ from homeassistant.util import slugify
 from . import setup_integration
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_options_flow_show_form(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Opening the options flow shows the init form."""
     await setup_integration(hass, mock_config_entry)
@@ -27,10 +27,10 @@ async def test_options_flow_show_form(
     assert result["step_id"] == "init"
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_options_flow_save_changes(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Submitting the form persists the new options on the config entry."""
     await setup_integration(hass, mock_config_entry)
@@ -63,10 +63,10 @@ async def test_options_flow_save_changes(
 
 # CUSTOM-ONLY START, unlock_advanced / dev_overrides / enable_backwash_option
 # are HACS-only knobs gated by a password-locked "advanced" step.
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_options_flow_unlock_advanced_with_correct_password(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Entering the right unlock_advanced password reveals the advanced step."""
@@ -99,10 +99,10 @@ async def test_options_flow_unlock_advanced_with_correct_password(
     assert result["step_id"] == "advanced"
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_options_flow_unlock_advanced_wrong_password_shows_error(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """A wrong unlock_advanced password keeps the user on the init step."""
     await setup_integration(hass, mock_config_entry)
@@ -130,10 +130,10 @@ async def test_options_flow_unlock_advanced_wrong_password_shows_error(
     assert result["errors"] == {"unlock_advanced": "unlock_advanced_error"}
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_options_flow_advanced_step_save(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """The advanced step accepts dev_overrides and writes them to options."""
@@ -175,9 +175,9 @@ async def test_options_flow_advanced_step_save(
     assert mock_config_entry.options["enable_backwash_option"] is True
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_options_flow_init_form_when_backwash_already_enabled(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """When enable_backwash_option is already on, the init form exposes it inline."""
     entry = MockConfigEntry(

@@ -1,7 +1,6 @@
 """Test the NeoPool diagnostics."""
 
-from unittest.mock import MagicMock
-
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.components.diagnostics import (
     get_diagnostics_for_config_entry,
@@ -16,12 +15,12 @@ from homeassistant.core import HomeAssistant
 from . import setup_integration
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_entry_diagnostics(
     hass: HomeAssistant,
     hass_client: ClientSessionGenerator,
     snapshot: SnapshotAssertion,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Test config entry diagnostics output is stable and redacts host/port."""
     await setup_integration(hass, mock_config_entry)

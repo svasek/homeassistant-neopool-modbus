@@ -37,9 +37,9 @@ USER_INPUT = {
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_user_flow(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
     mock_setup_entry: AsyncMock,
 ) -> None:
     """Test a happy-path config flow creates the entry."""
@@ -70,9 +70,9 @@ async def test_user_flow(
         (NeoPoolModbusError("bad payload"), "cannot_read_modbus"),
     ],
 )
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_user_flow_probe_errors(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
     mock_setup_entry: AsyncMock,
     exc: Exception,
     expected_error: str,
@@ -102,10 +102,10 @@ async def test_user_flow_probe_errors(
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_user_flow_already_configured(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Test config flow aborts when the same device is already configured."""
     mock_config_entry.add_to_hass(hass)
@@ -130,10 +130,10 @@ async def test_user_flow_already_configured(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_reconfigure_flow_happy_path(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """A reconfigure flow updates host/port and reloads the entry."""
     mock_config_entry.add_to_hass(hass)
@@ -174,10 +174,10 @@ async def test_reconfigure_flow_happy_path(
         (NeoPoolModbusError("bad payload"), "cannot_read_modbus"),
     ],
 )
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_reconfigure_flow_probe_errors(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
     exc: Exception,
     expected_error: str,
 ) -> None:
@@ -204,10 +204,10 @@ async def test_reconfigure_flow_probe_errors(
     assert result["errors"] == {CONF_HOST: expected_error}
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_reconfigure_flow_serial_mismatch(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """A reconfigure that targets a different physical controller is rejected."""
     mock_config_entry.add_to_hass(hass)

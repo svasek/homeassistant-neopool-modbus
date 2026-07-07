@@ -168,10 +168,10 @@ async def test_reset_cell_partial_button_writes_reset_and_save(
     mock_neopool_client.async_reset_user_counters.assert_awaited_once()
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_reset_cell_partial_button_disabled_by_default(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Reset button registers but is disabled-by-default (destructive action)."""
     await setup_integration(hass, mock_config_entry)
@@ -212,12 +212,12 @@ async def test_reset_cell_partial_button_skipped_without_hydrolysis(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_all_entities(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Snapshot every entity registered by the button platform.
 

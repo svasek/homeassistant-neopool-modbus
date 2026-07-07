@@ -31,9 +31,9 @@ pytestmark = pytest.mark.usefixtures("mock_socket_connection")
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_create_entry_aborts_unmigrated_v1_duplicate(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Adding a device aborts when an unmigrated v1 entry has same connection params."""
     # Simulate an existing v1 entry (unique_id=None, version=1).
