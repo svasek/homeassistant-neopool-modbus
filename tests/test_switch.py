@@ -111,10 +111,10 @@ async def test_manual_filtration_turn_on_raises_when_not_manual_mode(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_winter_mode_turn_on_off(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Toggling winter_mode flips coordinator.winter_mode and writes to entry options."""
     await setup_integration(hass, mock_config_entry)
@@ -133,10 +133,10 @@ async def test_winter_mode_turn_on_off(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_auto_time_sync_turn_on_off(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Toggling auto_time_sync flips coordinator.auto_time_sync."""
     await setup_integration(hass, mock_config_entry)
@@ -498,12 +498,12 @@ async def test_io_switch_winter_mode_short_circuits(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_all_entities(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Snapshot every entity registered by the switch platform.
 

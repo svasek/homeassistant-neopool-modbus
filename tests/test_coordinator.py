@@ -30,10 +30,10 @@ from .conftest import MOCK_POOL_DATA
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_update_data_populates_firmware(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """The first successful read populates firmware."""
     await setup_integration(hass, mock_config_entry)
@@ -70,9 +70,9 @@ async def test_transient_modbus_failure_after_first_success_marks_unavailable(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_winter_mode_skips_modbus(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """When winter_mode is on we never call async_read_all on subsequent updates."""
     snapshot = {"MBF_PAR_FILT_GPIO": 1, "MBF_PAR_LIGHTING_GPIO": 2}
@@ -121,10 +121,10 @@ async def test_corrupt_gpio_creates_repair_issue(
     assert issue.severity is ir.IssueSeverity.ERROR
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_clean_gpio_does_not_create_issue(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """A clean read does not open a corrupted_gpio issue."""
     await setup_integration(hass, mock_config_entry)
@@ -156,10 +156,10 @@ async def test_corrupt_gpio_self_heals_on_next_clean_read(
     assert issue_registry.async_get_issue(DOMAIN, "corrupted_gpio") is None
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_corrupt_gpio_clears_stale_issue_from_previous_session(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Stale issue from a previous HA session clears on first poll."""
     issue_registry = ir.async_get(hass)
@@ -244,10 +244,10 @@ async def test_corrupt_gpio_updates_issue_on_value_change(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_capability_snapshot_persisted_to_options(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """The capability snapshot reaches entry.options after the first refresh."""
     await setup_integration(hass, mock_config_entry)
@@ -301,9 +301,9 @@ async def test_auto_time_sync_writes_when_drift_detected(
 
 
 # CUSTOM-ONLY START, dev_overrides is a HACS-only knob; both tests exercise it.
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_dev_overrides_applied_when_enabled(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """dev_overrides_enabled merges the JSON map into coordinator.data."""
 
@@ -330,9 +330,9 @@ async def test_dev_overrides_applied_when_enabled(
     assert coordinator.data["MBF_MEASURE_TEMPERATURE"] == 999
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_dev_overrides_invalid_json_ignored(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Malformed dev_overrides JSON logs a warning but does not crash setup."""
