@@ -45,6 +45,8 @@ from neopool_modbus.registers import (
     CELL_BOOST_REGISTER,
     FILTRATION_CONF_REGISTER,
     FILTRATION_MODE_REGISTER,
+    FILTRATION_SPEED_MASK,
+    FILTRATION_SPEED_SHIFT,
     FILTRATION_TIMER1_SPEED_MASK,
     FILTRATION_TIMER1_SPEED_SHIFT,
     FILTRATION_TIMER2_SPEED_MASK,
@@ -313,10 +315,13 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="filtration_speed",
         options_map=FILTRATION_SPEED_LABELS,
         register=FILTRATION_CONF_REGISTER,
-        shift=4,
+        mask=FILTRATION_SPEED_MASK,
+        shift=FILTRATION_SPEED_SHIFT,
         supported_fn=has_variable_speed_pump,  # pragma: no cover
         write_fn=_write_filtration_speed,
-        current_option_fn=_make_filtration_speed_decoder(None, 4),
+        current_option_fn=_make_filtration_speed_decoder(
+            FILTRATION_SPEED_MASK, FILTRATION_SPEED_SHIFT
+        ),
     ),
     "MBF_CELL_BOOST": NeoPoolSelectEntityDescription(
         key="MBF_CELL_BOOST",
