@@ -37,6 +37,7 @@ from neopool_modbus.decoders import (
     decode_cell_boost,
     decode_filtvalve_mode,
 )
+from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     FILTRATION_SPEED_MASK,
     FILTRATION_SPEED_SHIFT,
@@ -210,7 +211,14 @@ async def _write_timer_period(
             period_value = int(option)
         except (TypeError, ValueError):  # pragma: no cover
             return
-    await client.write_timer(timer_name, {"period": period_value})
+    try:
+        await client.write_timer(timer_name, {"period": period_value})
+    except (NeoPoolError, OSError) as err:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="timer_failed",
+            translation_placeholders={"error": str(err)},
+        ) from err
     entity.coordinator.request_refresh_with_followup()
 
 
@@ -238,7 +246,14 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
         return
     relay = _RELAY_MODE_ENTITY_KIND[entity.key]
     mode = RelayMode.AUTO if option == "auto" else RelayMode.ALWAYS_OFF
-    overrides = await client.async_set_relay_mode(relay, mode)
+    try:
+        overrides = await client.async_set_relay_mode(relay, mode)
+    except (NeoPoolError, OSError) as err:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="timer_failed",
+            translation_placeholders={"error": str(err)},
+        ) from err
     entity.coordinator.data.update(overrides)
     entity.coordinator.async_set_updated_data(entity.coordinator.data)
     entity.coordinator.request_refresh_with_followup()
