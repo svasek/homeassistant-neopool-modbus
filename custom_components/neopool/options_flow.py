@@ -19,8 +19,7 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import ConfigFlowResult, OptionsFlowWithReload
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 # CUSTOM-ONLY START
@@ -37,7 +36,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
+class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
     """Handle options flow for NeoPool integration."""
 
     def __init__(self) -> None:
@@ -152,18 +151,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             # CUSTOM-ONLY START
             data.pop("unlock_advanced", None)
             # CUSTOM-ONLY END
-            prev_options = dict(self.config_entry.options)
-            result = self.async_create_entry(title="", data=data)
-
-            if any(
-                prev_options.get(k) != data.get(k)
-                for k in set(prev_options) | set(data)
-            ):
-                self.hass.async_create_task(
-                    self.hass.config_entries.async_reload(self.config_entry.entry_id)
-                )
-
-            return result
+            return self.async_create_entry(title="", data=data)
 
         return self.async_show_form(
             step_id="init",
@@ -195,19 +183,8 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
         if user_input is not None:
-            prev_options = dict(self.config_entry.options)
             all_options = {**self._base_options, **user_input}
-            result = self.async_create_entry(title="", data=all_options)
-
-            if any(
-                prev_options.get(k) != all_options.get(k)
-                for k in set(prev_options) | set(all_options)
-            ):
-                self.hass.async_create_task(
-                    self.hass.config_entries.async_reload(self.config_entry.entry_id)
-                )
-
-            return result
+            return self.async_create_entry(title="", data=all_options)
 
         return self.async_show_form(
             step_id="advanced",
