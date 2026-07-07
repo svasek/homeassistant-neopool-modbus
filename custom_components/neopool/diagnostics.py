@@ -16,6 +16,8 @@
 
 from typing import Any
 
+from neopool_modbus.decoders import parse_version
+
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
@@ -55,7 +57,9 @@ async def async_get_config_entry_diagnostics(
         "data": getattr(coordinator, "data", {}),
         "update_interval": str(getattr(coordinator, "update_interval", None)),
         "last_exception": str(getattr(coordinator, "last_exception", "")),
-        "firmware": getattr(coordinator, "firmware", None),
+        "firmware": parse_version(
+            (getattr(coordinator, "data", None) or {}).get("MBF_POWER_MODULE_VERSION")
+        ),
     }
 
     client = getattr(coordinator, "client", None)

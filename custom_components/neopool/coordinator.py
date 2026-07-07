@@ -20,7 +20,7 @@ import logging
 from typing import Any, override
 
 from neopool_modbus import NeoPoolModbusClient
-from neopool_modbus.decoders import aggregate_filtration_remaining, parse_version
+from neopool_modbus.decoders import aggregate_filtration_remaining
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     HEATING_SETPOINT_REGISTER,
@@ -89,7 +89,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._capability_snapshot: dict[str, Any] = dict(
             entry.options.get("_capabilities", {})
         )
-        self._firmware = "?"
         self._follow_up_unsub: CALLBACK_TYPE | None = None
         # None (not frozenset()) so the first poll clears any stale issue
         # persisted from a previous session.
@@ -317,8 +316,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_placeholders={"error": str(err)},
             ) from err
 
-        self._firmware = parse_version(data.get("MBF_POWER_MODULE_VERSION"))
-
         self._check_gpio_registers(data)
 
         await self._read_timers_into_data(data)
@@ -367,8 +364,3 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hass.config_entries.async_update_entry(self.entry, options=options)
         if enabled:
             self.async_set_updated_data(dict(self._capability_snapshot))
-
-    @property
-    def firmware(self) -> str:
-        """Return the device firmware version string."""
-        return self._firmware
