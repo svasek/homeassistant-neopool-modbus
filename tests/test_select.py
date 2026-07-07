@@ -417,6 +417,34 @@ async def test_filtration_speed_raises_when_not_manual_mode(
     mock_neopool_client.async_set_filtration_speed.assert_not_awaited()
 
 
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (0x0000, "low"),
+        (0x0010, "mid"),
+        (0x0020, "high"),
+    ],
+)
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_filtration_speed_current_option_decodes_filtration_conf(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    raw: int,
+    expected: str,
+) -> None:
+    """Current option decodes bits 4-6 of MBF_PAR_FILTRATION_CONF to a speed label."""
+    await setup_integration(hass, mock_config_entry)
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["MBF_PAR_FILTRATION_CONF"] = raw
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtration_speed")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == expected
+
+
 # ---------------------------------------------------------------------------
 # timer_time + timer_period + relay_mode dispatch via set_timer service
 # ---------------------------------------------------------------------------
