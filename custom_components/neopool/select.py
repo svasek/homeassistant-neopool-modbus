@@ -38,10 +38,6 @@ from neopool_modbus.decoders import (
     decode_filtvalve_mode,
 )
 from neopool_modbus.registers import (
-    AUX1_TIMER_BLOCK_REGISTER,
-    AUX2_TIMER_BLOCK_REGISTER,
-    AUX3_TIMER_BLOCK_REGISTER,
-    AUX4_TIMER_BLOCK_REGISTER,
     CELL_BOOST_REGISTER,
     FILTRATION_CONF_REGISTER,
     FILTRATION_MODE_REGISTER,
@@ -56,9 +52,10 @@ from neopool_modbus.registers import (
     FILTVALVE_MODE_REGISTER,
     FILTVALVE_PERIOD_REGISTER,
     INTELLIGENT_FILT_MIN_TIME_REGISTER,
-    LIGHT_TIMER_BLOCK_REGISTER,
     MANUAL_FILTRATION_REGISTER,
     RELAY_ACTIVATION_DELAY_REGISTER,
+    RelayKind,
+    RelayMode,
     TimerRelayMode,
 )
 
@@ -105,7 +102,6 @@ class NeoPoolSelectEntityDescription(SelectEntityDescription):
     shift: int | None = None
     write_offset: int = 0
     fallback_suffix: str = ""
-    timer_field: str = "enable"
     supported_fn: Callable[[dict[str, Any]], bool] | None = None
     write_fn: _WriteFn | None = None
     options_fn: _OptionsFn | None = None
@@ -209,8 +205,7 @@ async def _write_mapped_register(
 async def _write_timer_period(
     entity: "NeoPoolSelect", client: Any, option: str
 ) -> None:
-    """Update the repeat period of a timer via the set_timer service."""
-    del client
+    """Update the repeat period of a timer via the library's write_timer."""
     timer_name = entity.key.rsplit("_", 1)[0]
     period_value = PERIOD_MAP.get(option)
     if period_value is None:
@@ -218,15 +213,20 @@ async def _write_timer_period(
             period_value = int(option)
         except (TypeError, ValueError):  # pragma: no cover
             return
-    await entity.hass.services.async_call(
-        DOMAIN,
-        "set_timer",
-        {
-            "entry_id": entity.coordinator.entry.entry_id,
-            "timer": timer_name,
-            "period": period_value,
-        },
-    )
+    await client.write_timer(timer_name, {"period": period_value})
+    entity.coordinator.request_refresh_with_followup()
+
+
+# Map entity keys like "relay_aux1_mode" to the library RelayKind enum. The
+# entity key is the timer-block name (without the "_mode" suffix) which the
+# library already normalises inside async_set_relay_mode.
+_RELAY_MODE_ENTITY_KIND: dict[str, RelayKind] = {
+    "relay_aux1_mode": RelayKind.AUX1,
+    "relay_aux2_mode": RelayKind.AUX2,
+    "relay_aux3_mode": RelayKind.AUX3,
+    "relay_aux4_mode": RelayKind.AUX4,
+    "relay_light_mode": RelayKind.LIGHT,
+}
 
 
 async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -> None:
@@ -239,9 +239,10 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
     ):
         # Already in a manual mode; do not touch the physical relay state.
         return
-    target = 1 if option == "auto" else TimerRelayMode.ALWAYS_OFF
-    await client.write_timer(timer_name, {"enable": target})
-    entity.apply_optimistic_update(target)
+    relay = _RELAY_MODE_ENTITY_KIND[entity.key]
+    mode = RelayMode.AUTO if option == "auto" else RelayMode.ALWAYS_OFF
+    overrides = await client.async_set_relay_mode(relay, mode)
+    entity.coordinator.data.update(overrides)
     entity.coordinator.async_set_updated_data(entity.coordinator.data)
     entity.coordinator.request_refresh_with_followup()
 
@@ -541,7 +542,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="relay_aux1_mode",
         translation_key="relay_aux1_mode",
         options_map={1: "auto", 4: "manual"},
-        register=AUX1_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         write_fn=_write_relay_mode,
     ),
@@ -549,7 +549,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="relay_aux2_mode",
         translation_key="relay_aux2_mode",
         options_map={1: "auto", 4: "manual"},
-        register=AUX2_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         write_fn=_write_relay_mode,
     ),
@@ -557,7 +556,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="relay_aux3_mode",
         translation_key="relay_aux3_mode",
         options_map={1: "auto", 4: "manual"},
-        register=AUX3_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         write_fn=_write_relay_mode,
     ),
@@ -565,7 +563,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="relay_aux4_mode",
         translation_key="relay_aux4_mode",
         options_map={1: "auto", 4: "manual"},
-        register=AUX4_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         write_fn=_write_relay_mode,
     ),
@@ -573,7 +570,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="relay_light_mode",
         translation_key="relay_light_mode",
         options_map={1: "auto", 4: "manual"},
-        register=LIGHT_TIMER_BLOCK_REGISTER,
         select_type="relay_mode",
         write_fn=_write_relay_mode,
     ),
@@ -715,10 +711,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             return
         desc = self.entity_description
         data = self.coordinator.data
-        if desc.select_type == "relay_mode":
-            timer_name = self.key.rsplit("_", 1)[0]
-            data[f"{timer_name}_{desc.timer_field}"] = value
-        elif self.key in (
+        if self.key in (
             "MBF_PAR_FILT_MODE",
             "MBF_PAR_FILTVALVE_MODE",
         ):

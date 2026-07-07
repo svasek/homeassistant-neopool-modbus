@@ -19,13 +19,8 @@ from dataclasses import dataclass
 import logging
 from typing import Any, override
 
-from neopool_modbus.registers import (
-    EXEC_REGISTER,
-    LIGHT_FUNCTION_REGISTER,
-    LIGHT_TIMER_BLOCK_REGISTER,
-    TimerRelayMode,
-    is_valid_relay_gpio,
-)
+from neopool_modbus import NeoPoolInvalidStateError
+from neopool_modbus.registers import RelayKind, is_valid_relay_gpio
 
 from homeassistant.components.light import (
     ColorMode,
@@ -43,11 +38,6 @@ from .entity import NeoPoolEntity
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
-
-# Values written to well-known registers when driving the light relay.
-# See neopool_modbus.registers for the register spec.
-_LIGHTING_FUNCTION_CODE = 2
-_EXEC_COMMIT = 1
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -130,46 +120,17 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             _LOGGER.error("Modbus client not available for writing registers")
             return
 
-        current_mode = self.coordinator.data.get("relay_light_enable")
-        if current_mode not in (
-            TimerRelayMode.ALWAYS_ON,
-            TimerRelayMode.ALWAYS_OFF,
-        ):
+        try:
+            overrides = await client.async_set_relay_state(RelayKind.LIGHT, state)
+        except NeoPoolInvalidStateError as err:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="relay_in_auto_mode",
-            )
-
-        if state:
-            _LOGGER.debug(
-                "Turning ON %s: function_addr=0x%04X, timer_block_addr=0x%04X",
-                self._key,
-                LIGHT_FUNCTION_REGISTER,
-                LIGHT_TIMER_BLOCK_REGISTER,
-            )
-            await client.async_write_register(
-                LIGHT_FUNCTION_REGISTER, _LIGHTING_FUNCTION_CODE
-            )
-            await client.async_write_register(
-                LIGHT_TIMER_BLOCK_REGISTER, TimerRelayMode.ALWAYS_ON
-            )
-        else:
-            _LOGGER.debug(
-                "Turning OFF %s: timer_block_addr=0x%04X",
-                self._key,
-                LIGHT_TIMER_BLOCK_REGISTER,
-            )
-            await client.async_write_register(
-                LIGHT_TIMER_BLOCK_REGISTER, TimerRelayMode.ALWAYS_OFF
-            )
-        await client.async_write_register(EXEC_REGISTER, _EXEC_COMMIT)
+            ) from err
 
         # Optimistic update + schedule follow-up.
         data = self.coordinator.data
-        data["relay_light_enable"] = (
-            TimerRelayMode.ALWAYS_ON if state else TimerRelayMode.ALWAYS_OFF
-        )
-        data["Pool Light"] = state
+        data.update(overrides)
         self.coordinator.async_set_updated_data(data)
         self.coordinator.request_refresh_with_followup()
 

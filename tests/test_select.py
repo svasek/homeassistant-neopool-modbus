@@ -1,8 +1,8 @@
 """Tests for the NeoPool select platform."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER
+from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER, RelayKind, RelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from syrupy.assertion import SnapshotAssertion
@@ -452,7 +452,7 @@ async def test_filtration_speed_current_option_decodes_filtration_conf(
 
 
 # ---------------------------------------------------------------------------
-# timer_time + timer_period + relay_mode dispatch via set_timer service
+# timer_period + relay_mode dispatch via the lib API
 # ---------------------------------------------------------------------------
 
 
@@ -471,18 +471,25 @@ async def test_timer_period_select_calls_set_timer_service(
     assert payload["period"] == 604800
 
 
-async def test_relay_mode_select_calls_set_timer_service(
+async def test_relay_mode_select_switches_via_lib_api(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """A relay_mode select writes the enable value through the lib."""
+    """A relay_mode select delegates to the lib's async_set_relay_mode."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(hass, mock_config_entry, "relay_aux1_mode")
-    mock_neopool_client.write_timer.reset_mock()
+    mock_neopool_client.async_set_relay_mode = AsyncMock(
+        return_value={"relay_aux1_enable": 1, "AUX1": False},
+    )
     await _select_option(hass, entity_id, "auto")
-    assert mock_neopool_client.write_timer.await_count == 1
-    mock_neopool_client.write_timer.assert_awaited_with("relay_aux1", {"enable": 1})
+    mock_neopool_client.async_set_relay_mode.assert_awaited_once_with(
+        RelayKind.AUX1, RelayMode.AUTO
+    )
+    # The returned overrides merge into coordinator data.
+    coordinator = mock_config_entry.runtime_data
+    assert coordinator.data["relay_aux1_enable"] == 1
+    assert coordinator.data["AUX1"] is False
 
 
 async def test_relay_mode_manual_to_manual_is_noop(
@@ -498,9 +505,9 @@ async def test_relay_mode_manual_to_manual_is_noop(
     await hass.async_block_till_done()
 
     entity_id = _select_entity_id(hass, mock_config_entry, "relay_aux1_mode")
-    mock_neopool_client.write_timer.reset_mock()
+    mock_neopool_client.async_set_relay_mode = AsyncMock(return_value={})
     await _select_option(hass, entity_id, "manual")
-    assert mock_neopool_client.write_timer.await_count == 0
+    mock_neopool_client.async_set_relay_mode.assert_not_awaited()
 
 
 # ---------------------------------------------------------------------------
