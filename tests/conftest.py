@@ -4,6 +4,7 @@ from collections.abc import Generator
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from neopool_modbus.registers import TimerRelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -131,7 +132,7 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "Pool Cover": 0,
     # Timer-block enable mirrors so light/aux relay-timer entities
     # report the correct state (3 = always ON, 4 = always OFF, 1 = auto).
-    "relay_light_enable": 4,  # OFF
+    "relay_light_enable": TimerRelayMode.ALWAYS_OFF,
     "relay_aux1_enable": 4,
     "relay_aux2_enable": 4,
     "relay_aux3_enable": 4,
