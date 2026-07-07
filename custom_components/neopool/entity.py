@@ -79,7 +79,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
             # CUSTOM-ONLY START, hw_version surface for detected modules.
             hw_version=f"Detected Modules: [{self._format_modules(data)}]",
             # CUSTOM-ONLY END
-            sw_version=f"v{self.coordinator.firmware} (v{parse_version(data.get('MBF_PAR_VERSION'))})",
+            sw_version=f"v{parse_version(data.get('MBF_POWER_MODULE_VERSION'))} (v{parse_version(data.get('MBF_PAR_VERSION'))})",
             serial_number=unique_id,
         )
 

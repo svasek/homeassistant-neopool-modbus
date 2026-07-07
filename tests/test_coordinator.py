@@ -19,11 +19,11 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 from . import setup_integration
-from .conftest import MOCK_POOL_DATA
+from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
 
 # ---------------------------------------------------------------------------
 # Update cycle
@@ -33,13 +33,15 @@ from .conftest import MOCK_POOL_DATA
 @pytest.mark.usefixtures("mock_neopool_client")
 async def test_update_data_populates_firmware(
     hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """The first successful read populates firmware."""
+    """The first successful read populates firmware on the device entry."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
+    device = device_registry.async_get_device(identifiers={(DOMAIN, MOCK_SERIAL)})
+    assert device is not None
     # MBF_POWER_MODULE_VERSION = 0x1234 → "18.52"
-    assert coordinator.firmware == "18.52"
+    assert "18.52" in (device.sw_version or "")
 
 
 async def test_transient_modbus_failure_after_first_success_marks_unavailable(
@@ -107,6 +109,7 @@ async def test_corrupt_gpio_creates_repair_issue(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    issue_registry: ir.IssueRegistry,
 ) -> None:
     """A GPIO register outside 0..MAX_RELAY_GPIO opens a corrupted_gpio issue."""
     bad_data = dict(MOCK_POOL_DATA)
@@ -115,7 +118,6 @@ async def test_corrupt_gpio_creates_repair_issue(
 
     await setup_integration(hass, mock_config_entry)
 
-    issue_registry = ir.async_get(hass)
     issue = issue_registry.async_get_issue(DOMAIN, "corrupted_gpio")
     assert issue is not None
     assert issue.severity is ir.IssueSeverity.ERROR
@@ -125,10 +127,10 @@ async def test_corrupt_gpio_creates_repair_issue(
 async def test_clean_gpio_does_not_create_issue(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
+    issue_registry: ir.IssueRegistry,
 ) -> None:
     """A clean read does not open a corrupted_gpio issue."""
     await setup_integration(hass, mock_config_entry)
-    issue_registry = ir.async_get(hass)
     assert issue_registry.async_get_issue(DOMAIN, "corrupted_gpio") is None
 
 
@@ -136,6 +138,7 @@ async def test_corrupt_gpio_self_heals_on_next_clean_read(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    issue_registry: ir.IssueRegistry,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """The corrupted_gpio issue clears once a subsequent poll reads clean values."""
@@ -144,7 +147,6 @@ async def test_corrupt_gpio_self_heals_on_next_clean_read(
     mock_neopool_client.async_read_all = AsyncMock(return_value=bad_data)
     await setup_integration(hass, mock_config_entry)
 
-    issue_registry = ir.async_get(hass)
     assert issue_registry.async_get_issue(DOMAIN, "corrupted_gpio") is not None
 
     # Recovery: registers return to valid range on the next poll.
@@ -160,9 +162,9 @@ async def test_corrupt_gpio_self_heals_on_next_clean_read(
 async def test_corrupt_gpio_clears_stale_issue_from_previous_session(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
+    issue_registry: ir.IssueRegistry,
 ) -> None:
     """Stale issue from a previous HA session clears on first poll."""
-    issue_registry = ir.async_get(hass)
     ir.async_create_issue(
         hass,
         DOMAIN,
@@ -212,6 +214,7 @@ async def test_corrupt_gpio_updates_issue_on_value_change(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    issue_registry: ir.IssueRegistry,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """The repair issue details refresh when a corrupted register value changes."""
@@ -220,7 +223,6 @@ async def test_corrupt_gpio_updates_issue_on_value_change(
     mock_neopool_client.async_read_all = AsyncMock(return_value=first)
 
     await setup_integration(hass, mock_config_entry)
-    issue_registry = ir.async_get(hass)
     issue = issue_registry.async_get_issue(DOMAIN, "corrupted_gpio")
     assert issue is not None
     assert issue.translation_placeholders is not None
