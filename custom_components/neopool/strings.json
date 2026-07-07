@@ -74,10 +74,10 @@
       "hidro_chlorine_shock_mode": {
         "name": "Hydrolysis chlorine shock mode (boost)"
       },
-      "hidro_low_flow": { "name": "Hydrolysis production problem" },
+      "hidro_low": { "name": "Hydrolysis production problem" },
       "hidro_module_active": { "name": "Hydrolysis enabled" },
       "hidro_module_regulated": { "name": "Hydrolysis regulation active" },
-      "ion_low_flow": { "name": "Ionizer production problem" },
+      "ion_low": { "name": "Ionizer production problem" },
       "ion_on_target": { "name": "Ionizer on target" },
       "ion_program_time_exceeded": { "name": "Ionizer program time exceeded" },
       "ph_acid_pump": { "name": "pH acid pump" },

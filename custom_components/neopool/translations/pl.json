@@ -106,7 +106,7 @@
             "hidro_chlorine_shock_mode": {
                 "name": "Tryb szoku chloru elektrolizy (Boost)"
             },
-            "hidro_low_flow": {
+            "hidro_low": {
                 "name": "Problem produkcji elektrolizy"
             },
             "hidro_module_active": {
@@ -115,7 +115,7 @@
             "hidro_module_regulated": {
                 "name": "Regulacja elektrolizy aktywna"
             },
-            "ion_low_flow": {
+            "ion_low": {
                 "name": "Problem produkcji jonizatora"
             },
             "ion_on_target": {

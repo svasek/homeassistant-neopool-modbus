@@ -259,9 +259,9 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=is_ionization_present,  # pragma: no cover
     ),
-    "ION Low Flow": NeoPoolBinarySensorEntityDescription(
-        key="ION Low Flow",
-        translation_key="ion_low_flow",
+    "ION Low": NeoPoolBinarySensorEntityDescription(
+        key="ION Low",
+        translation_key="ion_low",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=is_ionization_present,  # pragma: no cover
@@ -273,9 +273,9 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=is_ionization_present,  # pragma: no cover
     ),
-    "HIDRO Low Flow": NeoPoolBinarySensorEntityDescription(
-        key="HIDRO Low Flow",
-        translation_key="hidro_low_flow",
+    "HIDRO Low": NeoPoolBinarySensorEntityDescription(
+        key="HIDRO Low",
+        translation_key="hidro_low",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         supported_fn=is_hydrolysis_present,
