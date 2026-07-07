@@ -38,9 +38,6 @@ from neopool_modbus.decoders import (
     decode_filtvalve_mode,
 )
 from neopool_modbus.registers import (
-    CELL_BOOST_REGISTER,
-    FILTRATION_CONF_REGISTER,
-    FILTRATION_MODE_REGISTER,
     FILTRATION_SPEED_MASK,
     FILTRATION_SPEED_SHIFT,
     FILTRATION_TIMER1_SPEED_MASK,
@@ -93,10 +90,7 @@ class NeoPoolSelectEntityDescription(SelectEntityDescription):
 
     options_map: dict[int, str] = field(default_factory=dict)
     select_type: str | None = None
-    register: int | None = None
     config_kind: ConfigKind | None = None
-    mask: int | None = None
-    shift: int | None = None
     write_offset: int = 0
     fallback_suffix: str = ""
     supported_fn: Callable[[dict[str, Any]], bool] | None = None
@@ -325,7 +319,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="MBF_PAR_FILT_MODE",
         translation_key="filt_mode",
         options_map=FILTRATION_MODE_LABELS,
-        register=FILTRATION_MODE_REGISTER,
         write_fn=_write_filt_mode,
         options_fn=_filt_mode_options,
     ),
@@ -333,9 +326,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="MBF_PAR_FILTRATION_SPEED",
         translation_key="filtration_speed",
         options_map=FILTRATION_SPEED_LABELS,
-        register=FILTRATION_CONF_REGISTER,
-        mask=FILTRATION_SPEED_MASK,
-        shift=FILTRATION_SPEED_SHIFT,
         supported_fn=has_variable_speed_pump,  # pragma: no cover
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
@@ -346,7 +336,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="MBF_CELL_BOOST",
         translation_key="cell_boost",
         options_map=CELL_BOOST_MODE_LABELS,
-        register=CELL_BOOST_REGISTER,
         entity_registry_enabled_default=False,
         supported_fn=is_hydrolysis_present,  # pragma: no cover
         write_fn=_write_cell_boost,
@@ -439,9 +428,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="filtration1_speed",
         entity_category=EntityCategory.CONFIG,
         options_map=FILTRATION_SPEED_LABELS,
-        register=FILTRATION_CONF_REGISTER,
-        mask=FILTRATION_TIMER1_SPEED_MASK,
-        shift=FILTRATION_TIMER1_SPEED_SHIFT,
         supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
@@ -453,9 +439,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="filtration2_speed",
         entity_category=EntityCategory.CONFIG,
         options_map=FILTRATION_SPEED_LABELS,
-        register=FILTRATION_CONF_REGISTER,
-        mask=FILTRATION_TIMER2_SPEED_MASK,
-        shift=FILTRATION_TIMER2_SPEED_SHIFT,
         supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
@@ -467,9 +450,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="filtration3_speed",
         entity_category=EntityCategory.CONFIG,
         options_map=FILTRATION_SPEED_LABELS,
-        register=FILTRATION_CONF_REGISTER,
-        mask=FILTRATION_TIMER3_SPEED_MASK,
-        shift=FILTRATION_TIMER3_SPEED_SHIFT,
         supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
