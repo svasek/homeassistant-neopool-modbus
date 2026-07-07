@@ -28,6 +28,7 @@ from .migration import (
     async_cleanup_legacy_files,
     async_migrate_entry,
     cleanup_removed_entities,
+    rename_renamed_entities,
 )
 from .services import async_setup_services
 
@@ -53,6 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
 
     # CUSTOM-ONLY START
     cleanup_removed_entities(hass, entry)
+    rename_renamed_entities(hass, entry)
     # CUSTOM-ONLY END
 
     # CUSTOM-ONLY START, HACS does not prune deleted files on upgrade,

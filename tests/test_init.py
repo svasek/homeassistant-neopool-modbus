@@ -178,4 +178,50 @@ async def test_setup_does_not_touch_unrelated_select_entities(
     assert registry.async_get(bystander_entity_id) is not None
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_setup_renames_legacy_low_flow_unique_ids(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """v3.x -> v4.0.0 rename: `... low flow` unique_ids gain the shorter `... low` suffix."""
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+
+    legacy_uid = f"{mock_config_entry.unique_id}_hidro low flow"
+    legacy = registry.async_get_or_create(
+        "binary_sensor", "neopool", legacy_uid, config_entry=mock_config_entry
+    )
+    legacy_entity_id = legacy.entity_id
+
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    renamed = registry.async_get(legacy_entity_id)
+    assert renamed is not None
+    assert renamed.unique_id == f"{mock_config_entry.unique_id}_hidro low"
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_setup_rename_sweep_is_idempotent(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """A second setup finds the new unique_id already present and is a no-op."""
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+
+    new_uid = f"{mock_config_entry.unique_id}_ion low"
+    entry = registry.async_get_or_create(
+        "binary_sensor", "neopool", new_uid, config_entry=mock_config_entry
+    )
+    original_entity_id = entry.entity_id
+
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    still_there = registry.async_get(original_entity_id)
+    assert still_there is not None
+    assert still_there.unique_id == new_uid
+
+
 # CUSTOM-ONLY END
