@@ -20,7 +20,7 @@ import logging
 from typing import Any, override
 
 from neopool_modbus import NeoPoolInvalidStateError
-from neopool_modbus.registers import RelayKind, is_valid_relay_gpio
+from neopool_modbus.registers import RelayKind, TimerRelayMode, is_valid_relay_gpio
 
 from homeassistant.components.light import (
     ColorMode,
@@ -38,6 +38,8 @@ from .entity import NeoPoolEntity
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
+
+_LIGHT_TIMER_ENABLE_KEY = "relay_light_enable"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -119,6 +121,12 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers")
             return
+
+        if self.coordinator.data.get(_LIGHT_TIMER_ENABLE_KEY) == TimerRelayMode.ENABLED:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="relay_in_auto_mode",
+            )
 
         try:
             overrides = await client.async_set_relay_state(RelayKind.LIGHT, state)

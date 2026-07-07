@@ -31,6 +31,7 @@ from neopool_modbus.registers import (
     BinaryConfigFlag,
     BitmaskConfigFlag,
     RelayKind,
+    TimerRelayMode,
     is_valid_relay_gpio,
 )
 
@@ -101,12 +102,26 @@ async def _write_manual_filtration(
     return await client.async_set_manual_filtration(state)
 
 
+_RELAY_TIMER_ENABLE_KEY: dict[RelayKind, str] = {
+    RelayKind.AUX1: "relay_aux1_enable",
+    RelayKind.AUX2: "relay_aux2_enable",
+    RelayKind.AUX3: "relay_aux3_enable",
+    RelayKind.AUX4: "relay_aux4_enable",
+}
+
+
 def _make_write_relay_state(relay: RelayKind) -> _WriteFn:
-    """Build a write_fn that drives a light/aux relay via the library."""
+    """Build a write_fn that drives an aux relay via the library."""
+    enable_key = _RELAY_TIMER_ENABLE_KEY[relay]
 
     async def _write(
         entity: "NeoPoolSwitch", client: Any, state: bool
     ) -> dict[str, Any]:
+        if entity.coordinator.data.get(enable_key) == TimerRelayMode.ENABLED:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="relay_in_auto_mode",
+            )
         return await client.async_set_relay_state(relay, state)
 
     return _write

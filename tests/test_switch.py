@@ -3,8 +3,12 @@
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
-from neopool_modbus import NeoPoolInvalidStateError
-from neopool_modbus.registers import BinaryConfigFlag, BitmaskConfigFlag, RelayKind
+from neopool_modbus.registers import (
+    BinaryConfigFlag,
+    BitmaskConfigFlag,
+    RelayKind,
+    TimerRelayMode,
+)
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -377,13 +381,72 @@ async def test_aux_relay_turn_on_writes_relay_index(
     mock_neopool_client.async_set_relay_state.assert_called_with(RelayKind.AUX1, False)
 
 
+@pytest.mark.parametrize(
+    ("aux_key", "enable_key"),
+    [
+        ("aux1", "relay_aux1_enable"),
+        ("aux2", "relay_aux2_enable"),
+        ("aux3", "relay_aux3_enable"),
+        ("aux4", "relay_aux4_enable"),
+    ],
+)
 async def test_aux_relay_turn_on_raises_when_in_auto_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
+    aux_key: str,
+    enable_key: str,
 ) -> None:
-    """Library NeoPoolInvalidStateError is remapped to ServiceValidationError."""
+    """Aux relay switches refuse to fire when the relay is timer-driven (AUTO).
+
+    The custom integration guards up-front via ``coordinator.data`` before the
+    write reaches the library so the user gets a translated
+    ``ServiceValidationError``. Mirrors the filtration switch guard.
+    """
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith(f"_{aux_key}")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        enable_key: TimerRelayMode.ENABLED,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_set_relay_state.reset_mock()
+
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    with pytest.raises(ServiceValidationError):
+        await _turn_off(hass, entity_id)
+
+    # Custom pre-check refuses the write; the lib API is never called.
+    mock_neopool_client.async_set_relay_state.assert_not_called()
+    assert mock_neopool_client.async_write_register.await_count == 0
+
+
+async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Race window: custom guard passes but the lib refuses on write.
+
+    ``coordinator.data`` may lag briefly behind the lib's cache (e.g. a poll
+    landed after the pre-check). Remap ``NeoPoolInvalidStateError`` to a
+    translated ``ServiceValidationError`` instead of leaking the raw error.
+    """
+    from neopool_modbus import NeoPoolInvalidStateError
+
     await setup_integration(hass, mock_config_entry)
     registry = er.async_get(hass)
     entries = [
@@ -394,24 +457,12 @@ async def test_aux_relay_turn_on_raises_when_in_auto_mode(
     assert entries
     entity_id = entries[0].entity_id
 
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        "relay_aux1_enable": 1,  # auto
-    }
-    freezer.tick(timedelta(seconds=60))
-    async_fire_time_changed(hass)
-    await hass.async_block_till_done()
-
     mock_neopool_client.async_set_relay_state.side_effect = NeoPoolInvalidStateError(
         "relay in auto mode"
     )
 
     with pytest.raises(ServiceValidationError):
         await _turn_on(hass, entity_id)
-    with pytest.raises(ServiceValidationError):
-        await _turn_off(hass, entity_id)
-    # Both attempts hit the lib (which raised), but no raw register write occurred.
-    assert mock_neopool_client.async_write_register.await_count == 0
 
 
 # ---------------------------------------------------------------------------

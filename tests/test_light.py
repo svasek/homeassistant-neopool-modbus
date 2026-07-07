@@ -142,7 +142,12 @@ async def test_light_turn_on_raises_when_in_auto_mode(
     mock_neopool_client: MagicMock,
     freezer,
 ) -> None:
-    """Toggling the light while its relay is in auto mode raises ServiceValidationError."""
+    """Toggling the light while its relay is in auto mode raises ServiceValidationError.
+
+    The custom integration guards against timer-driven (ENABLED) mode up-front
+    using ``coordinator.data['relay_light_enable']`` so the user gets a
+    translated error before the write reaches the library.
+    """
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
@@ -154,7 +159,33 @@ async def test_light_turn_on_raises_when_in_auto_mode(
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
-    # Lib rejects manual overrides while relay is in auto mode.
+    mock_neopool_client.async_set_relay_state.reset_mock()
+
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    with pytest.raises(ServiceValidationError):
+        await _turn_off(hass, entity_id)
+
+    # Custom pre-check refuses the write; the lib API is never called.
+    mock_neopool_client.async_set_relay_state.assert_not_called()
+    assert mock_neopool_client.async_write_register.await_count == 0
+
+
+async def test_light_turn_on_maps_lib_invalid_state_to_service_validation_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Race window: custom guard sees manual but the lib sees AUTO and refuses.
+
+    ``coordinator.data`` may lag briefly behind the lib's internal cache
+    (e.g. a poll landed between the custom pre-check and the write). If the
+    lib raises ``NeoPoolInvalidStateError``, the light platform remaps it to
+    a translated ``ServiceValidationError`` instead of leaking the raw error.
+    """
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _light_entity_id(hass, mock_config_entry)
+
     mock_neopool_client.async_set_relay_state = AsyncMock(
         side_effect=NeoPoolInvalidStateError("relay in auto mode")
     )
@@ -164,15 +195,6 @@ async def test_light_turn_on_raises_when_in_auto_mode(
     mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
         RelayKind.LIGHT, True
     )
-
-    mock_neopool_client.async_set_relay_state.reset_mock()
-    with pytest.raises(ServiceValidationError):
-        await _turn_off(hass, entity_id)
-    mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
-        RelayKind.LIGHT, False
-    )
-    # The low-level register write API must not be invoked on the auto-mode path.
-    assert mock_neopool_client.async_write_register.await_count == 0
 
 
 async def test_light_winter_mode_guard_when_called_directly(
