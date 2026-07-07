@@ -19,7 +19,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, override
 
-from neopool_modbus import NeoPoolInvalidStateError
+from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
 from neopool_modbus.capabilities import (
     has_heating_relay,
     is_hydrolysis_present,
@@ -305,6 +305,14 @@ async def async_setup_entry(
     )
 
 
+# Translation key used when the library's rejection has no reason attached
+# (older lib versions) or an unknown reason surfaces.
+_INVALID_STATE_TRANSLATION_KEY: dict[InvalidStateReason, str] = {
+    InvalidStateReason.RELAY_IN_AUTO_MODE: "relay_in_auto_mode",
+    InvalidStateReason.FILTRATION_NOT_IN_MANUAL_MODE: "filtration_not_manual_mode",
+}
+
+
 class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     """Representation of a NeoPool switch entity."""
 
@@ -372,9 +380,12 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         try:
             overrides = await desc.write_fn(self, client, state)
         except NeoPoolInvalidStateError as err:
+            translation_key = _INVALID_STATE_TRANSLATION_KEY.get(
+                err.reason, "relay_in_auto_mode"
+            )
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
-                translation_key="relay_in_auto_mode",
+                translation_key=translation_key,
             ) from err
 
         # Merge the library's optimistic-update dict into the coordinator cache

@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from neopool_modbus import NeoPoolInvalidStateError
+from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
 from neopool_modbus.registers import (
     BinaryConfigFlag,
     BitmaskConfigFlag,
@@ -465,11 +465,47 @@ async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
     entity_id = entries[0].entity_id
 
     mock_neopool_client.async_set_relay_state.side_effect = NeoPoolInvalidStateError(
-        "relay in auto mode"
+        "relay in auto mode",
+        reason=InvalidStateReason.RELAY_IN_AUTO_MODE,
     )
 
-    with pytest.raises(ServiceValidationError):
+    with pytest.raises(ServiceValidationError) as exc:
         await _turn_on(hass, entity_id)
+    assert exc.value.translation_key == "relay_in_auto_mode"
+
+
+async def test_filtration_switch_maps_filtration_reason_to_dedicated_key(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A FILTRATION_NOT_IN_MANUAL_MODE reason routes to the filtration-specific key."""
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith("_mbf_par_filt_manual_state")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    # Bypass the custom pre-check by pretending we are already in manual mode.
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["MBF_PAR_FILT_MODE"] = 0
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_set_manual_filtration.side_effect = (
+        NeoPoolInvalidStateError(
+            "not in manual filtration mode",
+            reason=InvalidStateReason.FILTRATION_NOT_IN_MANUAL_MODE,
+        )
+    )
+
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_on(hass, entity_id)
+    assert exc.value.translation_key == "filtration_not_manual_mode"
 
 
 # ---------------------------------------------------------------------------
