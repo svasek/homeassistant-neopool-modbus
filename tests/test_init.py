@@ -224,4 +224,35 @@ async def test_setup_rename_sweep_is_idempotent(
     assert still_there.unique_id == new_uid
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_setup_rename_drops_legacy_on_unique_id_collision(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Legacy row is removed instead of crashing when the target unique_id already exists."""
+    mock_config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+
+    legacy_uid = f"{mock_config_entry.unique_id}_hidro low flow"
+    new_uid = f"{mock_config_entry.unique_id}_hidro low"
+    legacy = registry.async_get_or_create(
+        "binary_sensor", "neopool", legacy_uid, config_entry=mock_config_entry
+    )
+    new_entry = registry.async_get_or_create(
+        "binary_sensor", "neopool", new_uid, config_entry=mock_config_entry
+    )
+    legacy_entity_id = legacy.entity_id
+    new_entity_id = new_entry.entity_id
+
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert registry.async_get(legacy_entity_id) is None
+    still_there = registry.async_get(new_entity_id)
+    assert still_there is not None
+    assert still_there.unique_id == new_uid
+    assert "already exists" in caplog.text
+
+
 # CUSTOM-ONLY END

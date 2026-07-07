@@ -194,9 +194,19 @@ def rename_renamed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
                 entity_entry.unique_id,
                 new_unique_id,
             )
-            registry.async_update_entity(
-                entity_entry.entity_id, new_unique_id=new_unique_id
-            )
+            try:
+                registry.async_update_entity(
+                    entity_entry.entity_id, new_unique_id=new_unique_id
+                )
+            except ValueError:
+                # Target unique_id already exists; drop the legacy row.
+                _LOGGER.warning(
+                    "Cannot rename %s to %s (target unique_id already exists); "
+                    "removing legacy entity",
+                    entity_entry.entity_id,
+                    new_unique_id,
+                )
+                registry.async_remove(entity_entry.entity_id)
             break
 
 
