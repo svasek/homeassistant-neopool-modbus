@@ -213,12 +213,11 @@ jobs:
           **Commit:** \`${SHORT_SHA}\`
 
           > ⚠️ This is a **pre-release** for testing purposes only.
-          > To install via HACS, enable *Show beta versions* in the integration settings.
 
           ### Installation
-          1. Open HACS → Integrations → VistaPool Modbus
-          2. Click ⋮ → *Redownload* → enable *Show beta versions*
-          3. Select version \`${VERSION}\` and install
+          1. In HACS, find *NeoPool Modbus Integration* in the integrations list
+          2. Click ⋮ on that row → *Redownload*
+          3. Pick version \`${VERSION}\` from the version selector and install
           4. Restart Home Assistant"
 
           gh release create "$TAG" neopool_modbus.zip \
@@ -242,9 +241,9 @@ jobs:
           COMMENT="🧪 **Alpha pre-release created:** [\`${VERSION}\`](${RELEASE_URL})
 
           To install via HACS:
-          1. Open HACS → Integrations → VistaPool Modbus
-          2. Click ⋮ → *Redownload* → enable *Show beta versions*
-          3. Select version \`${VERSION}\` and install
+          1. In HACS, find *NeoPool Modbus Integration* in the integrations list
+          2. Click ⋮ on that row → *Redownload*
+          3. Pick version \`${VERSION}\` from the version selector and install
           4. Restart Home Assistant"
 
           gh pr comment "$PR_NUMBER" --body "$COMMENT"
@@ -266,9 +265,9 @@ jobs:
             COMMENT="🧪 **Alpha pre-release [\`${VERSION}\`](${RELEASE_URL})** is available for testing (from PR #${PR_NUMBER}).
 
           To install via HACS:
-          1. Open HACS → Integrations → VistaPool Modbus
-          2. Click ⋮ → *Redownload* → enable *Show beta versions*
-          3. Select version \`${VERSION}\` and install
+          1. In HACS, find *NeoPool Modbus Integration* in the integrations list
+          2. Click ⋮ on that row → *Redownload*
+          3. Pick version \`${VERSION}\` from the version selector and install
           4. Restart Home Assistant"
 
             gh issue comment "$ISSUE_NUM" --body "$COMMENT"
