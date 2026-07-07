@@ -5,11 +5,7 @@ import json as _json
 from unittest.mock import AsyncMock, MagicMock
 
 from freezegun.api import FrozenDateTimeFactory
-from neopool_modbus.registers import (
-    HEATING_SETPOINT_REGISTER,
-    INTELLIGENT_SETPOINT_REGISTER,
-    MAX_RELAY_GPIO,
-)
+from neopool_modbus.registers import MAX_RELAY_GPIO, SetpointKind
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -422,7 +418,7 @@ async def test_setpoint_initial_sync_uses_heating_as_source(
     coordinator.data["MBF_PAR_INTELLIGENT_TEMP"] = 25
     coordinator.data["MBF_PAR_HEATING_TEMP"] = 30
     mock_neopool_client.async_read_all = AsyncMock(return_value=next_data)
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_setpoint.reset_mock()
 
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
@@ -430,14 +426,14 @@ async def test_setpoint_initial_sync_uses_heating_as_source(
 
     matched = [
         call
-        for call in mock_neopool_client.async_write_register.await_args_list
+        for call in mock_neopool_client.async_set_setpoint.await_args_list
         if len(call.args) >= 2
-        and call.args[0] == INTELLIGENT_SETPOINT_REGISTER
+        and call.args[0] == SetpointKind.INTELLIGENT
         and call.args[1] == 30
     ]
     assert matched, (
         "expected intelligent register to be set to heating value (30); got "
-        + repr(mock_neopool_client.async_write_register.await_args_list)
+        + repr(mock_neopool_client.async_set_setpoint.await_args_list)
     )
 
 
@@ -474,7 +470,7 @@ async def test_setpoint_last_change_wins_when_only_heating_changed(
     next_data = dict(seeded)
     next_data["MBF_PAR_HEATING_TEMP"] = 30
     mock_neopool_client.async_read_all = AsyncMock(return_value=next_data)
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_setpoint.reset_mock()
 
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
@@ -482,14 +478,14 @@ async def test_setpoint_last_change_wins_when_only_heating_changed(
 
     matched = [
         call
-        for call in mock_neopool_client.async_write_register.await_args_list
+        for call in mock_neopool_client.async_set_setpoint.await_args_list
         if len(call.args) >= 2
-        and call.args[0] == INTELLIGENT_SETPOINT_REGISTER
+        and call.args[0] == SetpointKind.INTELLIGENT
         and call.args[1] == 30
     ]
     assert matched, (
         "expected intelligent setpoint to be mirrored from heating (30); got "
-        + repr(mock_neopool_client.async_write_register.await_args_list)
+        + repr(mock_neopool_client.async_set_setpoint.await_args_list)
     )
 
 
@@ -527,20 +523,20 @@ async def test_setpoint_revert_when_both_changed(
     next_data["MBF_PAR_HEATING_TEMP"] = 30
     next_data["MBF_PAR_INTELLIGENT_TEMP"] = 27
     mock_neopool_client.async_read_all = AsyncMock(return_value=next_data)
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_setpoint.reset_mock()
 
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
-    addresses = [
+    kinds = [
         (call.args[0], call.args[1])
-        for call in mock_neopool_client.async_write_register.await_args_list
+        for call in mock_neopool_client.async_set_setpoint.await_args_list
         if len(call.args) >= 2
     ]
-    # Both registers reverted to 25 (the previous values).
-    assert (HEATING_SETPOINT_REGISTER, 25) in addresses
-    assert (INTELLIGENT_SETPOINT_REGISTER, 25) in addresses
+    # Both setpoints reverted to 25 (the previous values).
+    assert (SetpointKind.HEATING, 25) in kinds
+    assert (SetpointKind.INTELLIGENT, 25) in kinds
 
 
 async def test_follow_up_refresh_callback_runs(

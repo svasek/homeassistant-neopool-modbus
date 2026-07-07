@@ -4,7 +4,7 @@ import asyncio
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from neopool_modbus.registers import SMART_TEMP_HIGH_REGISTER, MaskedFlag, SetpointKind
+from neopool_modbus.registers import MaskedFlag, SetpointKind
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -95,15 +95,12 @@ async def test_simple_number_writes_register_after_debounce(
 ) -> None:
     """Setting a numeric value dispatches to the correct lib high-level API.
 
-    Covers both the setpoint path (``async_set_setpoint``) and the raw
-    register-write fallback (``async_write_register``) used by
-    entities that don't yet have a typed enum (SMART_TEMP_HIGH/LOW).
+    Covers the ``async_set_setpoint`` path used by every number entity,
+    including SMART_TEMP_HIGH/LOW which route through
+    ``SetpointKind.SMART_TEMP_HIGH/LOW`` since lib 4.1.0.
     """
     mock_neopool_client.async_set_setpoint = AsyncMock(
         return_value={"MBF_PAR_PH1": 750}
-    )
-    mock_neopool_client.async_write_register = AsyncMock(
-        return_value={"value": 0, "confirmed": 0}
     )
 
     await setup_integration(hass, mock_config_entry)
@@ -122,19 +119,19 @@ async def test_simple_number_writes_register_after_debounce(
         SetpointKind.PH_MAX, 750
     )
 
-    # write_register fallback: SMART_TEMP_HIGH → raw=30, apply=True.
+    # SMART_TEMP path (lib 4.1.0): SMART_TEMP_HIGH → SetpointKind.SMART_TEMP_HIGH.
     smart_entity_id = _number_entity_id(
         hass, mock_config_entry, "mbf_par_smart_temp_high"
     )
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_setpoint.reset_mock()
 
     await _set_value(hass, smart_entity_id, 30.0)
 
     smart_obj = _entity_by_id(hass, smart_entity_id)
     await _flush_debounce(hass, smart_obj)
 
-    mock_neopool_client.async_write_register.assert_awaited_once_with(
-        SMART_TEMP_HIGH_REGISTER, 30, apply=True
+    mock_neopool_client.async_set_setpoint.assert_awaited_once_with(
+        SetpointKind.SMART_TEMP_HIGH, 30
     )
 
 
@@ -191,10 +188,10 @@ async def test_number_blocked_in_winter_mode(
             break
     assert entity_obj is not None
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_setpoint.reset_mock()
     await entity_obj.async_set_native_value(7.5)
     assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_write_register.assert_not_called()
+    mock_neopool_client.async_set_setpoint.assert_not_called()
 
 
 async def test_number_native_value_returns_rounded_raw(

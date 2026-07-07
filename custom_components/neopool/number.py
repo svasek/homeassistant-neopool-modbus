@@ -33,8 +33,6 @@ from neopool_modbus.registers import (
     HIDRO_COVER_REDUCTION_SHIFT,
     HIDRO_SHUTDOWN_TEMP_MASK,
     HIDRO_SHUTDOWN_TEMP_SHIFT,
-    SMART_TEMP_HIGH_REGISTER,
-    SMART_TEMP_LOW_REGISTER,
     MaskedFlag,
     SetpointKind,
     is_valid_relay_gpio,
@@ -87,13 +85,10 @@ class NeoPoolNumberEntityDescription(NumberEntityDescription):
 
     - ``setpoint``: write via ``client.async_set_setpoint(kind, value)``
     - ``masked_flag``: write via ``client.async_set_masked_register(flag, value)``
-    - ``write_register``: write via ``client.async_write_register(addr, value, apply=True)``
-      (fallback for registers not yet covered by a typed enum)
     """
 
     setpoint: SetpointKind | None = None
     masked_flag: MaskedFlag | None = None
-    write_register: int | None = None
     data_key: str | None = None
     scale: float = 1.0
     supported_fn: Callable[[dict[str, Any]], bool] | None = None
@@ -222,7 +217,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=40.0,
         native_step=1.0,
-        write_register=SMART_TEMP_HIGH_REGISTER,
+        setpoint=SetpointKind.SMART_TEMP_HIGH,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=is_temperature_active,
@@ -235,7 +230,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=40.0,
         native_step=1.0,
-        write_register=SMART_TEMP_LOW_REGISTER,
+        setpoint=SetpointKind.SMART_TEMP_LOW,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=is_temperature_active,
@@ -386,9 +381,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
                 overrides = await client.async_set_masked_register(
                     desc.masked_flag, raw
                 )
-            elif desc.write_register is not None:
-                await client.async_write_register(desc.write_register, raw, apply=True)
-                overrides = {self._data_key: raw}
             else:  # pragma: no cover - description validated upstream
                 return
             self.coordinator.data.update(overrides)
