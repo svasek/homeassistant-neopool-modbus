@@ -49,11 +49,7 @@ from neopool_modbus.registers import (
     FILTRATION_TIMER2_SPEED_SHIFT,
     FILTRATION_TIMER3_SPEED_MASK,
     FILTRATION_TIMER3_SPEED_SHIFT,
-    FILTVALVE_MODE_REGISTER,
-    FILTVALVE_PERIOD_REGISTER,
-    INTELLIGENT_FILT_MIN_TIME_REGISTER,
-    MANUAL_FILTRATION_REGISTER,
-    RELAY_ACTIVATION_DELAY_REGISTER,
+    ConfigKind,
     RelayKind,
     RelayMode,
     TimerRelayMode,
@@ -98,6 +94,7 @@ class NeoPoolSelectEntityDescription(SelectEntityDescription):
     options_map: dict[int, str] = field(default_factory=dict)
     select_type: str | None = None
     register: int | None = None
+    config_kind: ConfigKind | None = None
     mask: int | None = None
     shift: int | None = None
     write_offset: int = 0
@@ -182,11 +179,17 @@ def _decode_filtvalve_mode(data: dict[str, Any]) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-async def _write_mapped_register(
+async def _write_config_option(
     entity: "NeoPoolSelect", client: Any, option: str
 ) -> None:
-    """Reverse-lookup the option label and write to the entity's register."""
+    """Reverse-lookup the option label and write it through async_set_config_option.
+
+    Applies ``desc.write_offset`` before writing (e.g. RELAY_ACTIVATION_DELAY
+    is stored register-value = actual-seconds - 10).
+    """
     desc = entity.entity_description
+    if desc.config_kind is None:  # pragma: no cover - description validated upstream
+        return
     reverse_map = {v: k for k, v in desc.options_map.items()}
     value = reverse_map.get(option)
     if value is None:
@@ -194,8 +197,8 @@ async def _write_mapped_register(
             value = int(option.rstrip("ms"))
         except (TypeError, ValueError):  # pragma: no cover
             return
-    write_val = value + desc.write_offset
-    await client.async_write_register(desc.register, max(0, write_val))
+    write_val = max(0, value + desc.write_offset)
+    await client.async_set_config_option(desc.config_kind, write_val)
     await asyncio.sleep(0.2)
     entity.apply_optimistic_update(value)
     entity.coordinator.async_set_updated_data(entity.coordinator.data)
@@ -276,7 +279,7 @@ async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) ->
     has_auto_valve = has_filtvalve(entity.coordinator.data)
     if current_name == "manual" and option != "manual":
         if not (option == "backwash" and has_auto_valve):
-            await client.async_write_register(MANUAL_FILTRATION_REGISTER, 0)
+            await client.async_set_manual_filtration(False)
             await asyncio.sleep(0.1)
     await client.async_set_filtration_mode(option)
     if option == "backwash":
@@ -296,15 +299,17 @@ async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) ->
 async def _write_default_register(
     entity: "NeoPoolSelect", client: Any, option: str
 ) -> None:
-    """Write the option's mapped value to the entity's register."""
+    """Write the option's mapped value through async_set_config_option."""
     desc = entity.entity_description
+    if desc.config_kind is None:  # pragma: no cover - description validated upstream
+        return
     value = next(
         (k for k, v in desc.options_map.items() if v == option),
         None,
     )
     if value is None:  # pragma: no cover
         return
-    await client.async_write_register(desc.register, value)
+    await client.async_set_config_option(desc.config_kind, value)
     entity.apply_optimistic_update(value)
     entity.coordinator.async_set_updated_data(entity.coordinator.data)
     entity.coordinator.request_refresh_with_followup()
@@ -353,7 +358,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="filtvalve_mode",
         entity_category=EntityCategory.CONFIG,
         options_map=FILTVALVE_MODE_LABELS,
-        register=FILTVALVE_MODE_REGISTER,
+        config_kind=ConfigKind.FILTVALVE_MODE,
         supported_fn=has_filtvalve,
         write_fn=_write_default_register,
         current_option_fn=_decode_filtvalve_mode,
@@ -375,9 +380,9 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             30240: "3_weeks",
             40320: "4_weeks",
         },
-        register=FILTVALVE_PERIOD_REGISTER,
+        config_kind=ConfigKind.FILTVALVE_PERIOD_MINUTES,
         supported_fn=has_filtvalve,
-        write_fn=_write_mapped_register,
+        write_fn=_write_config_option,
     ),
     "MBF_PAR_INTELLIGENT_FILT_MIN_TIME": NeoPoolSelectEntityDescription(
         key="MBF_PAR_INTELLIGENT_FILT_MIN_TIME",
@@ -398,11 +403,11 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             660: "11h",
             720: "12h",
         },
-        register=INTELLIGENT_FILT_MIN_TIME_REGISTER,
+        config_kind=ConfigKind.INTELLIGENT_FILT_MIN_TIME,
         supported_fn=lambda data: (
             has_heating_relay(data) and is_temperature_active(data)
         ),
-        write_fn=_write_mapped_register,
+        write_fn=_write_config_option,
     ),
     "MBF_PAR_RELAY_ACTIVATION_DELAY": NeoPoolSelectEntityDescription(
         key="MBF_PAR_RELAY_ACTIVATION_DELAY",
@@ -425,9 +430,9 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             3600: "3600",
             10800: "10800",
         },
-        register=RELAY_ACTIVATION_DELAY_REGISTER,
+        config_kind=ConfigKind.RELAY_ACTIVATION_DELAY,
         supported_fn=is_ph_module_present,
-        write_fn=_write_mapped_register,
+        write_fn=_write_config_option,
     ),
     "filtration1_speed": NeoPoolSelectEntityDescription(
         key="filtration1_speed",

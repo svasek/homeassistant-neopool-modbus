@@ -2,7 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from neopool_modbus.registers import MANUAL_FILTRATION_REGISTER, RelayKind, RelayMode
+from neopool_modbus.registers import ConfigKind, RelayKind, RelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from syrupy.assertion import SnapshotAssertion
@@ -74,7 +74,8 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
     """Switching from manual to a non-backwash mode preemptively stops the pump.
 
     Custom-pre-condition: filtration_mode == "manual". Switching to "auto"
-    must first write 0 to MANUAL_FILTRATION_REGISTER before the lib write.
+    must first call ``async_set_manual_filtration(False)`` before the mode
+    write.
     """
 
     mock_neopool_client.async_read_all.return_value = {
@@ -86,14 +87,11 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_manual_filtration.reset_mock()
     mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _select_option(hass, entity_id, "auto")
 
-    addresses = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert MANUAL_FILTRATION_REGISTER in addresses
+    mock_neopool_client.async_set_manual_filtration.assert_awaited_once_with(False)
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
@@ -115,15 +113,12 @@ async def test_filt_mode_backwash_with_auto_valve_keeps_pump_running(
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_manual_filtration.reset_mock()
     mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _select_option(hass, entity_id, "backwash")
 
-    addresses = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    # No write to MANUAL_FILTRATION_REGISTER (pump kept running for valve)
-    assert MANUAL_FILTRATION_REGISTER not in addresses
+    # No preemptive stop (pump kept running for the valve to open).
+    mock_neopool_client.async_set_manual_filtration.assert_not_called()
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("backwash")
 
 
@@ -186,14 +181,16 @@ async def test_filtvalve_period_minutes_writes_mapped_register(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Mapped-register selects reverse-lookup the option label and write it."""
+    """Mapped-register selects reverse-lookup the option label and dispatch it."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(
         hass, mock_config_entry, "mbf_par_filtvalve_period_minutes"
     )
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_config_option.reset_mock()
     await _select_option(hass, entity_id, "1_week")
-    mock_neopool_client.async_write_register.assert_any_await(0x04ED, 10080)
+    mock_neopool_client.async_set_config_option.assert_any_await(
+        ConfigKind.FILTVALVE_PERIOD_MINUTES, 10080
+    )
 
 
 async def test_filtvalve_mode_writes_register(
@@ -201,12 +198,14 @@ async def test_filtvalve_mode_writes_register(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """The Backwash Valve Mode select writes the mapped int to its register."""
+    """The Backwash Valve Mode select dispatches the mapped int via config API."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_mode")
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_config_option.reset_mock()
     await _select_option(hass, entity_id, "always_on")
-    mock_neopool_client.async_write_register.assert_any_await(0x04E9, 3)
+    mock_neopool_client.async_set_config_option.assert_any_await(
+        ConfigKind.FILTVALVE_MODE, 3
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -539,10 +538,10 @@ async def test_select_blocked_in_winter_mode(
             break
     assert entity_obj is not None
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_config_option.reset_mock()
     await entity_obj.async_select_option("auto")
     assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_write_register.assert_not_called()
+    mock_neopool_client.async_set_config_option.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
