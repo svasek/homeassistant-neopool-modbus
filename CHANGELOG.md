@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.3.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.3.0...v6.3.1) (2026-07-07)
+
+
+### 🐛 Bug Fixes
+
+* **coordinator:** 🐛 track corrupted GPIO values in change detection ([#218](https://github.com/svasek/homeassistant-neopool-modbus/issues/218)) ([50d5fbd](https://github.com/svasek/homeassistant-neopool-modbus/commit/50d5fbdd6b5d92f8c8485447925f16c1752ea426))
+* **select:** 🐛 decode filtration_speed via FILTRATION_SPEED_MASK ([#222](https://github.com/svasek/homeassistant-neopool-modbus/issues/222)) ([fdb6c1d](https://github.com/svasek/homeassistant-neopool-modbus/commit/fdb6c1dc2348668773582468362234442ea0960c))
+
 ## [6.3.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.2.0...v6.3.0) (2026-07-06)
 
 
