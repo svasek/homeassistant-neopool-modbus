@@ -60,6 +60,12 @@ async def test_options_flow_save_changes(
     assert mock_config_entry.options["use_light"] is True
     assert mock_config_entry.options["use_filtration1"] is False
 
+    # Drain the coordinator refresh timer scheduled by the reload triggered
+    # on CREATE_ENTRY so pytest_homeassistant_custom_component's lingering
+    # timer check does not flake.
+    await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
 
 # CUSTOM-ONLY START, unlock_advanced / dev_overrides / enable_backwash_option
 # are HACS-only knobs gated by a password-locked "advanced" step.
@@ -173,6 +179,12 @@ async def test_options_flow_advanced_step_save(
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options["enable_backwash_option"] is True
+
+    # Drain the coordinator refresh timer scheduled by the reload triggered
+    # on CREATE_ENTRY so pytest_homeassistant_custom_component's lingering
+    # timer check does not flake.
+    await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
