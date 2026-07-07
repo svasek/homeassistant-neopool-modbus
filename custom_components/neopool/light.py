@@ -36,7 +36,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN
+from .const import CONF_USE_LIGHT, DOMAIN
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -77,7 +77,7 @@ async def async_setup_entry(
     """Set up NeoPool lights from a config entry."""
     coordinator = entry.runtime_data
 
-    if not entry.options.get("use_light"):
+    if not entry.options.get(CONF_USE_LIGHT):
         return
 
     async_add_entities(

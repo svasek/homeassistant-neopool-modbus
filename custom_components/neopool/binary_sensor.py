@@ -38,6 +38,14 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import (
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
+    CONF_USE_COVER_SENSOR,
+    CONF_USE_LIGHT,
+)
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 from .helpers import is_device_time_out_of_sync
@@ -343,12 +351,12 @@ _MEASUREMENT_SUFFIXES = ("_measurement_active", "_module_active")
 
 # Entities gated on a config-entry option (in addition to their supported_fn).
 _ENTITY_OPTION_KEY: dict[str, str] = {
-    "Pool Light": "use_light",
-    "AUX1": "use_aux1",
-    "AUX2": "use_aux2",
-    "AUX3": "use_aux3",
-    "AUX4": "use_aux4",
-    "Pool Cover": "use_cover_sensor",
+    "Pool Light": CONF_USE_LIGHT,
+    "AUX1": CONF_USE_AUX1,
+    "AUX2": CONF_USE_AUX2,
+    "AUX3": CONF_USE_AUX3,
+    "AUX4": CONF_USE_AUX4,
+    "Pool Cover": CONF_USE_COVER_SENSOR,
 }
 
 

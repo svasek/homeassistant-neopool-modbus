@@ -16,7 +16,17 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
+from custom_components.neopool.const import (
+    CONF_AUTO_TIME_SYNC,
+    CONF_CAPABILITIES,
+    CONF_DEV_OVERRIDES,
+    CONF_DEV_OVERRIDES_ENABLED,
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    CONF_WINTER_MODE,
+    CURRENT_VERSION,
+    DOMAIN,
+)
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, issue_registry as ir
@@ -87,13 +97,13 @@ async def test_winter_mode_skips_modbus(
             "host": "192.0.2.5",
             "port": 502,
             "name": "Winter Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "winter_mode": True,
-            "_capabilities": snapshot,
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_WINTER_MODE: True,
+            CONF_CAPABILITIES: snapshot,
         },
     )
     await setup_integration(hass, entry)
@@ -253,7 +263,7 @@ async def test_capability_snapshot_persisted_to_options(
 ) -> None:
     """The capability snapshot reaches entry.options after the first refresh."""
     await setup_integration(hass, mock_config_entry)
-    snap = mock_config_entry.options.get("_capabilities")
+    snap = mock_config_entry.options.get(CONF_CAPABILITIES)
     assert snap is not None
     # Each GPIO key from MOCK_POOL_DATA should be present in the snapshot.
     assert snap["MBF_PAR_FILT_GPIO"] == 1
@@ -285,12 +295,12 @@ async def test_auto_time_sync_writes_when_drift_detected(
             "host": "192.0.2.6",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "auto_time_sync": True,
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_AUTO_TIME_SYNC: True,
         },
     )
     await setup_integration(hass, entry)
@@ -318,13 +328,13 @@ async def test_dev_overrides_applied_when_enabled(
             "host": "192.0.2.10",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "dev_overrides_enabled": True,
-            "dev_overrides": _json.dumps({"MBF_MEASURE_TEMPERATURE": 999}),
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_DEV_OVERRIDES_ENABLED: True,
+            CONF_DEV_OVERRIDES: _json.dumps({"MBF_MEASURE_TEMPERATURE": 999}),
         },
     )
     await setup_integration(hass, entry)
@@ -347,13 +357,13 @@ async def test_dev_overrides_invalid_json_ignored(
             "host": "192.0.2.11",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "dev_overrides_enabled": True,
-            "dev_overrides": "not-valid-json",
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_DEV_OVERRIDES_ENABLED: True,
+            CONF_DEV_OVERRIDES: "not-valid-json",
         },
     )
     await setup_integration(hass, entry)
@@ -393,10 +403,10 @@ async def test_setpoint_initial_sync_uses_heating_as_source(
             "host": "192.0.2.12",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
-        options={"modbus_framer": "tcp"},
+        options={CONF_MODBUS_FRAMER: "tcp"},
     )
     await setup_integration(hass, entry)
 
@@ -452,10 +462,10 @@ async def test_setpoint_last_change_wins_when_only_heating_changed(
             "host": "192.0.2.13",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
-        options={"modbus_framer": "tcp"},
+        options={CONF_MODBUS_FRAMER: "tcp"},
     )
     await setup_integration(hass, entry)
 
@@ -504,10 +514,10 @@ async def test_setpoint_revert_when_both_changed(
             "host": "192.0.2.14",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
-        options={"modbus_framer": "tcp"},
+        options={CONF_MODBUS_FRAMER: "tcp"},
     )
     await setup_integration(hass, entry)
 

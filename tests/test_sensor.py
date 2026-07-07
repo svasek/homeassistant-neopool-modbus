@@ -12,7 +12,13 @@ from pytest_homeassistant_custom_component.common import (
 )
 from syrupy.assertion import SnapshotAssertion
 
-from custom_components.neopool.const import CURRENT_VERSION, DOMAIN
+from custom_components.neopool.const import (
+    CONF_MEASURE_WHEN_FILTRATION_OFF,
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    CURRENT_VERSION,
+    DOMAIN,
+)
 from custom_components.neopool.sensor import SENSOR_DESCRIPTIONS
 from homeassistant.components.sensor import ATTR_OPTIONS
 from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT, STATE_UNKNOWN, Platform
@@ -69,7 +75,7 @@ async def test_temperature_sensor_suppressed_when_filtration_off(
 
     # measure_when_filtration_off=True flips the gate.
     new_options = dict(mock_config_entry.options)
-    new_options["measure_when_filtration_off"] = True
+    new_options[CONF_MEASURE_WHEN_FILTRATION_OFF] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
     freezer.tick(_td(seconds=60))
     async_fire_time_changed(hass)
@@ -108,7 +114,7 @@ async def test_measurement_sensors_suppressed_when_filtration_off(
     assert hass.states.get(entity_id).state == STATE_UNKNOWN
 
     new_options = dict(mock_config_entry.options)
-    new_options["measure_when_filtration_off"] = True
+    new_options[CONF_MEASURE_WHEN_FILTRATION_OFF] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
     freezer.tick(_td(seconds=60))
     async_fire_time_changed(hass)
@@ -158,7 +164,7 @@ async def test_production_sensors_zero_when_filtration_off(
     assert hass.states.get(entity_id).state == "0"
 
     new_options = dict(mock_config_entry.options)
-    new_options["measure_when_filtration_off"] = True
+    new_options[CONF_MEASURE_WHEN_FILTRATION_OFF] = True
     hass.config_entries.async_update_entry(mock_config_entry, options=new_options)
     freezer.tick(_td(seconds=60))
     async_fire_time_changed(hass)
@@ -218,11 +224,11 @@ async def test_filtration_pump_energy_sensor_registers_when_power_set(
             "host": "192.0.2.30",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
+            CONF_MODBUS_FRAMER: "tcp",
             "filtration_pump_power": 800,  # 800 W → energy sensor enabled
         },
     )
@@ -256,11 +262,11 @@ async def test_filtration_pump_energy_accumulates_while_pump_runs(
             "host": "192.0.2.31",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
+            CONF_MODBUS_FRAMER: "tcp",
             "filtration_pump_power": 1000,
         },
     )
@@ -311,11 +317,11 @@ async def test_filtration_pump_energy_restores_native_value_after_restart(
             "host": "192.0.2.32",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
+            CONF_MODBUS_FRAMER: "tcp",
             "filtration_pump_power": 1000,
         },
     )
@@ -357,11 +363,11 @@ async def test_filtration_pump_energy_ignores_non_numeric_restore(
             "host": "192.0.2.33",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
+            CONF_MODBUS_FRAMER: "tcp",
             "filtration_pump_power": 1000,
         },
     )
@@ -501,10 +507,10 @@ async def test_cell_runtime_sensors_skipped_without_hydrolysis(
             "host": "192.0.2.1",
             "port": 502,
             "name": "Test Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
-        options={"modbus_framer": "tcp"},
+        options={CONF_MODBUS_FRAMER: "tcp"},
     )
     await setup_integration(hass, entry)
 

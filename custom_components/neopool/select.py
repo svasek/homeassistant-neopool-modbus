@@ -68,7 +68,20 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN, PERIOD_MAP, PERIOD_SECONDS_TO_KEY
+from .const import (
+    CONF_ENABLE_BACKWASH_OPTION,
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
+    CONF_USE_FILTRATION1,
+    CONF_USE_FILTRATION2,
+    CONF_USE_FILTRATION3,
+    CONF_USE_LIGHT,
+    DOMAIN,
+    PERIOD_MAP,
+    PERIOD_SECONDS_TO_KEY,
+)
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -569,23 +582,23 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
 
 # Entities gated on a config-entry option (in addition to their supported_fn).
 _ENTITY_OPTION_KEY: dict[str, str] = {
-    "filtration1_speed": "use_filtration1",
-    "filtration2_speed": "use_filtration2",
-    "filtration3_speed": "use_filtration3",
-    "relay_aux1_period": "use_aux1",
-    "relay_aux1b_period": "use_aux1",
-    "relay_aux2_period": "use_aux2",
-    "relay_aux2b_period": "use_aux2",
-    "relay_aux3_period": "use_aux3",
-    "relay_aux3b_period": "use_aux3",
-    "relay_aux4_period": "use_aux4",
-    "relay_aux4b_period": "use_aux4",
-    "relay_light_period": "use_light",
-    "relay_aux1_mode": "use_aux1",
-    "relay_aux2_mode": "use_aux2",
-    "relay_aux3_mode": "use_aux3",
-    "relay_aux4_mode": "use_aux4",
-    "relay_light_mode": "use_light",
+    "filtration1_speed": CONF_USE_FILTRATION1,
+    "filtration2_speed": CONF_USE_FILTRATION2,
+    "filtration3_speed": CONF_USE_FILTRATION3,
+    "relay_aux1_period": CONF_USE_AUX1,
+    "relay_aux1b_period": CONF_USE_AUX1,
+    "relay_aux2_period": CONF_USE_AUX2,
+    "relay_aux2b_period": CONF_USE_AUX2,
+    "relay_aux3_period": CONF_USE_AUX3,
+    "relay_aux3b_period": CONF_USE_AUX3,
+    "relay_aux4_period": CONF_USE_AUX4,
+    "relay_aux4b_period": CONF_USE_AUX4,
+    "relay_light_period": CONF_USE_LIGHT,
+    "relay_aux1_mode": CONF_USE_AUX1,
+    "relay_aux2_mode": CONF_USE_AUX2,
+    "relay_aux3_mode": CONF_USE_AUX3,
+    "relay_aux4_mode": CONF_USE_AUX4,
+    "relay_light_mode": CONF_USE_LIGHT,
 }
 
 
@@ -655,7 +668,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             # on controllers without an auto valve (present in `data`-driven filter).
             if (
                 self.key == "MBF_PAR_FILT_MODE"
-                and self.coordinator.entry.options.get("enable_backwash_option", False)
+                and self.coordinator.entry.options.get(
+                    CONF_ENABLE_BACKWASH_OPTION, False
+                )
                 and "backwash" not in options
             ):
                 options = [*options, "backwash"]

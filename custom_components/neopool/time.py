@@ -28,7 +28,17 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN
+from .const import (
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
+    CONF_USE_FILTRATION1,
+    CONF_USE_FILTRATION2,
+    CONF_USE_FILTRATION3,
+    CONF_USE_LIGHT,
+    DOMAIN,
+)
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -49,18 +59,18 @@ class NeoPoolTimeEntityDescription(TimeEntityDescription):
 _DEBOUNCE_DELAY = 10.0
 
 _TIMER_BLOCKS: tuple[tuple[str, str, bool], ...] = (
-    ("filtration1", "use_filtration1", True),
-    ("filtration2", "use_filtration2", True),
-    ("filtration3", "use_filtration3", True),
-    ("relay_aux1", "use_aux1", True),
-    ("relay_aux1b", "use_aux1", False),
-    ("relay_aux2", "use_aux2", True),
-    ("relay_aux2b", "use_aux2", False),
-    ("relay_aux3", "use_aux3", True),
-    ("relay_aux3b", "use_aux3", False),
-    ("relay_aux4", "use_aux4", True),
-    ("relay_aux4b", "use_aux4", False),
-    ("relay_light", "use_light", True),
+    ("filtration1", CONF_USE_FILTRATION1, True),
+    ("filtration2", CONF_USE_FILTRATION2, True),
+    ("filtration3", CONF_USE_FILTRATION3, True),
+    ("relay_aux1", CONF_USE_AUX1, True),
+    ("relay_aux1b", CONF_USE_AUX1, False),
+    ("relay_aux2", CONF_USE_AUX2, True),
+    ("relay_aux2b", CONF_USE_AUX2, False),
+    ("relay_aux3", CONF_USE_AUX3, True),
+    ("relay_aux3b", CONF_USE_AUX3, False),
+    ("relay_aux4", CONF_USE_AUX4, True),
+    ("relay_aux4b", CONF_USE_AUX4, False),
+    ("relay_light", CONF_USE_LIGHT, True),
 )
 
 

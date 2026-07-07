@@ -28,7 +28,21 @@ from homeassistant.util import dt as dt_util, slugify
 
 # CUSTOM-ONLY END
 from .const import (
+    CONF_DEV_OVERRIDES,
+    CONF_DEV_OVERRIDES_ENABLED,
+    CONF_ENABLE_BACKWASH_OPTION,
     CONF_FILTRATION_PUMP_POWER,
+    CONF_MEASURE_WHEN_FILTRATION_OFF,
+    CONF_SCAN_INTERVAL,
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
+    CONF_USE_COVER_SENSOR,
+    CONF_USE_FILTRATION1,
+    CONF_USE_FILTRATION2,
+    CONF_USE_FILTRATION3,
+    CONF_USE_LIGHT,
     # CUSTOM-ONLY START
     DEFAULT_SCAN_INTERVAL,
     # CUSTOM-ONLY END
@@ -55,7 +69,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         """Handle the initial step of the options flow."""
         options = dict(self.config_entry.options)
         # CUSTOM-ONLY START
-        already_enabled = options.get("enable_backwash_option", False)
+        already_enabled = options.get(CONF_ENABLE_BACKWASH_OPTION, False)
 
         device_slug = slugify(self.config_entry.title)
         expected = f"{device_slug}{dt_util.now().year}"
@@ -64,8 +78,8 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         schema_dict = {
             # CUSTOM-ONLY START
             vol.Optional(
-                "scan_interval",
-                default=str(options.get("scan_interval", DEFAULT_SCAN_INTERVAL)),
+                CONF_SCAN_INTERVAL,
+                default=str(options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)),
             ): SelectSelector(
                 SelectSelectorConfig(
                     options=[str(v) for v in (5, 10, 15, 20, 30, 45, 60, 120, 180, 300)]
@@ -73,48 +87,48 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
             ),
             # CUSTOM-ONLY END
             vol.Optional(
-                "measure_when_filtration_off",
-                default=options.get("measure_when_filtration_off", False),
+                CONF_MEASURE_WHEN_FILTRATION_OFF,
+                default=options.get(CONF_MEASURE_WHEN_FILTRATION_OFF, False),
             ): bool,
             vol.Optional(
                 CONF_FILTRATION_PUMP_POWER,
                 default=options.get(CONF_FILTRATION_PUMP_POWER, 0),
             ): vol.All(int, vol.Range(min=0)),
             vol.Optional(
-                "use_filtration1",
-                default=options.get("use_filtration1", False),
+                CONF_USE_FILTRATION1,
+                default=options.get(CONF_USE_FILTRATION1, False),
             ): bool,
             vol.Optional(
-                "use_filtration2",
-                default=options.get("use_filtration2", False),
+                CONF_USE_FILTRATION2,
+                default=options.get(CONF_USE_FILTRATION2, False),
             ): bool,
             vol.Optional(
-                "use_filtration3",
-                default=options.get("use_filtration3", False),
+                CONF_USE_FILTRATION3,
+                default=options.get(CONF_USE_FILTRATION3, False),
             ): bool,
             vol.Optional(
-                "use_light",
-                default=options.get("use_light", False),
+                CONF_USE_LIGHT,
+                default=options.get(CONF_USE_LIGHT, False),
             ): bool,
             vol.Optional(
-                "use_cover_sensor",
-                default=options.get("use_cover_sensor", False),
+                CONF_USE_COVER_SENSOR,
+                default=options.get(CONF_USE_COVER_SENSOR, False),
             ): bool,
             vol.Optional(
-                "use_aux1",
-                default=options.get("use_aux1", False),
+                CONF_USE_AUX1,
+                default=options.get(CONF_USE_AUX1, False),
             ): bool,
             vol.Optional(
-                "use_aux2",
-                default=options.get("use_aux2", False),
+                CONF_USE_AUX2,
+                default=options.get(CONF_USE_AUX2, False),
             ): bool,
             vol.Optional(
-                "use_aux3",
-                default=options.get("use_aux3", False),
+                CONF_USE_AUX3,
+                default=options.get(CONF_USE_AUX3, False),
             ): bool,
             vol.Optional(
-                "use_aux4",
-                default=options.get("use_aux4", False),
+                CONF_USE_AUX4,
+                default=options.get(CONF_USE_AUX4, False),
             ): bool,
         }
 
@@ -122,7 +136,7 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         if already_enabled:
             schema_dict[
                 vol.Optional(
-                    "enable_backwash_option",
+                    CONF_ENABLE_BACKWASH_OPTION,
                     default=True,
                     description={"suggested_value": True},
                 )
@@ -134,8 +148,8 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             # CUSTOM-ONLY START
-            if "scan_interval" in user_input:
-                user_input["scan_interval"] = int(user_input["scan_interval"])
+            if CONF_SCAN_INTERVAL in user_input:
+                user_input[CONF_SCAN_INTERVAL] = int(user_input[CONF_SCAN_INTERVAL])
             if (user_input.get("unlock_advanced") or "").strip() == expected:
                 self._base_options = user_input.copy()
                 self._base_options.pop("unlock_advanced", None)
@@ -180,16 +194,16 @@ class NeoPoolOptionsFlowHandler(config_entries.OptionsFlow):
         advanced_schema = vol.Schema(
             {
                 vol.Optional(
-                    "enable_backwash_option",
-                    default=options.get("enable_backwash_option", False),
+                    CONF_ENABLE_BACKWASH_OPTION,
+                    default=options.get(CONF_ENABLE_BACKWASH_OPTION, False),
                 ): bool,
                 vol.Optional(
-                    "dev_overrides_enabled",
-                    default=options.get("dev_overrides_enabled", False),
+                    CONF_DEV_OVERRIDES_ENABLED,
+                    default=options.get(CONF_DEV_OVERRIDES_ENABLED, False),
                 ): bool,
                 vol.Optional(
-                    "dev_overrides",
-                    default=options.get("dev_overrides", "{}"),
+                    CONF_DEV_OVERRIDES,
+                    default=options.get(CONF_DEV_OVERRIDES, "{}"),
                 ): str,
             }
         )

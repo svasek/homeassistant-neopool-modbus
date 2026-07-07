@@ -6,7 +6,24 @@ from freezegun.api import FrozenDateTimeFactory
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool.const import CURRENT_VERSION
+from custom_components.neopool.const import (
+    CONF_DEV_OVERRIDES,
+    CONF_DEV_OVERRIDES_ENABLED,
+    CONF_ENABLE_BACKWASH_OPTION,
+    CONF_MEASURE_WHEN_FILTRATION_OFF,
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
+    CONF_USE_COVER_SENSOR,
+    CONF_USE_FILTRATION1,
+    CONF_USE_FILTRATION2,
+    CONF_USE_FILTRATION3,
+    CONF_USE_LIGHT,
+    CURRENT_VERSION,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.util import slugify
@@ -39,17 +56,17 @@ async def test_options_flow_save_changes(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "use_filtration1": False,
-            "use_filtration2": False,
-            "use_filtration3": False,
-            "use_light": True,
-            "use_cover_sensor": False,
-            "use_aux1": False,
-            "use_aux2": False,
-            "use_aux3": False,
-            "use_aux4": False,
+            CONF_USE_FILTRATION1: False,
+            CONF_USE_FILTRATION2: False,
+            CONF_USE_FILTRATION3: False,
+            CONF_USE_LIGHT: True,
+            CONF_USE_COVER_SENSOR: False,
+            CONF_USE_AUX1: False,
+            CONF_USE_AUX2: False,
+            CONF_USE_AUX3: False,
+            CONF_USE_AUX4: False,
             "filtration_pump_power": 0,
-            "measure_when_filtration_off": False,
+            CONF_MEASURE_WHEN_FILTRATION_OFF: False,
             # CUSTOM-ONLY START
             "unlock_advanced": "",
             # CUSTOM-ONLY END
@@ -57,8 +74,8 @@ async def test_options_flow_save_changes(
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert mock_config_entry.options["use_light"] is True
-    assert mock_config_entry.options["use_filtration1"] is False
+    assert mock_config_entry.options[CONF_USE_LIGHT] is True
+    assert mock_config_entry.options[CONF_USE_FILTRATION1] is False
 
     # Drain the coordinator refresh timer scheduled by the reload triggered
     # on CREATE_ENTRY so pytest_homeassistant_custom_component's lingering
@@ -87,17 +104,17 @@ async def test_options_flow_unlock_advanced_with_correct_password(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "use_filtration1": False,
-            "use_filtration2": False,
-            "use_filtration3": False,
-            "use_light": False,
-            "use_cover_sensor": False,
-            "use_aux1": False,
-            "use_aux2": False,
-            "use_aux3": False,
-            "use_aux4": False,
+            CONF_USE_FILTRATION1: False,
+            CONF_USE_FILTRATION2: False,
+            CONF_USE_FILTRATION3: False,
+            CONF_USE_LIGHT: False,
+            CONF_USE_COVER_SENSOR: False,
+            CONF_USE_AUX1: False,
+            CONF_USE_AUX2: False,
+            CONF_USE_AUX3: False,
+            CONF_USE_AUX4: False,
             "filtration_pump_power": 0,
-            "measure_when_filtration_off": False,
+            CONF_MEASURE_WHEN_FILTRATION_OFF: False,
             "unlock_advanced": expected,
         },
     )
@@ -117,17 +134,17 @@ async def test_options_flow_unlock_advanced_wrong_password_shows_error(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "use_filtration1": False,
-            "use_filtration2": False,
-            "use_filtration3": False,
-            "use_light": False,
-            "use_cover_sensor": False,
-            "use_aux1": False,
-            "use_aux2": False,
-            "use_aux3": False,
-            "use_aux4": False,
+            CONF_USE_FILTRATION1: False,
+            CONF_USE_FILTRATION2: False,
+            CONF_USE_FILTRATION3: False,
+            CONF_USE_LIGHT: False,
+            CONF_USE_COVER_SENSOR: False,
+            CONF_USE_AUX1: False,
+            CONF_USE_AUX2: False,
+            CONF_USE_AUX3: False,
+            CONF_USE_AUX4: False,
             "filtration_pump_power": 0,
-            "measure_when_filtration_off": False,
+            CONF_MEASURE_WHEN_FILTRATION_OFF: False,
             "unlock_advanced": "wrong-password",
         },
     )
@@ -153,17 +170,17 @@ async def test_options_flow_advanced_step_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "use_filtration1": False,
-            "use_filtration2": False,
-            "use_filtration3": False,
-            "use_light": False,
-            "use_cover_sensor": False,
-            "use_aux1": False,
-            "use_aux2": False,
-            "use_aux3": False,
-            "use_aux4": False,
+            CONF_USE_FILTRATION1: False,
+            CONF_USE_FILTRATION2: False,
+            CONF_USE_FILTRATION3: False,
+            CONF_USE_LIGHT: False,
+            CONF_USE_COVER_SENSOR: False,
+            CONF_USE_AUX1: False,
+            CONF_USE_AUX2: False,
+            CONF_USE_AUX3: False,
+            CONF_USE_AUX4: False,
             "filtration_pump_power": 0,
-            "measure_when_filtration_off": False,
+            CONF_MEASURE_WHEN_FILTRATION_OFF: False,
             "unlock_advanced": expected,
         },
     )
@@ -172,13 +189,13 @@ async def test_options_flow_advanced_step_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "enable_backwash_option": True,
-            "dev_overrides_enabled": False,
-            "dev_overrides": "{}",
+            CONF_ENABLE_BACKWASH_OPTION: True,
+            CONF_DEV_OVERRIDES_ENABLED: False,
+            CONF_DEV_OVERRIDES: "{}",
         },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert mock_config_entry.options["enable_backwash_option"] is True
+    assert mock_config_entry.options[CONF_ENABLE_BACKWASH_OPTION] is True
 
     # Drain the coordinator refresh timer scheduled by the reload triggered
     # on CREATE_ENTRY so pytest_homeassistant_custom_component's lingering
@@ -201,12 +218,12 @@ async def test_options_flow_init_form_when_backwash_already_enabled(
             "host": "192.0.2.20",
             "port": 502,
             "name": "Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "enable_backwash_option": True,
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_ENABLE_BACKWASH_OPTION: True,
         },
     )
     await setup_integration(hass, entry)

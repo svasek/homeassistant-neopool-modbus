@@ -55,7 +55,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN
+from .const import (
+    CONF_AUTO_TIME_SYNC,
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
+    CONF_USE_COVER_SENSOR,
+    CONF_WINTER_MODE,
+    DOMAIN,
+)
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -66,8 +75,8 @@ PARALLEL_UPDATES = 1
 # Switch types that are HA-side settings, not device state: they don't need a
 # client, don't participate in the winter-mode guard, and stay available even
 # while winter mode is active.
-_HA_SETTING_WINTER_MODE = "winter_mode"
-_HA_SETTING_AUTO_TIME_SYNC = "auto_time_sync"
+_HA_SETTING_WINTER_MODE = CONF_WINTER_MODE
+_HA_SETTING_AUTO_TIME_SYNC = CONF_AUTO_TIME_SYNC
 _HA_SETTING_TYPES = frozenset({_HA_SETTING_WINTER_MODE, _HA_SETTING_AUTO_TIME_SYNC})
 
 
@@ -243,7 +252,7 @@ def _make_optimistic_bitmask(data_key: str, mask: int) -> _OptimisticFn:
 SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     "WINTER_MODE": NeoPoolSwitchEntityDescription(
         key="WINTER_MODE",
-        translation_key="winter_mode",
+        translation_key=CONF_WINTER_MODE,
         entity_category=EntityCategory.CONFIG,
         ha_setting=_HA_SETTING_WINTER_MODE,
     ),
@@ -368,12 +377,12 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
 
 # Entities gated on a config-entry option (in addition to their supported_fn).
 _ENTITY_OPTION_KEY: dict[str, str] = {
-    "MBF_PAR_HIDRO_COVER_ENABLE": "use_cover_sensor",
-    "MBF_PAR_HIDRO_TEMP_SHUTDOWN": "use_cover_sensor",
-    "aux1": "use_aux1",
-    "aux2": "use_aux2",
-    "aux3": "use_aux3",
-    "aux4": "use_aux4",
+    "MBF_PAR_HIDRO_COVER_ENABLE": CONF_USE_COVER_SENSOR,
+    "MBF_PAR_HIDRO_TEMP_SHUTDOWN": CONF_USE_COVER_SENSOR,
+    "aux1": CONF_USE_AUX1,
+    "aux2": CONF_USE_AUX2,
+    "aux3": CONF_USE_AUX3,
+    "aux4": CONF_USE_AUX4,
 }
 
 
@@ -472,9 +481,9 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         if desc.is_on_fn is not None:
             return desc.is_on_fn(self.coordinator.data)
         if desc.ha_setting == _HA_SETTING_AUTO_TIME_SYNC:
-            return getattr(self.coordinator, "auto_time_sync", False)
+            return getattr(self.coordinator, CONF_AUTO_TIME_SYNC, False)
         if desc.ha_setting == _HA_SETTING_WINTER_MODE:
-            return getattr(self.coordinator, "winter_mode", False)
+            return getattr(self.coordinator, CONF_WINTER_MODE, False)
         return False  # pragma: no cover
 
     @property

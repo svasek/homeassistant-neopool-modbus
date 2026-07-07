@@ -133,7 +133,13 @@ async def test_filt_mode_options_include_backwash_via_hacs_override(
     mock_neopool_client: MagicMock,
 ) -> None:
     """`enable_backwash_option` in entry options exposes backwash on setups without auto valve."""
-    from custom_components.neopool.const import CURRENT_VERSION
+    from custom_components.neopool.const import (
+        CONF_CAPABILITIES,
+        CONF_ENABLE_BACKWASH_OPTION,
+        CONF_MODBUS_FRAMER,
+        CONF_UNIT_ID,
+        CURRENT_VERSION,
+    )
 
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
@@ -151,13 +157,13 @@ async def test_filt_mode_options_include_backwash_via_hacs_override(
             "host": "192.0.2.42",
             "port": 502,
             "name": "Backwash Override Pool",
-            "unit_id": 1,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            "modbus_framer": "tcp",
-            "enable_backwash_option": True,
-            "_capabilities": {"MBF_PAR_FILT_GPIO": 1},
+            CONF_MODBUS_FRAMER: "tcp",
+            CONF_ENABLE_BACKWASH_OPTION: True,
+            CONF_CAPABILITIES: {"MBF_PAR_FILT_GPIO": 1},
         },
     )
     await setup_integration(hass, entry)

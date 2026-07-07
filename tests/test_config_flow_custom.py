@@ -15,7 +15,13 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool import config_flow
-from custom_components.neopool.const import DEFAULT_PORT, DEFAULT_UNIT_ID, DOMAIN
+from custom_components.neopool.const import (
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    DEFAULT_PORT,
+    DEFAULT_UNIT_ID,
+    DOMAIN,
+)
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -45,8 +51,8 @@ async def test_create_entry_aborts_unmigrated_v1_duplicate(
         data={
             CONF_HOST: "192.168.1.100",
             CONF_PORT: DEFAULT_PORT,
-            "unit_id": DEFAULT_UNIT_ID,
-            "modbus_framer": "tcp",
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
         },
     )
     existing.add_to_hass(hass)
