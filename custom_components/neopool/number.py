@@ -29,20 +29,12 @@ from neopool_modbus.capabilities import (
 )
 from neopool_modbus.decoders import is_hydrolysis_in_percent
 from neopool_modbus.registers import (
-    CHLORINE_SETPOINT_REGISTER,
-    HEATING_SETPOINT_REGISTER,
     HIDRO_COVER_REDUCTION_MASK,
     HIDRO_COVER_REDUCTION_SHIFT,
-    HIDRO_COVER_REGISTER,
-    HIDRO_SETPOINT_REGISTER,
     HIDRO_SHUTDOWN_TEMP_MASK,
     HIDRO_SHUTDOWN_TEMP_SHIFT,
-    INTELLIGENT_SETPOINT_REGISTER,
-    PH_MAX_SETPOINT_REGISTER,
-    PH_MIN_SETPOINT_REGISTER,
-    REDOX_SETPOINT_REGISTER,
-    SMART_TEMP_HIGH_REGISTER,
-    SMART_TEMP_LOW_REGISTER,
+    MaskedFlag,
+    SetpointKind,
     is_valid_relay_gpio,
 )
 
@@ -71,15 +63,34 @@ _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 1
 
 
+# Static mask/shift table for masked-flag entities so we can decode the raw
+# register value from coordinator data without importing internal lib layout.
+_MASK_LAYOUT: dict[MaskedFlag, tuple[int, int]] = {
+    MaskedFlag.HIDRO_COVER_REDUCTION_PERCENT: (
+        HIDRO_COVER_REDUCTION_MASK,
+        HIDRO_COVER_REDUCTION_SHIFT,
+    ),
+    MaskedFlag.HIDRO_SHUTDOWN_TEMPERATURE: (
+        HIDRO_SHUTDOWN_TEMP_MASK,
+        HIDRO_SHUTDOWN_TEMP_SHIFT,
+    ),
+}
+
+
 @dataclass(frozen=True, kw_only=True)
 class NeoPoolNumberEntityDescription(NumberEntityDescription):
-    """Describes a NeoPool number entity."""
+    """Describes a NeoPool number entity.
 
-    register: int = 0
-    scale: float = 1.0
-    mask: int | None = None
-    shift: int = 0
+    Exactly one write target must be set:
+
+    - ``setpoint``: write via ``client.async_set_setpoint(kind, value)``
+    - ``masked_flag``: write via ``client.async_set_masked_register(flag, value)``
+    """
+
+    setpoint: SetpointKind | None = None
+    masked_flag: MaskedFlag | None = None
     data_key: str | None = None
+    scale: float = 1.0
     supported_fn: Callable[[dict[str, Any]], bool] | None = None
     precision_fn: Callable[[dict[str, Any]], int | None] | None = None
     unit_fn: Callable[[dict[str, Any]], str | None] | None = None
@@ -120,7 +131,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=100.0,
         native_step=1.0,
-        register=HIDRO_SETPOINT_REGISTER,
+        setpoint=SetpointKind.HIDRO,
         scale=10.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=is_hydrolysis_present,
@@ -136,7 +147,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=14.0,
         native_step=0.1,
-        register=PH_MAX_SETPOINT_REGISTER,
+        setpoint=SetpointKind.PH_MAX,
         scale=100.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=lambda data: (
@@ -151,7 +162,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=14.0,
         native_step=0.1,
-        register=PH_MIN_SETPOINT_REGISTER,
+        setpoint=SetpointKind.PH_MIN,
         scale=100.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=lambda data: (
@@ -167,7 +178,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=1000.0,
         native_step=1.0,
-        register=REDOX_SETPOINT_REGISTER,
+        setpoint=SetpointKind.REDOX,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=is_redox_module_present,
@@ -179,7 +190,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=10.0,
         native_step=0.1,
-        register=CHLORINE_SETPOINT_REGISTER,
+        setpoint=SetpointKind.CHLORINE,
         scale=100.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=is_chlorine_module_present,
@@ -192,7 +203,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=40.0,
         native_step=1.0,
-        register=HEATING_SETPOINT_REGISTER,
+        setpoint=SetpointKind.HEATING,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=_support_heating_temp,
@@ -206,7 +217,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=40.0,
         native_step=1.0,
-        register=SMART_TEMP_HIGH_REGISTER,
+        setpoint=SetpointKind.SMART_TEMP_HIGH,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=is_temperature_active,
@@ -219,7 +230,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=40.0,
         native_step=1.0,
-        register=SMART_TEMP_LOW_REGISTER,
+        setpoint=SetpointKind.SMART_TEMP_LOW,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=is_temperature_active,
@@ -231,10 +242,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=0.0,
         native_max_value=100.0,
         native_step=1.0,
-        register=HIDRO_COVER_REGISTER,
+        masked_flag=MaskedFlag.HIDRO_COVER_REDUCTION_PERCENT,
         data_key="MBF_PAR_HIDRO_COVER_REDUCTION",
-        mask=HIDRO_COVER_REDUCTION_MASK,
-        shift=HIDRO_COVER_REDUCTION_SHIFT,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
     ),
@@ -246,10 +255,8 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
         native_min_value=1.0,
         native_max_value=40.0,
         native_step=1.0,
-        register=HIDRO_COVER_REGISTER,
+        masked_flag=MaskedFlag.HIDRO_SHUTDOWN_TEMPERATURE,
         data_key="MBF_PAR_HIDRO_COVER_REDUCTION",
-        mask=HIDRO_SHUTDOWN_TEMP_MASK,
-        shift=HIDRO_SHUTDOWN_TEMP_SHIFT,
         scale=1.0,
         entity_category=EntityCategory.CONFIG,
         supported_fn=lambda data: (
@@ -310,6 +317,15 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self._pending_value: float | None = None
         self._debounce_delay = 2.0
 
+    def _decode_raw(self, raw: Any) -> float | None:
+        """Decode the raw coordinator-data value, applying a mask/shift for masked flags."""
+        if raw is None:
+            return None
+        if (flag := self.entity_description.masked_flag) is not None:
+            mask, shift = _MASK_LAYOUT[flag]
+            return (int(raw) & mask) >> shift
+        return raw if isinstance(raw, (int, float)) else None
+
     @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
@@ -319,11 +335,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
             return
         await super().async_added_to_hass()
 
-        val = self.coordinator.data.get(self._data_key)
-        if val is not None and self.entity_description.mask is not None:
-            val = (
-                int(val) & self.entity_description.mask
-            ) >> self.entity_description.shift
+        val = self._decode_raw(self.coordinator.data.get(self._data_key))
         self._attr_native_value = (
             round(val, 2) if isinstance(val, (int, float)) else None
         )
@@ -348,7 +360,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         self.async_write_ha_state()
 
     async def _debounced_write(self) -> None:
-        """Debounced write to the Modbus register."""
+        """Debounced write via the appropriate lib high-level API."""
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers")
@@ -363,17 +375,16 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
                 )
                 return
             raw = int((self._pending_value or 0) * desc.scale)
-            if desc.mask is not None:
-                current = int(self.coordinator.data.get(self._data_key, 0) or 0)
-                raw = (current & ~desc.mask) | ((raw << desc.shift) & desc.mask)
-                await client.async_write_register(desc.register, raw, apply=True)
-            elif desc.register in (
-                HEATING_SETPOINT_REGISTER,
-                INTELLIGENT_SETPOINT_REGISTER,
-            ):
-                await client.async_set_temp_setpoint(raw)
-            else:
-                await client.async_write_register(desc.register, raw, apply=True)
+            if desc.setpoint is not None:
+                overrides = await client.async_set_setpoint(desc.setpoint, raw)
+            elif desc.masked_flag is not None:
+                overrides = await client.async_set_masked_register(
+                    desc.masked_flag, raw
+                )
+            else:  # pragma: no cover - description validated upstream
+                return
+            self.coordinator.data.update(overrides)
+            self.coordinator.async_set_updated_data(self.coordinator.data)
             await self.coordinator.async_request_refresh()
         except asyncio.CancelledError:  # pragma: no cover
             pass
@@ -389,11 +400,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @override
     def native_value(self) -> float | None:
         """Return the actual number value."""
-        raw = self.coordinator.data.get(self._data_key)
-        if raw is not None and self.entity_description.mask is not None:
-            raw = (
-                int(raw) & self.entity_description.mask
-            ) >> self.entity_description.shift
+        raw = self._decode_raw(self.coordinator.data.get(self._data_key))
         if (
             self.suggested_display_precision == 0 and raw is not None
         ):  # pragma: no cover

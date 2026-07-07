@@ -1,12 +1,15 @@
 """Tests for the NeoPool switch platform."""
 
 from datetime import timedelta
+from typing import Any
 from unittest.mock import MagicMock, patch
 
+from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
 from neopool_modbus.registers import (
-    CLIMA_ONOFF_REGISTER,
-    SMART_ANTI_FREEZE_REGISTER,
-    UV_MODE_REGISTER,
+    BinaryConfigFlag,
+    BitmaskConfigFlag,
+    RelayKind,
+    TimerRelayMode,
 )
 import pytest
 from pytest_homeassistant_custom_component.common import (
@@ -67,21 +70,19 @@ async def test_manual_filtration_turn_on_off(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Manual filtration writes 1 to start the pump and 0 to stop it."""
+    """Manual filtration dispatches to async_set_manual_filtration(state)."""
+    mock_neopool_client.async_set_manual_filtration.side_effect = lambda state: {
+        "Filtration Pump": state,
+        "MBF_PAR_FILT_MANUAL_STATE": int(state),
+    }
     await setup_integration(hass, mock_config_entry)
 
-    await _turn_on(hass, "switch.neopool_filtration")  # manual_filtration entity
-    # MANUAL_FILTRATION_REGISTER write
-    addresses_written = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert addresses_written, "expected at least one register write"
+    await _turn_on(hass, "switch.neopool_filtration")
+    mock_neopool_client.async_set_manual_filtration.assert_called_with(True)
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_manual_filtration.reset_mock()
     await _turn_off(hass, "switch.neopool_filtration")
-    # any write with value 0 to MANUAL_FILTRATION_REGISTER
-    write_calls = mock_neopool_client.async_write_register.await_args_list
-    assert any(c.args[1] == 0 for c in write_calls)
+    mock_neopool_client.async_set_manual_filtration.assert_called_with(False)
 
 
 async def test_manual_filtration_turn_on_raises_when_not_manual_mode(
@@ -103,14 +104,17 @@ async def test_manual_filtration_turn_on_raises_when_not_manual_mode(
     await hass.async_block_till_done()
 
     mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_manual_filtration.reset_mock()
     with pytest.raises(ServiceValidationError):
         await _turn_on(hass, "switch.neopool_filtration")
     # No write should have happened.
     assert mock_neopool_client.async_write_register.await_count == 0
+    assert mock_neopool_client.async_set_manual_filtration.await_count == 0
 
     with pytest.raises(ServiceValidationError):
         await _turn_off(hass, "switch.neopool_filtration")
     assert mock_neopool_client.async_write_register.await_count == 0
+    assert mock_neopool_client.async_set_manual_filtration.await_count == 0
 
 
 # ---------------------------------------------------------------------------
@@ -206,10 +210,12 @@ async def test_io_switch_blocked_in_winter_mode(
         if getattr(e, "key", None) == "MBF_PAR_FILT_MANUAL_STATE"
     )
     mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_manual_filtration.reset_mock()
     await entity.async_turn_on()
     await entity.async_turn_off()
     assert "Winter mode is active" in caplog.text
     assert mock_neopool_client.async_write_register.await_count == 0
+    assert mock_neopool_client.async_set_manual_filtration.await_count == 0
 
 
 # ---------------------------------------------------------------------------
@@ -292,22 +298,26 @@ async def test_manual_filtration_is_on_true_when_pump_running_in_auto(
 
 
 @pytest.mark.parametrize(
-    ("register_key", "function_addr"),
+    ("register_key", "flag"),
     [
-        ("MBF_PAR_CLIMA_ONOFF", CLIMA_ONOFF_REGISTER),
-        ("MBF_PAR_SMART_ANTI_FREEZE", SMART_ANTI_FREEZE_REGISTER),
-        ("MBF_PAR_UV_MODE", UV_MODE_REGISTER),
+        ("MBF_PAR_CLIMA_ONOFF", BinaryConfigFlag.CLIMA_ONOFF),
+        ("MBF_PAR_SMART_ANTI_FREEZE", BinaryConfigFlag.SMART_ANTI_FREEZE),
+        ("MBF_PAR_UV_MODE", BinaryConfigFlag.UV_MODE),
     ],
+    ids=lambda v: v.name if isinstance(v, BinaryConfigFlag) else v,
 )
 async def test_climate_smart_uv_writes_to_function_register(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     register_key: str,
-    function_addr: int,
+    flag: BinaryConfigFlag,
 ) -> None:
-    """The grouped switches all write 1/0 to their own function register."""
+    """The grouped switches dispatch to async_set_binary_flag with their flag."""
 
+    mock_neopool_client.async_set_binary_flag.side_effect = lambda flag, state: {
+        register_key: int(state)
+    }
     await setup_integration(hass, mock_config_entry)
 
     # Unique IDs are lower-case slugified by NeoPoolEntity.
@@ -330,25 +340,13 @@ async def test_climate_smart_uv_writes_to_function_register(
     )
     entity_id = entries[0].entity_id
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_binary_flag.reset_mock()
     await _turn_on(hass, entity_id)
-    on_calls = [
-        (c.args[0], c.args[1])
-        for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert (function_addr, 1) in on_calls, (
-        f"expected write ({function_addr}, 1); got: {on_calls}"
-    )
+    mock_neopool_client.async_set_binary_flag.assert_called_with(flag, True)
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_binary_flag.reset_mock()
     await _turn_off(hass, entity_id)
-    off_calls = [
-        (c.args[0], c.args[1])
-        for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert (function_addr, 0) in off_calls, (
-        f"expected write ({function_addr}, 0); got: {off_calls}"
-    )
+    mock_neopool_client.async_set_binary_flag.assert_called_with(flag, False)
 
 
 # ---------------------------------------------------------------------------
@@ -361,8 +359,11 @@ async def test_aux_relay_turn_on_writes_relay_index(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """aux1 turn_on/off calls async_write_aux_relay with the right index/state."""
+    """aux1 turn_on/off dispatches to async_set_relay_state(RelayKind.AUX1, state)."""
 
+    mock_neopool_client.async_set_relay_state.side_effect = lambda relay, state: {
+        "AUX1": state
+    }
     await setup_integration(hass, mock_config_entry)
     registry = er.async_get(hass)
     entries = [
@@ -373,24 +374,86 @@ async def test_aux_relay_turn_on_writes_relay_index(
     assert entries
     entity_id = entries[0].entity_id
 
-    # The aux switches use switch_type 'relay_timer' which writes to function +
-    # timer_block + EXEC. Verify three writes happen.
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_relay_state.reset_mock()
     await _turn_on(hass, entity_id)
-    assert mock_neopool_client.async_write_register.await_count >= 2
+    mock_neopool_client.async_set_relay_state.assert_called_with(RelayKind.AUX1, True)
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_relay_state.reset_mock()
     await _turn_off(hass, entity_id)
-    assert mock_neopool_client.async_write_register.await_count >= 2
+    mock_neopool_client.async_set_relay_state.assert_called_with(RelayKind.AUX1, False)
 
 
-async def test_aux_relay_turn_on_raises_when_in_auto_mode(
+@pytest.mark.parametrize(
+    ("aux_key", "enable_key"),
+    [
+        ("aux1", "relay_aux1_enable"),
+        ("aux2", "relay_aux2_enable"),
+        ("aux3", "relay_aux3_enable"),
+        ("aux4", "relay_aux4_enable"),
+    ],
+)
+@pytest.mark.parametrize(
+    "enable_value",
+    [
+        pytest.param(TimerRelayMode.ENABLED, id="auto"),
+        pytest.param(None, id="missing"),
+        pytest.param(0, id="disabled"),
+        pytest.param(2, id="unknown-state"),
+    ],
+)
+async def test_aux_relay_turn_on_raises_when_not_in_manual_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
+    aux_key: str,
+    enable_key: str,
+    enable_value: int | None,
 ) -> None:
-    """Toggling an aux relay while the timer is in auto mode raises ServiceValidationError."""
+    """Aux relay refuses to fire unless the relay is in a manual mode."""
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith(f"_{aux_key}")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    data: dict[str, Any] = {**MOCK_POOL_DATA}
+    if enable_value is None:
+        data.pop(enable_key, None)
+    else:
+        data[enable_key] = enable_value
+    mock_neopool_client.async_read_all.return_value = data
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_set_relay_state.reset_mock()
+
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    with pytest.raises(ServiceValidationError):
+        await _turn_off(hass, entity_id)
+
+    # Custom pre-check refuses the write; the lib API is never called.
+    mock_neopool_client.async_set_relay_state.assert_not_called()
+    assert mock_neopool_client.async_write_register.await_count == 0
+
+
+async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Race window: custom guard passes but the lib refuses on write.
+
+    ``coordinator.data`` may lag briefly behind the lib's cache (e.g. a poll
+    landed after the pre-check). Remap ``NeoPoolInvalidStateError`` to a
+    translated ``ServiceValidationError`` instead of leaking the raw error.
+    """
     await setup_integration(hass, mock_config_entry)
     registry = er.async_get(hass)
     entries = [
@@ -401,21 +464,48 @@ async def test_aux_relay_turn_on_raises_when_in_auto_mode(
     assert entries
     entity_id = entries[0].entity_id
 
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        "relay_aux1_enable": 1,  # auto
-    }
-    freezer.tick(timedelta(seconds=60))
-    async_fire_time_changed(hass)
+    mock_neopool_client.async_set_relay_state.side_effect = NeoPoolInvalidStateError(
+        "relay in auto mode",
+        reason=InvalidStateReason.RELAY_IN_AUTO_MODE,
+    )
+
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_on(hass, entity_id)
+    assert exc.value.translation_key == "relay_in_auto_mode"
+
+
+async def test_filtration_switch_maps_filtration_reason_to_dedicated_key(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A FILTRATION_NOT_IN_MANUAL_MODE reason routes to the filtration-specific key."""
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith("_mbf_par_filt_manual_state")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    # Bypass the custom pre-check by pretending we are already in manual mode.
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["MBF_PAR_FILT_MODE"] = 0
+    coordinator.async_set_updated_data(coordinator.data)
     await hass.async_block_till_done()
 
-    mock_neopool_client.async_write_register.reset_mock()
-    with pytest.raises(ServiceValidationError):
+    mock_neopool_client.async_set_manual_filtration.side_effect = (
+        NeoPoolInvalidStateError(
+            "not in manual filtration mode",
+            reason=InvalidStateReason.FILTRATION_NOT_IN_MANUAL_MODE,
+        )
+    )
+
+    with pytest.raises(ServiceValidationError) as exc:
         await _turn_on(hass, entity_id)
-    assert mock_neopool_client.async_write_register.await_count == 0
-    with pytest.raises(ServiceValidationError):
-        await _turn_off(hass, entity_id)
-    assert mock_neopool_client.async_write_register.await_count == 0
+    assert exc.value.translation_key == "filtration_not_manual_mode"
 
 
 # ---------------------------------------------------------------------------
@@ -428,8 +518,11 @@ async def test_hidro_cover_enable_bitmask_writes_or_pattern(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """The hydro cover-enable bitmask switch ORs/clears its bit on its data register."""
+    """The hydro cover-enable bitmask switch dispatches to async_set_bitmask_flag."""
 
+    mock_neopool_client.async_set_bitmask_flag.side_effect = lambda flag, state: {
+        "MBF_PAR_HIDRO_COVER_ENABLE": 1 if state else 0
+    }
     await setup_integration(hass, mock_config_entry)
     registry = er.async_get(hass)
     entries = [
@@ -441,13 +534,17 @@ async def test_hidro_cover_enable_bitmask_writes_or_pattern(
         pytest.skip("hidro cover enable switch not registered")
     entity_id = entries[0].entity_id
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_bitmask_flag.reset_mock()
     await _turn_on(hass, entity_id)
-    assert mock_neopool_client.async_write_register.await_count >= 1
+    mock_neopool_client.async_set_bitmask_flag.assert_called_with(
+        BitmaskConfigFlag.HIDRO_COVER_ENABLE, True
+    )
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_bitmask_flag.reset_mock()
     await _turn_off(hass, entity_id)
-    assert mock_neopool_client.async_write_register.await_count >= 1
+    mock_neopool_client.async_set_bitmask_flag.assert_called_with(
+        BitmaskConfigFlag.HIDRO_COVER_ENABLE, False
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -491,13 +588,21 @@ async def test_io_switch_winter_mode_short_circuits(
     if entity_obj is None:
         pytest.skip(f"{switch_key} switch not registered on this fixture")
 
+    # Reset every lib-side write dispatch used by the switch platform.
     mock_neopool_client.async_write_register.reset_mock()
-    mock_neopool_client.async_write_aux_relay.reset_mock()
+    mock_neopool_client.async_set_manual_filtration.reset_mock()
+    mock_neopool_client.async_set_binary_flag.reset_mock()
+    mock_neopool_client.async_set_bitmask_flag.reset_mock()
+    mock_neopool_client.async_set_relay_state.reset_mock()
+
     await entity_obj.async_turn_on()
     await entity_obj.async_turn_off()
     assert "Winter mode is active" in caplog.text
     mock_neopool_client.async_write_register.assert_not_called()
-    mock_neopool_client.async_write_aux_relay.assert_not_called()
+    mock_neopool_client.async_set_manual_filtration.assert_not_called()
+    mock_neopool_client.async_set_binary_flag.assert_not_called()
+    mock_neopool_client.async_set_bitmask_flag.assert_not_called()
+    mock_neopool_client.async_set_relay_state.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

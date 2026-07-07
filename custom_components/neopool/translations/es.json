@@ -106,7 +106,7 @@
             "hidro_chlorine_shock_mode": {
                 "name": "Modo de choque de cloro de hidrólisis (Boost)"
             },
-            "hidro_low_flow": {
+            "hidro_low": {
                 "name": "Problema de producción de hidrólisis"
             },
             "hidro_module_active": {
@@ -115,7 +115,7 @@
             "hidro_module_regulated": {
                 "name": "Regulación de hidrólisis activa"
             },
-            "ion_low_flow": {
+            "ion_low": {
                 "name": "Problema de producción del ionizador"
             },
             "ion_on_target": {

@@ -154,6 +154,62 @@ def cleanup_removed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
             registry.async_remove(entity_entry.entity_id)
 
 
+# Entity unique_id key suffixes renamed across releases.
+# Format: {old_key_suffix: new_key_suffix}. Matched case-insensitively
+# against the tail after "<prefix>_" (both dict key and stored suffix are
+# already lowercased by the write path).
+RENAMED_ENTITY_KEYS: dict[str, str] = {
+    # Renamed with neopool-modbus 4.0.0 (status keys drop the "Flow" tail).
+    "hidro low flow": "hidro low",
+    "ion low flow": "ion low",
+}
+
+
+def rename_renamed_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Rewrite entity unique_ids listed in RENAMED_ENTITY_KEYS.
+
+    Idempotent: once an entry has been renamed to the new suffix the old
+    key is gone from the registry, so subsequent sweeps are no-ops.
+    """
+    if not RENAMED_ENTITY_KEYS:  # pragma: no cover - safety guard
+        return
+    registry = er.async_get(hass)
+    prefixes = {entry.entry_id}
+    if entry.unique_id:
+        prefixes.add(entry.unique_id)
+
+    for entity_entry in er.async_entries_for_config_entry(registry, entry.entry_id):
+        for prefix in prefixes:
+            head = f"{prefix}_"
+            if not entity_entry.unique_id.startswith(head):
+                continue
+            key = entity_entry.unique_id[len(head) :]
+            new_key = RENAMED_ENTITY_KEYS.get(key)
+            if new_key is None:
+                continue
+            new_unique_id = f"{prefix}_{new_key}"
+            _LOGGER.debug(
+                "Renaming entity %s unique_id %s -> %s",
+                entity_entry.entity_id,
+                entity_entry.unique_id,
+                new_unique_id,
+            )
+            try:
+                registry.async_update_entity(
+                    entity_entry.entity_id, new_unique_id=new_unique_id
+                )
+            except ValueError:
+                # Target unique_id already exists; drop the legacy row.
+                _LOGGER.warning(
+                    "Cannot rename %s to %s (target unique_id already exists); "
+                    "removing legacy entity",
+                    entity_entry.entity_id,
+                    new_unique_id,
+                )
+                registry.async_remove(entity_entry.entity_id)
+            break
+
+
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate config entry to current version.
 

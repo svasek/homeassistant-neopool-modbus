@@ -23,10 +23,9 @@ from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.decoders import aggregate_filtration_remaining
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
-    HEATING_SETPOINT_REGISTER,
-    INTELLIGENT_SETPOINT_REGISTER,
     MAX_RELAY_GPIO,
     TIMER_BLOCKS,
+    SetpointKind,
     find_corrupted_gpio_registers,
 )
 
@@ -244,12 +243,10 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if heating_changed ^ intelligent_changed:
             winner_val = int(heat if heating_changed else intel)
-            loser_reg = (
-                INTELLIGENT_SETPOINT_REGISTER
-                if heating_changed
-                else HEATING_SETPOINT_REGISTER
+            loser_kind = (
+                SetpointKind.INTELLIGENT if heating_changed else SetpointKind.HEATING
             )
-            await self.client.async_write_register(loser_reg, winner_val, apply=True)
+            await self.client.async_set_setpoint(loser_kind, winner_val, apply=True)
             data["MBF_PAR_HEATING_TEMP"] = winner_val
             data["MBF_PAR_INTELLIGENT_TEMP"] = winner_val
             _LOGGER.debug(
@@ -267,11 +264,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 intel,
             )
             if h_old is not None and i_old is not None:
-                await self.client.async_write_register(
-                    HEATING_SETPOINT_REGISTER, int(h_old), apply=False
+                await self.client.async_set_setpoint(
+                    SetpointKind.HEATING, int(h_old), apply=False
                 )
-                await self.client.async_write_register(
-                    INTELLIGENT_SETPOINT_REGISTER, int(i_old), apply=True
+                await self.client.async_set_setpoint(
+                    SetpointKind.INTELLIGENT, int(i_old), apply=True
                 )
                 data["MBF_PAR_HEATING_TEMP"] = h_old
                 data["MBF_PAR_INTELLIGENT_TEMP"] = i_old
@@ -287,8 +284,8 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 heat,
                 intel,
             )
-            await self.client.async_write_register(
-                INTELLIGENT_SETPOINT_REGISTER, int(heat), apply=True
+            await self.client.async_set_setpoint(
+                SetpointKind.INTELLIGENT, int(heat), apply=True
             )
             data["MBF_PAR_INTELLIGENT_TEMP"] = heat
             _LOGGER.debug(

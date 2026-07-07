@@ -106,7 +106,7 @@
             "hidro_chlorine_shock_mode": {
                 "name": "Mode choc chlore hydrolyse (Boost)"
             },
-            "hidro_low_flow": {
+            "hidro_low": {
                 "name": "Problème de production d'hydrolyse"
             },
             "hidro_module_active": {
@@ -115,7 +115,7 @@
             "hidro_module_regulated": {
                 "name": "Régulation d'hydrolyse active"
             },
-            "ion_low_flow": {
+            "ion_low": {
                 "name": "Problème de production de l'ioniseur"
             },
             "ion_on_target": {

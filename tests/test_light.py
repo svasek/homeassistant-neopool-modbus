@@ -1,13 +1,10 @@
 """Tests for the NeoPool light platform."""
 
 from datetime import timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from neopool_modbus.registers import (
-    LIGHT_FUNCTION_REGISTER,
-    LIGHT_TIMER_BLOCK_REGISTER,
-    TimerRelayMode,
-)
+from neopool_modbus import NeoPoolInvalidStateError
+from neopool_modbus.registers import RelayKind, TimerRelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -65,37 +62,34 @@ async def test_light_turn_on_off_writes_to_relay_timer(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Light on/off writes to the configured timer block plus the EXEC commit."""
+    """Light on/off delegates to the high-level async_set_relay_state API."""
 
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
-    timer_block = LIGHT_TIMER_BLOCK_REGISTER
-    function_addr = LIGHT_FUNCTION_REGISTER
+    # Stub the high-level relay setter to return an optimistic-update dict
+    # (light.py merges it into coordinator.data via ``data.update(overrides)``).
+    mock_neopool_client.async_set_relay_state = AsyncMock(
+        return_value={"Pool Light": True}
+    )
 
-    mock_neopool_client.async_write_register.reset_mock()
     await _turn_on(hass, entity_id)
 
-    # Three writes for ON: function_addr, timer_block (3 = always ON), EXEC
-    addresses_on = [
-        c.args[0] for c in mock_neopool_client.async_write_register.await_args_list
-    ]
-    assert function_addr in addresses_on
-    assert timer_block in addresses_on
-    # EXEC_REGISTER write at the end
-    write_calls = mock_neopool_client.async_write_register.await_args_list
-    assert any(
-        c.args[0] == timer_block and c.args[1] == TimerRelayMode.ALWAYS_ON
-        for c in write_calls
-    ), f"expected timer_block write with ALWAYS_ON, got {write_calls}"
+    mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
+        RelayKind.LIGHT, True
+    )
+    coordinator = mock_config_entry.runtime_data
+    assert coordinator.data.get("Pool Light") is True
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_relay_state = AsyncMock(
+        return_value={"Pool Light": False}
+    )
     await _turn_off(hass, entity_id)
-    write_calls_off = mock_neopool_client.async_write_register.await_args_list
-    assert any(
-        c.args[0] == timer_block and c.args[1] == TimerRelayMode.ALWAYS_OFF
-        for c in write_calls_off
-    ), f"expected timer_block write with ALWAYS_OFF, got {write_calls_off}"
+
+    mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
+        RelayKind.LIGHT, False
+    )
+    assert coordinator.data.get("Pool Light") is False
 
 
 async def test_light_is_on_reflects_relay_enable(
@@ -142,31 +136,72 @@ async def test_light_is_on_reflects_relay_enable(
     assert hass.states.get(entity_id).state == STATE_ON
 
 
-async def test_light_turn_on_raises_when_in_auto_mode(
+@pytest.mark.parametrize(
+    "enable_value",
+    [
+        pytest.param(TimerRelayMode.ENABLED, id="auto"),
+        pytest.param(None, id="missing"),
+        pytest.param(0, id="disabled"),
+        pytest.param(2, id="unknown-state"),
+    ],
+)
+async def test_light_turn_on_raises_when_not_in_manual_mode(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
+    enable_value: int | None,
 ) -> None:
-    """Toggling the light while its relay is in auto mode raises ServiceValidationError."""
+    """Light refuses to fire unless the relay is in a manual mode."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        "relay_light_enable": TimerRelayMode.ENABLED,
-    }
+    data = {**MOCK_POOL_DATA}
+    if enable_value is None:
+        data.pop("relay_light_enable", None)
+    else:
+        data["relay_light_enable"] = enable_value
+    mock_neopool_client.async_read_all.return_value = data
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
-    mock_neopool_client.async_write_register.reset_mock()
+    mock_neopool_client.async_set_relay_state.reset_mock()
+
     with pytest.raises(ServiceValidationError):
         await _turn_on(hass, entity_id)
-    assert mock_neopool_client.async_write_register.await_count == 0
     with pytest.raises(ServiceValidationError):
         await _turn_off(hass, entity_id)
+
+    # Custom pre-check refuses the write; the lib API is never called.
+    mock_neopool_client.async_set_relay_state.assert_not_called()
     assert mock_neopool_client.async_write_register.await_count == 0
+
+
+async def test_light_turn_on_maps_lib_invalid_state_to_service_validation_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Race window: custom guard sees manual but the lib sees AUTO and refuses.
+
+    ``coordinator.data`` may lag briefly behind the lib's internal cache
+    (e.g. a poll landed between the custom pre-check and the write). If the
+    lib raises ``NeoPoolInvalidStateError``, the light platform remaps it to
+    a translated ``ServiceValidationError`` instead of leaking the raw error.
+    """
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _light_entity_id(hass, mock_config_entry)
+
+    mock_neopool_client.async_set_relay_state = AsyncMock(
+        side_effect=NeoPoolInvalidStateError("relay in auto mode")
+    )
+
+    with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
+        RelayKind.LIGHT, True
+    )
 
 
 async def test_light_winter_mode_guard_when_called_directly(

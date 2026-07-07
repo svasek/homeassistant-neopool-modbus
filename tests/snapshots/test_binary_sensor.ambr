@@ -487,8 +487,8 @@
       'previous_unique_id': None,
       'suggested_object_id': None,
       'supported_features': 0,
-      'translation_key': 'hidro_low_flow',
-      'unique_id': '1234567890_hidro low flow',
+      'translation_key': 'hidro_low',
+      'unique_id': '1234567890_hidro low',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
@@ -592,8 +592,8 @@
       'previous_unique_id': None,
       'suggested_object_id': None,
       'supported_features': 0,
-      'translation_key': 'ion_low_flow',
-      'unique_id': '1234567890_ion low flow',
+      'translation_key': 'ion_low',
+      'unique_id': '1234567890_ion low',
       'unit_of_measurement': None,
     }),
     EntityRegistryEntrySnapshot({
