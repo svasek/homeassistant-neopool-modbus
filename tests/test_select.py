@@ -7,6 +7,13 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from syrupy.assertion import SnapshotAssertion
 
+from custom_components.neopool.const import (
+    CONF_CAPABILITIES,
+    CONF_ENABLE_BACKWASH_OPTION,
+    CONF_MODBUS_FRAMER,
+    CONF_UNIT_ID,
+    CURRENT_VERSION,
+)
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION, Platform
 from homeassistant.core import HomeAssistant
@@ -128,14 +135,6 @@ async def test_filt_mode_options_include_backwash_via_hacs_override(
     mock_neopool_client: MagicMock,
 ) -> None:
     """`enable_backwash_option` in entry options exposes backwash on setups without auto valve."""
-    from custom_components.neopool.const import (
-        CONF_CAPABILITIES,
-        CONF_ENABLE_BACKWASH_OPTION,
-        CONF_MODBUS_FRAMER,
-        CONF_UNIT_ID,
-        CURRENT_VERSION,
-    )
-
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
         "MBF_PAR_FILTVALVE_GPIO": 0,  # no auto valve

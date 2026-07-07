@@ -3,6 +3,7 @@
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
+from neopool_modbus import NeoPoolInvalidStateError
 from neopool_modbus.registers import (
     BinaryConfigFlag,
     BitmaskConfigFlag,
@@ -445,8 +446,6 @@ async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
     landed after the pre-check). Remap ``NeoPoolInvalidStateError`` to a
     translated ``ServiceValidationError`` instead of leaking the raw error.
     """
-    from neopool_modbus import NeoPoolInvalidStateError
-
     await setup_integration(hass, mock_config_entry)
     registry = er.async_get(hass)
     entries = [

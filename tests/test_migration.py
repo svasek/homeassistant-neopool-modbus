@@ -14,6 +14,7 @@
 
 """Tests for cross-domain migration (vistapool → neopool) and folder cleanup."""
 
+import logging
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -24,6 +25,7 @@ from custom_components.neopool.migration import (
     LEGACY_FILES_REMOVED_IN_V4,
     OLD_DOMAIN,
     _DeferredMigration,
+    _unregister_entry_without_save,
     async_cleanup_legacy_files,
     async_cleanup_old_folder,
     async_detect_legacy_vistapool_entry,
@@ -32,7 +34,7 @@ from custom_components.neopool.migration import (
     find_unmigrated_v1_entry,
     migrate_single_entry_cross_domain,
 )
-from homeassistant.config_entries import ConfigEntryState
+from homeassistant.config_entries import ConfigEntryChange, ConfigEntryState
 
 DEFAULT_SERIAL = "0000000100AC00CD00120034"
 NEW_UID = f"neopool_{DEFAULT_SERIAL}"
@@ -451,8 +453,6 @@ async def test_setup_failure_unregisters_entry():
 @pytest.mark.asyncio
 async def test_unregister_helper_removes_entry_and_dispatches():
     """_unregister_entry_without_save deletes from _entries and dispatches REMOVED."""
-    from custom_components.neopool.migration import _unregister_entry_without_save
-
     hass = MagicMock()
     hass.config_entries._entries = {"entry_xyz": "the_entry_object"}
 
@@ -467,8 +467,6 @@ async def test_unregister_helper_removes_entry_and_dispatches():
     hass.config_entries.async_update_issues.assert_called_once()
     hass.config_entries._async_dispatch.assert_called_once()
     # The dispatch arg must be the REMOVED change kind
-    from homeassistant.config_entries import ConfigEntryChange
-
     assert (
         hass.config_entries._async_dispatch.call_args.args[0]
         == ConfigEntryChange.REMOVED
@@ -479,8 +477,6 @@ async def test_unregister_helper_removes_entry_and_dispatches():
 @pytest.mark.asyncio
 async def test_unregister_helper_is_idempotent():
     """_unregister_entry_without_save no-ops when entry isn't in _entries."""
-    from custom_components.neopool.migration import _unregister_entry_without_save
-
     hass = MagicMock()
     hass.config_entries._entries = {}  # empty, entry was never registered
 
@@ -877,8 +873,6 @@ async def test_cleanup_legacy_files_swallows_file_not_found(
     hass_with_config_path, tmp_path, monkeypatch, caplog
 ):
     """A FileNotFoundError mid-flight (race with another setup) does not log a warning."""
-    import logging
-
     integration_dir = tmp_path / "custom_components" / "neopool"
     integration_dir.mkdir(parents=True)
     # Create a stub file so the pycache_dir.is_dir() guard does not skip the
@@ -907,8 +901,6 @@ async def test_cleanup_legacy_files_logs_on_unlink_failure(
     hass_with_config_path, tmp_path, monkeypatch, caplog
 ):
     """If the executor returns an OSError, the file is reported but cleanup continues."""
-    import logging
-
     integration_dir = tmp_path / "custom_components" / "neopool"
     integration_dir.mkdir(parents=True)
 
