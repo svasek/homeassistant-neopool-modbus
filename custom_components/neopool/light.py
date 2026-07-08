@@ -95,7 +95,6 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         """Initialize the NeoPool light entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._key = key
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
         )
@@ -112,12 +111,6 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
 
     async def _async_set_state(self, state: bool) -> None:
         """Drive the light relay via its timer block."""
-        action = "turn_on" if state else "turn_off"
-        if self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active, ignoring %s for %s", action, self._key
-            )
-            return
         client = getattr(self.coordinator, "client", None)
         if client is None:  # pragma: no cover
             _LOGGER.error("Modbus client not available for writing registers")

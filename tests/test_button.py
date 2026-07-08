@@ -14,7 +14,7 @@ from custom_components.neopool.const import DOMAIN
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_platform as ep, entity_registry as er
+from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
 from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
@@ -83,36 +83,6 @@ async def test_backwash_button_writes_filt_mode(
     mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _press(hass, entity_id)
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("backwash")
-
-
-async def test_button_press_blocked_in_winter_mode(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """async_press short-circuits when winter_mode is on (entity-method-level guard)."""
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.winter_mode = True
-
-    # Reach the entity object directly so the unavailable-entity service
-    # filter doesn't refuse the dispatch.
-
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if ent.entity_id.startswith("button.") and ent._key == "SYNC_TIME":
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
-
-    mock_neopool_client.async_sync_device_time.reset_mock()
-    await entity_obj.async_press()
-    assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_sync_device_time.assert_not_called()
 
 
 async def test_backwash_button_aborts_when_valve_disappears(

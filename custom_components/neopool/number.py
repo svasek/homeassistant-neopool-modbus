@@ -308,7 +308,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         """Initialize the NeoPool number entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._key = key
         self._data_key = description.data_key or key
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
@@ -346,11 +345,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @override
     async def async_set_native_value(self, value: float) -> None:
         """Set the native value of the number entity."""
-        if self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active, ignoring set_native_value for %s", self._key
-            )
-            return
         self._pending_value = value
         if (
             self._pending_write_task is not None and not self._pending_write_task.done()
@@ -369,12 +363,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         desc = self.entity_description
         try:
             await asyncio.sleep(self._debounce_delay)
-            if self.coordinator.winter_mode:  # pragma: no cover
-                _LOGGER.warning(
-                    "Winter mode is active, debounced write cancelled for %s",
-                    self._key,
-                )
-                return
             raw = int((self._pending_value or 0) * desc.scale)
             if desc.setpoint is not None:
                 overrides = await client.async_set_setpoint(desc.setpoint, raw)

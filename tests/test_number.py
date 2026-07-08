@@ -167,33 +167,6 @@ async def test_heating_setpoint_mirrors_to_intelligent(
     )
 
 
-async def test_number_blocked_in_winter_mode(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """async_set_native_value short-circuits when winter_mode is on."""
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.winter_mode = True
-
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if ent.entity_id.startswith("number.") and getattr(ent, "_key", None):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
-
-    mock_neopool_client.async_set_setpoint.reset_mock()
-    await entity_obj.async_set_native_value(7.5)
-    assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_set_setpoint.assert_not_called()
-
-
 async def test_number_native_value_returns_rounded_raw(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
@@ -250,7 +223,7 @@ async def test_hidro_native_value_in_percent_mode(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("number.")
-                and getattr(ent, "_key", None) == "MBF_PAR_HIDRO"
+                and getattr(ent.entity_description, "key", None) == "MBF_PAR_HIDRO"
             ):
                 entity_obj = ent
                 break
@@ -286,7 +259,7 @@ async def test_masked_number_native_value_decodes_via_mask_shift(
     cover, shutdown = None, None
     for platforms in ep.async_get_platforms(hass, "neopool"):
         for ent in platforms.entities.values():
-            key = getattr(ent, "_key", None)
+            key = getattr(ent.entity_description, "key", None)
             if not ent.entity_id.startswith("number."):
                 continue
             if key == "MBF_PAR_HIDRO_COVER_REDUCTION":
@@ -337,7 +310,8 @@ async def test_masked_number_write_preserves_other_byte(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("number.")
-                and getattr(ent, "_key", None) == "MBF_PAR_HIDRO_COVER_REDUCTION"
+                and getattr(ent.entity_description, "key", None)
+                == "MBF_PAR_HIDRO_COVER_REDUCTION"
             ):
                 cover_entity_id = ent.entity_id
                 cover_obj = ent

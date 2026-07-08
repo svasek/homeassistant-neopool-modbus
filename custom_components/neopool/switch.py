@@ -349,12 +349,6 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     async def _async_set_state(self, state: bool) -> None:
         """Dispatch turn_on / turn_off via the description callables."""
         desc = self.entity_description
-        action = "turn_on" if state else "turn_off"
-        if desc.ha_setting not in _HA_SETTING_TYPES and self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active, ignoring %s for %s", action, self.key
-            )
-            return
 
         # HA-side settings live entirely outside the Modbus client.
         if desc.ha_setting == _HA_SETTING_WINTER_MODE:

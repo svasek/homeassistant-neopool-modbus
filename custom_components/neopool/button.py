@@ -144,7 +144,6 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
         """Initialize the NeoPool button entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._key = key
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
         )
@@ -152,8 +151,5 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
     @override
     async def async_press(self) -> None:
         """Dispatch to the description's press handler."""
-        if self.coordinator.winter_mode:
-            _LOGGER.warning("Winter mode is active, ignoring press for %s", self._key)
-            return
         await self.entity_description.press_fn(self)
         await self.coordinator.async_request_refresh()

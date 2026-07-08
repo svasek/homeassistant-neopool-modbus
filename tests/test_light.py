@@ -22,7 +22,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import entity_platform as ep, entity_registry as er
+from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
 from .conftest import MOCK_POOL_DATA
@@ -202,40 +202,6 @@ async def test_light_turn_on_maps_lib_invalid_state_to_service_validation_error(
     mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
         RelayKind.LIGHT, True
     )
-
-
-async def test_light_winter_mode_guard_when_called_directly(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """async_turn_on/off short-circuits when winter_mode is on.
-
-    Service-call layer would normally refuse to dispatch to an unavailable
-    entity; we drive the entity method directly to cover the early-exit
-    branch in the platform code.
-    """
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.winter_mode = True
-
-    entity_id = _light_entity_id(hass, mock_config_entry)
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if ent.entity_id == entity_id:
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-
-    assert entity_obj is not None
-    mock_neopool_client.async_write_register.reset_mock()
-    await entity_obj.async_turn_on()
-    await entity_obj.async_turn_off()
-    assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_write_register.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
