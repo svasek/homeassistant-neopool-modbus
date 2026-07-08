@@ -17,7 +17,6 @@
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass
-import logging
 from typing import Any, override
 
 from neopool_modbus.capabilities import (
@@ -57,8 +56,6 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import CONF_USE_COVER_SENSOR
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
-
-_LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
@@ -329,10 +326,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for reading registers")
-            return
         await super().async_added_to_hass()
 
         val = self._decode_raw(self.coordinator.data.get(self._data_key))
@@ -356,10 +349,7 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
 
     async def _debounced_write(self) -> None:
         """Debounced write via the appropriate lib high-level API."""
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers")
-            return
+        client = self.coordinator.client
         desc = self.entity_description
         try:
             await asyncio.sleep(self._debounce_delay)

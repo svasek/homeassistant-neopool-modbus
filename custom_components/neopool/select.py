@@ -640,12 +640,8 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     @override
     async def async_select_option(self, option: str) -> None:
         """Handle option selection by dispatching to the description write_fn."""
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers")
-            return
         write_fn = self.entity_description.write_fn or _write_default_register
-        await write_fn(self, client, option)
+        await write_fn(self, self.coordinator.client, option)
 
     @property
     @override

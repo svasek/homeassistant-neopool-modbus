@@ -16,7 +16,6 @@
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-import logging
 from typing import Any, override
 
 from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
@@ -53,8 +52,6 @@ from .const import (
 )
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
-
-_LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
@@ -362,18 +359,13 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             self.async_write_ha_state()
             return
 
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers")
-            return
-
         if (
             desc.write_fn is None
         ):  # pragma: no cover - all non-HA switches wire write_fn
             return
 
         try:
-            overrides = await desc.write_fn(self, client, state)
+            overrides = await desc.write_fn(self, self.coordinator.client, state)
         except NeoPoolInvalidStateError as err:
             translation_key = _INVALID_STATE_TRANSLATION_KEY.get(
                 err.reason, "relay_in_auto_mode"
