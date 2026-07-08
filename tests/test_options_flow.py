@@ -77,10 +77,9 @@ async def test_options_flow_save_changes(
     assert mock_config_entry.options[CONF_USE_LIGHT] is True
     assert mock_config_entry.options[CONF_USE_FILTRATION1] is False
 
-    # Drain the coordinator refresh timer scheduled by the reload triggered
-    # on CREATE_ENTRY so pytest_homeassistant_custom_component's lingering
-    # timer check does not flake.
-    await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    # CREATE_ENTRY triggers a background reload of the config entry. Wait for
+    # it to finish before the test exits so the pytest-hass fixture can unload
+    # cleanly and no coordinator refresh timer lingers.
     await hass.async_block_till_done()
 
 
@@ -197,10 +196,9 @@ async def test_options_flow_advanced_step_save(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options[CONF_ENABLE_BACKWASH_OPTION] is True
 
-    # Drain the coordinator refresh timer scheduled by the reload triggered
-    # on CREATE_ENTRY so pytest_homeassistant_custom_component's lingering
-    # timer check does not flake.
-    await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    # CREATE_ENTRY triggers a background reload of the config entry. Wait for
+    # it to finish before the test exits so the pytest-hass fixture can unload
+    # cleanly and no coordinator refresh timer lingers.
     await hass.async_block_till_done()
 
 
