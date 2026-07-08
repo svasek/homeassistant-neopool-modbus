@@ -283,7 +283,7 @@ async def async_setup_entry(
     options = entry.options
 
     async_add_entities(
-        NeoPoolNumber(coordinator, entry.entry_id, key, desc)
+        NeoPoolNumber(coordinator, key, desc)
         for key, desc in NUMBER_DESCRIPTIONS.items()
         if (
             (option_key := _ENTITY_OPTION_KEY.get(key)) is None
@@ -302,16 +302,17 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         key: str,
         description: NeoPoolNumberEntityDescription,
     ) -> None:
         """Initialize the NeoPool number entity."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self.entity_description = description
         self._key = key
         self._data_key = description.data_key or key
-        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
+        self._attr_unique_id = (
+            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+        )
 
         self._pending_write_task: asyncio.Task[None] | None = None
         self._pending_value: float | None = None

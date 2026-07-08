@@ -316,7 +316,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
 
     entities: list[SensorEntity] = [
-        NeoPoolSensor(coordinator, entry.entry_id, key, desc)
+        NeoPoolSensor(coordinator, key, desc)
         for key, desc in SENSOR_DESCRIPTIONS.items()
         if key != CONF_FILTRATION_PUMP_POWER
         and (desc.supported_fn is None or desc.supported_fn(coordinator.data))
@@ -327,14 +327,11 @@ async def async_setup_entry(
         entities.append(
             NeoPoolSensor(
                 coordinator,
-                entry.entry_id,
                 CONF_FILTRATION_PUMP_POWER,
                 SENSOR_DESCRIPTIONS[CONF_FILTRATION_PUMP_POWER],
             )
         )
-        entities.append(
-            NeoPoolFiltrationEnergySensor(coordinator, entry.entry_id, pump_power)
-        )
+        entities.append(NeoPoolFiltrationEnergySensor(coordinator, pump_power))
 
     async_add_entities(entities)
 
@@ -367,15 +364,16 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         key: str,
         description: NeoPoolSensorEntityDescription,
     ) -> None:
         """Initialize the NeoPool sensor entity."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self.entity_description = description
         self._key = key
-        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
+        self._attr_unique_id = (
+            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+        )
 
     @property
     @override
@@ -395,7 +393,9 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
 
     def _filtration_gate_blocks(self) -> bool:
         """Return True if the filtration-off gate hides the live reading."""
-        if self.coordinator.entry.options.get(CONF_MEASURE_WHEN_FILTRATION_OFF, False):
+        if self.coordinator.config_entry.options.get(
+            CONF_MEASURE_WHEN_FILTRATION_OFF, False
+        ):
             return False
         return self.coordinator.data.get("Filtration Pump") is False
 
@@ -451,13 +451,14 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         pump_power_w: int,
     ) -> None:
         """Initialise the filtration-pump energy sensor."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self._pump_power_w = pump_power_w
-        self._attr_unique_id = f"{coordinator.entry.unique_id}_filtration_pump_energy"
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.unique_id}_filtration_pump_energy"
+        )
         self._total_wh: float = 0.0
         self._last_update: datetime | None = None
         self._last_pump_on: bool = False

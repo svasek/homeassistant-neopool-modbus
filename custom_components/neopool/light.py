@@ -73,7 +73,7 @@ async def async_setup_entry(
         return
 
     async_add_entities(
-        NeoPoolLight(coordinator, entry.entry_id, key, desc)
+        NeoPoolLight(coordinator, key, desc)
         for key, desc in LIGHT_DESCRIPTIONS.items()
         if desc.supported_fn is None or desc.supported_fn(coordinator.data)
     )
@@ -89,15 +89,16 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         key: str,
         description: NeoPoolLightEntityDescription,
     ) -> None:
         """Initialize the NeoPool light entity."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self.entity_description = description
         self._key = key
-        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
+        self._attr_unique_id = (
+            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+        )
 
     @override
     async def async_turn_on(self, **kwargs: Any) -> None:

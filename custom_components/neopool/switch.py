@@ -295,7 +295,7 @@ async def async_setup_entry(
     options = entry.options
 
     async_add_entities(
-        NeoPoolSwitch(coordinator, entry.entry_id, key, desc)
+        NeoPoolSwitch(coordinator, key, desc)
         for key, desc in SWITCH_DESCRIPTIONS.items()
         if (
             (option_key := _ENTITY_OPTION_KEY.get(key)) is None
@@ -321,15 +321,16 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         key: str,
         description: NeoPoolSwitchEntityDescription,
     ) -> None:
         """Initialize the NeoPool switch entity."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self.entity_description = description
         self.key = key
-        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
+        self._attr_unique_id = (
+            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+        )
 
         # The winter_mode switch itself must remain available while winter mode is on.
         if description.ha_setting == _HA_SETTING_WINTER_MODE:
