@@ -18,7 +18,6 @@ import asyncio
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import time as dt_time
-import logging
 from typing import Any, Literal, override
 
 from neopool_modbus.decoders import seconds_to_hhmm
@@ -41,8 +40,6 @@ from .const import (
 )
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
-
-_LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
@@ -153,11 +150,6 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
     @override
     async def async_set_value(self, value: dt_time) -> None:
         """Apply optimistically, then debounce-write to the device."""
-        if self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active - ignoring set_value for %s", self._key
-            )
-            return
         seconds = value.hour * 3600 + value.minute * 60 + value.second
         self.coordinator.data[self._key] = seconds
         self.coordinator.async_set_updated_data(self.coordinator.data)
@@ -171,12 +163,6 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         try:
             await asyncio.sleep(self._debounce_delay)
         except asyncio.CancelledError:  # pragma: no cover
-            return
-        if self.coordinator.winter_mode:  # pragma: no cover
-            _LOGGER.warning(
-                "Winter mode is active - debounced write cancelled for %s",
-                self._key,
-            )
             return
         desc = self.entity_description
         block = desc.timer_block

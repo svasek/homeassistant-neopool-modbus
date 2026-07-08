@@ -166,19 +166,15 @@ async def test_auto_time_sync_turn_on_off(
 # ---------------------------------------------------------------------------
 
 
-async def test_io_switch_blocked_in_winter_mode(
+async def test_io_switch_unavailable_in_winter_mode(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """While winter_mode is on, IO switch turn_on yields a no-op + warning.
+    """IO switches become unavailable while winter mode is active.
 
-    The IO switches become HA-unavailable while winter mode pauses polling,
-    so we cannot exercise the guard via `hass.services.async_call(turn_on)`
-    (HA's service layer rejects unavailable entities before the handler
-    runs). Instead, fetch the entity instance and invoke `async_turn_on()`
-    directly so the winter-mode short-circuit at the top of the handler
-    is the code path under test.
+    HA's service layer refuses to dispatch to unavailable entities, so the
+    availability gate on NeoPoolEntity is what actually blocks IO writes.
+    Assert that gate directly on the entity instance.
     """
     entry = MockConfigEntry(
         domain="neopool",
@@ -200,22 +196,23 @@ async def test_io_switch_blocked_in_winter_mode(
         },
     )
     await setup_integration(hass, entry)
-    # Reach into the platform to grab the manual_filtration entity instance.
     platform = next(
         p for p in ep.async_get_platforms(hass, "neopool") if p.domain == "switch"
     )
-    entity = next(
+    io_entity = next(
         e
         for e in platform.entities.values()
         if getattr(e, "key", None) == "MBF_PAR_FILT_MANUAL_STATE"
     )
-    mock_neopool_client.async_write_register.reset_mock()
-    mock_neopool_client.async_set_manual_filtration.reset_mock()
-    await entity.async_turn_on()
-    await entity.async_turn_off()
-    assert "Winter mode is active" in caplog.text
-    assert mock_neopool_client.async_write_register.await_count == 0
-    assert mock_neopool_client.async_set_manual_filtration.await_count == 0
+    winter_entity = next(
+        e
+        for e in platform.entities.values()
+        if getattr(e, "key", None) == "WINTER_MODE"
+    )
+    # IO switch inherits the winter-mode availability gate.
+    assert io_entity.available is False
+    # The winter_mode switch itself must stay available so users can toggle it.
+    assert winter_entity.available is True
 
 
 # ---------------------------------------------------------------------------
@@ -545,64 +542,6 @@ async def test_hidro_cover_enable_bitmask_writes_or_pattern(
     mock_neopool_client.async_set_bitmask_flag.assert_called_with(
         BitmaskConfigFlag.HIDRO_COVER_ENABLE, False
     )
-
-
-# ---------------------------------------------------------------------------
-# Winter-mode guards on every switch_type
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    "switch_key",
-    [
-        "MBF_PAR_FILT_MANUAL_STATE",
-        "aux1",
-        "MBF_PAR_CLIMA_ONOFF",
-        "MBF_PAR_HIDRO_COVER_ENABLE",
-    ],
-)
-async def test_io_switch_winter_mode_short_circuits(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-    switch_key: str,
-) -> None:
-    """async_turn_on/off short-circuits with a warning while winter_mode is on."""
-
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.winter_mode = True
-
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if (
-                ent.entity_id.startswith("switch.")
-                and getattr(ent, "key", None) == switch_key
-            ):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    if entity_obj is None:
-        pytest.skip(f"{switch_key} switch not registered on this fixture")
-
-    # Reset every lib-side write dispatch used by the switch platform.
-    mock_neopool_client.async_write_register.reset_mock()
-    mock_neopool_client.async_set_manual_filtration.reset_mock()
-    mock_neopool_client.async_set_binary_flag.reset_mock()
-    mock_neopool_client.async_set_bitmask_flag.reset_mock()
-    mock_neopool_client.async_set_relay_state.reset_mock()
-
-    await entity_obj.async_turn_on()
-    await entity_obj.async_turn_off()
-    assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_write_register.assert_not_called()
-    mock_neopool_client.async_set_manual_filtration.assert_not_called()
-    mock_neopool_client.async_set_binary_flag.assert_not_called()
-    mock_neopool_client.async_set_bitmask_flag.assert_not_called()
-    mock_neopool_client.async_set_relay_state.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

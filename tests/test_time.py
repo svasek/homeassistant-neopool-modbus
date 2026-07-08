@@ -270,41 +270,6 @@ async def test_repeated_set_value_on_same_entity_coalesces(
 
 
 # ---------------------------------------------------------------------------
-# Winter mode guard
-# ---------------------------------------------------------------------------
-
-
-async def test_set_value_blocked_in_winter_mode(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """async_set_value short-circuits when winter_mode is on."""
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.winter_mode = True
-
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if (
-                ent.entity_id.startswith("time.")
-                and getattr(ent, "_key", None) == "filtration1_start"
-            ):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
-
-    mock_neopool_client.write_timer.reset_mock()
-    await entity_obj.async_set_value(dt_time(6, 0))
-    assert "Winter mode is active" in caplog.text
-    mock_neopool_client.write_timer.assert_not_called()
-
-
-# ---------------------------------------------------------------------------
 # Platform-wide snapshots
 # ---------------------------------------------------------------------------
 

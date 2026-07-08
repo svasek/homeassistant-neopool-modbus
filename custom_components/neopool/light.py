@@ -16,7 +16,6 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-import logging
 from typing import Any, override
 
 from neopool_modbus import NeoPoolInvalidStateError
@@ -34,8 +33,6 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import CONF_USE_LIGHT, DOMAIN
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
-
-_LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
@@ -95,7 +92,6 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
         """Initialize the NeoPool light entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._key = key
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
         )
@@ -112,17 +108,6 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
 
     async def _async_set_state(self, state: bool) -> None:
         """Drive the light relay via its timer block."""
-        action = "turn_on" if state else "turn_off"
-        if self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active, ignoring %s for %s", action, self._key
-            )
-            return
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers")
-            return
-
         if self.coordinator.data.get(_LIGHT_TIMER_ENABLE_KEY) not in (
             TimerRelayMode.ALWAYS_ON,
             TimerRelayMode.ALWAYS_OFF,
@@ -133,7 +118,9 @@ class NeoPoolLight(NeoPoolEntity, LightEntity):
             )
 
         try:
-            overrides = await client.async_set_relay_state(RelayKind.LIGHT, state)
+            overrides = await self.coordinator.client.async_set_relay_state(
+                RelayKind.LIGHT, state
+            )
         except NeoPoolInvalidStateError as err:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,

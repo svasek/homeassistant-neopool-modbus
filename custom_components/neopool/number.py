@@ -17,7 +17,6 @@
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass
-import logging
 from typing import Any, override
 
 from neopool_modbus.capabilities import (
@@ -57,8 +56,6 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import CONF_USE_COVER_SENSOR
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
-
-_LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
@@ -308,7 +305,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         """Initialize the NeoPool number entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._key = key
         self._data_key = description.data_key or key
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
@@ -330,10 +326,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @override
     async def async_added_to_hass(self) -> None:
         """Run when the entity is added to hass."""
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for reading registers")
-            return
         await super().async_added_to_hass()
 
         val = self._decode_raw(self.coordinator.data.get(self._data_key))
@@ -346,11 +338,6 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
     @override
     async def async_set_native_value(self, value: float) -> None:
         """Set the native value of the number entity."""
-        if self.coordinator.winter_mode:
-            _LOGGER.warning(
-                "Winter mode is active, ignoring set_native_value for %s", self._key
-            )
-            return
         self._pending_value = value
         if (
             self._pending_write_task is not None and not self._pending_write_task.done()
@@ -362,19 +349,10 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
 
     async def _debounced_write(self) -> None:
         """Debounced write via the appropriate lib high-level API."""
-        client = getattr(self.coordinator, "client", None)
-        if client is None:  # pragma: no cover
-            _LOGGER.error("Modbus client not available for writing registers")
-            return
+        client = self.coordinator.client
         desc = self.entity_description
         try:
             await asyncio.sleep(self._debounce_delay)
-            if self.coordinator.winter_mode:  # pragma: no cover
-                _LOGGER.warning(
-                    "Winter mode is active, debounced write cancelled for %s",
-                    self._key,
-                )
-                return
             raw = int((self._pending_value or 0) * desc.scale)
             if desc.setpoint is not None:
                 overrides = await client.async_set_setpoint(desc.setpoint, raw)

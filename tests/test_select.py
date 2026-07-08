@@ -538,41 +538,6 @@ async def test_relay_mode_maps_neopool_error_to_service_validation_error(
 
 
 # ---------------------------------------------------------------------------
-# Winter mode guard
-# ---------------------------------------------------------------------------
-
-
-async def test_select_blocked_in_winter_mode(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """async_select_option short-circuits when winter_mode is on."""
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.winter_mode = True
-
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if (
-                ent.entity_id.startswith("select.")
-                and getattr(ent, "key", None) == "MBF_PAR_FILT_MODE"
-            ):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
-
-    mock_neopool_client.async_set_config_option.reset_mock()
-    await entity_obj.async_select_option("auto")
-    assert "Winter mode is active" in caplog.text
-    mock_neopool_client.async_set_config_option.assert_not_called()
-
-
-# ---------------------------------------------------------------------------
 # Platform-wide snapshots
 # ---------------------------------------------------------------------------
 
