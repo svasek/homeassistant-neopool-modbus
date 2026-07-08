@@ -294,7 +294,7 @@ async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) ->
     if option == "backwash":
         _LOGGER.info(
             'Your pool "%s" has been switched to the BACKWASH mode!',
-            NeoPoolEntity.slugify(entity.coordinator.entry.title),
+            NeoPoolEntity.slugify(entity.coordinator.config_entry.title),
         )
     value = next(
         (k for k, v in entity.entity_description.options_map.items() if v == option),
@@ -608,7 +608,7 @@ async def async_setup_entry(
     options = entry.options
 
     async_add_entities(
-        NeoPoolSelect(coordinator, entry.entry_id, key, desc)
+        NeoPoolSelect(coordinator, key, desc)
         for key, desc in SELECT_DESCRIPTIONS.items()
         if (
             (option_key := _ENTITY_OPTION_KEY.get(key)) is None
@@ -626,15 +626,16 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         key: str,
         description: NeoPoolSelectEntityDescription,
     ) -> None:
         """Initialize the NeoPool select entity."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self.entity_description = description
         self.key = key
-        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
+        self._attr_unique_id = (
+            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+        )
 
     @override
     async def async_select_option(self, option: str) -> None:
@@ -664,7 +665,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             # on controllers without an auto valve (present in `data`-driven filter).
             if (
                 self.key == "MBF_PAR_FILT_MODE"
-                and self.coordinator.entry.options.get(
+                and self.coordinator.config_entry.options.get(
                     CONF_ENABLE_BACKWASH_OPTION, False
                 )
                 and "backwash" not in options

@@ -45,10 +45,9 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     _attr_has_entity_name = True
     _winter_mode_active: bool = True
 
-    def __init__(self, coordinator: NeoPoolCoordinator, entry_id: str) -> None:
+    def __init__(self, coordinator: NeoPoolCoordinator) -> None:
         """Initialise the NeoPool base entity."""
         super().__init__(coordinator)
-        self._entry_id = entry_id
 
     @property
     @override
@@ -65,7 +64,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     def device_info(self) -> DeviceInfo:  # pragma: no cover
         """Return device information for the entity."""
         data = self.coordinator.data or {}
-        unique_id = self.coordinator.entry.unique_id
+        unique_id = self.coordinator.config_entry.unique_id
         assert unique_id is not None
         machine_type = (get_machine_name(data) or "").strip()
         # Hayward supplies the same NeoPool-compatible controller board to

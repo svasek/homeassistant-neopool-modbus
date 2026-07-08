@@ -104,7 +104,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
 
     async_add_entities(
-        NeoPoolTime(coordinator, entry.entry_id, key, desc)
+        NeoPoolTime(coordinator, key, desc)
         for key, desc in TIME_DESCRIPTIONS.items()
         if desc.supported_fn is None
         or desc.supported_fn(coordinator.data, entry.options)
@@ -119,15 +119,16 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         key: str,
         description: NeoPoolTimeEntityDescription,
     ) -> None:
         """Initialize the entity."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self.entity_description = description
         self._key = key
-        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
+        self._attr_unique_id = (
+            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+        )
 
         self._pending_write_task: asyncio.Task[None] | None = None
         self._debounce_delay = _DEBOUNCE_DELAY
@@ -186,7 +187,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
             DOMAIN,
             "set_timer",
             {
-                "entry_id": self._entry_id,
+                "entry_id": self.coordinator.config_entry.entry_id,
                 "timer": block,
                 "start": start,
                 "stop": stop,

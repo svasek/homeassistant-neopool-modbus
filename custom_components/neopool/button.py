@@ -67,10 +67,12 @@ async def _press_backwash(entity: "NeoPoolButton") -> None:
             "- ignoring backwash command for %s",
             data.get("MBF_PAR_FILTVALVE_ENABLE"),
             data.get("MBF_PAR_FILTVALVE_GPIO"),
-            entity.coordinator.entry.title,
+            entity.coordinator.config_entry.title,
         )
         return
-    _LOGGER.info("Starting backwash on device '%s'", entity.coordinator.entry.title)
+    _LOGGER.info(
+        "Starting backwash on device '%s'", entity.coordinator.config_entry.title
+    )
     await entity.coordinator.client.async_set_filtration_mode("backwash")
 
 
@@ -78,7 +80,7 @@ async def _press_reset_cell_partial(entity: "NeoPoolButton") -> None:
     """Reset the partial cell-runtime counter on the device."""
     _LOGGER.info(
         "Resetting partial cell runtime counter on device '%s'",
-        entity.coordinator.entry.title,
+        entity.coordinator.config_entry.title,
     )
     await entity.coordinator.client.async_reset_user_counters()
 
@@ -122,7 +124,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
 
     async_add_entities(
-        NeoPoolButton(coordinator, entry.entry_id, key, desc)
+        NeoPoolButton(coordinator, key, desc)
         for key, desc in BUTTON_DESCRIPTIONS.items()
         if desc.supported_fn is None or desc.supported_fn(coordinator.data)
     )
@@ -136,15 +138,16 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        entry_id: str,
         key: str,
         description: NeoPoolButtonEntityDescription,
     ) -> None:
         """Initialize the NeoPool button entity."""
-        super().__init__(coordinator, entry_id)
+        super().__init__(coordinator)
         self.entity_description = description
         self._key = key
-        self._attr_unique_id = f"{self.coordinator.entry.unique_id}_{key.lower()}"
+        self._attr_unique_id = (
+            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+        )
 
     @override
     async def async_press(self) -> None:
