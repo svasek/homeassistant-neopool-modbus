@@ -5,6 +5,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
+from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import (
     BinaryConfigFlag,
     BitmaskConfigFlag,
@@ -35,7 +36,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
@@ -323,7 +324,7 @@ async def test_climate_smart_uv_writes_to_function_register(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith(suffix)
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith(suffix)
     ]
     assert entries, (
         f"no switch entity with unique_id ending in {suffix}, found: "
@@ -332,7 +333,7 @@ async def test_climate_smart_uv_writes_to_function_register(
             for e in er.async_entries_for_config_entry(
                 registry, mock_config_entry.entry_id
             )
-            if e.domain == "switch"
+            if e.domain == SWITCH_DOMAIN
         )
     )
     entity_id = entries[0].entity_id
@@ -366,7 +367,7 @@ async def test_aux_relay_turn_on_writes_relay_index(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_aux1")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -413,7 +414,7 @@ async def test_aux_relay_turn_on_raises_when_not_in_manual_mode(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith(f"_{aux_key}")
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith(f"_{aux_key}")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -456,7 +457,7 @@ async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_aux1")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -471,6 +472,36 @@ async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
     assert exc.value.translation_key == "relay_in_auto_mode"
 
 
+@pytest.mark.parametrize(
+    "write_error",
+    [
+        pytest.param(NeoPoolConnectionError("boom"), id="lib-connection-error"),
+        pytest.param(TimeoutError("boom"), id="timeout"),
+        pytest.param(OSError("boom"), id="os-error"),
+    ],
+)
+async def test_aux_relay_maps_communication_error_to_home_assistant_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    write_error: Exception,
+) -> None:
+    """Communication errors on switch write are surfaced as translated HomeAssistantError."""
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_aux1")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    mock_neopool_client.async_set_relay_state.side_effect = write_error
+    with pytest.raises(HomeAssistantError):
+        await _turn_on(hass, entity_id)
+
+
 async def test_filtration_switch_maps_filtration_reason_to_dedicated_key(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
@@ -482,7 +513,8 @@ async def test_filtration_switch_maps_filtration_reason_to_dedicated_key(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_mbf_par_filt_manual_state")
+        if e.domain == SWITCH_DOMAIN
+        and e.unique_id.endswith("_mbf_par_filt_manual_state")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -525,7 +557,8 @@ async def test_hidro_cover_enable_bitmask_writes_or_pattern(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_mbf_par_hidro_cover_enable")
+        if e.domain == SWITCH_DOMAIN
+        and e.unique_id.endswith("_mbf_par_hidro_cover_enable")
     ]
     if not entries:
         pytest.skip("hidro cover enable switch not registered")

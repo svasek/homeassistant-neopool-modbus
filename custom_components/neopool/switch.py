@@ -24,6 +24,7 @@ from neopool_modbus.capabilities import (
     is_hydrolysis_present,
     is_temperature_active,
 )
+from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     HIDRO_COVER_ENABLE_BIT,
     HIDRO_TEMP_SHUTDOWN_BIT,
@@ -37,7 +38,7 @@ from neopool_modbus.registers import (
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
@@ -373,6 +374,12 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key=translation_key,
+            ) from err
+        except (NeoPoolError, OSError, TimeoutError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="modbus_communication_error",
+                translation_placeholders={"error": str(err)},
             ) from err
 
         # Merge the library's optimistic-update dict into the coordinator cache

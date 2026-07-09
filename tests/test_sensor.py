@@ -20,7 +20,7 @@ from custom_components.neopool.const import (
     DOMAIN,
 )
 from custom_components.neopool.sensor import SENSOR_DESCRIPTIONS
-from homeassistant.components.sensor import ATTR_OPTIONS
+from homeassistant.components.sensor import ATTR_OPTIONS, DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT, STATE_UNKNOWN, Platform
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
@@ -237,7 +237,7 @@ async def test_filtration_pump_energy_sensor_registers_when_power_set(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if e.domain == "sensor" and e.unique_id.endswith("_filtration_pump_energy")
+        if e.domain == SENSOR_DOMAIN and e.unique_id.endswith("_filtration_pump_energy")
     ]
     assert entries, "expected filtration_pump_energy sensor when pump_power > 0"
 
@@ -518,7 +518,7 @@ async def test_cell_runtime_sensors_skipped_without_hydrolysis(
     cell_entities = [
         e
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if e.domain == "sensor" and "cell_runtime" in e.unique_id
+        if e.domain == SENSOR_DOMAIN and "cell_runtime" in e.unique_id
     ]
     assert cell_entities == []
 

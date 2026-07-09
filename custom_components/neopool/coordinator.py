@@ -27,6 +27,7 @@ from neopool_modbus.registers import (
     TIMER_BLOCKS,
     SetpointKind,
     find_corrupted_gpio_registers,
+    is_valid_relay_gpio,
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -115,9 +116,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _schedule_follow_up_refresh(self, delay: float) -> None:
         """Schedule a delayed follow-up refresh."""
-        if self._follow_up_unsub:
-            self._follow_up_unsub()
-            self._follow_up_unsub = None
+        self.cancel_follow_up_refresh()
 
         @callback
         def _do_refresh(_now: Any) -> None:
@@ -165,7 +164,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Clear a previously raised repair issue once the device is healthy.
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
 
-    def _get_enabled_timers(self) -> list[str]:
+    def _get_enabled_timers(self, data: dict[str, Any]) -> list[str]:
         """Return the list of timer block names enabled in entry options."""
         options = self.config_entry.options
         enabled: list[str] = []
@@ -176,8 +175,15 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 option_key = CONF_USE_LIGHT
             else:
                 option_key = f"use_{key}"
-            if options.get(option_key, False):
-                enabled.append(key)
+            if not options.get(option_key, False):
+                continue
+            # Skip if the lighting GPIO is invalid; the light entity gates
+            # on the same condition, so relay_light_enable has no consumer.
+            if key == "relay_light" and not is_valid_relay_gpio(
+                data.get("MBF_PAR_LIGHTING_GPIO", 0) or 0
+            ):
+                continue
+            enabled.append(key)
         for ft in _FILT_TIMERS:
             if ft not in enabled:
                 enabled.append(ft)
@@ -190,7 +196,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             prev_remaining and prev_remaining > 0
         )
         timers = await self.client.read_all_timers(
-            enabled_timers=self._get_enabled_timers(),
+            enabled_timers=self._get_enabled_timers(data),
             force_read=_FILT_TIMERS if filtration_active else None,
         )
         for t_name, t in timers.items():

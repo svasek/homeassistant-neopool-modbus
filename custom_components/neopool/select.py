@@ -56,7 +56,7 @@ from neopool_modbus.registers import (
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
@@ -211,14 +211,7 @@ async def _write_timer_period(
             period_value = int(option)
         except (TypeError, ValueError):  # pragma: no cover
             return
-    try:
-        await client.write_timer(timer_name, {"period": period_value})
-    except (NeoPoolError, OSError) as err:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="timer_failed",
-            translation_placeholders={"error": str(err)},
-        ) from err
+    await client.write_timer(timer_name, {"period": period_value})
     entity.coordinator.request_refresh_with_followup()
 
 
@@ -246,14 +239,7 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
         return
     relay = _RELAY_MODE_ENTITY_KIND[entity.key]
     mode = RelayMode.AUTO if option == "auto" else RelayMode.ALWAYS_OFF
-    try:
-        overrides = await client.async_set_relay_mode(relay, mode)
-    except (NeoPoolError, OSError) as err:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="timer_failed",
-            translation_placeholders={"error": str(err)},
-        ) from err
+    overrides = await client.async_set_relay_mode(relay, mode)
     entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
 
@@ -640,7 +626,14 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Handle option selection by dispatching to the description write_fn."""
         write_fn = self.entity_description.write_fn or _write_default_register
-        await write_fn(self, self.coordinator.client, option)
+        try:
+            await write_fn(self, self.coordinator.client, option)
+        except (NeoPoolError, OSError, TimeoutError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="modbus_communication_error",
+                translation_placeholders={"error": str(err)},
+            ) from err
 
     @property
     @override

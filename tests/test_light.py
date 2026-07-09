@@ -4,6 +4,7 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from neopool_modbus import NeoPoolInvalidStateError
+from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import RelayKind, TimerRelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import (
@@ -21,7 +22,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
@@ -33,9 +34,9 @@ def _light_entity_id(hass: HomeAssistant, entry: MockConfigEntry) -> str:
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if e.domain == "light"
+        if e.domain == LIGHT_DOMAIN
     ]
-    assert entries, "expected exactly one neopool light entity"
+    assert len(entries) == 1, "expected exactly one neopool light entity"
     return entries[0].entity_id
 
 
@@ -78,8 +79,7 @@ async def test_light_turn_on_off_writes_to_relay_timer(
     mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
         RelayKind.LIGHT, True
     )
-    coordinator = mock_config_entry.runtime_data
-    assert coordinator.data.get("Pool Light") is True
+    assert hass.states.get(entity_id).state == STATE_ON
 
     mock_neopool_client.async_set_relay_state = AsyncMock(
         return_value={"Pool Light": False}
@@ -89,7 +89,7 @@ async def test_light_turn_on_off_writes_to_relay_timer(
     mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
         RelayKind.LIGHT, False
     )
-    assert coordinator.data.get("Pool Light") is False
+    assert hass.states.get(entity_id).state == STATE_OFF
 
 
 async def test_light_is_on_reflects_relay_enable(
@@ -136,11 +136,14 @@ async def test_light_is_on_reflects_relay_enable(
     assert hass.states.get(entity_id).state == STATE_ON
 
 
+_MISSING = object()
+
+
 @pytest.mark.parametrize(
     "enable_value",
     [
         pytest.param(TimerRelayMode.ENABLED, id="auto"),
-        pytest.param(None, id="missing"),
+        pytest.param(_MISSING, id="missing"),
         pytest.param(0, id="disabled"),
         pytest.param(2, id="unknown-state"),
     ],
@@ -150,14 +153,14 @@ async def test_light_turn_on_raises_when_not_in_manual_mode(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer,
-    enable_value: int | None,
+    enable_value: object,
 ) -> None:
     """Light refuses to fire unless the relay is in a manual mode."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _light_entity_id(hass, mock_config_entry)
 
     data = {**MOCK_POOL_DATA}
-    if enable_value is None:
+    if enable_value is _MISSING:
         data.pop("relay_light_enable", None)
     else:
         data["relay_light_enable"] = enable_value
@@ -198,6 +201,32 @@ async def test_light_turn_on_maps_lib_invalid_state_to_service_validation_error(
     )
 
     with pytest.raises(ServiceValidationError):
+        await _turn_on(hass, entity_id)
+    mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
+        RelayKind.LIGHT, True
+    )
+
+
+@pytest.mark.parametrize(
+    "write_error",
+    [
+        pytest.param(NeoPoolConnectionError("boom"), id="lib-connection-error"),
+        pytest.param(TimeoutError("boom"), id="timeout"),
+        pytest.param(OSError("boom"), id="os-error"),
+    ],
+)
+async def test_light_turn_on_maps_communication_error_to_home_assistant_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    write_error: Exception,
+) -> None:
+    """Communication errors on write are surfaced as translated HomeAssistantError."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _light_entity_id(hass, mock_config_entry)
+
+    mock_neopool_client.async_set_relay_state = AsyncMock(side_effect=write_error)
+    with pytest.raises(HomeAssistantError):
         await _turn_on(hass, entity_id)
     mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
         RelayKind.LIGHT, True

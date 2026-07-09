@@ -20,12 +20,15 @@ import logging
 from typing import Any, override
 
 from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
+from neopool_modbus.exceptions import NeoPoolError
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 from .helpers import prepare_device_time
@@ -151,5 +154,12 @@ class NeoPoolButton(NeoPoolEntity, ButtonEntity):
     @override
     async def async_press(self) -> None:
         """Dispatch to the description's press handler."""
-        await self.entity_description.press_fn(self)
+        try:
+            await self.entity_description.press_fn(self)
+        except (NeoPoolError, OSError, TimeoutError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="modbus_communication_error",
+                translation_placeholders={"error": str(err)},
+            ) from err
         await self.coordinator.async_request_refresh()
