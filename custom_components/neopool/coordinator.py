@@ -310,6 +310,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         try:
             data = await self.client.async_read_all()
+            await self._read_timers_into_data(data)
+
+            if self.auto_time_sync and is_device_time_out_of_sync(data, self.hass):
+                _LOGGER.debug("Device time is out of sync, updating")
+                await self.client.async_sync_device_time(prepare_device_time(self.hass))
         except (NeoPoolError, OSError, TimeoutError) as err:
             raise UpdateFailed(
                 translation_domain=DOMAIN,
@@ -319,18 +324,12 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._check_gpio_registers(data)
 
-        await self._read_timers_into_data(data)
-
         pump_power = max(
             0, int(self.config_entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
         )
         data[CONF_FILTRATION_PUMP_POWER] = (
             pump_power if data.get("Filtration Pump") else 0
         )
-
-        if self.auto_time_sync and is_device_time_out_of_sync(data, self.hass):
-            _LOGGER.debug("Device time is out of sync, updating")
-            await self.client.async_sync_device_time(prepare_device_time(self.hass))
 
         # CUSTOM-ONLY START
         self._apply_dev_overrides(data)

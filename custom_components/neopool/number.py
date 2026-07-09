@@ -362,8 +362,9 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
                 )
             else:  # pragma: no cover - description validated upstream
                 return
-            self.coordinator.data.update(overrides)
-            self.coordinator.async_set_updated_data(self.coordinator.data)
+            self.coordinator.async_set_updated_data(
+                {**self.coordinator.data, **overrides}
+            )
             await self.coordinator.async_request_refresh()
         except asyncio.CancelledError:  # pragma: no cover
             pass
