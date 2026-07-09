@@ -18,7 +18,7 @@ from custom_components.neopool.const import (
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
@@ -509,31 +509,31 @@ async def test_relay_mode_manual_to_manual_is_noop(
     mock_neopool_client.async_set_relay_mode.assert_not_awaited()
 
 
-async def test_timer_period_maps_neopool_error_to_service_validation_error(
+async def test_timer_period_maps_communication_error_to_home_assistant_error(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """A NeoPoolError from write_timer surfaces as a translated ServiceValidationError."""
+    """A NeoPoolError from write_timer surfaces as a translated HomeAssistantError."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(hass, mock_config_entry, "relay_aux1_period")
     mock_neopool_client.write_timer = AsyncMock(side_effect=NeoPoolError("boom"))
-    with pytest.raises(ServiceValidationError):
+    with pytest.raises(HomeAssistantError):
         await _select_option(hass, entity_id, "1_week")
 
 
-async def test_relay_mode_maps_neopool_error_to_service_validation_error(
+async def test_relay_mode_maps_communication_error_to_home_assistant_error(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """A NeoPoolError from async_set_relay_mode surfaces as a translated ServiceValidationError."""
+    """A NeoPoolError from async_set_relay_mode surfaces as a translated HomeAssistantError."""
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(hass, mock_config_entry, "relay_aux1_mode")
     mock_neopool_client.async_set_relay_mode = AsyncMock(
         side_effect=NeoPoolError("boom"),
     )
-    with pytest.raises(ServiceValidationError):
+    with pytest.raises(HomeAssistantError):
         await _select_option(hass, entity_id, "auto")
 
 

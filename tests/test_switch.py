@@ -5,6 +5,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
+from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import (
     BinaryConfigFlag,
     BitmaskConfigFlag,
@@ -35,7 +36,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
@@ -469,6 +470,36 @@ async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
     with pytest.raises(ServiceValidationError) as exc:
         await _turn_on(hass, entity_id)
     assert exc.value.translation_key == "relay_in_auto_mode"
+
+
+@pytest.mark.parametrize(
+    "write_error",
+    [
+        pytest.param(NeoPoolConnectionError("boom"), id="lib-connection-error"),
+        pytest.param(TimeoutError("boom"), id="timeout"),
+        pytest.param(OSError("boom"), id="os-error"),
+    ],
+)
+async def test_aux_relay_maps_communication_error_to_home_assistant_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    write_error: Exception,
+) -> None:
+    """Communication errors on switch write are surfaced as translated HomeAssistantError."""
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    mock_neopool_client.async_set_relay_state.side_effect = write_error
+    with pytest.raises(HomeAssistantError):
+        await _turn_on(hass, entity_id)
 
 
 async def test_filtration_switch_maps_filtration_reason_to_dedicated_key(

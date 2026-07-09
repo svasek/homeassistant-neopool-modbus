@@ -4,6 +4,7 @@ import asyncio
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import MaskedFlag, SetpointKind
 import pytest
 from pytest_homeassistant_custom_component.common import (
@@ -335,6 +336,41 @@ async def test_masked_number_write_preserves_other_byte(
     # The optimistic-update dict is merged into coordinator data so the
     # decoded native_value reflects the new field.
     assert cover_obj.native_value == 50
+
+
+@pytest.mark.parametrize(
+    "write_error",
+    [
+        pytest.param(NeoPoolConnectionError("boom"), id="lib-connection-error"),
+        pytest.param(TimeoutError("boom"), id="timeout"),
+        pytest.param(OSError("boom"), id="os-error"),
+    ],
+)
+async def test_number_debounced_write_logs_communication_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    caplog: pytest.LogCaptureFixture,
+    write_error: Exception,
+) -> None:
+    """Communication errors in the debounced write are logged, not raised.
+
+    The debounced write runs as a background task, so raising would surface
+    as an unhandled task exception. The next successful poll restores the
+    entity state.
+    """
+    mock_neopool_client.async_set_setpoint = AsyncMock(side_effect=write_error)
+    await setup_integration(hass, mock_config_entry)
+    _disable_debounce(hass)
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry, "mbf_par_ph1")
+    ph1_obj = _entity_by_id(hass, ph1_entity_id)
+
+    caplog.clear()
+    await _set_value(hass, ph1_entity_id, 7.5)
+    await _flush_debounce(hass, ph1_obj)
+
+    mock_neopool_client.async_set_setpoint.assert_awaited_once()
+    assert "Failed to write" in caplog.text
 
 
 # ---------------------------------------------------------------------------

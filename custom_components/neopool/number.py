@@ -17,6 +17,7 @@
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass
+import logging
 from typing import Any, override
 
 from neopool_modbus.capabilities import (
@@ -27,6 +28,7 @@ from neopool_modbus.capabilities import (
     is_temperature_active,
 )
 from neopool_modbus.decoders import is_hydrolysis_in_percent
+from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     HIDRO_COVER_REDUCTION_MASK,
     HIDRO_COVER_REDUCTION_SHIFT,
@@ -56,6 +58,8 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import CONF_USE_COVER_SENSOR
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 1
 
@@ -368,6 +372,9 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
             await self.coordinator.async_request_refresh()
         except asyncio.CancelledError:  # pragma: no cover
             pass
+        except (NeoPoolError, OSError, TimeoutError) as err:
+            # Background write: log and drop; the next poll restores state.
+            _LOGGER.warning("Failed to write %s: %s", self.entity_description.key, err)
 
     @property
     def suggested_display_precision(self) -> int | None:

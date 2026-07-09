@@ -3,6 +3,7 @@
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
+from neopool_modbus.exceptions import NeoPoolConnectionError
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -14,6 +15,7 @@ from custom_components.neopool.const import DOMAIN
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
@@ -175,6 +177,29 @@ async def test_reset_cell_partial_button_skipped_without_hydrolysis(
         if e.domain == "button" and e.unique_id.endswith("_reset_cell_partial")
     ]
     assert matches == []
+
+
+@pytest.mark.parametrize(
+    "write_error",
+    [
+        pytest.param(NeoPoolConnectionError("boom"), id="lib-connection-error"),
+        pytest.param(TimeoutError("boom"), id="timeout"),
+        pytest.param(OSError("boom"), id="os-error"),
+    ],
+)
+async def test_button_press_maps_communication_error_to_home_assistant_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    write_error: Exception,
+) -> None:
+    """Communication errors on button press are surfaced as translated HomeAssistantError."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _button_entity_id(hass, mock_config_entry, "sync_time")
+
+    mock_neopool_client.async_sync_device_time.side_effect = write_error
+    with pytest.raises(HomeAssistantError):
+        await _press(hass, entity_id)
 
 
 # ---------------------------------------------------------------------------
