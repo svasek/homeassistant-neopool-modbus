@@ -151,8 +151,9 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
     async def async_set_value(self, value: dt_time) -> None:
         """Apply optimistically, then debounce-write to the device."""
         seconds = value.hour * 3600 + value.minute * 60 + value.second
-        self.coordinator.data[self._key] = seconds
-        self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.async_set_updated_data(
+            {**self.coordinator.data, self._key: seconds}
+        )
 
         if self._pending_write_task is not None and not self._pending_write_task.done():
             self._pending_write_task.cancel()

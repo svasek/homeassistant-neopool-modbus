@@ -195,8 +195,8 @@ async def _write_config_option(
     write_val = max(0, value + desc.write_offset)
     await client.async_set_config_option(desc.config_kind, write_val)
     await asyncio.sleep(0.2)
-    entity.apply_optimistic_update(value)
-    entity.coordinator.async_set_updated_data(entity.coordinator.data)
+    overrides = entity.apply_optimistic_update(value)
+    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
 
 
@@ -254,8 +254,7 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
             translation_key="timer_failed",
             translation_placeholders={"error": str(err)},
         ) from err
-    entity.coordinator.data.update(overrides)
-    entity.coordinator.async_set_updated_data(entity.coordinator.data)
+    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
 
 
@@ -300,8 +299,8 @@ async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) ->
         (k for k, v in entity.entity_description.options_map.items() if v == option),
         None,
     )
-    entity.apply_optimistic_update(value)
-    entity.coordinator.async_set_updated_data(entity.coordinator.data)
+    overrides = entity.apply_optimistic_update(value)
+    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
 
 
@@ -319,8 +318,8 @@ async def _write_default_register(
     if value is None:  # pragma: no cover
         return
     await client.async_set_config_option(desc.config_kind, value)
-    entity.apply_optimistic_update(value)
-    entity.coordinator.async_set_updated_data(entity.coordinator.data)
+    overrides = entity.apply_optimistic_update(value)
+    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
 
 
@@ -697,19 +696,19 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
         return list(desc.options_map.values())
 
-    def apply_optimistic_update(self, value: int | None) -> None:
-        """Apply an optimistic state update to coordinator data."""
+    def apply_optimistic_update(self, value: int | None) -> dict[str, Any]:
+        """Return the coordinator-data overrides for an optimistic state update."""
         if value is None:  # pragma: no cover
-            return
+            return {}
         desc = self.entity_description
-        data = self.coordinator.data
         if self.key in (
             "MBF_PAR_FILT_MODE",
             "MBF_PAR_FILTVALVE_MODE",
         ):
-            data[self.key] = value
-        elif desc.select_type == "mapped_register":
-            data[self.key] = value
+            return {self.key: value}
+        if desc.select_type == "mapped_register":
+            return {self.key: value}
+        return {}  # pragma: no cover - selects without optimistic update
 
     @property
     @override

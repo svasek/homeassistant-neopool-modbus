@@ -320,6 +320,12 @@ async def test_masked_number_write_preserves_other_byte(
 
     mock_neopool_client.async_set_masked_register.reset_mock()
     await _set_value(hass, cover_entity_id, 50)
+    # Reflect the write in future polls so async_request_refresh doesn't stomp
+    # the optimistic-update overrides with a stale read.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C32,
+    }
     await _flush_debounce(hass, cover_obj)
 
     # Entity passes the raw *field* value (50, not the packed 0x0C32).

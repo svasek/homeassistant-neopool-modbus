@@ -377,8 +377,7 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
 
         # Merge the library's optimistic-update dict into the coordinator cache
         # so the UI reflects the new state immediately.
-        self.coordinator.data.update(overrides)
-        self.coordinator.async_set_updated_data(self.coordinator.data)
+        self.coordinator.async_set_updated_data({**self.coordinator.data, **overrides})
         self.coordinator.request_refresh_with_followup()
 
     @property
