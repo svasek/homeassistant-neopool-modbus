@@ -73,6 +73,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entry: NeoPoolConfigEntry,
     ) -> None:
         """Initialise the NeoPool data update coordinator."""
+        update_interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
         # CUSTOM-ONLY START, HACS-only per-instance polling-interval override.
         update_interval = timedelta(
             seconds=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)

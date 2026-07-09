@@ -53,15 +53,18 @@ CONF_USE_AUX1 = "use_aux1"
 CONF_USE_AUX2 = "use_aux2"
 CONF_USE_AUX3 = "use_aux3"
 CONF_USE_AUX4 = "use_aux4"
-CONF_ENABLE_BACKWASH_OPTION = "enable_backwash_option"
 
-# Internal/HACS-only option keys (not surfaced in the base options step).
-CONF_SCAN_INTERVAL = "scan_interval"
+# Internal option keys
 CONF_AUTO_TIME_SYNC = "auto_time_sync"
 CONF_WINTER_MODE = "winter_mode"
 CONF_CAPABILITIES = "_capabilities"
+
+# CUSTOM-ONLY START
+CONF_ENABLE_BACKWASH_OPTION = "enable_backwash_option"
+CONF_SCAN_INTERVAL = "scan_interval"
 CONF_DEV_OVERRIDES_ENABLED = "dev_overrides_enabled"
 CONF_DEV_OVERRIDES = "dev_overrides"
+# CUSTOM-ONLY END
 
 CURRENT_VERSION = 6
 

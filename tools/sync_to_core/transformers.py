@@ -7,7 +7,9 @@ the script easy to reason about when something doesn't match.
 
 from __future__ import annotations
 
+import io
 import re
+import tokenize
 
 from .config import (
     EXCLUDE_INTEGRATION_FILES,
@@ -40,16 +42,6 @@ _DOCSTRING_LINE = re.compile(r'^[ \t]+""".*"""[ \t]*$')
 # keep the code on that line. Whitespace before the `#` is also eaten
 # so we don't leave dangling spaces.
 _PRAGMA_NO_COVER = re.compile(r"[ \t]*#[ \t]*pragma:[ \t]*no cover[^\n]*")
-
-# Matches a full-line comment (optional leading whitespace, then `#`).
-# Used by strip_inline_comments to drop standalone comment lines from
-# test files — core reviewers expect comment-free test code.
-_FULL_LINE_COMMENT = re.compile(r"^[ \t]*#[^\n]*\n?", flags=re.MULTILINE)
-
-# Matches a trailing inline comment on a code line. We only strip the
-# comment portion, not the code. The negative lookbehind avoids matching
-# `#` inside strings — good enough for our controlled test sources.
-_TRAILING_COMMENT = re.compile(r"[ \t]+#[^\n]*")
 
 
 # Module names we strip imports for, derived from EXCLUDE_INTEGRATION_FILES
@@ -219,13 +211,33 @@ def strip_pragma_no_cover(source: str) -> str:
 def strip_inline_comments(source: str) -> str:
     """Remove all ``#``-style comments from Python source.
 
-    Full-line comment lines (including section headers like ``# ---``) are
-    dropped entirely. Trailing inline comments are stripped from code lines
-    while leaving the code intact. Module/function/class docstrings are not
-    touched — they are string literals, not comments.
+    Full-line comments are dropped; trailing comments are stripped, keeping
+    the code. A ``#`` inside a string or docstring (e.g. ``"since PR #206"``)
+    is left alone: we key off the tokenizer's ``COMMENT`` tokens, not a naive
+    ``#`` regex that would truncate the string. Whitespace left behind is
+    normalised by the later ``ruff format`` pass.
     """
-    source = _FULL_LINE_COMMENT.sub("", source)
-    return _TRAILING_COMMENT.sub("", source)
+    comment_cols: dict[int, int] = {}
+    reader = io.StringIO(source).readline
+    for tok in tokenize.generate_tokens(reader):
+        if tok.type == tokenize.COMMENT:
+            # Comments are single-line; keep the earliest comment column.
+            row, col = tok.start
+            if row not in comment_cols or col < comment_cols[row]:
+                comment_cols[row] = col
+
+    out: list[str] = []
+    for lineno, line in enumerate(source.splitlines(keepends=True), start=1):
+        if lineno not in comment_cols:
+            out.append(line)
+            continue
+        before = line[: comment_cols[lineno]]
+        if before.strip() == "":
+            # Whole-line comment — drop the line entirely.
+            continue
+        # Trailing comment — keep the code, drop trailing whitespace + `#…`.
+        out.append(before.rstrip() + "\n")
+    return "".join(out)
 
 
 def apply_python_replacements(source: str) -> str:

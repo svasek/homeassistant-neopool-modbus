@@ -40,7 +40,6 @@ from homeassistant.util import dt as dt_util, slugify
 
 # CUSTOM-ONLY END
 from .const import (
-    # CUSTOM-ONLY START
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_ENABLE_BACKWASH_OPTION,
@@ -61,7 +60,6 @@ from .const import (
     CURRENT_VERSION,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
-    # CUSTOM-ONLY END
     DEFAULT_UNIT_ID,
     DOMAIN,
 )
