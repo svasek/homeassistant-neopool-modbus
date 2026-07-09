@@ -79,8 +79,7 @@ async def test_light_turn_on_off_writes_to_relay_timer(
     mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
         RelayKind.LIGHT, True
     )
-    coordinator = mock_config_entry.runtime_data
-    assert coordinator.data.get("Pool Light") is True
+    assert hass.states.get(entity_id).state == STATE_ON
 
     mock_neopool_client.async_set_relay_state = AsyncMock(
         return_value={"Pool Light": False}
@@ -90,7 +89,7 @@ async def test_light_turn_on_off_writes_to_relay_timer(
     mock_neopool_client.async_set_relay_state.assert_awaited_once_with(
         RelayKind.LIGHT, False
     )
-    assert coordinator.data.get("Pool Light") is False
+    assert hass.states.get(entity_id).state == STATE_OFF
 
 
 async def test_light_is_on_reflects_relay_enable(
