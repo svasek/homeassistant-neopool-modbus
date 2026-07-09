@@ -164,10 +164,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Clear a previously raised repair issue once the device is healthy.
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
 
-    def _get_enabled_timers(self) -> list[str]:
+    def _get_enabled_timers(self, data: dict[str, Any]) -> list[str]:
         """Return the list of timer block names enabled in entry options."""
         options = self.config_entry.options
-        data = self.data or {}
         enabled: list[str] = []
         for key in TIMER_BLOCKS:
             if key.startswith("relay_aux"):
@@ -197,7 +196,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             prev_remaining and prev_remaining > 0
         )
         timers = await self.client.read_all_timers(
-            enabled_timers=self._get_enabled_timers(),
+            enabled_timers=self._get_enabled_timers(data),
             force_read=_FILT_TIMERS if filtration_active else None,
         )
         for t_name, t in timers.items():
