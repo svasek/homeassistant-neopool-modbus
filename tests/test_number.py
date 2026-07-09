@@ -136,6 +136,36 @@ async def test_simple_number_writes_register_after_debounce(
     )
 
 
+async def test_scaled_setpoint_optimistic_value_is_ui_scaled(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Optimistic native_value after a scaled setpoint write is UI-scaled.
+
+    The lib override carries the raw register value (7.5 pH -> 750), but
+    coordinator data holds the decoded value that native_value reads back
+    verbatim. Regression guard: the merged optimistic value must be 7.5,
+    not 750. The refresh poll is stubbed out so it cannot mask the merge.
+    """
+    mock_neopool_client.async_set_setpoint = AsyncMock(
+        return_value={"MBF_PAR_PH1": 750}
+    )
+
+    await setup_integration(hass, mock_config_entry)
+    _disable_debounce(hass)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry, "mbf_par_ph1")
+    ph1_obj = _entity_by_id(hass, ph1_entity_id)
+
+    with patch.object(ph1_obj.coordinator, "async_request_refresh", AsyncMock()):
+        await _set_value(hass, ph1_entity_id, 7.5)
+        await _flush_debounce(hass, ph1_obj)
+
+    assert ph1_obj.coordinator.data["MBF_PAR_PH1"] == 7.5
+    assert ph1_obj.native_value == 7.5
+
+
 async def test_heating_setpoint_mirrors_to_intelligent(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,

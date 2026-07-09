@@ -357,9 +357,12 @@ class NeoPoolNumber(NeoPoolEntity, NumberEntity):
         desc = self.entity_description
         try:
             await asyncio.sleep(self._debounce_delay)
-            raw = int((self._pending_value or 0) * desc.scale)
+            pending = self._pending_value or 0
+            raw = int(pending * desc.scale)
             if desc.setpoint is not None:
-                overrides = await client.async_set_setpoint(desc.setpoint, raw)
+                await client.async_set_setpoint(desc.setpoint, raw)
+                # Merge the decoded value; native_value reads it back verbatim.
+                overrides = {self._data_key: pending}
             elif desc.masked_flag is not None:
                 overrides = await client.async_set_masked_register(
                     desc.masked_flag, raw
