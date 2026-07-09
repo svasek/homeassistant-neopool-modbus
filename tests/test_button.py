@@ -30,7 +30,7 @@ def _button_entity_id(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if e.domain == "button" and e.unique_id.endswith(f"_{key_lower}")
+        if e.domain == BUTTON_DOMAIN and e.unique_id.endswith(f"_{key_lower}")
     ]
     assert entries, f"no button entity ending in _{key_lower}"
     return entries[0].entity_id
@@ -152,7 +152,7 @@ async def test_reset_cell_partial_button_disabled_by_default(
     matches = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "button" and e.unique_id.endswith("_reset_cell_partial")
+        if e.domain == BUTTON_DOMAIN and e.unique_id.endswith("_reset_cell_partial")
     ]
     assert len(matches) == 1
     assert matches[0].disabled_by is er.RegistryEntryDisabler.INTEGRATION
@@ -174,7 +174,7 @@ async def test_reset_cell_partial_button_skipped_without_hydrolysis(
     matches = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "button" and e.unique_id.endswith("_reset_cell_partial")
+        if e.domain == BUTTON_DOMAIN and e.unique_id.endswith("_reset_cell_partial")
     ]
     assert matches == []
 

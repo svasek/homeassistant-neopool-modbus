@@ -33,14 +33,14 @@ def _number_entity_id(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if e.domain == "number" and e.unique_id.endswith(f"_{key_lower_suffix}")
+        if e.domain == NUMBER_DOMAIN and e.unique_id.endswith(f"_{key_lower_suffix}")
     ]
     assert entries, (
         f"no number entity ending in _{key_lower_suffix}, found: "
         + ", ".join(
             e.unique_id
             for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-            if e.domain == "number"
+            if e.domain == NUMBER_DOMAIN
         )
     )
     return entries[0].entity_id

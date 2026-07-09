@@ -324,7 +324,7 @@ async def test_climate_smart_uv_writes_to_function_register(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith(suffix)
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith(suffix)
     ]
     assert entries, (
         f"no switch entity with unique_id ending in {suffix}, found: "
@@ -333,7 +333,7 @@ async def test_climate_smart_uv_writes_to_function_register(
             for e in er.async_entries_for_config_entry(
                 registry, mock_config_entry.entry_id
             )
-            if e.domain == "switch"
+            if e.domain == SWITCH_DOMAIN
         )
     )
     entity_id = entries[0].entity_id
@@ -367,7 +367,7 @@ async def test_aux_relay_turn_on_writes_relay_index(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_aux1")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -414,7 +414,7 @@ async def test_aux_relay_turn_on_raises_when_not_in_manual_mode(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith(f"_{aux_key}")
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith(f"_{aux_key}")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -457,7 +457,7 @@ async def test_aux_relay_maps_lib_invalid_state_to_service_validation_error(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_aux1")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -492,7 +492,7 @@ async def test_aux_relay_maps_communication_error_to_home_assistant_error(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_aux1")
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_aux1")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -513,7 +513,8 @@ async def test_filtration_switch_maps_filtration_reason_to_dedicated_key(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_mbf_par_filt_manual_state")
+        if e.domain == SWITCH_DOMAIN
+        and e.unique_id.endswith("_mbf_par_filt_manual_state")
     ]
     assert entries
     entity_id = entries[0].entity_id
@@ -556,7 +557,8 @@ async def test_hidro_cover_enable_bitmask_writes_or_pattern(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
-        if e.domain == "switch" and e.unique_id.endswith("_mbf_par_hidro_cover_enable")
+        if e.domain == SWITCH_DOMAIN
+        and e.unique_id.endswith("_mbf_par_hidro_cover_enable")
     ]
     if not entries:
         pytest.skip("hidro cover enable switch not registered")

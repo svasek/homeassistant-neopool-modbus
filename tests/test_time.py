@@ -28,14 +28,14 @@ def _time_entity_id(
     entries = [
         e
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if e.domain == "time" and e.unique_id.endswith(f"_{key_lower_suffix}")
+        if e.domain == TIME_DOMAIN and e.unique_id.endswith(f"_{key_lower_suffix}")
     ]
     assert entries, (
         f"no time entity ending in _{key_lower_suffix} - found: "
         + ", ".join(
             e.unique_id
             for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-            if e.domain == "time"
+            if e.domain == TIME_DOMAIN
         )
     )
     return entries[0].entity_id
