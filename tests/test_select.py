@@ -485,10 +485,8 @@ async def test_relay_mode_select_switches_via_lib_api(
     mock_neopool_client.async_set_relay_mode.assert_awaited_once_with(
         RelayKind.AUX1, RelayMode.AUTO
     )
-    # The returned overrides merge into coordinator data.
-    coordinator = mock_config_entry.runtime_data
-    assert coordinator.data["relay_aux1_enable"] == 1
-    assert coordinator.data["AUX1"] is False
+    # The returned overrides merge in optimistically: the select now reads auto.
+    assert hass.states.get(entity_id).state == "auto"
 
 
 async def test_relay_mode_manual_to_manual_is_noop(

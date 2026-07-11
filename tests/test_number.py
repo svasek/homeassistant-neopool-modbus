@@ -144,9 +144,9 @@ async def test_scaled_setpoint_optimistic_value_is_ui_scaled(
     """Optimistic native_value after a scaled setpoint write is UI-scaled.
 
     The lib override carries the raw register value (7.5 pH -> 750), but
-    coordinator data holds the decoded value that native_value reads back
-    verbatim. Regression guard: the merged optimistic value must be 7.5,
-    not 750. The refresh poll is stubbed out so it cannot mask the merge.
+    native_value must read back the decoded value. Regression guard: the
+    merged optimistic value must surface as 7.5, not 750. The refresh poll
+    is stubbed out so it cannot mask the merge.
     """
     mock_neopool_client.async_set_setpoint = AsyncMock(
         return_value={"MBF_PAR_PH1": 750}
@@ -162,7 +162,6 @@ async def test_scaled_setpoint_optimistic_value_is_ui_scaled(
         await _set_value(hass, ph1_entity_id, 7.5)
         await _flush_debounce(hass, ph1_obj)
 
-    assert ph1_obj.coordinator.data["MBF_PAR_PH1"] == 7.5
     assert ph1_obj.native_value == 7.5
 
 

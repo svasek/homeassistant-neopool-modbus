@@ -128,16 +128,16 @@ async def test_winter_mode_turn_on_off(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """Toggling winter_mode flips coordinator.winter_mode and writes to entry options."""
+    """Toggling the winter_mode switch flips its state."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    assert coordinator.winter_mode is False
+    entity_id = "switch.neopool_winter_mode"
+    assert hass.states.get(entity_id).state == STATE_OFF
 
-    await _turn_on(hass, "switch.neopool_winter_mode")
-    assert coordinator.winter_mode is True
+    await _turn_on(hass, entity_id)
+    assert hass.states.get(entity_id).state == STATE_ON
 
-    await _turn_off(hass, "switch.neopool_winter_mode")
-    assert coordinator.winter_mode is False
+    await _turn_off(hass, entity_id)
+    assert hass.states.get(entity_id).state == STATE_OFF
 
 
 # ---------------------------------------------------------------------------
@@ -150,16 +150,16 @@ async def test_auto_time_sync_turn_on_off(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """Toggling auto_time_sync flips coordinator.auto_time_sync."""
+    """Toggling the auto_time_sync switch flips its state."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    assert coordinator.auto_time_sync is False
+    entity_id = "switch.neopool_time_auto_sync"
+    assert hass.states.get(entity_id).state == STATE_OFF
 
-    await _turn_on(hass, "switch.neopool_time_auto_sync")
-    assert coordinator.auto_time_sync is True
+    await _turn_on(hass, entity_id)
+    assert hass.states.get(entity_id).state == STATE_ON
 
-    await _turn_off(hass, "switch.neopool_time_auto_sync")
-    assert coordinator.auto_time_sync is False
+    await _turn_off(hass, entity_id)
+    assert hass.states.get(entity_id).state == STATE_OFF
 
 
 # ---------------------------------------------------------------------------
