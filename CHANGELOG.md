@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.4.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.3.1...v6.4.0) (2026-07-12)
+
+
+### ♻️ Refactoring
+
+* ♻️ adopt merged-copy pattern for optimistic updates ([#230](https://github.com/svasek/homeassistant-neopool-modbus/issues/230)) ([d21f014](https://github.com/svasek/homeassistant-neopool-modbus/commit/d21f0145059f2d0fc863808e790a2c96139bc1fc))
+* ♻️ adopt neopool-modbus 4.x high-level API ([#227](https://github.com/svasek/homeassistant-neopool-modbus/issues/227)) ([5341f3c](https://github.com/svasek/homeassistant-neopool-modbus/commit/5341f3cb3d518b00e9bab8bc8065df540e9700bd))
+* ♻️ drop redundant winter_mode and client-None guards ([#229](https://github.com/svasek/homeassistant-neopool-modbus/issues/229)) ([45686c9](https://github.com/svasek/homeassistant-neopool-modbus/commit/45686c9413a7d9421826497412c3af664a822076))
+* ♻️ replace magic literals with named constants ([#225](https://github.com/svasek/homeassistant-neopool-modbus/issues/225)) ([878be59](https://github.com/svasek/homeassistant-neopool-modbus/commit/878be590e1288234f8904ff3dd353692fba419c2))
+* ♻️ unify Modbus write error handling across platforms ([#231](https://github.com/svasek/homeassistant-neopool-modbus/issues/231)) ([43700d4](https://github.com/svasek/homeassistant-neopool-modbus/commit/43700d43a3e3d13c8d9d56f4265244d1dd6689a8))
+* **config:** ♻️ adopt OptionsFlowWithReload for options flow ([#224](https://github.com/svasek/homeassistant-neopool-modbus/issues/224)) ([ac22b6e](https://github.com/svasek/homeassistant-neopool-modbus/commit/ac22b6ee2272a00241aea03a54b368e72f9eff07))
+* **coordinator:** ♻️ use self.config_entry from base class ([#228](https://github.com/svasek/homeassistant-neopool-modbus/issues/228)) ([cd54253](https://github.com/svasek/homeassistant-neopool-modbus/commit/cd54253eb2ba2f8648241b5e5ddbc3202cde62eb))
+
+
+### 🔧 Miscellaneous
+
+* **deps:** ⬆️ bump neopool-modbus to 4.2.1 ([0ded7b7](https://github.com/svasek/homeassistant-neopool-modbus/commit/0ded7b7397390efd0076f9d9ae6c0ab471fd73f2))
+
+
+### 🎨 Style
+
+* **icons:** 🎨 drop redundant off-state icons matching default ([9fbe693](https://github.com/svasek/homeassistant-neopool-modbus/commit/9fbe6934218325bd06bdab5f216060f3ff9894d8))
+
 ## [6.3.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.3.0...v6.3.1) (2026-07-07)
 
 
