@@ -5,6 +5,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
+from neopool_modbus.decoders import encode_cell_boost
 from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import (
     BinaryConfigFlag,
@@ -115,6 +116,37 @@ async def test_manual_filtration_turn_on_raises_when_not_manual_mode(
     with pytest.raises(ServiceValidationError):
         await _turn_off(hass, "switch.neopool_filtration")
     assert mock_neopool_client.async_write_register.await_count == 0
+    assert mock_neopool_client.async_set_manual_filtration.await_count == 0
+
+
+async def test_manual_filtration_raises_when_boost_active(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer,
+) -> None:
+    """Manual mode (FILT_MODE=0) but active boost: the pre-check must block."""
+    await setup_integration(hass, mock_config_entry)
+
+    # Manual mode, but a cell boost is active.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 0,
+        "MBF_CELL_BOOST": encode_cell_boost("active"),
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_set_manual_filtration.reset_mock()
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_on(hass, "switch.neopool_filtration")
+    assert exc.value.translation_key == "filtration_boost_active"
+    assert mock_neopool_client.async_set_manual_filtration.await_count == 0
+
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_off(hass, "switch.neopool_filtration")
+    assert exc.value.translation_key == "filtration_boost_active"
     assert mock_neopool_client.async_set_manual_filtration.await_count == 0
 
 
@@ -535,6 +567,46 @@ async def test_filtration_switch_maps_filtration_reason_to_dedicated_key(
     with pytest.raises(ServiceValidationError) as exc:
         await _turn_on(hass, entity_id)
     assert exc.value.translation_key == "filtration_not_manual_mode"
+
+
+async def test_filtration_switch_maps_boost_reason_to_dedicated_key(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A FILTRATION_BOOST_ACTIVE reason from the lib routes to the boost key.
+
+    Fail-safe branch: both pre-checks pass (manual mode, boost inactive in
+    cache), but the lib rejects because a boost started after the last poll.
+    """
+    await setup_integration(hass, mock_config_entry)
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == SWITCH_DOMAIN
+        and e.unique_id.endswith("_mbf_par_filt_manual_state")
+    ]
+    assert entries
+    entity_id = entries[0].entity_id
+
+    # Bypass both custom pre-checks: manual mode, boost inactive in cache.
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["MBF_PAR_FILT_MODE"] = 0
+    coordinator.data["MBF_CELL_BOOST"] = 0
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_set_manual_filtration.side_effect = (
+        NeoPoolInvalidStateError(
+            "cell boost is active",
+            reason=InvalidStateReason.FILTRATION_BOOST_ACTIVE,
+        )
+    )
+
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_on(hass, entity_id)
+    assert exc.value.translation_key == "filtration_boost_active"
 
 
 # ---------------------------------------------------------------------------

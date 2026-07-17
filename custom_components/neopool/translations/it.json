@@ -709,6 +709,9 @@
         "entry_not_found": {
             "message": "Nessuna voce di configurazione NeoPool trovata per entry_id {entry_id}"
         },
+        "filtration_boost_active": {
+            "message": "La filtrazione non può essere accesa o spenta mentre la modalità boost è attiva. Disattivare prima la modalità boost."
+        },
         "filtration_not_manual_mode": {
             "message": "La filtrazione può essere accesa o spenta solo quando il controller è in modalità filtrazione manuale. Impostare prima la modalità di filtrazione su Manuale."
         },

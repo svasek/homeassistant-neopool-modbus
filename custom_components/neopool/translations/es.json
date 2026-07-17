@@ -709,6 +709,9 @@
         "entry_not_found": {
             "message": "No se encontró la entrada de configuración NeoPool para entry_id {entry_id}"
         },
+        "filtration_boost_active": {
+            "message": "La filtración no se puede encender ni apagar mientras el modo boost está activo. Desactive primero el modo boost."
+        },
         "filtration_not_manual_mode": {
             "message": "La filtración solo se puede encender o apagar cuando el controlador está en modo de filtración manual. Cambie primero el modo de filtración a Manual."
         },
