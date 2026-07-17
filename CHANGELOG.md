@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.5.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.5.0...v6.5.1) (2026-07-17)
+
+
+### 🐛 Bug Fixes
+
+* **select:** 🐛 show boost and filtration speed changes without delay ([#234](https://github.com/svasek/homeassistant-neopool-modbus/issues/234)) ([d3290bc](https://github.com/svasek/homeassistant-neopool-modbus/commit/d3290bc77747fdb1bc37218458ee88b28b31485b))
+
 ## [6.5.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.4.0...v6.5.0) (2026-07-17)
 
 
