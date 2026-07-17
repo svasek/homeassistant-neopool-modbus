@@ -24,6 +24,7 @@ from neopool_modbus.capabilities import (
     is_hydrolysis_present,
     is_temperature_active,
 )
+from neopool_modbus.decoders import is_cell_boost_active
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     HIDRO_COVER_ENABLE_BIT,
@@ -88,14 +89,19 @@ async def _write_manual_filtration(
 ) -> dict[str, Any]:
     """Toggle the manual filtration pump.
 
-    The controller only honours the pump register while it is in manual
-    filtration mode; validate up-front so the user gets a translated error
-    instead of a raw library exception.
+    Pre-check manual mode and boost up-front so the user gets a translated
+    error instead of a raw library exception.
     """
-    if entity.coordinator.data.get("MBF_PAR_FILT_MODE") != 0:
+    data = entity.coordinator.data
+    if data.get("MBF_PAR_FILT_MODE") != 0:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="filtration_not_manual_mode",
+        )
+    if is_cell_boost_active(data.get("MBF_CELL_BOOST")):
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="filtration_boost_active",
         )
     return await client.async_set_manual_filtration(state)
 
@@ -308,6 +314,7 @@ async def async_setup_entry(
 _INVALID_STATE_TRANSLATION_KEY: dict[InvalidStateReason, str] = {
     InvalidStateReason.RELAY_IN_AUTO_MODE: "relay_in_auto_mode",
     InvalidStateReason.FILTRATION_NOT_IN_MANUAL_MODE: "filtration_not_manual_mode",
+    InvalidStateReason.FILTRATION_BOOST_ACTIVE: "filtration_boost_active",
 }
 
 

@@ -709,6 +709,9 @@
         "entry_not_found": {
             "message": "Kein NeoPool-Konfigurationseintrag für entry_id {entry_id} gefunden"
         },
+        "filtration_boost_active": {
+            "message": "Die Filtration kann nicht ein- oder ausgeschaltet werden, während der Boost-Modus aktiv ist. Schalten Sie zuerst den Boost-Modus aus."
+        },
         "filtration_not_manual_mode": {
             "message": "Die Filtration kann nur im manuellen Filtrationsmodus ein- oder ausgeschaltet werden. Wechseln Sie den Filtrationsmodus zuerst auf Manuell."
         },

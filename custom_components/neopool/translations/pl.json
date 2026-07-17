@@ -709,6 +709,9 @@
         "entry_not_found": {
             "message": "Nie znaleziono wpisu konfiguracji NeoPool dla entry_id {entry_id}"
         },
+        "filtration_boost_active": {
+            "message": "Filtracji nie można włączyć ani wyłączyć, gdy tryb boost jest aktywny. Najpierw wyłącz tryb boost."
+        },
         "filtration_not_manual_mode": {
             "message": "Filtrację można włączyć lub wyłączyć tylko w ręcznym trybie filtracji. Najpierw zmień tryb filtracji na Ręczny."
         },

@@ -709,6 +709,9 @@
         "entry_not_found": {
             "message": "Nebyla nalezena konfigurace NeoPool pro entry_id {entry_id}"
         },
+        "filtration_boost_active": {
+            "message": "Filtraci nelze zapnout ani vypnout, když je aktivní režim boost. Nejprve vypněte režim boost."
+        },
         "filtration_not_manual_mode": {
             "message": "Filtraci lze zapnout nebo vypnout jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
         },
