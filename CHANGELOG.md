@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.5.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.4.0...v6.5.0) (2026-07-17)
+
+
+### ✨ Features
+
+* **switch:** ✨ guard manual filtration against active boost mode ([#232](https://github.com/svasek/homeassistant-neopool-modbus/issues/232)) ([1dc4077](https://github.com/svasek/homeassistant-neopool-modbus/commit/1dc4077033fecb8056c39ee05683e2f05b9fcb9e))
+
 ## [6.4.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.3.1...v6.4.0) (2026-07-12)
 
 
