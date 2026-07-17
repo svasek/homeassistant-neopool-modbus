@@ -194,7 +194,6 @@ async def _write_config_option(
             return
     write_val = max(0, value + desc.write_offset)
     await client.async_set_config_option(desc.config_kind, write_val)
-    await asyncio.sleep(0.2)
     overrides = entity.apply_optimistic_update(value)
     entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
@@ -246,9 +245,8 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
 
 async def _write_cell_boost(entity: "NeoPoolSelect", client: Any, option: str) -> None:
     """Encode the cell boost mode into the composite cell-status register."""
-    del entity
     await client.async_set_cell_boost(option)
-    await asyncio.sleep(0.2)
+    entity.coordinator.request_refresh_with_followup()
 
 
 async def _write_filtration_speed(
@@ -264,7 +262,7 @@ async def _write_filtration_speed(
             translation_key="filtration_speed_not_manual_mode",
         )
     await client.async_set_filtration_speed(option)
-    await asyncio.sleep(0.2)
+    entity.coordinator.request_refresh_with_followup()
 
 
 async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) -> None:
