@@ -156,9 +156,6 @@
             }
         },
         "button": {
-            "backwash": {
-                "name": "Avvia controlavaggio"
-            },
             "escape": {
                 "name": "Cancella messaggi di errore"
             },
@@ -618,6 +615,9 @@
             "aux4": {
                 "name": "Relè Aux4"
             },
+            "backwash": {
+                "name": "Controlavaggio"
+            },
             "clima_onoff": {
                 "name": "Modalità clima per riscaldamento"
             },
@@ -730,6 +730,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "La velocità di filtrazione può essere modificata solo quando il controller è in modalità filtrazione manuale. Impostare prima la modalità di filtrazione su Manuale."
+        },
+        "filtvalve_interval_not_set": {
+            "message": "Nessuna durata del controlavaggio configurata. Imposta prima la durata del controlavaggio, quindi avvialo."
         },
         "invalid_apply": {
             "message": "Valore apply non valido {apply}: deve essere un booleano (true/false)"

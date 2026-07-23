@@ -156,9 +156,6 @@
             }
         },
         "button": {
-            "backwash": {
-                "name": "Spustit proplach"
-            },
             "escape": {
                 "name": "Vymazat chybová hlášení"
             },
@@ -618,6 +615,9 @@
             "aux4": {
                 "name": "Pomocné relé Aux4"
             },
+            "backwash": {
+                "name": "Zpětný proplach"
+            },
             "clima_onoff": {
                 "name": "Režim klimatizace pro ohřev"
             },
@@ -730,6 +730,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "Rychlost filtrace lze měnit jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
+        },
+        "filtvalve_interval_not_set": {
+            "message": "Není nastavena doba zpětného proplachu. Nejprve nastavte dobu zpětného proplachu a poté jej spusťte."
         },
         "invalid_apply": {
             "message": "Neplatná hodnota apply {apply}: musí být boolean (true/false)"

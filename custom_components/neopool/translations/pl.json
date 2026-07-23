@@ -156,9 +156,6 @@
             }
         },
         "button": {
-            "backwash": {
-                "name": "Uruchom płukanie wsteczne"
-            },
             "escape": {
                 "name": "Wyczyść komunikaty o błędach"
             },
@@ -618,6 +615,9 @@
             "aux4": {
                 "name": "Przekaźnik pomocniczy Aux4"
             },
+            "backwash": {
+                "name": "Płukanie wsteczne"
+            },
             "clima_onoff": {
                 "name": "Tryb klimatu dla ogrzewania"
             },
@@ -730,6 +730,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "Prędkość filtracji można zmienić tylko w ręcznym trybie filtracji. Najpierw zmień tryb filtracji na Ręczny."
+        },
+        "filtvalve_interval_not_set": {
+            "message": "Nie ustawiono czasu płukania wstecznego. Najpierw ustaw czas płukania wstecznego, a następnie je uruchom."
         },
         "invalid_apply": {
             "message": "Nieprawidłowa wartość apply {apply}: musi być wartością logiczną (true/false)"

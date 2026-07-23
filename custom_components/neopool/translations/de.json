@@ -156,9 +156,6 @@
             }
         },
         "button": {
-            "backwash": {
-                "name": "Rückspülung starten"
-            },
             "escape": {
                 "name": "Fehlermeldungen löschen"
             },
@@ -618,6 +615,9 @@
             "aux4": {
                 "name": "Relais Aux4"
             },
+            "backwash": {
+                "name": "Rückspülung"
+            },
             "clima_onoff": {
                 "name": "Klimamodus für Heizung"
             },
@@ -730,6 +730,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "Die Filtrationsgeschwindigkeit kann nur im manuellen Filtrationsmodus geändert werden. Wechseln Sie den Filtrationsmodus zuerst auf Manuell."
+        },
+        "filtvalve_interval_not_set": {
+            "message": "Es ist keine Rückspüldauer konfiguriert. Legen Sie zuerst die Rückspüldauer fest und starten Sie dann die Rückspülung."
         },
         "invalid_apply": {
             "message": "Ungültiger Wert für apply {apply}: muss ein Boolean sein (true/false)"

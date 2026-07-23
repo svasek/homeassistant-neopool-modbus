@@ -19,7 +19,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, override
 
-from neopool_modbus.capabilities import has_filtvalve, is_hydrolysis_present
+from neopool_modbus.capabilities import is_hydrolysis_present
 from neopool_modbus.exceptions import NeoPoolError
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
@@ -60,25 +60,6 @@ async def _press_clear_errors(entity: "NeoPoolButton") -> None:
     await entity.coordinator.client.async_clear_errors()
 
 
-async def _press_backwash(entity: "NeoPoolButton") -> None:
-    """Start the backwash cycle if the filtration valve is configured."""
-    data = entity.coordinator.data
-    if not has_filtvalve(data):
-        _LOGGER.warning(
-            "Backwash valve not configured "
-            "(MBF_PAR_FILTVALVE_ENABLE=%r, MBF_PAR_FILTVALVE_GPIO=%r) "
-            "- ignoring backwash command for %s",
-            data.get("MBF_PAR_FILTVALVE_ENABLE"),
-            data.get("MBF_PAR_FILTVALVE_GPIO"),
-            entity.coordinator.config_entry.title,
-        )
-        return
-    _LOGGER.info(
-        "Starting backwash on device '%s'", entity.coordinator.config_entry.title
-    )
-    await entity.coordinator.client.async_start_backwash()
-
-
 async def _press_reset_cell_partial(entity: "NeoPoolButton") -> None:
     """Reset the partial cell-runtime counter on the device."""
     _LOGGER.info(
@@ -100,12 +81,6 @@ BUTTON_DESCRIPTIONS: dict[str, NeoPoolButtonEntityDescription] = {
         translation_key="escape",
         entity_category=EntityCategory.CONFIG,
         press_fn=_press_clear_errors,
-    ),
-    "BACKWASH": NeoPoolButtonEntityDescription(
-        key="BACKWASH",
-        translation_key="backwash",
-        supported_fn=has_filtvalve,
-        press_fn=_press_backwash,
     ),
     "RESET_CELL_PARTIAL": NeoPoolButtonEntityDescription(
         key="RESET_CELL_PARTIAL",

@@ -156,9 +156,6 @@
             }
         },
         "button": {
-            "backwash": {
-                "name": "Démarrer le contre-lavage"
-            },
             "escape": {
                 "name": "Effacer les messages d'erreur"
             },
@@ -618,6 +615,9 @@
             "aux4": {
                 "name": "Relais Aux4"
             },
+            "backwash": {
+                "name": "Contre-lavage"
+            },
             "clima_onoff": {
                 "name": "Mode climat pour chauffage"
             },
@@ -730,6 +730,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "La vitesse de filtration ne peut être modifiée qu'en mode de filtration manuel. Changez d'abord le mode de filtration sur Manuel."
+        },
+        "filtvalve_interval_not_set": {
+            "message": "Aucune durée de contre-lavage n'est configurée. Définissez d'abord la durée du contre-lavage, puis démarrez-le."
         },
         "invalid_apply": {
             "message": "Valeur apply non valide {apply} : doit être un booléen (true/false)"

@@ -1,14 +1,10 @@
 """Tests for the NeoPool button platform."""
 
-from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 from neopool_modbus.exceptions import NeoPoolConnectionError
 import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_fire_time_changed,
-)
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.neopool.const import DOMAIN
@@ -19,7 +15,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
-from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
+from .conftest import MOCK_SERIAL
 
 
 def _button_entity_id(
@@ -71,47 +67,6 @@ async def test_escape_button_writes_clear_register(
     mock_neopool_client.async_clear_errors.reset_mock()
     await _press(hass, entity_id)
     mock_neopool_client.async_clear_errors.assert_awaited_once()
-
-
-async def test_backwash_button_starts_backwash(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """BACKWASH delegates to async_start_backwash()."""
-    await setup_integration(hass, mock_config_entry)
-
-    entity_id = _button_entity_id(hass, mock_config_entry, "backwash")
-    mock_neopool_client.async_start_backwash.reset_mock()
-    await _press(hass, entity_id)
-    mock_neopool_client.async_start_backwash.assert_awaited_once_with()
-
-
-async def test_backwash_button_aborts_when_valve_disappears(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-    freezer,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """If the valve disappears between setup and press, the press logs and exits."""
-    await setup_integration(hass, mock_config_entry)
-    entity_id = _button_entity_id(hass, mock_config_entry, "backwash")
-
-    # Drop the filt valve from the next read after the entity is registered.
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        "MBF_PAR_FILTVALVE_GPIO": 0,
-        "MBF_PAR_FILTVALVE_ENABLE": 0,
-    }
-    freezer.tick(timedelta(seconds=60))
-    async_fire_time_changed(hass)
-    await hass.async_block_till_done()
-
-    mock_neopool_client.async_start_backwash.reset_mock()
-    await _press(hass, entity_id)
-    assert "Backwash valve not configured" in caplog.text
-    mock_neopool_client.async_start_backwash.assert_not_called()
 
 
 async def test_reset_cell_partial_button_writes_reset_and_save(

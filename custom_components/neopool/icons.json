@@ -81,7 +81,6 @@
       }
     },
     "button": {
-      "backwash": { "default": "mdi:waves-arrow-left" },
       "escape": { "default": "mdi:reload-alert" },
       "sync_time": { "default": "mdi:clock-check-outline" }
     },
@@ -192,6 +191,12 @@
         "default": "mdi:electric-switch",
         "state": {
           "on": "mdi:electric-switch-closed"
+        }
+      },
+      "backwash": {
+        "default": "mdi:waves-arrow-right",
+        "state": {
+          "on": "mdi:waves-arrow-left"
         }
       },
       "clima_onoff": {

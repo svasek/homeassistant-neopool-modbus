@@ -650,6 +650,169 @@ async def test_hidro_cover_enable_bitmask_writes_or_pattern(
 
 
 # ---------------------------------------------------------------------------
+# backwash (MBF_PAR_FILTVALVE_REMAINING via start/stop_backwash)
+# ---------------------------------------------------------------------------
+
+
+def _backwash_entity_id(hass: HomeAssistant, entry: MockConfigEntry) -> str:
+    """Resolve the backwash switch entity by its unique_id suffix."""
+    registry = er.async_get(hass)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_backwash")
+    ]
+    assert entries, "backwash switch not registered"
+    return entries[0].entity_id
+
+
+async def test_backwash_turn_on_starts_and_reports_on(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """turn_on starts the backwash and optimistically flips is_on to ON."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _backwash_entity_id(hass, mock_config_entry)
+
+    mock_neopool_client.async_start_backwash.reset_mock()
+    await _turn_on(hass, entity_id)
+
+    mock_neopool_client.async_start_backwash.assert_awaited_once_with()
+    # Optimistic update writes the configured interval into REMAINING.
+    coordinator = mock_config_entry.runtime_data
+    assert coordinator.data["MBF_PAR_FILTVALVE_REMAINING"] == 150
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == STATE_ON
+
+
+async def test_backwash_turn_off_stops_and_reports_off(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """turn_off stops the backwash and optimistically flips is_on to OFF."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _backwash_entity_id(hass, mock_config_entry)
+
+    # Start from a running backwash so the OFF transition is observable.
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["MBF_PAR_FILTVALVE_REMAINING"] = 120
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_stop_backwash.reset_mock()
+    await _turn_off(hass, entity_id)
+
+    mock_neopool_client.async_stop_backwash.assert_awaited_once_with()
+    assert coordinator.data["MBF_PAR_FILTVALVE_REMAINING"] == 0
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == STATE_OFF
+
+
+async def test_backwash_turn_on_raises_when_interval_unset(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """turn_on with no configured duration raises before touching the client."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _backwash_entity_id(hass, mock_config_entry)
+
+    coordinator = mock_config_entry.runtime_data
+    coordinator.data["MBF_PAR_FILTVALVE_INTERVAL"] = 0
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    mock_neopool_client.async_start_backwash.reset_mock()
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_on(hass, entity_id)
+    assert exc.value.translation_key == "filtvalve_interval_not_set"
+    mock_neopool_client.async_start_backwash.assert_not_called()
+
+
+async def test_backwash_is_on_tracks_remaining_countdown(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer,
+) -> None:
+    """is_on follows MBF_PAR_FILTVALVE_REMAINING, so it clears when the cycle ends."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _backwash_entity_id(hass, mock_config_entry)
+
+    # A poll reports a running countdown: entity is ON.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_REMAINING": 90,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == STATE_ON
+
+    # The cycle finishes on its own (or is stopped from the display): OFF.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_REMAINING": 0,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == STATE_OFF
+
+
+async def test_backwash_maps_lib_invalid_state_to_service_validation_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Fail-safe: interval present in cache but the lib rejects with a reason.
+
+    The custom pre-check passes (cache has an interval), then the library
+    raises FILTVALVE_INTERVAL_NOT_SET, which must map to the dedicated key.
+    """
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _backwash_entity_id(hass, mock_config_entry)
+
+    mock_neopool_client.async_start_backwash.side_effect = NeoPoolInvalidStateError(
+        "no interval",
+        reason=InvalidStateReason.FILTVALVE_INTERVAL_NOT_SET,
+    )
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_on(hass, entity_id)
+    assert exc.value.translation_key == "filtvalve_interval_not_set"
+
+
+async def test_backwash_switch_skipped_without_filtvalve(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """No backwash switch is registered when the filter valve is absent."""
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_GPIO": 0,
+        "MBF_PAR_FILTVALVE_ENABLE": 0,
+    }
+    await setup_integration(hass, mock_config_entry)
+
+    registry = er.async_get(hass)
+    matches = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == SWITCH_DOMAIN and e.unique_id.endswith("_backwash")
+    ]
+    assert matches == []
+
+
+# ---------------------------------------------------------------------------
 # Platform-wide snapshots
 # ---------------------------------------------------------------------------
 
