@@ -325,7 +325,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "MBF_PAR_FILTVALVE_MODE": NeoPoolSelectEntityDescription(
         key="MBF_PAR_FILTVALVE_MODE",
         translation_key="filtvalve_mode",
-        entity_category=EntityCategory.CONFIG,
         options_map={1: "auto", 4: "manual"},
         select_type="filtvalve_mode",
         supported_fn=has_filtvalve,
