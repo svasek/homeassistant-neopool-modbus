@@ -229,6 +229,11 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
+        # Report None (unknown) when no backwash is running, matching
+        # FILTRATION_REMAINING; the register reads 0 while idle.
+        value_fn=lambda data: (
+            v if (v := data.get("MBF_PAR_FILTVALVE_REMAINING")) else None
+        ),
         supported_fn=has_filtvalve,
     ),
     "FILTRATION_REMAINING": NeoPoolSensorEntityDescription(
