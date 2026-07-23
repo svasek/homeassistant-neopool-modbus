@@ -108,6 +108,7 @@
       "filtration3_speed": { "default": "mdi:fan-speed-3" },
       "filtration_speed": { "default": "mdi:fan-speed-3" },
       "filtvalve_mode": { "default": "mdi:valve" },
+      "filtvalve_interval": { "default": "mdi:timer-sand" },
       "filtvalve_period_minutes": { "default": "mdi:timer-refresh-outline" },
       "intelligent_filt_min_time": { "default": "mdi:timer-lock-outline" },
       "relay_activation_delay": { "default": "mdi:timer-plus-outline" },

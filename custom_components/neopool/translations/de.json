@@ -266,6 +266,19 @@
                     "enabled": "Automatisch"
                 }
             },
+            "filtvalve_interval": {
+                "name": "Rückspüldauer",
+                "state": {
+                    "30s": "30 Sekunden",
+                    "60s": "60 Sekunden",
+                    "90s": "90 Sekunden",
+                    "120s": "120 Sekunden",
+                    "150s": "150 Sekunden",
+                    "180s": "180 Sekunden",
+                    "240s": "240 Sekunden",
+                    "300s": "300 Sekunden"
+                }
+            },
             "filtvalve_period_minutes": {
                 "name": "Rückspülintervall",
                 "state": {
@@ -789,20 +802,17 @@
             "advanced": {
                 "data": {
                     "dev_overrides": "Entwickler-Overrides (JSON Objekt \"Schlüssel\":Wert)",
-                    "dev_overrides_enabled": "Entwickler-Overrides aktivieren",
-                    "enable_backwash_option": "‘Backwash’-Modus aktivieren"
+                    "dev_overrides_enabled": "Entwickler-Overrides aktivieren"
                 },
                 "data_description": {
                     "dev_overrides": "Ein JSON-Objekt, bei dem jeder Schlüssel ein Modbus-Registername ist und jeder Wert den tatsächlichen Messwert überschreibt.",
-                    "dev_overrides_enabled": "Wenn aktiviert, werden Werte aus dem Override-JSON zu Testzwecken in die Koordinator-Daten eingefügt.",
-                    "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Vorsichtig verwenden, unsachgemäße Nutzung kann Ihr Filtersystem beschädigen."
+                    "dev_overrides_enabled": "Wenn aktiviert, werden Werte aus dem Override-JSON zu Testzwecken in die Koordinator-Daten eingefügt."
                 },
                 "description": "⚠️ ACHTUNG: Unsachgemäße Verwendung kann die Filterung beschädigen!",
                 "title": "Erweiterte Einstellungen"
             },
             "init": {
                 "data": {
-                    "enable_backwash_option": "'Backwash'-Modus aktivieren",
                     "filtration_pump_power": "Leistung der Filtrationspumpe (W, 0 = deaktiviert)",
                     "measure_when_filtration_off": "Messwerte auch bei ausgeschalteter Filterung erfassen",
                     "scan_interval": "Datenaktualisierungsintervall (Sekunden)",
@@ -818,7 +828,6 @@
                     "use_light": "Licht-Relais aktivieren"
                 },
                 "data_description": {
-                    "enable_backwash_option": "Fügt 'Backwash' zur Auswahl des Filtermodus hinzu. Nur für Systeme mit manuellem Mehrwegeventil.",
                     "filtration_pump_power": "Geben Sie die Nennleistung der Filtrationspumpe an. Bei einem Wert ungleich null werden zwei Sensoren erstellt: momentane Leistung (W) und kumulierter Energieverbrauch (Wh), beide nutzbar im Energie-Dashboard.",
                     "measure_when_filtration_off": "Wenn deaktiviert, werden chemische Messungen (pH, ORP usw.) nur bei laufender Filterpumpe durchgeführt.",
                     "scan_interval": "Niedrigere Werte erhöhen die Reaktionsfähigkeit, erzeugen aber mehr Modbus-Verkehr.",

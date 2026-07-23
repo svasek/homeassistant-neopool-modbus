@@ -266,6 +266,19 @@
                     "enabled": "Automatický"
                 }
             },
+            "filtvalve_interval": {
+                "name": "Doba proplachu",
+                "state": {
+                    "30s": "30 sekund",
+                    "60s": "60 sekund",
+                    "90s": "90 sekund",
+                    "120s": "120 sekund",
+                    "150s": "150 sekund",
+                    "180s": "180 sekund",
+                    "240s": "240 sekund",
+                    "300s": "300 sekund"
+                }
+            },
             "filtvalve_period_minutes": {
                 "name": "Interval automatického proplachování",
                 "state": {
@@ -789,20 +802,17 @@
             "advanced": {
                 "data": {
                     "dev_overrides": "Vývojářské přepisy (JSON objekt \"klíč\":hodnota)",
-                    "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot",
-                    "enable_backwash_option": "Povolit režim ‘Backwash’"
+                    "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot"
                 },
                 "data_description": {
                     "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení.",
-                    "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování.",
-                    "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Používejte opatrně, nesprávné použití může poškodit filtrační systém."
+                    "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování."
                 },
                 "description": "⚠️ POZOR: Nesprávné použití může poškodit filtraci!",
                 "title": "Pokročilá nastavení"
             },
             "init": {
                 "data": {
-                    "enable_backwash_option": "Povolit režim 'Backwash'",
                     "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)",
                     "measure_when_filtration_off": "Měřit hodnoty i při vypnuté filtraci",
                     "scan_interval": "Interval aktualizace dat (v sekundách)",
@@ -818,7 +828,6 @@
                     "use_light": "Povolit relé Osvětlení"
                 },
                 "data_description": {
-                    "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Pouze pro systémy s manuálním vícecestným ventilem.",
                     "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
                     "measure_when_filtration_off": "Pokud je vypnuto, chemická měření (pH, ORP atd.) probíhají pouze při běžícím filtračním čerpadle.",
                     "scan_interval": "Nižší hodnoty zvyšují rychlost odezvy, ale generují více Modbus komunikace.",

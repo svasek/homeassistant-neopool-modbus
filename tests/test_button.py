@@ -73,18 +73,18 @@ async def test_escape_button_writes_clear_register(
     mock_neopool_client.async_clear_errors.assert_awaited_once()
 
 
-async def test_backwash_button_writes_filt_mode(
+async def test_backwash_button_starts_backwash(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """BACKWASH delegates to async_set_filtration_mode("backwash")."""
+    """BACKWASH delegates to async_start_backwash()."""
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _button_entity_id(hass, mock_config_entry, "backwash")
-    mock_neopool_client.async_set_filtration_mode.reset_mock()
+    mock_neopool_client.async_start_backwash.reset_mock()
     await _press(hass, entity_id)
-    mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("backwash")
+    mock_neopool_client.async_start_backwash.assert_awaited_once_with()
 
 
 async def test_backwash_button_aborts_when_valve_disappears(
@@ -108,10 +108,10 @@ async def test_backwash_button_aborts_when_valve_disappears(
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
-    mock_neopool_client.async_set_filtration_mode.reset_mock()
+    mock_neopool_client.async_start_backwash.reset_mock()
     await _press(hass, entity_id)
     assert "Backwash valve not configured" in caplog.text
-    mock_neopool_client.async_set_filtration_mode.assert_not_called()
+    mock_neopool_client.async_start_backwash.assert_not_called()
 
 
 async def test_reset_cell_partial_button_writes_reset_and_save(

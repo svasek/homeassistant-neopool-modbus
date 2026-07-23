@@ -8,13 +8,6 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from syrupy.assertion import SnapshotAssertion
 
-from custom_components.neopool.const import (
-    CONF_CAPABILITIES,
-    CONF_ENABLE_BACKWASH_OPTION,
-    CONF_MODBUS_FRAMER,
-    CONF_UNIT_ID,
-    CURRENT_VERSION,
-)
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION, Platform
 from homeassistant.core import HomeAssistant
@@ -103,74 +96,6 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
-async def test_filt_mode_backwash_with_auto_valve_keeps_pump_running(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """Switching to backwash on a controller WITH auto valve does not stop the pump.
-
-    The Besgo valve needs the pump running to open correctly.
-    """
-
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        "MBF_PAR_FILT_MODE": 0,
-        "filtration_mode": "manual",
-    }
-    await setup_integration(hass, mock_config_entry)
-
-    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
-    mock_neopool_client.async_set_manual_filtration.reset_mock()
-    mock_neopool_client.async_set_filtration_mode.reset_mock()
-    await _select_option(hass, entity_id, "backwash")
-
-    # No preemptive stop (pump kept running for the valve to open).
-    mock_neopool_client.async_set_manual_filtration.assert_not_called()
-    mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("backwash")
-
-
-# CUSTOM-ONLY START, HACS-only manual backwash override coverage.
-async def test_filt_mode_options_include_backwash_via_hacs_override(
-    hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """`enable_backwash_option` in entry options exposes backwash on setups without auto valve."""
-    mock_neopool_client.async_read_all.return_value = {
-        **MOCK_POOL_DATA,
-        "MBF_PAR_FILTVALVE_GPIO": 0,  # no auto valve
-        "MBF_PAR_FILTVALVE_ENABLE": 0,
-        "MBF_PAR_FILT_MODE": 1,  # auto (not currently backwash)
-    }
-
-    entry = MockConfigEntry(
-        domain="neopool",
-        title="Backwash Override Pool",
-        unique_id="neopool_backwash_override",
-        version=CURRENT_VERSION,
-        data={
-            "host": "192.0.2.42",
-            "port": 502,
-            "name": "Backwash Override Pool",
-            CONF_UNIT_ID: 1,
-            CONF_MODBUS_FRAMER: "tcp",
-        },
-        options={
-            CONF_MODBUS_FRAMER: "tcp",
-            CONF_ENABLE_BACKWASH_OPTION: True,
-            CONF_CAPABILITIES: {"MBF_PAR_FILT_GPIO": 1},
-        },
-    )
-    await setup_integration(hass, entry)
-    entity_id = _select_entity_id(hass, entry, "mbf_par_filt_mode")
-    state = hass.states.get(entity_id)
-    assert state is not None
-    assert "backwash" in state.attributes["options"], state.attributes["options"]
-
-
-# CUSTOM-ONLY END
-
-
 # ---------------------------------------------------------------------------
 # mapped_register dispatch
 # ---------------------------------------------------------------------------
@@ -191,6 +116,47 @@ async def test_filtvalve_period_minutes_writes_mapped_register(
     mock_neopool_client.async_set_config_option.assert_any_await(
         ConfigKind.FILTVALVE_PERIOD_MINUTES, 10080
     )
+
+
+async def test_filtvalve_interval_writes_mapped_register(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """The Backwash Duration select maps its label to the interval register."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_interval")
+    mock_neopool_client.async_set_config_option.reset_mock()
+    await _select_option(hass, entity_id, "150s")
+    mock_neopool_client.async_set_config_option.assert_any_await(
+        ConfigKind.FILTVALVE_INTERVAL, 150
+    )
+
+
+async def test_filtvalve_interval_current_option_reads_register(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Backwash Duration reflects the register value, with a suffix fallback off-map."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_interval")
+
+    # MOCK_POOL_DATA seeds MBF_PAR_FILTVALVE_INTERVAL = 150 -> "150s".
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "150s"
+
+    # An off-map value falls back to "<value>s".
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_INTERVAL": 200,
+    }
+    await mock_config_entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "200s"
 
 
 async def test_filtvalve_mode_writes_register(

@@ -42,7 +42,6 @@ from homeassistant.util import dt as dt_util, slugify
 from .const import (
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
-    CONF_ENABLE_BACKWASH_OPTION,
     CONF_FILTRATION_PUMP_POWER,
     CONF_MEASURE_WHEN_FILTRATION_OFF,
     CONF_MODBUS_FRAMER,
@@ -241,8 +240,6 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
         """Handle the initial step of the options flow."""
         options = dict(self.config_entry.options)
         # CUSTOM-ONLY START
-        already_enabled = options.get(CONF_ENABLE_BACKWASH_OPTION, False)
-
         device_slug = slugify(self.config_entry.title)
         expected = f"{device_slug}{dt_util.now().year}"
         # CUSTOM-ONLY END
@@ -305,14 +302,6 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
         }
 
         # CUSTOM-ONLY START
-        if already_enabled:
-            schema_dict[
-                vol.Optional(
-                    CONF_ENABLE_BACKWASH_OPTION,
-                    default=True,
-                    description={"suggested_value": True},
-                )
-            ] = bool
         schema_dict[vol.Optional("unlock_advanced", default="")] = str
         # CUSTOM-ONLY END
 
@@ -355,10 +344,6 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
         advanced_schema = vol.Schema(
             {
                 vol.Optional(
-                    CONF_ENABLE_BACKWASH_OPTION,
-                    default=options.get(CONF_ENABLE_BACKWASH_OPTION, False),
-                ): bool,
-                vol.Optional(
                     CONF_DEV_OVERRIDES_ENABLED,
                     default=options.get(CONF_DEV_OVERRIDES_ENABLED, False),
                 ): bool,
@@ -376,12 +361,6 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
         return self.async_show_form(
             step_id="advanced",
             data_schema=advanced_schema,
-            description_placeholders={
-                "warning": (
-                    "WARNING: Enabling backwash will add this mode to Filtration Mode select. "
-                    "Improper use may damage the filter! Enable only if you know what you are doing."
-                )
-            },
             last_step=True,
         )
 

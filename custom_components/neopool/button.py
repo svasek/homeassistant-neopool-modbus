@@ -76,7 +76,7 @@ async def _press_backwash(entity: "NeoPoolButton") -> None:
     _LOGGER.info(
         "Starting backwash on device '%s'", entity.coordinator.config_entry.title
     )
-    await entity.coordinator.client.async_set_filtration_mode("backwash")
+    await entity.coordinator.client.async_start_backwash()
 
 
 async def _press_reset_cell_partial(entity: "NeoPoolButton") -> None:

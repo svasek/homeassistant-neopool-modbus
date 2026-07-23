@@ -20,7 +20,6 @@ from custom_components.neopool.config_flow import (
 from custom_components.neopool.const import (
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
-    CONF_ENABLE_BACKWASH_OPTION,
     CONF_MEASURE_WHEN_FILTRATION_OFF,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
@@ -33,7 +32,6 @@ from custom_components.neopool.const import (
     CONF_USE_FILTRATION2,
     CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
-    CURRENT_VERSION,
     DOMAIN,
 )
 from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
@@ -452,48 +450,16 @@ async def test_options_flow_advanced_step_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            CONF_ENABLE_BACKWASH_OPTION: True,
             CONF_DEV_OVERRIDES_ENABLED: False,
             CONF_DEV_OVERRIDES: "{}",
         },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert mock_config_entry.options[CONF_ENABLE_BACKWASH_OPTION] is True
 
     # CREATE_ENTRY triggers a background reload of the config entry. Wait for
     # it to finish before the test exits so the pytest-hass fixture can unload
     # cleanly and no coordinator refresh timer lingers.
     await hass.async_block_till_done()
-
-
-@pytest.mark.usefixtures("mock_neopool_client")
-async def test_options_flow_init_form_when_backwash_already_enabled(
-    hass: HomeAssistant,
-) -> None:
-    """When enable_backwash_option is already on, the init form exposes it inline."""
-    entry = MockConfigEntry(
-        domain="neopool",
-        title="Pool",
-        unique_id="neopool_backwash_enabled",
-        version=CURRENT_VERSION,
-        data={
-            "host": "192.0.2.20",
-            "port": 502,
-            "name": "Pool",
-            CONF_UNIT_ID: 1,
-            CONF_MODBUS_FRAMER: "tcp",
-        },
-        options={
-            CONF_MODBUS_FRAMER: "tcp",
-            CONF_ENABLE_BACKWASH_OPTION: True,
-        },
-    )
-    await setup_integration(hass, entry)
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["type"] is FlowResultType.FORM
-    # The init step renders without erroring; the backwash toggle is now part
-    # of the schema directly (no need to unlock_advanced first).
-    assert result["step_id"] == "init"
 
 
 # CUSTOM-ONLY END

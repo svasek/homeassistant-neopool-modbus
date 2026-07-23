@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install basedpyright homeassistant-stubs 'neopool-modbus>=4.3.1'
+          pip install basedpyright homeassistant-stubs 'neopool-modbus>=4.4.0'
 
       - name: Run BasedPyright
         run: basedpyright custom_components/neopool

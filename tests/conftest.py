@@ -119,6 +119,7 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "MBF_PAR_INTELLIGENT_INTERVALS": 4,
     "MBF_PAR_INTELLIGENT_TT_NEXT_INTERVAL": 7200,
     "MBF_PAR_FILTVALVE_REMAINING": 0,
+    "MBF_PAR_FILTVALVE_INTERVAL": 150,
     # Decoded polarity / pH pump keys populated by the library on real reads;
     # pre-seed them so ENUM sensors read a valid option without an extra tick.
     "HIDRO_POLARITY": "off",
@@ -229,6 +230,7 @@ def mock_neopool_client() -> Generator[MagicMock]:
         mock_client.async_set_filtration_mode = AsyncMock(return_value=None)
         mock_client.async_set_cell_boost = AsyncMock(return_value=None)
         mock_client.async_set_filtration_speed = AsyncMock(return_value=None)
+        mock_client.async_start_backwash = AsyncMock(return_value=None)
         mock_client.async_set_temp_setpoint = AsyncMock(return_value=None)
         mock_client.async_set_setpoint = AsyncMock(return_value={})
         mock_client.async_set_config_option = AsyncMock(return_value={})

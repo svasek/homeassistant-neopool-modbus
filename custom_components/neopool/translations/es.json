@@ -266,6 +266,19 @@
                     "enabled": "Automático"
                 }
             },
+            "filtvalve_interval": {
+                "name": "Duración del retrolavado",
+                "state": {
+                    "30s": "30 segundos",
+                    "60s": "60 segundos",
+                    "90s": "90 segundos",
+                    "120s": "120 segundos",
+                    "150s": "150 segundos",
+                    "180s": "180 segundos",
+                    "240s": "240 segundos",
+                    "300s": "300 segundos"
+                }
+            },
             "filtvalve_period_minutes": {
                 "name": "Intervalo de retrolavado automático",
                 "state": {
@@ -789,20 +802,17 @@
             "advanced": {
                 "data": {
                     "dev_overrides": "Sobrescrituras de desarrollador (objeto JSON \"clave\":valor)",
-                    "dev_overrides_enabled": "Habilitar sobrescrituras de desarrollador",
-                    "enable_backwash_option": "Activar modo ‘Backwash’"
+                    "dev_overrides_enabled": "Habilitar sobrescrituras de desarrollador"
                 },
                 "data_description": {
                     "dev_overrides": "Un objeto JSON donde cada clave es un nombre de registro Modbus y cada valor reemplaza la lectura real.",
-                    "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas.",
-                    "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Use con precaución, el uso inadecuado puede dañar su sistema de filtración."
+                    "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas."
                 },
                 "description": "⚠️ ¡ADVERTENCIA! El uso incorrecto puede dañar la filtración.",
                 "title": "Configuraciones avanzadas"
             },
             "init": {
                 "data": {
-                    "enable_backwash_option": "Activar modo 'Backwash'",
                     "filtration_pump_power": "Potencia de la bomba de filtración (W, 0 = desactivado)",
                     "measure_when_filtration_off": "Medir valores incluso cuando la filtración está apagada",
                     "scan_interval": "Intervalo de actualización de datos (segundos)",
@@ -818,7 +828,6 @@
                     "use_light": "Activar relé de luz"
                 },
                 "data_description": {
-                    "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Solo para sistemas con válvula multivía manual.",
                     "filtration_pump_power": "Indique la potencia nominal de la bomba de filtración. Con un valor distinto de cero se crean dos sensores: potencia instantánea (W) y energía acumulada (Wh), ambos utilizables en el panel de energía.",
                     "measure_when_filtration_off": "Cuando está desactivado, las mediciones químicas (pH, ORP, etc.) solo se realizan mientras la bomba de filtración está en funcionamiento.",
                     "scan_interval": "Valores más bajos aumentan la capacidad de respuesta pero generan más tráfico Modbus.",

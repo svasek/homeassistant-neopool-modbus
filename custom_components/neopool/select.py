@@ -60,7 +60,6 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
-    CONF_ENABLE_BACKWASH_OPTION,
     CONF_USE_AUX1,
     CONF_USE_AUX2,
     CONF_USE_AUX3,
@@ -266,19 +265,12 @@ async def _write_filtration_speed(
 
 
 async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) -> None:
-    """Drive the MBF_PAR_FILT_MODE transition (with manual-mode exit + backwash log)."""
+    """Drive the MBF_PAR_FILT_MODE transition (with manual-mode exit)."""
     current_name = entity.coordinator.data.get("filtration_mode")
-    has_auto_valve = has_filtvalve(entity.coordinator.data)
     if current_name == "manual" and option != "manual":
-        if not (option == "backwash" and has_auto_valve):
-            await client.async_set_manual_filtration(False)
-            await asyncio.sleep(0.1)
+        await client.async_set_manual_filtration(False)
+        await asyncio.sleep(0.1)
     await client.async_set_filtration_mode(option)
-    if option == "backwash":
-        _LOGGER.info(
-            'Your pool "%s" has been switched to the BACKWASH mode!',
-            NeoPoolEntity.slugify(entity.coordinator.config_entry.title),
-        )
     value = next(
         (k for k, v in entity.entity_description.options_map.items() if v == option),
         None,
@@ -368,6 +360,26 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             40320: "4_weeks",
         },
         config_kind=ConfigKind.FILTVALVE_PERIOD_MINUTES,
+        supported_fn=has_filtvalve,
+        write_fn=_write_config_option,
+    ),
+    "MBF_PAR_FILTVALVE_INTERVAL": NeoPoolSelectEntityDescription(
+        key="MBF_PAR_FILTVALVE_INTERVAL",
+        translation_key="filtvalve_interval",
+        entity_category=EntityCategory.CONFIG,
+        select_type="mapped_register",
+        fallback_suffix="s",
+        options_map={
+            30: "30s",
+            60: "60s",
+            90: "90s",
+            120: "120s",
+            150: "150s",
+            180: "180s",
+            240: "240s",
+            300: "300s",
+        },
+        config_kind=ConfigKind.FILTVALVE_INTERVAL,
         supported_fn=has_filtvalve,
         write_fn=_write_config_option,
     ),
@@ -641,19 +653,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         data = self.coordinator.data
 
         if (options_fn := desc.options_fn) is not None:
-            options = options_fn(data)
-            # CUSTOM-ONLY START, HACS-only manual override to expose backwash mode
-            # on controllers without an auto valve (present in `data`-driven filter).
-            if (
-                self.key == "MBF_PAR_FILT_MODE"
-                and self.coordinator.config_entry.options.get(
-                    CONF_ENABLE_BACKWASH_OPTION, False
-                )
-                and "backwash" not in options
-            ):
-                options = [*options, "backwash"]
-            # CUSTOM-ONLY END
-            return options
+            return options_fn(data)
 
         if desc.select_type == "timer_period":
             options_list = list(PERIOD_MAP.keys())
