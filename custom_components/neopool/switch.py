@@ -111,11 +111,7 @@ async def _write_manual_filtration(
 async def _write_backwash(
     entity: "NeoPoolSwitch", client: Any, state: bool
 ) -> dict[str, Any]:
-    """Start (write the configured duration) or stop (write 0) a backwash.
-
-    Returns an optimistic remaining-time update so is_on flips immediately.
-    Rejects manual control in AUTO mode, mirroring the relay-switch guard.
-    """
+    """Start a backwash with the configured duration, or stop it by writing 0."""
     data = entity.coordinator.data
     if data.get("MBF_PAR_FILTVALVE_MODE") == FiltValveMode.AUTO:
         raise ServiceValidationError(

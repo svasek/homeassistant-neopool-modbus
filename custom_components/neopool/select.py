@@ -237,7 +237,7 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
 async def _write_filtvalve_mode(
     entity: "NeoPoolSelect", client: Any, option: str
 ) -> None:
-    """Switch the filter valve between automatic and manual modes (mirrors relays)."""
+    """Switch the filter valve between automatic and manual modes."""
     current = int(entity.coordinator.data.get("MBF_PAR_FILTVALVE_MODE", 0) or 0)
     if option == "manual" and current in (
         FiltValveMode.ALWAYS_ON,
