@@ -258,9 +258,8 @@
             "filtvalve_mode": {
                 "name": "Mode de la vanne de rétrolavage",
                 "state": {
-                    "always_off": "Toujours Désactivé",
-                    "always_on": "Toujours Activé",
-                    "enabled": "Automatique"
+                    "auto": "Automatique",
+                    "manual": "Manuel"
                 }
             },
             "filtvalve_interval": {
@@ -730,6 +729,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "La vitesse de filtration ne peut être modifiée qu'en mode de filtration manuel. Changez d'abord le mode de filtration sur Manuel."
+        },
+        "filtvalve_in_auto_mode": {
+            "message": "La vanne de contre-lavage est actuellement en mode automatique. Passez d'abord en mode manuel pour démarrer ou arrêter un contre-lavage directement."
         },
         "filtvalve_interval_not_set": {
             "message": "Aucune durée de contre-lavage n'est configurée. Définissez d'abord la durée du contre-lavage, puis démarrez-le."

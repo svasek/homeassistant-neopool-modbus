@@ -32,6 +32,7 @@ from neopool_modbus.registers import (
     HIDRO_TEMP_SHUTDOWN_BIT,
     BinaryConfigFlag,
     BitmaskConfigFlag,
+    FiltValveMode,
     RelayKind,
     TimerRelayMode,
     is_valid_relay_gpio,
@@ -113,9 +114,16 @@ async def _write_backwash(
     """Start (write the configured duration) or stop (write 0) a backwash.
 
     Returns an optimistic remaining-time update so is_on flips immediately.
+    Rejects manual control in AUTO mode, mirroring the relay-switch guard.
     """
+    data = entity.coordinator.data
+    if data.get("MBF_PAR_FILTVALVE_MODE") == FiltValveMode.AUTO:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="filtvalve_in_auto_mode",
+        )
     if state:
-        interval = entity.coordinator.data.get("MBF_PAR_FILTVALVE_INTERVAL") or 0
+        interval = data.get("MBF_PAR_FILTVALVE_INTERVAL") or 0
         if not interval:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -344,6 +352,7 @@ _INVALID_STATE_TRANSLATION_KEY: dict[InvalidStateReason, str] = {
     InvalidStateReason.FILTRATION_NOT_IN_MANUAL_MODE: "filtration_not_manual_mode",
     InvalidStateReason.FILTRATION_BOOST_ACTIVE: "filtration_boost_active",
     InvalidStateReason.FILTVALVE_INTERVAL_NOT_SET: "filtvalve_interval_not_set",
+    InvalidStateReason.FILTVALVE_IN_AUTO_MODE: "filtvalve_in_auto_mode",
 }
 
 

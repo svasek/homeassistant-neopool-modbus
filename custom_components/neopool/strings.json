@@ -150,9 +150,8 @@
       "filtvalve_mode": {
         "name": "Backwash valve mode",
         "state": {
-          "always_off": "Always off",
-          "always_on": "Always on",
-          "enabled": "Automatic"
+          "auto": "[%key:component::neopool::entity::select::relay_light_mode::state::auto%]",
+          "manual": "[%key:common::state::manual%]"
         }
       },
       "filtvalve_interval": {
@@ -509,6 +508,9 @@
     },
     "filtration_speed_not_manual_mode": {
       "message": "Filtration speed can only be changed when the controller is in manual filtration mode. Change the filtration mode to Manual first."
+    },
+    "filtvalve_in_auto_mode": {
+      "message": "The backwash valve is currently in automatic mode. Change the mode to manual first to start or stop a backwash directly."
     },
     "filtvalve_interval_not_set": {
       "message": "No backwash duration is configured. Set the backwash duration first, then start the backwash."

@@ -258,9 +258,8 @@
             "filtvalve_mode": {
                 "name": "Rückspülventil-Modus",
                 "state": {
-                    "always_off": "Immer Aus",
-                    "always_on": "Immer An",
-                    "enabled": "Automatisch"
+                    "auto": "Automatisch",
+                    "manual": "Manuell"
                 }
             },
             "filtvalve_interval": {
@@ -730,6 +729,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "Die Filtrationsgeschwindigkeit kann nur im manuellen Filtrationsmodus geändert werden. Wechseln Sie den Filtrationsmodus zuerst auf Manuell."
+        },
+        "filtvalve_in_auto_mode": {
+            "message": "Das Rückspülventil befindet sich derzeit im Automatikmodus. Wechseln Sie zuerst in den manuellen Modus, um eine Rückspülung direkt zu starten oder zu stoppen."
         },
         "filtvalve_interval_not_set": {
             "message": "Es ist keine Rückspüldauer konfiguriert. Legen Sie zuerst die Rückspüldauer fest und starten Sie dann die Rückspülung."

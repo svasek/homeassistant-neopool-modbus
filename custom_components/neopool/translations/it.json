@@ -258,9 +258,8 @@
             "filtvalve_mode": {
                 "name": "Modalità valvola di controlavaggio",
                 "state": {
-                    "always_off": "Sempre Disattivo",
-                    "always_on": "Sempre Attivo",
-                    "enabled": "Automatico"
+                    "auto": "Automatico",
+                    "manual": "Manuale"
                 }
             },
             "filtvalve_interval": {
@@ -730,6 +729,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "La velocità di filtrazione può essere modificata solo quando il controller è in modalità filtrazione manuale. Impostare prima la modalità di filtrazione su Manuale."
+        },
+        "filtvalve_in_auto_mode": {
+            "message": "La valvola di controlavaggio è attualmente in modalità automatica. Passare prima alla modalità manuale per avviare o arrestare un controlavaggio direttamente."
         },
         "filtvalve_interval_not_set": {
             "message": "Nessuna durata del controlavaggio configurata. Imposta prima la durata del controlavaggio, quindi avvialo."

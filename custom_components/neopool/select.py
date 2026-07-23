@@ -33,9 +33,7 @@ from neopool_modbus.decoders import (
     CELL_BOOST_MODE_LABELS,
     FILTRATION_MODE_LABELS,
     FILTRATION_SPEED_LABELS,
-    FILTVALVE_MODE_LABELS,
     decode_cell_boost,
-    decode_filtvalve_mode,
 )
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
@@ -48,6 +46,7 @@ from neopool_modbus.registers import (
     FILTRATION_TIMER3_SPEED_MASK,
     FILTRATION_TIMER3_SPEED_SHIFT,
     ConfigKind,
+    FiltValveMode,
     RelayKind,
     RelayMode,
     TimerRelayMode,
@@ -163,11 +162,6 @@ def _make_filtration_speed_decoder(
     return _decode
 
 
-def _decode_filtvalve_mode(data: dict[str, Any]) -> str | None:
-    """Map the raw MBF_PAR_FILTVALVE_MODE register to its translation key."""
-    return decode_filtvalve_mode(data.get("MBF_PAR_FILTVALVE_MODE"))
-
-
 # ---------------------------------------------------------------------------
 # write_fn implementations
 # ---------------------------------------------------------------------------
@@ -242,6 +236,23 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
     entity.coordinator.request_refresh_with_followup()
 
 
+async def _write_filtvalve_mode(
+    entity: "NeoPoolSelect", client: Any, option: str
+) -> None:
+    """Switch the filter valve between automatic and manual modes (mirrors relays)."""
+    current = int(entity.coordinator.data.get("MBF_PAR_FILTVALVE_MODE", 0) or 0)
+    if option == "manual" and current in (
+        FiltValveMode.ALWAYS_ON,
+        FiltValveMode.ALWAYS_OFF,
+    ):
+        # Already in a manual mode; do not touch the physical valve state.
+        return
+    mode = FiltValveMode.AUTO if option == "auto" else FiltValveMode.ALWAYS_OFF
+    overrides = await client.async_set_filtvalve_mode(mode)
+    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
+    entity.coordinator.request_refresh_with_followup()
+
+
 async def _write_cell_boost(entity: "NeoPoolSelect", client: Any, option: str) -> None:
     """Encode the cell boost mode into the composite cell-status register."""
     await client.async_set_cell_boost(option)
@@ -275,25 +286,6 @@ async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) ->
         (k for k, v in entity.entity_description.options_map.items() if v == option),
         None,
     )
-    overrides = entity.apply_optimistic_update(value)
-    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
-    entity.coordinator.request_refresh_with_followup()
-
-
-async def _write_default_register(
-    entity: "NeoPoolSelect", client: Any, option: str
-) -> None:
-    """Write the option's mapped value through async_set_config_option."""
-    desc = entity.entity_description
-    if desc.config_kind is None:  # pragma: no cover - description validated upstream
-        return
-    value = next(
-        (k for k, v in desc.options_map.items() if v == option),
-        None,
-    )
-    if value is None:  # pragma: no cover
-        return
-    await client.async_set_config_option(desc.config_kind, value)
     overrides = entity.apply_optimistic_update(value)
     entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
@@ -336,11 +328,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="MBF_PAR_FILTVALVE_MODE",
         translation_key="filtvalve_mode",
         entity_category=EntityCategory.CONFIG,
-        options_map=FILTVALVE_MODE_LABELS,
-        config_kind=ConfigKind.FILTVALVE_MODE,
+        options_map={1: "auto", 4: "manual"},
+        select_type="filtvalve_mode",
         supported_fn=has_filtvalve,
-        write_fn=_write_default_register,
-        current_option_fn=_decode_filtvalve_mode,
+        write_fn=_write_filtvalve_mode,
     ),
     "MBF_PAR_FILTVALVE_PERIOD_MINUTES": NeoPoolSelectEntityDescription(
         key="MBF_PAR_FILTVALVE_PERIOD_MINUTES",
@@ -635,7 +626,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     @override
     async def async_select_option(self, option: str) -> None:
         """Handle option selection by dispatching to the description write_fn."""
-        write_fn = self.entity_description.write_fn or _write_default_register
+        write_fn = self.entity_description.write_fn
+        if write_fn is None:  # pragma: no cover - every description wires write_fn
+            return
         try:
             await write_fn(self, self.coordinator.client, option)
         except (NeoPoolError, OSError, TimeoutError) as err:
@@ -692,10 +685,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if value is None:  # pragma: no cover
             return {}
         desc = self.entity_description
-        if self.key in (
-            "MBF_PAR_FILT_MODE",
-            "MBF_PAR_FILTVALVE_MODE",
-        ):
+        if self.key == "MBF_PAR_FILT_MODE":
             return {self.key: value}
         if desc.select_type == "mapped_register":
             return {self.key: value}
@@ -730,6 +720,15 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             if int_value in (TimerRelayMode.ALWAYS_ON, TimerRelayMode.ALWAYS_OFF):
                 return "manual"
             return desc.options_map.get(int_value)  # pragma: no cover
+
+        if desc.select_type == "filtvalve_mode":
+            value = data.get(self.key)
+            if value is None:  # pragma: no cover
+                return None
+            int_value = int(value)
+            if int_value in (FiltValveMode.ALWAYS_ON, FiltValveMode.ALWAYS_OFF):
+                return "manual"
+            return desc.options_map.get(int_value)
 
         if desc.select_type == "mapped_register":
             value = data.get(self.key)

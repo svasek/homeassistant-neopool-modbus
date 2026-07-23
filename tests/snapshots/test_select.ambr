@@ -101,9 +101,8 @@
       'area_id': None,
       'capabilities': dict({
         <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
-          'enabled',
-          'always_on',
-          'always_off',
+          'auto',
+          'manual',
         ]),
       }),
       'config_entry_id': <ANY>,

@@ -10,6 +10,7 @@ from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import (
     BinaryConfigFlag,
     BitmaskConfigFlag,
+    FiltValveMode,
     RelayKind,
     TimerRelayMode,
 )
@@ -788,6 +789,50 @@ async def test_backwash_maps_lib_invalid_state_to_service_validation_error(
     with pytest.raises(ServiceValidationError) as exc:
         await _turn_on(hass, entity_id)
     assert exc.value.translation_key == "filtvalve_interval_not_set"
+
+
+async def test_backwash_turn_on_raises_when_valve_in_auto(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """turn_on with the valve in AUTO mode raises before touching the client.
+
+    In AUTO the firmware schedules backwashes itself, mirroring the relay
+    switch guard that rejects manual control while a relay is in AUTO.
+    """
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_MODE": FiltValveMode.AUTO.value,
+    }
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _backwash_entity_id(hass, mock_config_entry)
+
+    mock_neopool_client.async_start_backwash.reset_mock()
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_on(hass, entity_id)
+    assert exc.value.translation_key == "filtvalve_in_auto_mode"
+    mock_neopool_client.async_start_backwash.assert_not_called()
+
+
+async def test_backwash_turn_off_raises_when_valve_in_auto(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """turn_off with the valve in AUTO mode raises before touching the client."""
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_MODE": FiltValveMode.AUTO.value,
+    }
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _backwash_entity_id(hass, mock_config_entry)
+
+    mock_neopool_client.async_stop_backwash.reset_mock()
+    with pytest.raises(ServiceValidationError) as exc:
+        await _turn_off(hass, entity_id)
+    assert exc.value.translation_key == "filtvalve_in_auto_mode"
+    mock_neopool_client.async_stop_backwash.assert_not_called()
 
 
 async def test_backwash_switch_skipped_without_filtvalve(

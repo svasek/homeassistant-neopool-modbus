@@ -258,9 +258,8 @@
             "filtvalve_mode": {
                 "name": "Tryb zaworu płukania wstecznego",
                 "state": {
-                    "always_off": "Zawsze Wyłączony",
-                    "always_on": "Zawsze Włączony",
-                    "enabled": "Automatyczny"
+                    "auto": "Automatyczny",
+                    "manual": "Ręczny"
                 }
             },
             "filtvalve_interval": {
@@ -730,6 +729,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "Prędkość filtracji można zmienić tylko w ręcznym trybie filtracji. Najpierw zmień tryb filtracji na Ręczny."
+        },
+        "filtvalve_in_auto_mode": {
+            "message": "Zawór płukania wstecznego jest obecnie w trybie automatycznym. Najpierw zmień tryb na ręczny, aby bezpośrednio uruchomić lub zatrzymać płukanie wsteczne."
         },
         "filtvalve_interval_not_set": {
             "message": "Nie ustawiono czasu płukania wstecznego. Najpierw ustaw czas płukania wstecznego, a następnie je uruchom."

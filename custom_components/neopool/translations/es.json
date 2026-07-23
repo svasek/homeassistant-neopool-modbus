@@ -258,9 +258,8 @@
             "filtvalve_mode": {
                 "name": "Modo de válvula de retrolavado",
                 "state": {
-                    "always_off": "Siempre Inactivo",
-                    "always_on": "Siempre Activo",
-                    "enabled": "Automático"
+                    "auto": "Automático",
+                    "manual": "Manual"
                 }
             },
             "filtvalve_interval": {
@@ -730,6 +729,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "La velocidad de filtración solo se puede cambiar cuando el controlador está en modo de filtración manual. Cambie primero el modo de filtración a Manual."
+        },
+        "filtvalve_in_auto_mode": {
+            "message": "La válvula de contralavado está actualmente en modo automático. Cambie primero al modo manual para iniciar o detener un contralavado directamente."
         },
         "filtvalve_interval_not_set": {
             "message": "No se ha configurado la duración del lavado inverso. Configure primero la duración del lavado inverso y luego inícielo."

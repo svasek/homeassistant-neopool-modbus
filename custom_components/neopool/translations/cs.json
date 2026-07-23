@@ -258,9 +258,8 @@
             "filtvalve_mode": {
                 "name": "Režim ventilu zpětného proplachování",
                 "state": {
-                    "always_off": "Vždy vypnuto",
-                    "always_on": "Vždy zapnuto",
-                    "enabled": "Automatický"
+                    "auto": "Automatický",
+                    "manual": "Ruční"
                 }
             },
             "filtvalve_interval": {
@@ -730,6 +729,9 @@
         },
         "filtration_speed_not_manual_mode": {
             "message": "Rychlost filtrace lze měnit jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
+        },
+        "filtvalve_in_auto_mode": {
+            "message": "Ventil zpětného proplachu je aktuálně v automatickém režimu. Nejprve změňte režim na ruční, abyste mohli zpětný proplach přímo spustit nebo zastavit."
         },
         "filtvalve_interval_not_set": {
             "message": "Není nastavena doba zpětného proplachu. Nejprve nastavte dobu zpětného proplachu a poté jej spusťte."

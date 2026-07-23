@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from neopool_modbus import NeoPoolError
-from neopool_modbus.registers import ConfigKind, RelayKind, RelayMode
+from neopool_modbus.registers import ConfigKind, FiltValveMode, RelayKind, RelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from syrupy.assertion import SnapshotAssertion
@@ -159,19 +159,104 @@ async def test_filtvalve_interval_current_option_reads_register(
     assert state.state == "200s"
 
 
-async def test_filtvalve_mode_writes_register(
+async def test_filtvalve_mode_select_switches_via_lib_api(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """The Backwash Valve Mode select dispatches the mapped int via config API."""
+    """The Backwash Valve Mode select delegates to async_set_filtvalve_mode.
+
+    Mirrors the relay-mode select: 'auto' maps to FiltValveMode.AUTO and the
+    returned override merges in optimistically so current_option flips.
+    """
     await setup_integration(hass, mock_config_entry)
     entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_mode")
-    mock_neopool_client.async_set_config_option.reset_mock()
-    await _select_option(hass, entity_id, "always_on")
-    mock_neopool_client.async_set_config_option.assert_any_await(
-        ConfigKind.FILTVALVE_MODE, 3
+    mock_neopool_client.async_set_filtvalve_mode = AsyncMock(
+        return_value={"MBF_PAR_FILTVALVE_MODE": FiltValveMode.AUTO.value},
     )
+    await _select_option(hass, entity_id, "auto")
+    mock_neopool_client.async_set_filtvalve_mode.assert_awaited_once_with(
+        FiltValveMode.AUTO
+    )
+    assert hass.states.get(entity_id).state == "auto"
+
+
+async def test_filtvalve_mode_manual_writes_always_off(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Selecting 'manual' from AUTO pins the valve OFF (FiltValveMode.ALWAYS_OFF)."""
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_MODE": FiltValveMode.AUTO.value,
+    }
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_mode")
+    mock_neopool_client.async_set_filtvalve_mode = AsyncMock(
+        return_value={"MBF_PAR_FILTVALVE_MODE": FiltValveMode.ALWAYS_OFF.value},
+    )
+    await _select_option(hass, entity_id, "manual")
+    mock_neopool_client.async_set_filtvalve_mode.assert_awaited_once_with(
+        FiltValveMode.ALWAYS_OFF
+    )
+
+
+async def test_filtvalve_mode_manual_to_manual_is_noop(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Selecting 'manual' when the valve already is manual does not write."""
+    # MOCK_POOL_DATA seeds MBF_PAR_FILTVALVE_MODE = 4 (ALWAYS_OFF = manual).
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_mode")
+    mock_neopool_client.async_set_filtvalve_mode = AsyncMock(return_value={})
+    await _select_option(hass, entity_id, "manual")
+    mock_neopool_client.async_set_filtvalve_mode.assert_not_awaited()
+
+
+async def test_filtvalve_mode_current_option_maps_register(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """current_option reduces the 3 register values to auto / manual.
+
+    AUTO (1) -> 'auto'; ALWAYS_ON (3) and ALWAYS_OFF (4) -> 'manual'.
+    """
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_mode")
+
+    for raw, expected in (
+        (FiltValveMode.AUTO.value, "auto"),
+        (FiltValveMode.ALWAYS_ON.value, "manual"),
+        (FiltValveMode.ALWAYS_OFF.value, "manual"),
+    ):
+        mock_neopool_client.async_read_all.return_value = {
+            **MOCK_POOL_DATA,
+            "MBF_PAR_FILTVALVE_MODE": raw,
+        }
+        await mock_config_entry.runtime_data.async_refresh()
+        await hass.async_block_till_done()
+        state = hass.states.get(entity_id)
+        assert state is not None
+        assert state.state == expected
+
+
+async def test_filtvalve_mode_maps_communication_error_to_home_assistant_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A NeoPoolError from async_set_filtvalve_mode surfaces as HomeAssistantError."""
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filtvalve_mode")
+    mock_neopool_client.async_set_filtvalve_mode = AsyncMock(
+        side_effect=NeoPoolError("boom"),
+    )
+    with pytest.raises(HomeAssistantError):
+        await _select_option(hass, entity_id, "auto")
 
 
 # ---------------------------------------------------------------------------
