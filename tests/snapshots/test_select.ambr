@@ -187,7 +187,6 @@
           'heating',
           'smart',
           'intelligent',
-          'backwash',
         ]),
       }),
       'config_entry_id': <ANY>,

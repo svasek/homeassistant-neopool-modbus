@@ -96,6 +96,35 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
+async def test_filt_mode_backwash_option_is_display_only(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Backwash (13) is offered only when the device already reports that mode.
+
+    Writing 13 does not start a cleaning cycle (that is the backwash switch),
+    so the option is hidden otherwise, even when a filter valve is present.
+    """
+    # MOCK_POOL_DATA has a filter valve and FILT_MODE 0: backwash is hidden.
+    await setup_integration(hass, mock_config_entry)
+    entity_id = _select_entity_id(hass, mock_config_entry, "mbf_par_filt_mode")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert "backwash" not in state.attributes["options"]
+
+    # The device reports mode 13: the option appears so the state stays valid.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILT_MODE": 13,
+    }
+    await mock_config_entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert "backwash" in state.attributes["options"]
+
+
 # ---------------------------------------------------------------------------
 # mapped_register dispatch
 # ---------------------------------------------------------------------------

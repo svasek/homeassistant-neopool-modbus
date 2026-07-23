@@ -115,11 +115,9 @@ def _filt_mode_options(data: dict[str, Any]) -> list[str]:
         # Remove key for "smart"
         option_keys = [k for k in option_keys if k != 3]
 
-    if not has_filtvalve(data):
-        # Keep backwash (13) in the list if the device is currently in that mode.
-        current_mode = data.get("MBF_PAR_FILT_MODE")
-        if current_mode != 13:
-            option_keys = [k for k in option_keys if k != 13]
+    # Backwash (13) is display-only: show it only when the device reports it.
+    if data.get("MBF_PAR_FILT_MODE") != 13:
+        option_keys = [k for k in option_keys if k != 13]
 
     return [FILTRATION_MODE_LABELS[k] for k in option_keys]
 
