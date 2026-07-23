@@ -795,28 +795,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Mot de passe incorrect. Réessayez ou supprimez le mot de passe."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Substitutions développeur (objet JSON \"clé\":valeur)",
-                    "dev_overrides_enabled": "Activer les substitutions développeur"
-                },
-                "data_description": {
-                    "dev_overrides": "Un objet JSON où chaque clé est un nom de registre Modbus et chaque valeur remplace la lecture réelle.",
-                    "dev_overrides_enabled": "Lorsqu'activé, les valeurs du JSON de substitution sont injectées dans les données du coordinateur pour les tests."
-                },
-                "description": "⚠️ ATTENTION : Une mauvaise utilisation peut endommager la filtration !",
-                "title": "Paramètres avancés"
-            },
             "init": {
                 "data": {
                     "filtration_pump_power": "Puissance de la pompe de filtration (W, 0 = désactivé)",
                     "measure_when_filtration_off": "Mesurer les valeurs même lorsque la filtration est arrêtée",
                     "scan_interval": "Intervalle de mise à jour des données (secondes)",
-                    "unlock_advanced": "Débloquer les options avancées",
                     "use_aux1": "Activer le relais Aux1",
                     "use_aux2": "Activer le relais Aux2",
                     "use_aux3": "Activer le relais Aux3",
@@ -831,7 +815,6 @@
                     "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique.",
                     "measure_when_filtration_off": "Lorsque désactivé, les mesures chimiques (pH, ORP, etc.) ne sont effectuées que lorsque la pompe de filtration fonctionne.",
                     "scan_interval": "Des valeurs plus basses augmentent la réactivité mais génèrent plus de trafic Modbus.",
-                    "unlock_advanced": "Entrez le code de déverrouillage pour accéder aux paramètres avancés (format : préfixe_appareil + année en cours).",
                     "use_aux1": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
                     "use_aux2": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
                     "use_aux3": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
@@ -843,7 +826,21 @@
                     "use_light": "Crée des entités pour contrôler et surveiller le relais lumière de la piscine."
                 },
                 "description": "ATTENTION : La modification des relais activés rechargera automatiquement l’intégration ! Les modifications prennent effet immédiatement.",
-                "title": "Paramètres NeoPool"
+                "title": "Paramètres NeoPool",
+                "sections": {
+                    "advanced": {
+                        "name": "Paramètres avancés",
+                        "description": "⚠️ ATTENTION : Une mauvaise utilisation peut endommager la filtration !",
+                        "data": {
+                            "dev_overrides": "Substitutions développeur (objet JSON \"clé\":valeur)",
+                            "dev_overrides_enabled": "Activer les substitutions développeur"
+                        },
+                        "data_description": {
+                            "dev_overrides": "Un objet JSON où chaque clé est un nom de registre Modbus et chaque valeur remplace la lecture réelle.",
+                            "dev_overrides_enabled": "Lorsqu'activé, les valeurs du JSON de substitution sont injectées dans les données du coordinateur pour les tests."
+                        }
+                    }
+                }
             }
         }
     },

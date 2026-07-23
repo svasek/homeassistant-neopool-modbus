@@ -61,6 +61,7 @@ CONF_CAPABILITIES = "_capabilities"
 
 # CUSTOM-ONLY START
 CONF_SCAN_INTERVAL = "scan_interval"
+CONF_ADVANCED = "advanced"
 CONF_DEV_OVERRIDES_ENABLED = "dev_overrides_enabled"
 CONF_DEV_OVERRIDES = "dev_overrides"
 # CUSTOM-ONLY END

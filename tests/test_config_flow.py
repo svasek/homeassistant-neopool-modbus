@@ -1,9 +1,7 @@
 """Test the NeoPool config flow."""
 
-from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
-from freezegun.api import FrozenDateTimeFactory
 from neopool_modbus.exceptions import (
     NeoPoolConnectionError,
     NeoPoolModbusError,
@@ -18,6 +16,7 @@ from custom_components.neopool.config_flow import (
     NeoPoolOptionsFlowHandler,
 )
 from custom_components.neopool.const import (
+    CONF_ADVANCED,
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_MEASURE_WHEN_FILTRATION_OFF,
@@ -38,7 +37,6 @@ from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from homeassistant.util import slugify
 
 from . import setup_integration
 from .conftest import MOCK_HOST, MOCK_PORT, MOCK_SERIAL
@@ -330,7 +328,7 @@ async def test_options_flow_save_changes(
             "filtration_pump_power": 0,
             CONF_MEASURE_WHEN_FILTRATION_OFF: False,
             # CUSTOM-ONLY START
-            "unlock_advanced": "",
+            CONF_ADVANCED: {},
             # CUSTOM-ONLY END
         },
     )
@@ -345,50 +343,14 @@ async def test_options_flow_save_changes(
     await hass.async_block_till_done()
 
 
-# CUSTOM-ONLY START, unlock_advanced / dev_overrides / enable_backwash_option
-# are HACS-only knobs gated by a password-locked "advanced" step.
+# CUSTOM-ONLY START, dev_overrides live in a collapsed "advanced" section
+# of the init step; these are HACS-only knobs.
 @pytest.mark.usefixtures("mock_neopool_client")
-async def test_options_flow_unlock_advanced_with_correct_password(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    freezer: FrozenDateTimeFactory,
-) -> None:
-    """Entering the right unlock_advanced password reveals the advanced step."""
-
-    # Pin the clock to a known year so the password derived inside the
-    # options flow matches our `expected` value even across a New-Year roll.
-    freezer.move_to(datetime(2026, 6, 1, 12, 0, 0))
-    await setup_integration(hass, mock_config_entry)
-    expected = f"{slugify(mock_config_entry.title)}2026"
-
-    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        {
-            CONF_USE_FILTRATION1: False,
-            CONF_USE_FILTRATION2: False,
-            CONF_USE_FILTRATION3: False,
-            CONF_USE_LIGHT: False,
-            CONF_USE_COVER_SENSOR: False,
-            CONF_USE_AUX1: False,
-            CONF_USE_AUX2: False,
-            CONF_USE_AUX3: False,
-            CONF_USE_AUX4: False,
-            "filtration_pump_power": 0,
-            CONF_MEASURE_WHEN_FILTRATION_OFF: False,
-            "unlock_advanced": expected,
-        },
-    )
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "advanced"
-
-
-@pytest.mark.usefixtures("mock_neopool_client")
-async def test_options_flow_unlock_advanced_wrong_password_shows_error(
+async def test_options_flow_advanced_section_save(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """A wrong unlock_advanced password keeps the user on the init step."""
+    """The collapsed advanced section persists dev_overrides into flat options."""
     await setup_integration(hass, mock_config_entry)
 
     result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
@@ -406,55 +368,18 @@ async def test_options_flow_unlock_advanced_wrong_password_shows_error(
             CONF_USE_AUX4: False,
             "filtration_pump_power": 0,
             CONF_MEASURE_WHEN_FILTRATION_OFF: False,
-            "unlock_advanced": "wrong-password",
-        },
-    )
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "init"
-    assert result["errors"] == {"unlock_advanced": "unlock_advanced_error"}
-
-
-@pytest.mark.usefixtures("mock_neopool_client")
-async def test_options_flow_advanced_step_save(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    freezer: FrozenDateTimeFactory,
-) -> None:
-    """The advanced step accepts dev_overrides and writes them to options."""
-
-    # Same year-pin as in test_options_flow_unlock_advanced_with_correct_password.
-    freezer.move_to(datetime(2026, 6, 1, 12, 0, 0))
-    await setup_integration(hass, mock_config_entry)
-    expected = f"{slugify(mock_config_entry.title)}2026"
-
-    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        {
-            CONF_USE_FILTRATION1: False,
-            CONF_USE_FILTRATION2: False,
-            CONF_USE_FILTRATION3: False,
-            CONF_USE_LIGHT: False,
-            CONF_USE_COVER_SENSOR: False,
-            CONF_USE_AUX1: False,
-            CONF_USE_AUX2: False,
-            CONF_USE_AUX3: False,
-            CONF_USE_AUX4: False,
-            "filtration_pump_power": 0,
-            CONF_MEASURE_WHEN_FILTRATION_OFF: False,
-            "unlock_advanced": expected,
-        },
-    )
-    assert result["step_id"] == "advanced"
-
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        {
-            CONF_DEV_OVERRIDES_ENABLED: False,
-            CONF_DEV_OVERRIDES: "{}",
+            CONF_ADVANCED: {
+                CONF_DEV_OVERRIDES_ENABLED: True,
+                CONF_DEV_OVERRIDES: '{"MBF_PAR_TEMPERATURE": 250}',
+            },
         },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    # Section values are flattened into the top-level options dict.
+    assert mock_config_entry.options[CONF_DEV_OVERRIDES_ENABLED] is True
+    assert (
+        mock_config_entry.options[CONF_DEV_OVERRIDES] == '{"MBF_PAR_TEMPERATURE": 250}'
+    )
 
     # CREATE_ENTRY triggers a background reload of the config entry. Wait for
     # it to finish before the test exits so the pytest-hass fixture can unload

@@ -795,28 +795,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Nieprawidłowe hasło. Spróbuj ponownie lub usuń hasło."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Nadpisania deweloperskie (obiekt JSON \"klucz\":wartość)",
-                    "dev_overrides_enabled": "Włącz nadpisania deweloperskie"
-                },
-                "data_description": {
-                    "dev_overrides": "Obiekt JSON, gdzie każdy klucz to nazwa rejestru Modbus, a wartość zastępuje rzeczywisty odczyt.",
-                    "dev_overrides_enabled": "Gdy włączone, wartości z JSON nadpisań są wstrzykiwane do danych koordynatora w celach testowych."
-                },
-                "description": "⚠️ UWAGA: Niewłaściwe użycie może uszkodzić filtrację!",
-                "title": "Ustawienia zaawansowane"
-            },
             "init": {
                 "data": {
                     "filtration_pump_power": "Moc pompy filtracyjnej (W, 0 = wyłączone)",
                     "measure_when_filtration_off": "Mierz wartości nawet gdy filtracja jest wyłączona",
                     "scan_interval": "Interwał aktualizacji danych (sekundy)",
-                    "unlock_advanced": "Odblokuj opcje zaawansowane",
                     "use_aux1": "Włącz przekaźnik Aux1",
                     "use_aux2": "Włącz przekaźnik Aux2",
                     "use_aux3": "Włącz przekaźnik Aux3",
@@ -831,7 +815,6 @@
                     "filtration_pump_power": "Podaj nominalną moc pompy filtracyjnej. Przy wartości różnej od zera tworzone są dwa czujniki: chwilowa moc (W) i skumulowana energia (Wh), oba możliwe do użycia na panelu energetycznym.",
                     "measure_when_filtration_off": "Gdy wyłączone, pomiary chemiczne (pH, ORP itp.) są wykonywane tylko podczas pracy pompy filtracyjnej.",
                     "scan_interval": "Niższe wartości zwiększają responsywność, ale generują więcej ruchu Modbus.",
-                    "unlock_advanced": "Wprowadź kod odblokowujący, aby uzyskać dostęp do ustawień zaawansowanych (format: prefiks_urządzenia + bieżący rok).",
                     "use_aux1": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
                     "use_aux2": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
                     "use_aux3": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
@@ -843,7 +826,21 @@
                     "use_light": "Tworzy encje do sterowania i monitorowania przekaźnika oświetlenia basenu."
                 },
                 "description": "UWAGA: Zmiana dozwolonych przekaźników automatycznie przeładuje integrację! Zmiany są natychmiastowe.",
-                "title": "Ustawienia NeoPool"
+                "title": "Ustawienia NeoPool",
+                "sections": {
+                    "advanced": {
+                        "name": "Ustawienia zaawansowane",
+                        "description": "⚠️ UWAGA: Niewłaściwe użycie może uszkodzić filtrację!",
+                        "data": {
+                            "dev_overrides": "Nadpisania deweloperskie (obiekt JSON \"klucz\":wartość)",
+                            "dev_overrides_enabled": "Włącz nadpisania deweloperskie"
+                        },
+                        "data_description": {
+                            "dev_overrides": "Obiekt JSON, gdzie każdy klucz to nazwa rejestru Modbus, a wartość zastępuje rzeczywisty odczyt.",
+                            "dev_overrides_enabled": "Gdy włączone, wartości z JSON nadpisań są wstrzykiwane do danych koordynatora w celach testowych."
+                        }
+                    }
+                }
             }
         }
     },

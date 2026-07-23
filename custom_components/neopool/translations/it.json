@@ -795,28 +795,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Password errata. Riprova o rimuovi la password."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Override sviluppatore (oggetto JSON \"chiave\":valore)",
-                    "dev_overrides_enabled": "Abilita override sviluppatore"
-                },
-                "data_description": {
-                    "dev_overrides": "Un oggetto JSON dove ogni chiave è un nome di registro Modbus e ogni valore sostituisce la lettura reale.",
-                    "dev_overrides_enabled": "Quando abilitato, i valori dal JSON di override vengono iniettati nei dati del coordinatore per i test."
-                },
-                "description": "⚠️ ATTENZIONE: Un uso scorretto può danneggiare la filtrazione!",
-                "title": "Impostazioni avanzate"
-            },
             "init": {
                 "data": {
                     "filtration_pump_power": "Potenza della pompa di filtrazione (W, 0 = disabilitato)",
                     "measure_when_filtration_off": "Misura i valori anche quando la filtrazione è spenta",
                     "scan_interval": "Intervallo aggiornamento dati (secondi)",
-                    "unlock_advanced": "Sblocca opzioni avanzate",
                     "use_aux1": "Abilita relè Aux1",
                     "use_aux2": "Abilita relè Aux2",
                     "use_aux3": "Abilita relè Aux3",
@@ -831,7 +815,6 @@
                     "filtration_pump_power": "Specificare la potenza nominale della pompa di filtrazione. Con un valore diverso da zero vengono creati due sensori: potenza istantanea (W) ed energia cumulata (Wh), entrambi utilizzabili nel pannello energetico.",
                     "measure_when_filtration_off": "Quando disabilitato, le misurazioni chimiche (pH, ORP, ecc.) vengono effettuate solo quando la pompa di filtrazione è in funzione.",
                     "scan_interval": "Valori più bassi aumentano la reattività ma generano più traffico Modbus.",
-                    "unlock_advanced": "Inserire il codice di sblocco per accedere alle impostazioni avanzate (formato: prefisso_dispositivo + anno corrente).",
                     "use_aux1": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
                     "use_aux2": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
                     "use_aux3": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
@@ -843,7 +826,21 @@
                     "use_light": "Crea entità per controllare e monitorare il relè luce della piscina."
                 },
                 "description": "ATTENZIONE: Cambiare i relè abilitati ricaricherà automaticamente l’integrazione! Le modifiche hanno effetto immediato.",
-                "title": "Impostazioni NeoPool"
+                "title": "Impostazioni NeoPool",
+                "sections": {
+                    "advanced": {
+                        "name": "Impostazioni avanzate",
+                        "description": "⚠️ ATTENZIONE: Un uso scorretto può danneggiare la filtrazione!",
+                        "data": {
+                            "dev_overrides": "Override sviluppatore (oggetto JSON \"chiave\":valore)",
+                            "dev_overrides_enabled": "Abilita override sviluppatore"
+                        },
+                        "data_description": {
+                            "dev_overrides": "Un oggetto JSON dove ogni chiave è un nome di registro Modbus e ogni valore sostituisce la lettura reale.",
+                            "dev_overrides_enabled": "Quando abilitato, i valori dal JSON di override vengono iniettati nei dati del coordinatore per i test."
+                        }
+                    }
+                }
             }
         }
     },

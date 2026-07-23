@@ -795,28 +795,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Invalid password. Try again or remove the password."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Developer overrides (JSON object of \"key\":value)",
-                    "dev_overrides_enabled": "Enable developer overrides"
-                },
-                "data_description": {
-                    "dev_overrides": "A JSON object where each key is a Modbus register name and each value overrides the actual reading.",
-                    "dev_overrides_enabled": "When enabled, values from the override JSON are injected into coordinator data for testing."
-                },
-                "description": "⚠️ WARNING: Incorrect use may damage filtration!",
-                "title": "Advanced Settings"
-            },
             "init": {
                 "data": {
                     "filtration_pump_power": "Filtration pump power (W, 0 = disabled)",
                     "measure_when_filtration_off": "Measure values even when filtration is off",
                     "scan_interval": "Data update interval (seconds)",
-                    "unlock_advanced": "Unlock advanced options",
                     "use_aux1": "Enable Aux1 Relay",
                     "use_aux2": "Enable Aux2 Relay",
                     "use_aux3": "Enable Aux3 Relay",
@@ -831,7 +815,6 @@
                     "filtration_pump_power": "Set the rated wattage of the filtration pump. When non-zero, two sensors are created: instantaneous power (W) and cumulative energy (Wh), both usable in the Energy dashboard.",
                     "measure_when_filtration_off": "When disabled, chemical measurements (pH, ORP, etc.) are only taken while the filtration pump is running.",
                     "scan_interval": "Lower values increase responsiveness but generate more Modbus traffic.",
-                    "unlock_advanced": "Enter the unlock code to access advanced settings (format: device_prefix + current year).",
                     "use_aux1": "Creates switch and timer entities for this auxiliary relay output.",
                     "use_aux2": "Creates switch and timer entities for this auxiliary relay output.",
                     "use_aux3": "Creates switch and timer entities for this auxiliary relay output.",
@@ -843,7 +826,21 @@
                     "use_light": "Creates entities to control and monitor the pool light relay."
                 },
                 "description": "WARNING: Changing enabled relays will automatically reload the integration! Changes take effect immediately.",
-                "title": "NeoPool Settings"
+                "title": "NeoPool Settings",
+                "sections": {
+                    "advanced": {
+                        "name": "Advanced Settings",
+                        "description": "⚠️ WARNING: Incorrect use may damage filtration!",
+                        "data": {
+                            "dev_overrides": "Developer overrides (JSON object of \"key\":value)",
+                            "dev_overrides_enabled": "Enable developer overrides"
+                        },
+                        "data_description": {
+                            "dev_overrides": "A JSON object where each key is a Modbus register name and each value overrides the actual reading.",
+                            "dev_overrides_enabled": "When enabled, values from the override JSON are injected into coordinator data for testing."
+                        }
+                    }
+                }
             }
         }
     },

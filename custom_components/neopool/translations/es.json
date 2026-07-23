@@ -795,28 +795,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Contraseña incorrecta. Inténtalo de nuevo o elimina la contraseña."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Sobrescrituras de desarrollador (objeto JSON \"clave\":valor)",
-                    "dev_overrides_enabled": "Habilitar sobrescrituras de desarrollador"
-                },
-                "data_description": {
-                    "dev_overrides": "Un objeto JSON donde cada clave es un nombre de registro Modbus y cada valor reemplaza la lectura real.",
-                    "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas."
-                },
-                "description": "⚠️ ¡ADVERTENCIA! El uso incorrecto puede dañar la filtración.",
-                "title": "Configuraciones avanzadas"
-            },
             "init": {
                 "data": {
                     "filtration_pump_power": "Potencia de la bomba de filtración (W, 0 = desactivado)",
                     "measure_when_filtration_off": "Medir valores incluso cuando la filtración está apagada",
                     "scan_interval": "Intervalo de actualización de datos (segundos)",
-                    "unlock_advanced": "Desbloquear opciones avanzadas",
                     "use_aux1": "Activar relé Aux1",
                     "use_aux2": "Activar relé Aux2",
                     "use_aux3": "Activar relé Aux3",
@@ -831,7 +815,6 @@
                     "filtration_pump_power": "Indique la potencia nominal de la bomba de filtración. Con un valor distinto de cero se crean dos sensores: potencia instantánea (W) y energía acumulada (Wh), ambos utilizables en el panel de energía.",
                     "measure_when_filtration_off": "Cuando está desactivado, las mediciones químicas (pH, ORP, etc.) solo se realizan mientras la bomba de filtración está en funcionamiento.",
                     "scan_interval": "Valores más bajos aumentan la capacidad de respuesta pero generan más tráfico Modbus.",
-                    "unlock_advanced": "Introduzca el código de desbloqueo para acceder a configuraciones avanzadas (formato: prefijo_dispositivo + año actual).",
                     "use_aux1": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
                     "use_aux2": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
                     "use_aux3": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
@@ -843,7 +826,21 @@
                     "use_light": "Crea entidades para controlar y monitorear el relé de luz de la piscina."
                 },
                 "description": "¡ADVERTENCIA! Cambiar los relés habilitados recargará automáticamente la integración. Los cambios se aplican de inmediato.",
-                "title": "Configuración NeoPool"
+                "title": "Configuración NeoPool",
+                "sections": {
+                    "advanced": {
+                        "name": "Configuraciones avanzadas",
+                        "description": "⚠️ ¡ADVERTENCIA! El uso incorrecto puede dañar la filtración.",
+                        "data": {
+                            "dev_overrides": "Sobrescrituras de desarrollador (objeto JSON \"clave\":valor)",
+                            "dev_overrides_enabled": "Habilitar sobrescrituras de desarrollador"
+                        },
+                        "data_description": {
+                            "dev_overrides": "Un objeto JSON donde cada clave es un nombre de registro Modbus y cada valor reemplaza la lectura real.",
+                            "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas."
+                        }
+                    }
+                }
             }
         }
     },

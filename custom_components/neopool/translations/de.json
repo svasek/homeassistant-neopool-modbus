@@ -795,28 +795,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Falsches Passwort. Versuchen Sie es erneut oder entfernen Sie das Passwort."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Entwickler-Overrides (JSON Objekt \"Schlüssel\":Wert)",
-                    "dev_overrides_enabled": "Entwickler-Overrides aktivieren"
-                },
-                "data_description": {
-                    "dev_overrides": "Ein JSON-Objekt, bei dem jeder Schlüssel ein Modbus-Registername ist und jeder Wert den tatsächlichen Messwert überschreibt.",
-                    "dev_overrides_enabled": "Wenn aktiviert, werden Werte aus dem Override-JSON zu Testzwecken in die Koordinator-Daten eingefügt."
-                },
-                "description": "⚠️ ACHTUNG: Unsachgemäße Verwendung kann die Filterung beschädigen!",
-                "title": "Erweiterte Einstellungen"
-            },
             "init": {
                 "data": {
                     "filtration_pump_power": "Leistung der Filtrationspumpe (W, 0 = deaktiviert)",
                     "measure_when_filtration_off": "Messwerte auch bei ausgeschalteter Filterung erfassen",
                     "scan_interval": "Datenaktualisierungsintervall (Sekunden)",
-                    "unlock_advanced": "Erweiterte Optionen freischalten",
                     "use_aux1": "Aux1-Relais aktivieren",
                     "use_aux2": "Aux2-Relais aktivieren",
                     "use_aux3": "Aux3-Relais aktivieren",
@@ -831,7 +815,6 @@
                     "filtration_pump_power": "Geben Sie die Nennleistung der Filtrationspumpe an. Bei einem Wert ungleich null werden zwei Sensoren erstellt: momentane Leistung (W) und kumulierter Energieverbrauch (Wh), beide nutzbar im Energie-Dashboard.",
                     "measure_when_filtration_off": "Wenn deaktiviert, werden chemische Messungen (pH, ORP usw.) nur bei laufender Filterpumpe durchgeführt.",
                     "scan_interval": "Niedrigere Werte erhöhen die Reaktionsfähigkeit, erzeugen aber mehr Modbus-Verkehr.",
-                    "unlock_advanced": "Geben Sie den Freischaltcode ein, um auf erweiterte Einstellungen zuzugreifen (Format: Gerätepräfix + aktuelles Jahr).",
                     "use_aux1": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
                     "use_aux2": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
                     "use_aux3": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
@@ -843,7 +826,21 @@
                     "use_light": "Erstellt Entitäten zur Steuerung und Überwachung des Licht-Relais."
                 },
                 "description": "ACHTUNG: Das Ändern der aktivierten Relais lädt die Integration automatisch neu! Änderungen werden sofort wirksam.",
-                "title": "NeoPool Einstellungen"
+                "title": "NeoPool Einstellungen",
+                "sections": {
+                    "advanced": {
+                        "name": "Erweiterte Einstellungen",
+                        "description": "⚠️ ACHTUNG: Unsachgemäße Verwendung kann die Filterung beschädigen!",
+                        "data": {
+                            "dev_overrides": "Entwickler-Overrides (JSON Objekt \"Schlüssel\":Wert)",
+                            "dev_overrides_enabled": "Entwickler-Overrides aktivieren"
+                        },
+                        "data_description": {
+                            "dev_overrides": "Ein JSON-Objekt, bei dem jeder Schlüssel ein Modbus-Registername ist und jeder Wert den tatsächlichen Messwert überschreibt.",
+                            "dev_overrides_enabled": "Wenn aktiviert, werden Werte aus dem Override-JSON zu Testzwecken in die Koordinator-Daten eingefügt."
+                        }
+                    }
+                }
             }
         }
     },

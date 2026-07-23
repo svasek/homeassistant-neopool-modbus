@@ -795,28 +795,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Chybné heslo. Zkuste to znovu, nebo heslo smažte."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Vývojářské přepisy (JSON objekt \"klíč\":hodnota)",
-                    "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot"
-                },
-                "data_description": {
-                    "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení.",
-                    "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování."
-                },
-                "description": "⚠️ POZOR: Nesprávné použití může poškodit filtraci!",
-                "title": "Pokročilá nastavení"
-            },
             "init": {
                 "data": {
                     "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)",
                     "measure_when_filtration_off": "Měřit hodnoty i při vypnuté filtraci",
                     "scan_interval": "Interval aktualizace dat (v sekundách)",
-                    "unlock_advanced": "Odemknout pokročilé možnosti",
                     "use_aux1": "Povolit relé Aux1",
                     "use_aux2": "Povolit relé Aux2",
                     "use_aux3": "Povolit relé Aux3",
@@ -831,7 +815,6 @@
                     "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
                     "measure_when_filtration_off": "Pokud je vypnuto, chemická měření (pH, ORP atd.) probíhají pouze při běžícím filtračním čerpadle.",
                     "scan_interval": "Nižší hodnoty zvyšují rychlost odezvy, ale generují více Modbus komunikace.",
-                    "unlock_advanced": "Zadejte odemykací kód pro přístup k pokročilým nastavením (formát: prefix_zařízení + aktuální rok).",
                     "use_aux1": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
                     "use_aux2": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
                     "use_aux3": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
@@ -843,7 +826,21 @@
                     "use_light": "Vytvoří entity pro ovládání a sledování relé osvětlení bazénu."
                 },
                 "description": "POZOR: Změna povolených relé vyvolá automaticky reload integrace! Změny se projeví ihned.",
-                "title": "Nastavení NeoPool"
+                "title": "Nastavení NeoPool",
+                "sections": {
+                    "advanced": {
+                        "name": "Pokročilá nastavení",
+                        "description": "⚠️ POZOR: Nesprávné použití může poškodit filtraci!",
+                        "data": {
+                            "dev_overrides": "Vývojářské přepisy (JSON objekt \"klíč\":hodnota)",
+                            "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot"
+                        },
+                        "data_description": {
+                            "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení.",
+                            "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování."
+                        }
+                    }
+                }
             }
         }
     },
