@@ -99,6 +99,7 @@ async def test_pool_cover_inverts_hardware_value(
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
         "Pool Cover": True,
+        "Filtration Pump": True,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
@@ -110,6 +111,7 @@ async def test_pool_cover_inverts_hardware_value(
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
         "Pool Cover": False,
+        "Filtration Pump": True,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
@@ -132,6 +134,30 @@ async def test_pool_cover_none_yields_unknown(
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
         "Pool Cover": None,
+        "Filtration Pump": True,
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    state = _binary_state(hass, entity_registry, "Pool Cover")
+    assert state is not None
+    assert state.state == STATE_UNKNOWN
+
+
+async def test_pool_cover_unknown_when_filtration_off(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer,
+) -> None:
+    """Cover reads unknown while filtration is off, not a false "open"."""
+    await setup_integration(hass, mock_config_entry)
+
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Pool Cover": False,
+        "Filtration Pump": False,
     }
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
