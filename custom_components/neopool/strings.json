@@ -92,7 +92,6 @@
       "uv_lamp": { "name": "UV lamp" }
     },
     "button": {
-      "backwash": { "name": "Start backwash" },
       "escape": { "name": "Clear error messages" },
       "reset_cell_partial": { "name": "Reset cell runtime counter" },
       "sync_time": { "name": "Synchronize device time" }
@@ -151,9 +150,21 @@
       "filtvalve_mode": {
         "name": "Backwash valve mode",
         "state": {
-          "always_off": "Always off",
-          "always_on": "Always on",
-          "enabled": "Automatic"
+          "auto": "[%key:component::neopool::entity::select::relay_light_mode::state::auto%]",
+          "manual": "[%key:common::state::manual%]"
+        }
+      },
+      "filtvalve_interval": {
+        "name": "Backwash duration",
+        "state": {
+          "30s": "30 Seconds",
+          "60s": "60 Seconds",
+          "90s": "90 Seconds",
+          "120s": "120 Seconds",
+          "150s": "150 Seconds",
+          "180s": "180 Seconds",
+          "240s": "240 Seconds",
+          "300s": "300 Seconds"
         }
       },
       "filtvalve_period_minutes": {
@@ -446,6 +457,7 @@
       "aux2": { "name": "Relay Aux2" },
       "aux3": { "name": "Relay Aux3" },
       "aux4": { "name": "Relay Aux4" },
+      "backwash": { "name": "Backwash" },
       "clima_onoff": { "name": "Climate mode for heating" },
       "filt_manual_state": { "name": "Filtration" },
       "hidro_cover_enable": { "name": "Enable cover reduction (when covered)" },
@@ -496,6 +508,12 @@
     },
     "filtration_speed_not_manual_mode": {
       "message": "Filtration speed can only be changed when the controller is in manual filtration mode. Change the filtration mode to Manual first."
+    },
+    "filtvalve_in_auto_mode": {
+      "message": "The backwash valve is currently in automatic mode. Change the mode to manual first to start or stop a backwash directly."
+    },
+    "filtvalve_interval_not_set": {
+      "message": "No backwash duration is configured. Set the backwash duration first, then start the backwash."
     },
     "invalid_apply": {
       "message": "Invalid apply {apply}: must be a boolean (true/false)"
@@ -549,31 +567,12 @@
     }
   },
   "options": {
-    "error": {
-      "unlock_advanced_error": "Invalid password. Try again or remove the password."
-    },
     "step": {
-      "advanced": {
-        "data": {
-          "dev_overrides": "Developer overrides (JSON object of \"key\":value)",
-          "dev_overrides_enabled": "Enable developer overrides",
-          "enable_backwash_option": "[%key:component::neopool::options::step::init::data::enable_backwash_option%]"
-        },
-        "data_description": {
-          "dev_overrides": "A JSON object where each key is a Modbus register name and each value overrides the actual reading.",
-          "dev_overrides_enabled": "When enabled, values from the override JSON are injected into coordinator data for testing.",
-          "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Use with caution, improper use may damage your filtration system."
-        },
-        "description": "⚠️ WARNING: Incorrect use may damage filtration!",
-        "title": "Advanced Settings"
-      },
       "init": {
         "data": {
-          "enable_backwash_option": "Enable 'Backwash' mode",
           "filtration_pump_power": "[%key:component::neopool::config::step::user::data::filtration_pump_power%]",
           "measure_when_filtration_off": "Measure values even when filtration is off",
           "scan_interval": "Data update interval (seconds)",
-          "unlock_advanced": "Unlock advanced options",
           "use_aux1": "Enable Aux1 Relay",
           "use_aux2": "Enable Aux2 Relay",
           "use_aux3": "Enable Aux3 Relay",
@@ -585,11 +584,9 @@
           "use_light": "Enable Light Relay"
         },
         "data_description": {
-          "enable_backwash_option": "Adds 'Backwash' to the filtration mode select. Only for systems with manual multi-way valves.",
           "filtration_pump_power": "[%key:component::neopool::config::step::user::data_description::filtration_pump_power%]",
           "measure_when_filtration_off": "When disabled, chemical measurements (pH, ORP, etc.) are only taken while the filtration pump is running.",
           "scan_interval": "Lower values increase responsiveness but generate more Modbus traffic.",
-          "unlock_advanced": "Enter the unlock code to access advanced settings (format: device_prefix + current year).",
           "use_aux1": "Creates switch and timer entities for this auxiliary relay output.",
           "use_aux2": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
           "use_aux3": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
@@ -599,6 +596,20 @@
           "use_filtration2": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",
           "use_filtration3": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",
           "use_light": "Creates entities to control and monitor the pool light relay."
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced settings",
+            "description": "⚠️ WARNING: Incorrect use may damage filtration!",
+            "data": {
+              "dev_overrides": "Developer overrides (JSON object of \"key\":value)",
+              "dev_overrides_enabled": "Enable developer overrides"
+            },
+            "data_description": {
+              "dev_overrides": "A JSON object where each key is a Modbus register name and each value overrides the actual reading.",
+              "dev_overrides_enabled": "When enabled, values from the override JSON are injected into coordinator data for testing."
+            }
+          }
         },
         "description": "WARNING: Changing enabled relays will automatically reload the integration! Changes take effect immediately.",
         "title": "NeoPool Settings"

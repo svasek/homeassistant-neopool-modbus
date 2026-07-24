@@ -156,9 +156,6 @@
             }
         },
         "button": {
-            "backwash": {
-                "name": "Iniciar retrolavado"
-            },
             "escape": {
                 "name": "Borrar mensajes de error"
             },
@@ -261,9 +258,21 @@
             "filtvalve_mode": {
                 "name": "Modo de válvula de retrolavado",
                 "state": {
-                    "always_off": "Siempre Inactivo",
-                    "always_on": "Siempre Activo",
-                    "enabled": "Automático"
+                    "auto": "Automático",
+                    "manual": "Manual"
+                }
+            },
+            "filtvalve_interval": {
+                "name": "Duración del retrolavado",
+                "state": {
+                    "30s": "30 segundos",
+                    "60s": "60 segundos",
+                    "90s": "90 segundos",
+                    "120s": "120 segundos",
+                    "150s": "150 segundos",
+                    "180s": "180 segundos",
+                    "240s": "240 segundos",
+                    "300s": "300 segundos"
                 }
             },
             "filtvalve_period_minutes": {
@@ -605,6 +614,9 @@
             "aux4": {
                 "name": "Relé Aux4"
             },
+            "backwash": {
+                "name": "Lavado inverso"
+            },
             "clima_onoff": {
                 "name": "Modo clima para calefacción"
             },
@@ -718,6 +730,12 @@
         "filtration_speed_not_manual_mode": {
             "message": "La velocidad de filtración solo se puede cambiar cuando el controlador está en modo de filtración manual. Cambie primero el modo de filtración a Manual."
         },
+        "filtvalve_in_auto_mode": {
+            "message": "La válvula de contralavado está actualmente en modo automático. Cambie primero al modo manual para iniciar o detener un contralavado directamente."
+        },
+        "filtvalve_interval_not_set": {
+            "message": "No se ha configurado la duración del lavado inverso. Configure primero la duración del lavado inverso y luego inícielo."
+        },
         "invalid_apply": {
             "message": "Valor de apply no válido {apply}: debe ser un booleano (true/false)"
         },
@@ -782,31 +800,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Contraseña incorrecta. Inténtalo de nuevo o elimina la contraseña."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Sobrescrituras de desarrollador (objeto JSON \"clave\":valor)",
-                    "dev_overrides_enabled": "Habilitar sobrescrituras de desarrollador",
-                    "enable_backwash_option": "Activar modo ‘Backwash’"
-                },
-                "data_description": {
-                    "dev_overrides": "Un objeto JSON donde cada clave es un nombre de registro Modbus y cada valor reemplaza la lectura real.",
-                    "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas.",
-                    "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Use con precaución, el uso inadecuado puede dañar su sistema de filtración."
-                },
-                "description": "⚠️ ¡ADVERTENCIA! El uso incorrecto puede dañar la filtración.",
-                "title": "Configuraciones avanzadas"
-            },
             "init": {
                 "data": {
-                    "enable_backwash_option": "Activar modo 'Backwash'",
                     "filtration_pump_power": "Potencia de la bomba de filtración (W, 0 = desactivado)",
                     "measure_when_filtration_off": "Medir valores incluso cuando la filtración está apagada",
                     "scan_interval": "Intervalo de actualización de datos (segundos)",
-                    "unlock_advanced": "Desbloquear opciones avanzadas",
                     "use_aux1": "Activar relé Aux1",
                     "use_aux2": "Activar relé Aux2",
                     "use_aux3": "Activar relé Aux3",
@@ -818,11 +817,9 @@
                     "use_light": "Activar relé de luz"
                 },
                 "data_description": {
-                    "enable_backwash_option": "Añade 'Backwash' a la selección del modo de filtración. Solo para sistemas con válvula multivía manual.",
                     "filtration_pump_power": "Indique la potencia nominal de la bomba de filtración. Con un valor distinto de cero se crean dos sensores: potencia instantánea (W) y energía acumulada (Wh), ambos utilizables en el panel de energía.",
                     "measure_when_filtration_off": "Cuando está desactivado, las mediciones químicas (pH, ORP, etc.) solo se realizan mientras la bomba de filtración está en funcionamiento.",
                     "scan_interval": "Valores más bajos aumentan la capacidad de respuesta pero generan más tráfico Modbus.",
-                    "unlock_advanced": "Introduzca el código de desbloqueo para acceder a configuraciones avanzadas (formato: prefijo_dispositivo + año actual).",
                     "use_aux1": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
                     "use_aux2": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
                     "use_aux3": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
@@ -834,7 +831,21 @@
                     "use_light": "Crea entidades para controlar y monitorear el relé de luz de la piscina."
                 },
                 "description": "¡ADVERTENCIA! Cambiar los relés habilitados recargará automáticamente la integración. Los cambios se aplican de inmediato.",
-                "title": "Configuración NeoPool"
+                "title": "Configuración NeoPool",
+                "sections": {
+                    "advanced": {
+                        "name": "Configuraciones avanzadas",
+                        "description": "⚠️ ¡ADVERTENCIA! El uso incorrecto puede dañar la filtración.",
+                        "data": {
+                            "dev_overrides": "Sobrescrituras de desarrollador (objeto JSON \"clave\":valor)",
+                            "dev_overrides_enabled": "Habilitar sobrescrituras de desarrollador"
+                        },
+                        "data_description": {
+                            "dev_overrides": "Un objeto JSON donde cada clave es un nombre de registro Modbus y cada valor reemplaza la lectura real.",
+                            "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas."
+                        }
+                    }
+                }
             }
         }
     },

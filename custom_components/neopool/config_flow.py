@@ -33,16 +33,16 @@ from homeassistant.config_entries import (
 )
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
-from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 # CUSTOM-ONLY START
-from homeassistant.util import dt as dt_util, slugify
+from homeassistant.data_entry_flow import SectionConfig, section
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 # CUSTOM-ONLY END
 from .const import (
+    CONF_ADVANCED,
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
-    CONF_ENABLE_BACKWASH_OPTION,
     CONF_FILTRATION_PUMP_POWER,
     CONF_MEASURE_WHEN_FILTRATION_OFF,
     CONF_MODBUS_FRAMER,
@@ -226,26 +226,11 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
 class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
     """Handle options flow for NeoPool integration."""
 
-    def __init__(self) -> None:
-        """Initialize the options flow handler.
-
-        config_entry is not injected here; it is available as the read-only
-        self.config_entry property provided by the OptionsFlow base class.
-        """
-        super().__init__()
-        self._base_options: dict[str, Any] = {}
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step of the options flow."""
         options = dict(self.config_entry.options)
-        # CUSTOM-ONLY START
-        already_enabled = options.get(CONF_ENABLE_BACKWASH_OPTION, False)
-
-        device_slug = slugify(self.config_entry.title)
-        expected = f"{device_slug}{dt_util.now().year}"
-        # CUSTOM-ONLY END
 
         schema_dict = {
             # CUSTOM-ONLY START
@@ -302,19 +287,24 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_USE_AUX4,
                 default=options.get(CONF_USE_AUX4, False),
             ): bool,
+            # CUSTOM-ONLY START
+            vol.Required(CONF_ADVANCED): section(
+                vol.Schema(
+                    {
+                        vol.Optional(
+                            CONF_DEV_OVERRIDES_ENABLED,
+                            default=options.get(CONF_DEV_OVERRIDES_ENABLED, False),
+                        ): bool,
+                        vol.Optional(
+                            CONF_DEV_OVERRIDES,
+                            default=options.get(CONF_DEV_OVERRIDES, "{}"),
+                        ): str,
+                    }
+                ),
+                SectionConfig(collapsed=True),
+            ),
+            # CUSTOM-ONLY END
         }
-
-        # CUSTOM-ONLY START
-        if already_enabled:
-            schema_dict[
-                vol.Optional(
-                    CONF_ENABLE_BACKWASH_OPTION,
-                    default=True,
-                    description={"suggested_value": True},
-                )
-            ] = bool
-        schema_dict[vol.Optional("unlock_advanced", default="")] = str
-        # CUSTOM-ONLY END
 
         schema = vol.Schema(schema_dict)
 
@@ -322,67 +312,13 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
             # CUSTOM-ONLY START
             if CONF_SCAN_INTERVAL in user_input:
                 user_input[CONF_SCAN_INTERVAL] = int(user_input[CONF_SCAN_INTERVAL])
-            if (user_input.get("unlock_advanced") or "").strip() == expected:
-                self._base_options = user_input.copy()
-                self._base_options.pop("unlock_advanced", None)
-                return await self.async_step_advanced()
-            if (user_input.get("unlock_advanced") or "").strip() != "":
-                _LOGGER.warning("Wrong password for the advanced settings!")
-                return self.async_show_form(
-                    step_id="init",
-                    data_schema=schema,
-                    errors={"unlock_advanced": "unlock_advanced_error"},
-                )
+            # Section values arrive nested; flatten them into the options dict.
+            advanced = user_input.pop(CONF_ADVANCED, {})
+            user_input.update(advanced)
             # CUSTOM-ONLY END
-            data = user_input.copy()
-            # CUSTOM-ONLY START
-            data.pop("unlock_advanced", None)
-            # CUSTOM-ONLY END
-            return self.async_create_entry(title="", data=data)
+            return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
             step_id="init",
             data_schema=schema,
-            description_placeholders={},
         )
-
-    # CUSTOM-ONLY START
-    async def async_step_advanced(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Handle the advanced options step."""
-        options = dict(self.config_entry.options)
-        advanced_schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_ENABLE_BACKWASH_OPTION,
-                    default=options.get(CONF_ENABLE_BACKWASH_OPTION, False),
-                ): bool,
-                vol.Optional(
-                    CONF_DEV_OVERRIDES_ENABLED,
-                    default=options.get(CONF_DEV_OVERRIDES_ENABLED, False),
-                ): bool,
-                vol.Optional(
-                    CONF_DEV_OVERRIDES,
-                    default=options.get(CONF_DEV_OVERRIDES, "{}"),
-                ): str,
-            }
-        )
-
-        if user_input is not None:
-            all_options = {**self._base_options, **user_input}
-            return self.async_create_entry(title="", data=all_options)
-
-        return self.async_show_form(
-            step_id="advanced",
-            data_schema=advanced_schema,
-            description_placeholders={
-                "warning": (
-                    "WARNING: Enabling backwash will add this mode to Filtration Mode select. "
-                    "Improper use may damage the filter! Enable only if you know what you are doing."
-                )
-            },
-            last_step=True,
-        )
-
-    # CUSTOM-ONLY END

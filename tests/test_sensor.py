@@ -209,6 +209,41 @@ async def test_filt_mode_native_value(
     assert hass.states.get(_ENTITY_ID_BY_KEY["MBF_PAR_FILT_MODE"]).state == expected
 
 
+async def test_filtvalve_remaining_unknown_when_idle(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Backwash time remaining is unknown while idle (0), matching filtration.
+
+    The register reads 0 when no backwash runs; the sensor reports None so it
+    reads "unknown" rather than a misleading 0, like FILTRATION_REMAINING.
+    """
+    registry = er.async_get(hass)
+    await setup_integration(hass, mock_config_entry)
+    entries = [
+        e
+        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        if e.domain == "sensor" and e.unique_id.endswith("_mbf_par_filtvalve_remaining")
+    ]
+    assert entries, "backwash time remaining sensor not registered"
+    entity_id = entries[0].entity_id
+
+    # MOCK_POOL_DATA seeds MBF_PAR_FILTVALVE_REMAINING = 0 -> unknown.
+    assert hass.states.get(entity_id).state == STATE_UNKNOWN
+
+    # A running backwash reports the countdown.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_REMAINING": 90,
+    }
+    freezer.tick(_td(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "90"
+
+
 @pytest.mark.usefixtures("mock_neopool_client")
 async def test_filtration_pump_energy_sensor_registers_when_power_set(
     hass: HomeAssistant,

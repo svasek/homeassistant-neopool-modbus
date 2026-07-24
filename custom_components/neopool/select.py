@@ -33,9 +33,7 @@ from neopool_modbus.decoders import (
     CELL_BOOST_MODE_LABELS,
     FILTRATION_MODE_LABELS,
     FILTRATION_SPEED_LABELS,
-    FILTVALVE_MODE_LABELS,
     decode_cell_boost,
-    decode_filtvalve_mode,
 )
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
@@ -48,6 +46,7 @@ from neopool_modbus.registers import (
     FILTRATION_TIMER3_SPEED_MASK,
     FILTRATION_TIMER3_SPEED_SHIFT,
     ConfigKind,
+    FiltValveMode,
     RelayKind,
     RelayMode,
     TimerRelayMode,
@@ -60,7 +59,6 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
-    CONF_ENABLE_BACKWASH_OPTION,
     CONF_USE_AUX1,
     CONF_USE_AUX2,
     CONF_USE_AUX3,
@@ -117,11 +115,9 @@ def _filt_mode_options(data: dict[str, Any]) -> list[str]:
         # Remove key for "smart"
         option_keys = [k for k in option_keys if k != 3]
 
-    if not has_filtvalve(data):
-        # Keep backwash (13) in the list if the device is currently in that mode.
-        current_mode = data.get("MBF_PAR_FILT_MODE")
-        if current_mode != 13:
-            option_keys = [k for k in option_keys if k != 13]
+    # Backwash (13) is display-only: show it only when the device reports it.
+    if data.get("MBF_PAR_FILT_MODE") != 13:
+        option_keys = [k for k in option_keys if k != 13]
 
     return [FILTRATION_MODE_LABELS[k] for k in option_keys]
 
@@ -162,11 +158,6 @@ def _make_filtration_speed_decoder(
         return FILTRATION_SPEED_LABELS.get(speed_value)
 
     return _decode
-
-
-def _decode_filtvalve_mode(data: dict[str, Any]) -> str | None:
-    """Map the raw MBF_PAR_FILTVALVE_MODE register to its translation key."""
-    return decode_filtvalve_mode(data.get("MBF_PAR_FILTVALVE_MODE"))
 
 
 # ---------------------------------------------------------------------------
@@ -243,6 +234,23 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
     entity.coordinator.request_refresh_with_followup()
 
 
+async def _write_filtvalve_mode(
+    entity: "NeoPoolSelect", client: Any, option: str
+) -> None:
+    """Switch the filter valve between automatic and manual modes."""
+    current = int(entity.coordinator.data.get("MBF_PAR_FILTVALVE_MODE", 0) or 0)
+    if option == "manual" and current in (
+        FiltValveMode.ALWAYS_ON,
+        FiltValveMode.ALWAYS_OFF,
+    ):
+        # Already in a manual mode; do not touch the physical valve state.
+        return
+    mode = FiltValveMode.AUTO if option == "auto" else FiltValveMode.ALWAYS_OFF
+    overrides = await client.async_set_filtvalve_mode(mode)
+    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
+    entity.coordinator.request_refresh_with_followup()
+
+
 async def _write_cell_boost(entity: "NeoPoolSelect", client: Any, option: str) -> None:
     """Encode the cell boost mode into the composite cell-status register."""
     await client.async_set_cell_boost(option)
@@ -266,42 +274,16 @@ async def _write_filtration_speed(
 
 
 async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) -> None:
-    """Drive the MBF_PAR_FILT_MODE transition (with manual-mode exit + backwash log)."""
+    """Drive the MBF_PAR_FILT_MODE transition (with manual-mode exit)."""
     current_name = entity.coordinator.data.get("filtration_mode")
-    has_auto_valve = has_filtvalve(entity.coordinator.data)
     if current_name == "manual" and option != "manual":
-        if not (option == "backwash" and has_auto_valve):
-            await client.async_set_manual_filtration(False)
-            await asyncio.sleep(0.1)
+        await client.async_set_manual_filtration(False)
+        await asyncio.sleep(0.1)
     await client.async_set_filtration_mode(option)
-    if option == "backwash":
-        _LOGGER.info(
-            'Your pool "%s" has been switched to the BACKWASH mode!',
-            NeoPoolEntity.slugify(entity.coordinator.config_entry.title),
-        )
     value = next(
         (k for k, v in entity.entity_description.options_map.items() if v == option),
         None,
     )
-    overrides = entity.apply_optimistic_update(value)
-    entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
-    entity.coordinator.request_refresh_with_followup()
-
-
-async def _write_default_register(
-    entity: "NeoPoolSelect", client: Any, option: str
-) -> None:
-    """Write the option's mapped value through async_set_config_option."""
-    desc = entity.entity_description
-    if desc.config_kind is None:  # pragma: no cover - description validated upstream
-        return
-    value = next(
-        (k for k, v in desc.options_map.items() if v == option),
-        None,
-    )
-    if value is None:  # pragma: no cover
-        return
-    await client.async_set_config_option(desc.config_kind, value)
     overrides = entity.apply_optimistic_update(value)
     entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
@@ -343,12 +325,10 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
     "MBF_PAR_FILTVALVE_MODE": NeoPoolSelectEntityDescription(
         key="MBF_PAR_FILTVALVE_MODE",
         translation_key="filtvalve_mode",
-        entity_category=EntityCategory.CONFIG,
-        options_map=FILTVALVE_MODE_LABELS,
-        config_kind=ConfigKind.FILTVALVE_MODE,
+        options_map={1: "auto", 4: "manual"},
+        select_type="filtvalve_mode",
         supported_fn=has_filtvalve,
-        write_fn=_write_default_register,
-        current_option_fn=_decode_filtvalve_mode,
+        write_fn=_write_filtvalve_mode,
     ),
     "MBF_PAR_FILTVALVE_PERIOD_MINUTES": NeoPoolSelectEntityDescription(
         key="MBF_PAR_FILTVALVE_PERIOD_MINUTES",
@@ -368,6 +348,26 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
             40320: "4_weeks",
         },
         config_kind=ConfigKind.FILTVALVE_PERIOD_MINUTES,
+        supported_fn=has_filtvalve,
+        write_fn=_write_config_option,
+    ),
+    "MBF_PAR_FILTVALVE_INTERVAL": NeoPoolSelectEntityDescription(
+        key="MBF_PAR_FILTVALVE_INTERVAL",
+        translation_key="filtvalve_interval",
+        entity_category=EntityCategory.CONFIG,
+        select_type="mapped_register",
+        fallback_suffix="s",
+        options_map={
+            30: "30s",
+            60: "60s",
+            90: "90s",
+            120: "120s",
+            150: "150s",
+            180: "180s",
+            240: "240s",
+            300: "300s",
+        },
+        config_kind=ConfigKind.FILTVALVE_INTERVAL,
         supported_fn=has_filtvalve,
         write_fn=_write_config_option,
     ),
@@ -623,7 +623,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
     @override
     async def async_select_option(self, option: str) -> None:
         """Handle option selection by dispatching to the description write_fn."""
-        write_fn = self.entity_description.write_fn or _write_default_register
+        write_fn = self.entity_description.write_fn
+        if write_fn is None:  # pragma: no cover - every description wires write_fn
+            return
         try:
             await write_fn(self, self.coordinator.client, option)
         except (NeoPoolError, OSError, TimeoutError) as err:
@@ -641,19 +643,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         data = self.coordinator.data
 
         if (options_fn := desc.options_fn) is not None:
-            options = options_fn(data)
-            # CUSTOM-ONLY START, HACS-only manual override to expose backwash mode
-            # on controllers without an auto valve (present in `data`-driven filter).
-            if (
-                self.key == "MBF_PAR_FILT_MODE"
-                and self.coordinator.config_entry.options.get(
-                    CONF_ENABLE_BACKWASH_OPTION, False
-                )
-                and "backwash" not in options
-            ):
-                options = [*options, "backwash"]
-            # CUSTOM-ONLY END
-            return options
+            return options_fn(data)
 
         if desc.select_type == "timer_period":
             options_list = list(PERIOD_MAP.keys())
@@ -692,10 +682,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if value is None:  # pragma: no cover
             return {}
         desc = self.entity_description
-        if self.key in (
-            "MBF_PAR_FILT_MODE",
-            "MBF_PAR_FILTVALVE_MODE",
-        ):
+        if self.key == "MBF_PAR_FILT_MODE":
             return {self.key: value}
         if desc.select_type == "mapped_register":
             return {self.key: value}
@@ -730,6 +717,15 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             if int_value in (TimerRelayMode.ALWAYS_ON, TimerRelayMode.ALWAYS_OFF):
                 return "manual"
             return desc.options_map.get(int_value)  # pragma: no cover
+
+        if desc.select_type == "filtvalve_mode":
+            value = data.get(self.key)
+            if value is None:  # pragma: no cover
+                return None
+            int_value = int(value)
+            if int_value in (FiltValveMode.ALWAYS_ON, FiltValveMode.ALWAYS_OFF):
+                return "manual"
+            return desc.options_map.get(int_value)
 
         if desc.select_type == "mapped_register":
             value = data.get(self.key)

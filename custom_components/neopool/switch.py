@@ -20,6 +20,7 @@ from typing import Any, override
 
 from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
 from neopool_modbus.capabilities import (
+    has_filtvalve,
     has_heating_relay,
     is_hydrolysis_present,
     is_temperature_active,
@@ -31,6 +32,7 @@ from neopool_modbus.registers import (
     HIDRO_TEMP_SHUTDOWN_BIT,
     BinaryConfigFlag,
     BitmaskConfigFlag,
+    FiltValveMode,
     RelayKind,
     TimerRelayMode,
     is_valid_relay_gpio,
@@ -104,6 +106,29 @@ async def _write_manual_filtration(
             translation_key="filtration_boost_active",
         )
     return await client.async_set_manual_filtration(state)
+
+
+async def _write_backwash(
+    entity: "NeoPoolSwitch", client: Any, state: bool
+) -> dict[str, Any]:
+    """Start a backwash with the configured duration, or stop it by writing 0."""
+    data = entity.coordinator.data
+    if data.get("MBF_PAR_FILTVALVE_MODE") == FiltValveMode.AUTO:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="filtvalve_in_auto_mode",
+        )
+    if state:
+        interval = data.get("MBF_PAR_FILTVALVE_INTERVAL") or 0
+        if not interval:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="filtvalve_interval_not_set",
+            )
+        await client.async_start_backwash()
+        return {"MBF_PAR_FILTVALVE_REMAINING": int(interval)}
+    await client.async_stop_backwash()
+    return {"MBF_PAR_FILTVALVE_REMAINING": 0}
 
 
 _RELAY_TIMER_ENABLE_KEY: dict[RelayKind, str] = {
@@ -200,6 +225,13 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
         translation_key="filt_manual_state",
         write_fn=_write_manual_filtration,
         is_on_fn=_make_is_on_from_key("Filtration Pump"),
+    ),
+    "BACKWASH": NeoPoolSwitchEntityDescription(
+        key="BACKWASH",
+        translation_key="backwash",
+        write_fn=_write_backwash,
+        is_on_fn=_make_is_on_int_flag("MBF_PAR_FILTVALVE_REMAINING"),
+        supported_fn=has_filtvalve,
     ),
     "MBF_PAR_CLIMA_ONOFF": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_CLIMA_ONOFF",
@@ -315,6 +347,8 @@ _INVALID_STATE_TRANSLATION_KEY: dict[InvalidStateReason, str] = {
     InvalidStateReason.RELAY_IN_AUTO_MODE: "relay_in_auto_mode",
     InvalidStateReason.FILTRATION_NOT_IN_MANUAL_MODE: "filtration_not_manual_mode",
     InvalidStateReason.FILTRATION_BOOST_ACTIVE: "filtration_boost_active",
+    InvalidStateReason.FILTVALVE_INTERVAL_NOT_SET: "filtvalve_interval_not_set",
+    InvalidStateReason.FILTVALVE_IN_AUTO_MODE: "filtvalve_in_auto_mode",
 }
 
 

@@ -156,9 +156,6 @@
             }
         },
         "button": {
-            "backwash": {
-                "name": "Spustit proplach"
-            },
             "escape": {
                 "name": "Vymazat chybová hlášení"
             },
@@ -261,9 +258,21 @@
             "filtvalve_mode": {
                 "name": "Režim ventilu zpětného proplachování",
                 "state": {
-                    "always_off": "Vždy vypnuto",
-                    "always_on": "Vždy zapnuto",
-                    "enabled": "Automatický"
+                    "auto": "Automatický",
+                    "manual": "Ruční"
+                }
+            },
+            "filtvalve_interval": {
+                "name": "Doba proplachu",
+                "state": {
+                    "30s": "30 sekund",
+                    "60s": "60 sekund",
+                    "90s": "90 sekund",
+                    "120s": "120 sekund",
+                    "150s": "150 sekund",
+                    "180s": "180 sekund",
+                    "240s": "240 sekund",
+                    "300s": "300 sekund"
                 }
             },
             "filtvalve_period_minutes": {
@@ -605,6 +614,9 @@
             "aux4": {
                 "name": "Pomocné relé Aux4"
             },
+            "backwash": {
+                "name": "Zpětný proplach"
+            },
             "clima_onoff": {
                 "name": "Režim klimatizace pro ohřev"
             },
@@ -718,6 +730,12 @@
         "filtration_speed_not_manual_mode": {
             "message": "Rychlost filtrace lze měnit jen v ručním režimu filtrace. Nejprve přepněte režim filtrace na Ruční."
         },
+        "filtvalve_in_auto_mode": {
+            "message": "Ventil zpětného proplachu je aktuálně v automatickém režimu. Nejprve změňte režim na ruční, abyste mohli zpětný proplach přímo spustit nebo zastavit."
+        },
+        "filtvalve_interval_not_set": {
+            "message": "Není nastavena doba zpětného proplachu. Nejprve nastavte dobu zpětného proplachu a poté jej spusťte."
+        },
         "invalid_apply": {
             "message": "Neplatná hodnota apply {apply}: musí být boolean (true/false)"
         },
@@ -782,31 +800,12 @@
         }
     },
     "options": {
-        "error": {
-            "unlock_advanced_error": "Chybné heslo. Zkuste to znovu, nebo heslo smažte."
-        },
         "step": {
-            "advanced": {
-                "data": {
-                    "dev_overrides": "Vývojářské přepisy (JSON objekt \"klíč\":hodnota)",
-                    "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot",
-                    "enable_backwash_option": "Povolit režim ‘Backwash’"
-                },
-                "data_description": {
-                    "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení.",
-                    "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování.",
-                    "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Používejte opatrně, nesprávné použití může poškodit filtrační systém."
-                },
-                "description": "⚠️ POZOR: Nesprávné použití může poškodit filtraci!",
-                "title": "Pokročilá nastavení"
-            },
             "init": {
                 "data": {
-                    "enable_backwash_option": "Povolit režim 'Backwash'",
                     "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)",
                     "measure_when_filtration_off": "Měřit hodnoty i při vypnuté filtraci",
                     "scan_interval": "Interval aktualizace dat (v sekundách)",
-                    "unlock_advanced": "Odemknout pokročilé možnosti",
                     "use_aux1": "Povolit relé Aux1",
                     "use_aux2": "Povolit relé Aux2",
                     "use_aux3": "Povolit relé Aux3",
@@ -818,11 +817,9 @@
                     "use_light": "Povolit relé Osvětlení"
                 },
                 "data_description": {
-                    "enable_backwash_option": "Přidá 'Backwash' do výběru režimu filtrace. Pouze pro systémy s manuálním vícecestným ventilem.",
                     "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
                     "measure_when_filtration_off": "Pokud je vypnuto, chemická měření (pH, ORP atd.) probíhají pouze při běžícím filtračním čerpadle.",
                     "scan_interval": "Nižší hodnoty zvyšují rychlost odezvy, ale generují více Modbus komunikace.",
-                    "unlock_advanced": "Zadejte odemykací kód pro přístup k pokročilým nastavením (formát: prefix_zařízení + aktuální rok).",
                     "use_aux1": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
                     "use_aux2": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
                     "use_aux3": "Vytvoří přepínač a entity časovačů pro tento pomocný reléový výstup.",
@@ -834,7 +831,21 @@
                     "use_light": "Vytvoří entity pro ovládání a sledování relé osvětlení bazénu."
                 },
                 "description": "POZOR: Změna povolených relé vyvolá automaticky reload integrace! Změny se projeví ihned.",
-                "title": "Nastavení NeoPool"
+                "title": "Nastavení NeoPool",
+                "sections": {
+                    "advanced": {
+                        "name": "Pokročilá nastavení",
+                        "description": "⚠️ POZOR: Nesprávné použití může poškodit filtraci!",
+                        "data": {
+                            "dev_overrides": "Vývojářské přepisy (JSON objekt \"klíč\":hodnota)",
+                            "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot"
+                        },
+                        "data_description": {
+                            "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení.",
+                            "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování."
+                        }
+                    }
+                }
             }
         }
     },
