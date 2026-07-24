@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.6.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.5.1...v6.6.0) (2026-07-24)
+
+
+### ✨ Features
+
+* ✨ rework backwash to a stateful switch with a duration control ([#238](https://github.com/svasek/homeassistant-neopool-modbus/issues/238)) ([8dcc317](https://github.com/svasek/homeassistant-neopool-modbus/commit/8dcc317ed4e7edafb62d0ef3649d1b5a4bbdf399))
+
+
+### 🐛 Bug Fixes
+
+* **binary_sensor:** 🐛 report pool cover as unknown when filtration is off ([#239](https://github.com/svasek/homeassistant-neopool-modbus/issues/239)) ([43ed060](https://github.com/svasek/homeassistant-neopool-modbus/commit/43ed0602646ae7fa2dcd31570da3d8016a2fd135))
+
 ## [6.5.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.5.0...v6.5.1) (2026-07-17)
 
 
