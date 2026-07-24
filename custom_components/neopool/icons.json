@@ -81,7 +81,6 @@
       }
     },
     "button": {
-      "backwash": { "default": "mdi:waves-arrow-left" },
       "escape": { "default": "mdi:reload-alert" },
       "sync_time": { "default": "mdi:clock-check-outline" }
     },
@@ -108,6 +107,7 @@
       "filtration3_speed": { "default": "mdi:fan-speed-3" },
       "filtration_speed": { "default": "mdi:fan-speed-3" },
       "filtvalve_mode": { "default": "mdi:valve" },
+      "filtvalve_interval": { "default": "mdi:timer-sand" },
       "filtvalve_period_minutes": { "default": "mdi:timer-refresh-outline" },
       "intelligent_filt_min_time": { "default": "mdi:timer-lock-outline" },
       "relay_activation_delay": { "default": "mdi:timer-plus-outline" },
@@ -191,6 +191,12 @@
         "default": "mdi:electric-switch",
         "state": {
           "on": "mdi:electric-switch-closed"
+        }
+      },
+      "backwash": {
+        "default": "mdi:waves-arrow-right",
+        "state": {
+          "on": "mdi:waves-arrow-left"
         }
       },
       "clima_onoff": {
