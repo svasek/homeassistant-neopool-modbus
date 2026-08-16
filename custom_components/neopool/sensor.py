@@ -55,12 +55,11 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_MILLION,
-    PERCENTAGE,
     EntityCategory,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfRatio,
     UnitOfTemperature,
     UnitOfTime,
 )
@@ -90,18 +89,20 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
     "MBF_ION_CURRENT": NeoPoolSensorEntityDescription(
         key="MBF_ION_CURRENT",
         translation_key="ion_current",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         supported_fn=is_ionization_present,
     ),
     "MBF_HIDRO_CURRENT": NeoPoolSensorEntityDescription(
         key="MBF_HIDRO_CURRENT",
         translation_key="hidro_current",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         supported_fn=is_hydrolysis_present,
-        unit_fn=lambda data: PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h",
+        unit_fn=lambda data: (
+            UnitOfRatio.PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h"
+        ),
         precision_fn=lambda data: 0 if is_hydrolysis_in_percent(data) else 1,
     ),
     "MBF_MEASURE_PH": NeoPoolSensorEntityDescription(
@@ -121,14 +122,14 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
     "MBF_MEASURE_CL": NeoPoolSensorEntityDescription(
         key="MBF_MEASURE_CL",
         translation_key="measure_cl",
-        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
+        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
         state_class=SensorStateClass.MEASUREMENT,
         supported_fn=is_chlorine_module_present,
     ),
     "MBF_MEASURE_CONDUCTIVITY": NeoPoolSensorEntityDescription(
         key="MBF_MEASURE_CONDUCTIVITY",
         translation_key="measure_conductivity",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         supported_fn=is_conductivity_module_present,
