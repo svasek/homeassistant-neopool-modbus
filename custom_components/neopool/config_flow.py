@@ -44,6 +44,8 @@ from .const import (
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_FILTRATION_PUMP_POWER,
+    CONF_FILTRATION_PUMP_POWER_LOW,
+    CONF_FILTRATION_PUMP_POWER_MID,
     CONF_MEASURE_WHEN_FILTRATION_OFF,
     CONF_MODBUS_FRAMER,
     CONF_SCAN_INTERVAL,
@@ -291,6 +293,14 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
             vol.Required(CONF_ADVANCED): section(
                 vol.Schema(
                     {
+                        vol.Optional(
+                            CONF_FILTRATION_PUMP_POWER_MID,
+                            default=options.get(CONF_FILTRATION_PUMP_POWER_MID, 0),
+                        ): vol.All(int, vol.Range(min=0)),
+                        vol.Optional(
+                            CONF_FILTRATION_PUMP_POWER_LOW,
+                            default=options.get(CONF_FILTRATION_PUMP_POWER_LOW, 0),
+                        ): vol.All(int, vol.Range(min=0)),
                         vol.Optional(
                             CONF_DEV_OVERRIDES_ENABLED,
                             default=options.get(CONF_DEV_OVERRIDES_ENABLED, False),
