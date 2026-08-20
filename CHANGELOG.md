@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.7.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.7.0...v6.7.1) (2026-08-20)
+
+
+### 🐛 Bug Fixes
+
+* **diagnostics:** 🔒️ prevent host/port and serial leaks ([#250](https://github.com/svasek/homeassistant-neopool-modbus/issues/250)) ([db4a26f](https://github.com/svasek/homeassistant-neopool-modbus/commit/db4a26f249ac5cf593037924d91c9fa42c226ccf))
+
 ## [6.7.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.6.0...v6.7.0) (2026-08-12)
 
 
