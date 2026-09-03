@@ -48,7 +48,7 @@
   },
   "entity": {
     "binary_sensor": {
-      "aux": { "name": "Relay Aux {number}" },
+      "aux": { "name": "Auxiliary relay {number}" },
       "chlorine_control_module": { "name": "Chlorine regulation active" },
       "chlorine_flow_sensor_problem": { "name": "Chlorine flow sensor" },
       "chlorine_measurement_active": { "name": "Chlorine measurement" },

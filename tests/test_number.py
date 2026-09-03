@@ -5,6 +5,7 @@ from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from freezegun.api import FrozenDateTimeFactory
 from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import MaskedFlag, SetpointKind
 import pytest
@@ -205,7 +206,7 @@ async def test_number_native_value_returns_rounded_raw(
     hass: HomeAssistant,
     mock_config_entry_number: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """native_value returns round(raw, 2) when coordinator has the register."""
 
@@ -238,7 +239,7 @@ async def test_hidro_native_value_in_percent_mode(
     hass: HomeAssistant,
     mock_config_entry_number: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """MBF_PAR_HIDRO with hidro_nom set surfaces it as native_max_value."""
 
@@ -272,7 +273,7 @@ async def test_masked_number_native_value_decodes_via_mask_shift(
     hass: HomeAssistant,
     mock_config_entry_number: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test that masked compound numbers decode via _mask/_shift.
 
@@ -312,7 +313,7 @@ async def test_masked_number_write_preserves_other_byte(
     hass: HomeAssistant,
     mock_config_entry_number: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Writing one masked number dispatches to async_set_masked_register.
 
