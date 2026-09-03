@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 import json as _json
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 from freezegun.api import FrozenDateTimeFactory
@@ -17,6 +18,9 @@ from custom_components.neopool.const import (
     CONF_CAPABILITIES,
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
+    CONF_FILTRATION_PUMP_POWER,
+    CONF_FILTRATION_PUMP_POWER_LOW,
+    CONF_FILTRATION_PUMP_POWER_MID,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
     CURRENT_VERSION,
@@ -604,3 +608,114 @@ async def test_timer_block_data_merged_into_coordinator(
     assert coordinator.data["filtration2_stop"] is None
     # Aggregated filtration_remaining picks up the 1-hour countdown.
     assert coordinator.data["FILTRATION_REMAINING"] == 3600
+
+
+# ---------------------------------------------------------------------------
+# Filtration pump power selection (fixed and per-speed)
+# ---------------------------------------------------------------------------
+
+
+def _pump_power_entry(options: dict[str, Any]) -> MockConfigEntry:
+    """Build a config entry carrying the given pump-power options."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_pump_power_calc",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.40",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp", **options},
+    )
+
+
+@pytest.mark.parametrize(
+    ("options", "pump_on", "speed", "expected"),
+    [
+        # Base disabled (0): no power regardless of speed or pump state.
+        pytest.param({}, True, "high", 0, id="base_zero"),
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800}, False, "high", 0, id="pump_off"
+        ),
+        # Only the base set: every running speed reuses it (legacy behaviour).
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800}, True, "high", 800, id="base_high"
+        ),
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800},
+            True,
+            "mid",
+            800,
+            id="base_mid_no_override",
+        ),
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800},
+            True,
+            "low",
+            800,
+            id="base_low_no_override",
+        ),
+        # Per-speed overrides win when non-zero.
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800, CONF_FILTRATION_PUMP_POWER_MID: 500},
+            True,
+            "mid",
+            500,
+            id="mid_override",
+        ),
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800, CONF_FILTRATION_PUMP_POWER_LOW: 300},
+            True,
+            "low",
+            300,
+            id="low_override",
+        ),
+        # An override of 0 falls back to the base value.
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800, CONF_FILTRATION_PUMP_POWER_MID: 0},
+            True,
+            "mid",
+            800,
+            id="mid_override_zero_falls_back",
+        ),
+        # The high speed ignores mid/low overrides and uses the base.
+        pytest.param(
+            {
+                CONF_FILTRATION_PUMP_POWER: 800,
+                CONF_FILTRATION_PUMP_POWER_MID: 500,
+                CONF_FILTRATION_PUMP_POWER_LOW: 300,
+            },
+            True,
+            "high",
+            800,
+            id="high_ignores_overrides",
+        ),
+        # An unknown/off speed with the pump reported on still uses the base.
+        pytest.param(
+            {CONF_FILTRATION_PUMP_POWER: 800, CONF_FILTRATION_PUMP_POWER_MID: 500},
+            True,
+            None,
+            800,
+            id="unknown_speed_uses_base",
+        ),
+    ],
+)
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_compute_pump_power(
+    hass: HomeAssistant,
+    options: dict[str, Any],
+    pump_on: bool,
+    speed: str | None,
+    expected: int,
+) -> None:
+    """Pump power resolves per running speed with fallback to the base value."""
+    entry = _pump_power_entry(options)
+    await setup_integration(hass, entry)
+    coordinator = entry.runtime_data
+
+    data = {"Filtration Pump": pump_on, "filtration_speed_state": speed}
+    assert coordinator._compute_pump_power(data) == expected

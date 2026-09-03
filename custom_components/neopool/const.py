@@ -41,6 +41,10 @@ CONF_UNIT_ID = "unit_id"
 CONF_MODBUS_FRAMER = "modbus_framer"
 
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
+# Optional per-speed overrides for variable-speed pumps. When set they refine
+# the base power (which acts as the high-speed value); empty falls back to it.
+CONF_FILTRATION_PUMP_POWER_MID = "filtration_pump_power_mid"
+CONF_FILTRATION_PUMP_POWER_LOW = "filtration_pump_power_low"
 CONF_MEASURE_WHEN_FILTRATION_OFF = "measure_when_filtration_off"
 CONF_USE_FILTRATION1 = "use_filtration1"
 CONF_USE_FILTRATION2 = "use_filtration2"

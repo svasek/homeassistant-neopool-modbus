@@ -43,6 +43,8 @@ from .const import (
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_FILTRATION_PUMP_POWER,
+    CONF_FILTRATION_PUMP_POWER_LOW,
+    CONF_FILTRATION_PUMP_POWER_MID,
     CONF_SCAN_INTERVAL,
     CONF_USE_LIGHT,
     DEFAULT_SCAN_INTERVAL,
@@ -165,6 +167,29 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             # Clear a previously raised repair issue once the device is healthy.
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
+
+    def _compute_pump_power(self, data: dict[str, Any]) -> int:
+        """Return the filtration pump power (W) for the current running speed.
+
+        The base option acts as the high-speed value and as the master switch:
+        with it at 0 no power/energy sensor is created, so this returns 0. The
+        optional mid/low overrides refine variable-speed pumps; an empty
+        override falls back to the base. Power is 0 whenever the pump is off.
+        """
+        options = self.config_entry.options
+        base = max(0, int(options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0))
+        if base == 0 or not data.get("Filtration Pump"):
+            return 0
+        speed = data.get("filtration_speed_state")
+        override_key = {
+            "mid": CONF_FILTRATION_PUMP_POWER_MID,
+            "low": CONF_FILTRATION_PUMP_POWER_LOW,
+        }.get(speed)
+        if override_key is not None:
+            override = max(0, int(options.get(override_key, 0) or 0))
+            if override > 0:
+                return override
+        return base
 
     def _get_enabled_timers(self, data: dict[str, Any]) -> list[str]:
         """Return the list of timer block names enabled in entry options."""
@@ -332,12 +357,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._check_gpio_registers(data)
 
-        pump_power = max(
-            0, int(self.config_entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
-        )
-        data[CONF_FILTRATION_PUMP_POWER] = (
-            pump_power if data.get("Filtration Pump") else 0
-        )
+        data[CONF_FILTRATION_PUMP_POWER] = self._compute_pump_power(data)
 
         # CUSTOM-ONLY START
         self._apply_dev_overrides(data)
