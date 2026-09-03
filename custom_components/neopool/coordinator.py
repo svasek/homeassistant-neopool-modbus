@@ -14,6 +14,7 @@
 
 """Data update coordinator for the NeoPool integration."""
 
+import asyncio
 from datetime import timedelta
 import json
 import logging
@@ -96,6 +97,8 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry.options.get(CONF_CAPABILITIES, {})
         )
         self._follow_up_unsub: CALLBACK_TYPE | None = None
+        # Serializes masked read-modify-write across siblings sharing a register.
+        self.masked_write_lock = asyncio.Lock()
         # None (not frozenset()) so the first poll clears any stale issue
         # persisted from a previous session.
         self._corrupted_gpio_state: frozenset[tuple[str, int]] | None = None
