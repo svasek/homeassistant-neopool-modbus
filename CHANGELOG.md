@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.7.3](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.7.2...v6.7.3) (2026-09-04)
+
+
+### 🐛 Bug Fixes
+
+* 🩹 adopt UnitOfRatio to drop deprecated unit constants ([#246](https://github.com/svasek/homeassistant-neopool-modbus/issues/246)) ([7160170](https://github.com/svasek/homeassistant-neopool-modbus/commit/7160170da49d4bca4cf67dfe7597a36f490634e8))
+
+
+### ♻️ Refactoring
+
+* **config:** ♻️ move time auto-sync from a switch to an options toggle ([#266](https://github.com/svasek/homeassistant-neopool-modbus/issues/266)) ([b525694](https://github.com/svasek/homeassistant-neopool-modbus/commit/b52569419cfb71c096aa6c3df322a704271fab7e))
+
 ## [6.7.2](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.7.1...v6.7.2) (2026-09-03)
 
 
