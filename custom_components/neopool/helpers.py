@@ -18,7 +18,6 @@ import datetime
 from typing import Any
 
 from neopool_modbus.decoders import (
-    decode_device_time,
     encode_device_time,
     parse_register_int as _lib_parse_register_int,
 )
@@ -30,43 +29,26 @@ import homeassistant.util.dt as dt_util
 from .const import DOMAIN
 
 
-def get_device_time(
-    data: dict[str, Any], hass: HomeAssistant | None = None
-) -> datetime.datetime | None:
-    """Decode ``MBF_PAR_TIME`` as UTC-normalised wall-clock time."""
-    unix_ts = data.get("MBF_PAR_TIME")
-    if unix_ts is None:
-        return None
-    tz = (
-        dt_util.get_time_zone(hass.config.time_zone) if hass else datetime.UTC
-    ) or datetime.UTC
-    return decode_device_time(unix_ts, tz)
-
-
 def prepare_device_time(hass: HomeAssistant) -> int:
     """Return the unix timestamp the device should display as local wall-clock."""
     tz = dt_util.get_time_zone(hass.config.time_zone) or datetime.UTC
     return encode_device_time(dt_util.now(tz))
 
 
+# CUSTOM-ONLY START, device time-drift helpers are HACS-only.
 def is_device_time_out_of_sync(
     data: dict[str, Any],
-    hass: HomeAssistant | None = None,
+    hass: HomeAssistant,
     threshold_seconds: int = 300,
 ) -> bool:
-    """Returns True if device time and HA time differ by more than threshold_seconds.
-
-    The default is loose on purpose: correct a clock that drifted far (e.g. after
-    a power loss), not small offsets from bus latency or minute-granular RTC.
-    """
-    device_dt = get_device_time(data, hass)
-    if device_dt is None:
+    """Return whether the device/HA wall-clock drift exceeds threshold_seconds."""
+    device_ts: int | None = data.get("MBF_PAR_TIME")
+    if device_ts is None:
         return False
-    now_dt = dt_util.utcnow().replace(tzinfo=datetime.UTC)
-    diff = abs((device_dt - now_dt).total_seconds())
-    return diff > threshold_seconds
+    return abs(device_ts - prepare_device_time(hass)) > threshold_seconds
 
 
+# CUSTOM-ONLY END
 def parse_register_int(raw: int | str, name: str) -> int:
     """Parse a Modbus register value, raising a translated ServiceValidationError."""
     try:

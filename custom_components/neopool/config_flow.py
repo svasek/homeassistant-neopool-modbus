@@ -42,6 +42,7 @@ from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 from .const import (
     CONF_ADVANCED,
     CONF_AUTO_TIME_SYNC,
+    CONF_CAPABILITIES,
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_FILTRATION_PUMP_POWER,
@@ -244,6 +245,8 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_MEASURE_WHEN_FILTRATION_OFF,
                 default=options.get(CONF_MEASURE_WHEN_FILTRATION_OFF, False),
             ): bool,
+            # CUSTOM-ONLY START, auto device-time sync and filtration
+            # pump-power sensors are HACS-only.
             vol.Optional(
                 CONF_AUTO_TIME_SYNC,
                 default=options.get(CONF_AUTO_TIME_SYNC, False),
@@ -252,6 +255,7 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_FILTRATION_PUMP_POWER,
                 default=options.get(CONF_FILTRATION_PUMP_POWER, 0),
             ): vol.All(int, vol.Range(min=0)),
+            # CUSTOM-ONLY END
             vol.Optional(
                 CONF_USE_FILTRATION1,
                 default=options.get(CONF_USE_FILTRATION1, False),
@@ -317,6 +321,11 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
             advanced = user_input.pop(CONF_ADVANCED, {})
             user_input.update(advanced)
             # CUSTOM-ONLY END
+            # Preserve the internal capability snapshot the coordinator persists
+            # in options; the form only carries the user-selected toggles, so it
+            # would otherwise drop and break offline setup while winter mode is on.
+            if CONF_CAPABILITIES in options:
+                user_input[CONF_CAPABILITIES] = options[CONF_CAPABILITIES]
             return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
