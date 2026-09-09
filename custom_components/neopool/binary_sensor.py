@@ -68,6 +68,7 @@ def _gpio_ok(gpio_key: str) -> _SupportedFn:
     return lambda data: gpio_key not in data or is_valid_relay_gpio(data[gpio_key] or 0)
 
 
+# CUSTOM-ONLY START, device time-drift sensor is HACS-only.
 def _device_time_drift(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
     """Compute whether the device clock is out of sync with HA.
 
@@ -79,6 +80,7 @@ def _device_time_drift(data: dict[str, Any], hass: HomeAssistant) -> bool | None
     return is_device_time_out_of_sync(data, hass)
 
 
+# CUSTOM-ONLY END
 def _pool_cover_open(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
     """Invert the raw cover state for the OPENING device class.
 
@@ -93,6 +95,7 @@ def _pool_cover_open(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
 
 
 BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
+    # CUSTOM-ONLY START, device time-drift sensor is HACS-only.
     "Device Time Out Of Sync": NeoPoolBinarySensorEntityDescription(
         key="Device Time Out Of Sync",
         translation_key="device_time_out_of_sync",
@@ -100,6 +103,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_device_time_drift,
     ),
+    # CUSTOM-ONLY END
     # Relay states
     "pH Acid Pump": NeoPoolBinarySensorEntityDescription(
         key="pH Acid Pump",
@@ -396,7 +400,6 @@ async def async_setup_entry(
 class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     """Representation of a NeoPool binary sensor."""
 
-    _winter_mode_active = False
     entity_description: NeoPoolBinarySensorEntityDescription
 
     def __init__(

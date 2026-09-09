@@ -40,7 +40,9 @@ DEFAULT_UNIT_ID = 1
 CONF_UNIT_ID = "unit_id"
 CONF_MODBUS_FRAMER = "modbus_framer"
 
+# CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
+# CUSTOM-ONLY END
 CONF_MEASURE_WHEN_FILTRATION_OFF = "measure_when_filtration_off"
 CONF_USE_FILTRATION1 = "use_filtration1"
 CONF_USE_FILTRATION2 = "use_filtration2"
@@ -53,10 +55,14 @@ CONF_USE_AUX3 = "use_aux3"
 CONF_USE_AUX4 = "use_aux4"
 
 # Internal option keys
+# CUSTOM-ONLY START, automatic device-time sync is HACS-only.
 CONF_AUTO_TIME_SYNC = "auto_time_sync"
+# CUSTOM-ONLY END
+# CUSTOM-ONLY START, winter-mode switch is HACS-only.
 # Winter mode is backed by the native config_entry.pref_disable_polling flag;
 # this constant survives only as the winter-mode switch translation_key.
 CONF_WINTER_MODE = "winter_mode"
+# CUSTOM-ONLY END
 CONF_CAPABILITIES = "_capabilities"
 
 # CUSTOM-ONLY START
