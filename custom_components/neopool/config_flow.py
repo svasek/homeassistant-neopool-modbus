@@ -244,6 +244,8 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_MEASURE_WHEN_FILTRATION_OFF,
                 default=options.get(CONF_MEASURE_WHEN_FILTRATION_OFF, False),
             ): bool,
+            # CUSTOM-ONLY START, auto device-time sync and filtration
+            # pump-power sensors are HACS-only.
             vol.Optional(
                 CONF_AUTO_TIME_SYNC,
                 default=options.get(CONF_AUTO_TIME_SYNC, False),
@@ -252,6 +254,7 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_FILTRATION_PUMP_POWER,
                 default=options.get(CONF_FILTRATION_PUMP_POWER, 0),
             ): vol.All(int, vol.Range(min=0)),
+            # CUSTOM-ONLY END
             vol.Optional(
                 CONF_USE_FILTRATION1,
                 default=options.get(CONF_USE_FILTRATION1, False),

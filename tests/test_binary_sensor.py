@@ -57,6 +57,7 @@ async def test_direct_key_reflects_coordinator_value(
     state = _binary_state(hass, mock_config_entry_binary_sensor, "Filtration Pump")
     assert state is not None
     assert state.state == STATE_ON
+    # CUSTOM-ONLY END
 
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
@@ -106,6 +107,7 @@ async def test_pool_cover_inverts_hardware_value(
     state = _binary_state(hass, mock_config_entry_binary_sensor, "Pool Cover")
     assert state is not None
     assert state.state == STATE_ON
+    # CUSTOM-ONLY END
 
 
 async def test_pool_cover_none_yields_unknown(
@@ -185,6 +187,7 @@ async def test_measurement_module_reads_raw_bit(
     )
     assert state is not None
     assert state.state == STATE_ON
+    # CUSTOM-ONLY END
 
     mock_neopool_client.async_read_all.return_value = {
         **MOCK_POOL_DATA,
@@ -253,6 +256,7 @@ async def test_opt_in_entities_absent_without_options(
     assert _binary_state(hass, mock_config_entry, "Filtration Pump") is not None
 
 
+# CUSTOM-ONLY START, device time-drift sensor is HACS-only.
 @pytest.mark.usefixtures("entity_registry_enabled_by_default")
 @pytest.mark.parametrize("time_zone", ["UTC", "America/New_York"])
 async def test_device_time_drift(
@@ -304,3 +308,4 @@ async def test_device_time_drift(
     )
     assert state is not None
     assert state.state == STATE_ON
+    # CUSTOM-ONLY END

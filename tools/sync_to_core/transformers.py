@@ -15,6 +15,7 @@ from .config import (
     EXCLUDE_INTEGRATION_FILES,
     LICENSE_HEADER_PREFIX,
     PYTHON_REPLACEMENTS,
+    SNAPSHOT_DROP_ENTITY_IDS,
 )
 
 # Match `# CUSTOM-ONLY START` ... `# CUSTOM-ONLY END` (and the trailing
@@ -291,16 +292,54 @@ def transform_yaml(source: str, *, strip_license: bool) -> str:
 # consistent with the stripped dist conftest fixtures.
 _AMBR_HACS_ONLY_OPTIONS = re.compile(
     r"^[ \t]+'(?:scan_interval|unlock_advanced|enable_backwash_option|"
-    r"dev_overrides|dev_overrides_enabled)':[^\n]*\n",
+    r"dev_overrides|dev_overrides_enabled|auto_time_sync|filtration_pump_power)':[^\n]*\n",
     flags=re.MULTILINE,
 )
 
 
 def transform_snapshot(source: str) -> str:
-    """Strip HACS-only entry-options keys from a syrupy .ambr snapshot.
+    """Strip HACS-only entries from a syrupy .ambr snapshot.
 
-    The snapshot is otherwise copied verbatim — only the lines whose key
-    matches a HACS-only options name are removed. Leaves indentation,
-    surrounding context and ordering intact.
+    Two independent strips run:
+
+    * Whole snapshot blocks (``# name: …`` up to the next ``# ---``) whose
+      header references a HACS-only entity id. The entity never registers
+      in the core mirror, so its snapshot block must not either.
+    * HACS-only entry-options key lines, wherever they appear. These live
+      on kept blocks (device/config-entry snapshots), so only the single
+      line is removed, not the surrounding block.
+
+    Everything else is copied verbatim — indentation, ordering, and
+    surrounding context stay intact.
     """
+    source = _strip_snapshot_entity_blocks(source)
     return _AMBR_HACS_ONLY_OPTIONS.sub("", source)
+
+
+def _strip_snapshot_entity_blocks(source: str) -> str:
+    """Drop syrupy blocks whose ``# name:`` header names a HACS-only entity.
+
+    A block spans from a ``# name: …`` line through its terminating
+    ``# ---`` line (inclusive). We walk block-by-block so the match is
+    anchored to the header only — a HACS-only entity id appearing inside
+    an unrelated block's body never triggers a spurious removal.
+    """
+    if not SNAPSHOT_DROP_ENTITY_IDS:
+        return source
+    lines = source.splitlines(keepends=True)
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("# name:") and any(
+            entity_id in line for entity_id in SNAPSHOT_DROP_ENTITY_IDS
+        ):
+            # Skip through the block terminator (`# ---`) inclusive.
+            i += 1
+            while i < len(lines) and not lines[i].startswith("# ---"):
+                i += 1
+            i += 1  # consume the `# ---` line itself
+            continue
+        out.append(line)
+        i += 1
+    return "".join(out)
