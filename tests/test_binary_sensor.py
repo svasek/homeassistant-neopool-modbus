@@ -319,9 +319,9 @@ async def test_device_time_drift(
     assert state.state == STATE_ON
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
 async def test_binary_sensor_unavailable_in_winter_mode(
     hass: HomeAssistant,
-    mock_neopool_client: MagicMock,
 ) -> None:
     """Binary sensors are unavailable while winter mode is active.
 
