@@ -359,6 +359,7 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._persist_capability_snapshot(data)
         return data
 
+    # CUSTOM-ONLY START, winter-mode switch is HACS-only.
     async def set_winter_mode(self, enabled: bool) -> None:
         """Toggle winter mode via the native disable-polling flag.
 
@@ -378,3 +379,5 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             updates["options"] = options
         self.hass.config_entries.async_update_entry(self.config_entry, **updates)
         self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
+
+    # CUSTOM-ONLY END

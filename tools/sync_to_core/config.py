@@ -155,6 +155,17 @@ JSON_DROP_KEYS: tuple[str, ...] = (
     "options.step.init.data.enable_backwash_option",
     "options.step.init.data_description.enable_backwash_option",
     "options.error",
+    # Winter-mode switch is HACS-only (core drives winter mode via the
+    # native pref_disable_polling flag, with no switch entity).
+    "entity.switch.winter_mode",
+)
+
+# JSON key paths to delete from `icons.json`. Kept separate from
+# JSON_DROP_KEYS because icons.json only carries entity-icon subtrees, not
+# the config/options/issues strings that JSON_DROP_KEYS targets.
+ICONS_DROP_KEYS: tuple[str, ...] = (
+    # Winter-mode switch is HACS-only (see JSON_DROP_KEYS above).
+    "entity.switch.winter_mode",
 )
 
 # ---------------------------------------------------------------------------

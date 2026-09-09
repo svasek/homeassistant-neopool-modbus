@@ -29,6 +29,7 @@ from .config import (
     EXCLUDE_INTEGRATION_FILES,
     EXCLUDE_TEST_DIRS,
     EXCLUDE_TEST_FILES,
+    ICONS_DROP_KEYS,
     INCLUDE_TRANSLATION_FILES,
     RUFF_DIST_CONFIG,
     SOURCE_INTEGRATION,
@@ -127,6 +128,16 @@ def _process_integration_file(
             strip_translations_en_json(
                 src.read_text(encoding="utf-8"),
                 escape_non_ascii=escape_translations,
+            ),
+        )
+        return
+    # icons.json — drop HACS-only entity-icon subtrees, then reformat to
+    # core style. Kept ahead of the generic `.json` branch below.
+    if src.name == "icons.json":
+        _write(
+            dest,
+            format_strings_style(
+                src.read_text(encoding="utf-8"), paths=ICONS_DROP_KEYS
             ),
         )
         return

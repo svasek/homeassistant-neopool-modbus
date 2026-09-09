@@ -54,9 +54,11 @@ CONF_USE_AUX4 = "use_aux4"
 
 # Internal option keys
 CONF_AUTO_TIME_SYNC = "auto_time_sync"
+# CUSTOM-ONLY START, winter-mode switch is HACS-only.
 # Winter mode is backed by the native config_entry.pref_disable_polling flag;
 # this constant survives only as the winter-mode switch translation_key.
 CONF_WINTER_MODE = "winter_mode"
+# CUSTOM-ONLY END
 CONF_CAPABILITIES = "_capabilities"
 
 # CUSTOM-ONLY START
