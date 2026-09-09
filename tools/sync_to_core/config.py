@@ -167,12 +167,19 @@ JSON_DROP_KEYS: tuple[str, ...] = (
     # Device time-drift binary sensor — HACS-only.
     "entity.binary_sensor.device_time_out_of_sync",
     "options.error",
+    # Winter-mode switch is HACS-only (core drives winter mode via the
+    # native pref_disable_polling flag, with no switch entity).
+    "entity.switch.winter_mode",
 )
 
 # JSON key paths to delete from `icons.json`. Same dot-path semantics as
 # JSON_DROP_KEYS — used to strip icon entries for HACS-only entities that
 # have no counterpart in the core integration.
-ICONS_DROP_KEYS: tuple[str, ...] = ("entity.binary_sensor.device_time_out_of_sync",)
+ICONS_DROP_KEYS: tuple[str, ...] = (
+    "entity.binary_sensor.device_time_out_of_sync",
+    # Winter-mode switch is HACS-only (see JSON_DROP_KEYS above).
+    "entity.switch.winter_mode",
+)
 
 # Entity ids whose syrupy snapshot blocks are HACS-only. The matching
 # entity is stripped from the dist integration (its CUSTOM-ONLY entity
@@ -180,7 +187,10 @@ ICONS_DROP_KEYS: tuple[str, ...] = ("entity.binary_sensor.device_time_out_of_syn
 # go too, or the core snapshot references an entity that never registers.
 # Matched as a substring of a snapshot `# name:` header, so a single id
 # covers every parametrised test and every `-entry`/`-state` variant.
-SNAPSHOT_DROP_ENTITY_IDS: tuple[str, ...] = ("binary_sensor.neopool_device_time_sync",)
+SNAPSHOT_DROP_ENTITY_IDS: tuple[str, ...] = (
+    "binary_sensor.neopool_device_time_sync",
+    "switch.neopool_winter_mode",
+)
 
 # ---------------------------------------------------------------------------
 # Optional strippers (toggled via CLI flags)

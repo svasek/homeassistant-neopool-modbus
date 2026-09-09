@@ -369,7 +369,6 @@ _MEASURE_KEYS_REQUIRING_FILTRATION = frozenset(
 class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     """Representation of a NeoPool sensor."""
 
-    _winter_mode_active = False
     entity_description: NeoPoolSensorEntityDescription
 
     def __init__(
@@ -452,7 +451,6 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     Suitable for the Energy dashboard "Individual devices" energy tracking.
     """
 
-    _winter_mode_active = False
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
