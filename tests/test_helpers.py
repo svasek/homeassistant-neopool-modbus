@@ -21,6 +21,7 @@ from homeassistant.util import dt as dt_util
 # ---------------------------------------------------------------------------
 
 
+# CUSTOM-ONLY START, device time-drift helpers are HACS-only.
 def test_get_device_time_utc() -> None:
     """Decoded device time matches MBF_PAR_TIME interpreted as a unix timestamp."""
     ts = (0x1234 << 16) | 0x5678
@@ -63,6 +64,7 @@ def test_get_device_time_with_hass(hass: HomeAssistant) -> None:
     assert result == datetime.fromtimestamp(ts, tz=UTC)
 
 
+# CUSTOM-ONLY END
 # ---------------------------------------------------------------------------
 # prepare_device_time
 # ---------------------------------------------------------------------------
@@ -80,6 +82,7 @@ def test_prepare_device_time_returns_unix_timestamp(hass: HomeAssistant) -> None
 # ---------------------------------------------------------------------------
 
 
+# CUSTOM-ONLY START, device time-drift helpers are HACS-only.
 def test_is_device_time_out_of_sync_within_threshold() -> None:
     """A small drift between device and HA returns False."""
     now = int(dt_util.utcnow().timestamp())
@@ -122,6 +125,7 @@ def test_is_device_time_out_of_sync_default_threshold() -> None:
         assert is_device_time_out_of_sync(data, None, threshold_seconds=60) is True
 
 
+# CUSTOM-ONLY END
 # ---------------------------------------------------------------------------
 # has_filtvalve
 # ---------------------------------------------------------------------------

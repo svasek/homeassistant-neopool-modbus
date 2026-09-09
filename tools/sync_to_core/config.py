@@ -154,18 +154,42 @@ JSON_DROP_KEYS: tuple[str, ...] = (
     "options.step.init.data_description.unlock_advanced",
     "options.step.init.data.enable_backwash_option",
     "options.step.init.data_description.enable_backwash_option",
+    # Automatic device-time sync option — HACS-only.
+    "options.step.init.data.auto_time_sync",
+    "options.step.init.data_description.auto_time_sync",
+    # Filtration pump-power sensors (power + coupled energy) — HACS-only.
+    "config.step.user.data.filtration_pump_power",
+    "config.step.user.data_description.filtration_pump_power",
+    "options.step.init.data.filtration_pump_power",
+    "options.step.init.data_description.filtration_pump_power",
+    "entity.sensor.filtration_pump_power",
+    "entity.sensor.filtration_pump_energy",
+    # Device time-drift binary sensor — HACS-only.
+    "entity.binary_sensor.device_time_out_of_sync",
     "options.error",
     # Winter-mode switch is HACS-only (core drives winter mode via the
     # native pref_disable_polling flag, with no switch entity).
     "entity.switch.winter_mode",
 )
 
-# JSON key paths to delete from `icons.json`. Kept separate from
-# JSON_DROP_KEYS because icons.json only carries entity-icon subtrees, not
-# the config/options/issues strings that JSON_DROP_KEYS targets.
+# JSON key paths to delete from `icons.json`. Same dot-path semantics as
+# JSON_DROP_KEYS — used to strip icon entries for HACS-only entities that
+# have no counterpart in the core integration.
 ICONS_DROP_KEYS: tuple[str, ...] = (
+    "entity.binary_sensor.device_time_out_of_sync",
     # Winter-mode switch is HACS-only (see JSON_DROP_KEYS above).
     "entity.switch.winter_mode",
+)
+
+# Entity ids whose syrupy snapshot blocks are HACS-only. The matching
+# entity is stripped from the dist integration (its CUSTOM-ONLY entity
+# description never reaches core), so the snapshot block it produced must
+# go too, or the core snapshot references an entity that never registers.
+# Matched as a substring of a snapshot `# name:` header, so a single id
+# covers every parametrised test and every `-entry`/`-state` variant.
+SNAPSHOT_DROP_ENTITY_IDS: tuple[str, ...] = (
+    "binary_sensor.neopool_device_time_sync",
+    "switch.neopool_winter_mode",
 )
 
 # ---------------------------------------------------------------------------

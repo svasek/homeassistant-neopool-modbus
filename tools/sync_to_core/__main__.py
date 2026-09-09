@@ -131,8 +131,8 @@ def _process_integration_file(
             ),
         )
         return
-    # icons.json — drop HACS-only entity-icon subtrees, then reformat to
-    # core style. Kept ahead of the generic `.json` branch below.
+    # `icons.json` — strip icon entries for HACS-only entities that have
+    # no core counterpart, then reformat to core style.
     if src.name == "icons.json":
         _write(
             dest,
@@ -141,7 +141,7 @@ def _process_integration_file(
             ),
         )
         return
-    # Other JSON files in the integration root (`icons.json`, future
+    # Other JSON files in the integration root (future
     # `quality_scale.yaml` siblings) — no key stripping needed, but
     # reformat anyway so an ad-hoc edit (mixed indent, IDE-reordered
     # keys) gets normalised to the core convention here. Cheap defence

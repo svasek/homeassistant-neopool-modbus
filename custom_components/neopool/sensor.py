@@ -301,6 +301,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=is_hydrolysis_present,
     ),
+    # CUSTOM-ONLY START, filtration pump-power sensor is HACS-only.
     CONF_FILTRATION_PUMP_POWER: NeoPoolSensorEntityDescription(
         key=CONF_FILTRATION_PUMP_POWER,
         translation_key=CONF_FILTRATION_PUMP_POWER,
@@ -309,6 +310,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
     ),
+    # CUSTOM-ONLY END
 }
 
 
@@ -323,10 +325,13 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         NeoPoolSensor(coordinator, key, desc)
         for key, desc in SENSOR_DESCRIPTIONS.items()
-        if key != CONF_FILTRATION_PUMP_POWER
-        and (desc.supported_fn is None or desc.supported_fn(coordinator.data))
+        if (desc.supported_fn is None or desc.supported_fn(coordinator.data))
     ]
 
+    # CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
+    entities = [
+        e for e in entities if e.entity_description.key != CONF_FILTRATION_PUMP_POWER
+    ]
     pump_power = int(entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
     if pump_power > 0:
         entities.append(
@@ -337,6 +342,7 @@ async def async_setup_entry(
             )
         )
         entities.append(NeoPoolFiltrationEnergySensor(coordinator, pump_power))
+    # CUSTOM-ONLY END
 
     async_add_entities(entities)
 
@@ -437,6 +443,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         return super().options
 
 
+# CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
 class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     """Cumulative energy consumed by the filtration pump (Wh).
 
@@ -499,3 +506,5 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     def native_value(self) -> float:
         """Return accumulated energy in Wh."""
         return round(self._total_wh, 3)
+
+    # CUSTOM-ONLY END

@@ -30,6 +30,7 @@ import homeassistant.util.dt as dt_util
 from .const import DOMAIN
 
 
+# CUSTOM-ONLY START, device time-drift helpers are HACS-only.
 def get_device_time(
     data: dict[str, Any], hass: HomeAssistant | None = None
 ) -> datetime.datetime | None:
@@ -43,12 +44,14 @@ def get_device_time(
     return decode_device_time(unix_ts, tz)
 
 
+# CUSTOM-ONLY END
 def prepare_device_time(hass: HomeAssistant) -> int:
     """Return the unix timestamp the device should display as local wall-clock."""
     tz = dt_util.get_time_zone(hass.config.time_zone) or datetime.UTC
     return encode_device_time(dt_util.now(tz))
 
 
+# CUSTOM-ONLY START, device time-drift helpers are HACS-only.
 def is_device_time_out_of_sync(
     data: dict[str, Any],
     hass: HomeAssistant | None = None,
@@ -67,6 +70,7 @@ def is_device_time_out_of_sync(
     return diff > threshold_seconds
 
 
+# CUSTOM-ONLY END
 def parse_register_int(raw: int | str, name: str) -> int:
     """Parse a Modbus register value, raising a translated ServiceValidationError."""
     try:

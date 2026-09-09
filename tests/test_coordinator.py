@@ -279,6 +279,7 @@ async def test_capability_snapshot_persisted_to_options(
 # ---------------------------------------------------------------------------
 
 
+# CUSTOM-ONLY START, automatic device-time sync is HACS-only.
 async def test_auto_time_sync_writes_when_drift_detected(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
@@ -311,6 +312,7 @@ async def test_auto_time_sync_writes_when_drift_detected(
     assert mock_neopool_client.async_sync_device_time.await_count == 1
 
 
+# CUSTOM-ONLY END
 # ---------------------------------------------------------------------------
 # Developer override JSON
 # ---------------------------------------------------------------------------
