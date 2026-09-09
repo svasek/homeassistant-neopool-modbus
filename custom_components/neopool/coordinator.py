@@ -87,7 +87,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             config_entry=entry,
         )
         self.client = client
+        # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
         self.auto_time_sync = entry.options.get(CONF_AUTO_TIME_SYNC, False)
+        # CUSTOM-ONLY END
         # Winter mode maps onto the native per-entry "disable polling" system
         # option; the base coordinator already skips scheduling when it's set.
         self.winter_mode = entry.pref_disable_polling
@@ -320,9 +322,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data = await self.client.async_read_all()
             await self._read_timers_into_data(data)
 
+            # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
             if self.auto_time_sync and is_device_time_out_of_sync(data, self.hass):
                 _LOGGER.debug("Device time is out of sync, updating")
                 await self.client.async_sync_device_time(prepare_device_time(self.hass))
+            # CUSTOM-ONLY END
         except (NeoPoolError, OSError, TimeoutError) as err:
             raise UpdateFailed(
                 translation_domain=DOMAIN,
@@ -332,12 +336,14 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._check_gpio_registers(data)
 
+        # CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
         pump_power = max(
             0, int(self.config_entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
         )
         data[CONF_FILTRATION_PUMP_POWER] = (
             pump_power if data.get("Filtration Pump") else 0
         )
+        # CUSTOM-ONLY END
 
         # CUSTOM-ONLY START
         self._apply_dev_overrides(data)

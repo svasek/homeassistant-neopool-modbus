@@ -29,6 +29,7 @@ from .config import (
     EXCLUDE_INTEGRATION_FILES,
     EXCLUDE_TEST_DIRS,
     EXCLUDE_TEST_FILES,
+    ICONS_DROP_KEYS,
     INCLUDE_TRANSLATION_FILES,
     RUFF_DIST_CONFIG,
     SOURCE_INTEGRATION,
@@ -130,7 +131,17 @@ def _process_integration_file(
             ),
         )
         return
-    # Other JSON files in the integration root (`icons.json`, future
+    # `icons.json` — strip icon entries for HACS-only entities that have
+    # no core counterpart, then reformat to core style.
+    if src.name == "icons.json":
+        _write(
+            dest,
+            format_strings_style(
+                src.read_text(encoding="utf-8"), paths=ICONS_DROP_KEYS
+            ),
+        )
+        return
+    # Other JSON files in the integration root (future
     # `quality_scale.yaml` siblings) — no key stripping needed, but
     # reformat anyway so an ad-hoc edit (mixed indent, IDE-reordered
     # keys) gets normalised to the core convention here. Cheap defence
