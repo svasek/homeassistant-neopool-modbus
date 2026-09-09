@@ -35,6 +35,7 @@ def prepare_device_time(hass: HomeAssistant) -> int:
     return encode_device_time(dt_util.now(tz))
 
 
+# CUSTOM-ONLY START, device time-drift helpers are HACS-only.
 def is_device_time_out_of_sync(
     data: dict[str, Any],
     hass: HomeAssistant,
@@ -47,6 +48,7 @@ def is_device_time_out_of_sync(
     return abs(device_ts - prepare_device_time(hass)) > threshold_seconds
 
 
+# CUSTOM-ONLY END
 def parse_register_int(raw: int | str, name: str) -> int:
     """Parse a Modbus register value, raising a translated ServiceValidationError."""
     try:

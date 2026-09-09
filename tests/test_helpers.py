@@ -34,6 +34,7 @@ def test_prepare_device_time_returns_unix_timestamp(hass: HomeAssistant) -> None
 _NOW_WALL = 1_700_000_000
 
 
+# CUSTOM-ONLY START, device time-drift helpers are HACS-only.
 def test_is_device_time_out_of_sync_within_threshold(hass: HomeAssistant) -> None:
     """A small drift between device and HA returns False."""
     data = {"MBF_PAR_TIME": _NOW_WALL}
@@ -70,6 +71,7 @@ def test_is_device_time_out_of_sync_default_threshold(hass: HomeAssistant) -> No
         assert is_device_time_out_of_sync(data, hass, threshold_seconds=60) is True
 
 
+# CUSTOM-ONLY END
 # ---------------------------------------------------------------------------
 # has_filtvalve
 # ---------------------------------------------------------------------------

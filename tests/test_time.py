@@ -5,6 +5,7 @@ from datetime import time as dt_time, timedelta
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+from freezegun.api import FrozenDateTimeFactory
 from neopool_modbus.exceptions import NeoPoolConnectionError
 import pytest
 from pytest_homeassistant_custom_component.common import (
@@ -89,7 +90,7 @@ async def test_native_value_decodes_seconds_since_midnight(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Coordinator seconds become HH:MM:SS state."""
     await setup_integration(hass, mock_config_entry_timers)
@@ -111,7 +112,7 @@ async def test_native_value_returns_none_when_data_missing(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Missing coordinator key surfaces as 'unknown'."""
     await setup_integration(hass, mock_config_entry_timers)
@@ -131,7 +132,7 @@ async def test_native_value_handles_out_of_range_seconds(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Values >= 86400 wrap modulo 86400."""
     await setup_integration(hass, mock_config_entry_timers)
@@ -158,7 +159,7 @@ async def test_set_value_on_start_writes_timer(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Setting *_start preserves the existing stop."""
     await setup_integration(hass, mock_config_entry_timers)
@@ -187,7 +188,7 @@ async def test_set_value_on_stop_writes_timer(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Setting *_stop preserves the existing start."""
     await setup_integration(hass, mock_config_entry_timers)
@@ -223,7 +224,7 @@ async def test_set_value_maps_communication_error_to_home_assistant_error(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
     write_error: Exception,
 ) -> None:
     """A failed timer write surfaces as a translated HomeAssistantError."""
@@ -246,7 +247,7 @@ async def test_rapid_set_value_coalesces_via_debounce(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
-    freezer,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Sibling start/stop writes both reach the device with the latest pair."""
     await setup_integration(hass, mock_config_entry_timers)

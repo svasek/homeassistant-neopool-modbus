@@ -295,9 +295,13 @@ async def test_options_flow_save_changes(
             CONF_USE_AUX2: False,
             CONF_USE_AUX3: False,
             CONF_USE_AUX4: False,
+            # CUSTOM-ONLY START, filtration pump-power is HACS-only.
             "filtration_pump_power": 0,
+            # CUSTOM-ONLY END
             CONF_MEASURE_WHEN_FILTRATION_OFF: False,
+            # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
             CONF_AUTO_TIME_SYNC: True,
+            # CUSTOM-ONLY END
             # CUSTOM-ONLY START
             CONF_ADVANCED: {},
             # CUSTOM-ONLY END
@@ -307,7 +311,9 @@ async def test_options_flow_save_changes(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options[CONF_USE_LIGHT] is True
     assert mock_config_entry.options[CONF_USE_FILTRATION1] is False
+    # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
     assert mock_config_entry.options[CONF_AUTO_TIME_SYNC] is True
+    # CUSTOM-ONLY END
 
     # CREATE_ENTRY triggers a background reload of the config entry. Wait for
     # it to finish before the test exits so the pytest-hass fixture can unload
