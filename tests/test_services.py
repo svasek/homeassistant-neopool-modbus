@@ -692,26 +692,6 @@ async def test_get_device_time_reads_fresh_from_device(
     assert datetime.fromisoformat(response["ha_time"]).microsecond == 0
 
 
-async def test_get_device_time_unavailable_when_register_absent(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """A clock register that decodes to nothing raises a translated error."""
-    await setup_integration(hass, mock_config_entry)
-    mock_neopool_client.async_read_register = AsyncMock(return_value=[None, None])
-
-    with pytest.raises(ServiceValidationError) as exc_info:
-        await hass.services.async_call(
-            DOMAIN,
-            SERVICE_GET_DEVICE_TIME,
-            {"device_id": _device_id(hass, mock_config_entry)},
-            blocking=True,
-            return_response=True,
-        )
-    assert exc_info.value.translation_key == "device_time_unavailable"
-
-
 async def test_get_device_time_read_error_translates(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,

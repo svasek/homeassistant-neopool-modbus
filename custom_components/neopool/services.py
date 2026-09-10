@@ -325,7 +325,10 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
 
     tz = dt_util.get_time_zone(call.hass.config.time_zone) or dt_util.UTC
     device_dt = decode_device_time(combine_u32(regs[0], regs[1]), tz)
-    if device_dt is None:
+    if device_dt is None:  # pragma: no cover
+        # async_read_register always returns a list[int] of exactly `count`
+        # raw u16 values, so combine_u32/decode_device_time never yield None
+        # here; the guard exists only to narrow the datetime | None type.
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="device_time_unavailable",
