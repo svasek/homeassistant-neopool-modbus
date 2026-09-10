@@ -517,6 +517,10 @@
           "description": "The NeoPool device to target. Optional when only one is configured.",
           "name": "Device"
         },
+        "enable": {
+          "description": "Relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off). Used by the relay_mode select platform.",
+          "name": "Enable mode"
+        },
         "period": {
           "description": "Repeat interval in seconds for AUX/Light timers (e.g., 86400 = every day). Not used for filtration timers.",
           "name": "Repeat interval"
