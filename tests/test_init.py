@@ -9,7 +9,6 @@ from custom_components.neopool.const import (
     CONF_CAPABILITIES,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
-    CONF_WINTER_MODE,
     CURRENT_VERSION,
     DOMAIN,
 )
@@ -73,6 +72,7 @@ async def test_setup_in_winter_mode(
         title="Winter Pool",
         unique_id="neopool_winter_serial",
         version=CURRENT_VERSION,
+        pref_disable_polling=True,
         data={
             "host": "192.0.2.2",
             "port": 502,
@@ -82,7 +82,6 @@ async def test_setup_in_winter_mode(
         },
         options={
             CONF_MODBUS_FRAMER: "tcp",
-            CONF_WINTER_MODE: True,
             CONF_CAPABILITIES: snapshot,
         },
     )

@@ -4,7 +4,6 @@ from collections.abc import Generator
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from neopool_modbus.registers import TimerRelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -15,7 +14,6 @@ from syrupy.assertion import SnapshotAssertion
 # CUSTOM-ONLY END
 from custom_components.neopool.const import (
     CONF_MODBUS_FRAMER,
-    CONF_SCAN_INTERVAL,
     CONF_UNIT_ID,
     CONF_USE_AUX1,
     CONF_USE_AUX2,
@@ -59,6 +57,21 @@ def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     instead of syrupy's default `tests/__snapshots__/`.
     """
     return snapshot.use_extension(HomeAssistantSnapshotExtension)
+
+
+@pytest.fixture
+def entity_registry_enabled_by_default() -> Generator[None]:
+    """Enable all entities in the registry (local copy of the core fixture).
+
+    Core ships this in tests/components/conftest.py; phacc does not, so the
+    custom suite defines it locally. Lets snapshot tests capture entities
+    that are `entity_registry_enabled_default=False`.
+    """
+    with patch(
+        "homeassistant.helpers.entity.Entity.entity_registry_enabled_default",
+        return_value=True,
+    ):
+        yield
 
 
 # CUSTOM-ONLY END
@@ -139,20 +152,27 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "ION in Pol1": False,
     "ION in Pol2": False,
     "ION in dead time": False,
+    # Named relay states decoded from MBF_RELAY_STATE via the GPIO mapping.
     "Filtration Pump": False,
+    "pH Acid Pump": False,
+    # Measurement / module "active" bits. The controller keeps measuring the
+    # probes regardless of filtration state, so these read True even though the
+    # filtration pump above is off.
+    "pH measurement active": True,
+    "Redox measurement active": True,
+    "Chlorine measurement active": True,
+    "Conductivity measurement active": True,
+    "HIDRO Module active": True,
     # Combined cover reduction / shutdown temperature register
     # (lower byte = cover reduction %, upper byte = shutdown temperature).
     # Pre-seeded so async_added_to_hass exercises the mask-decode path.
     "MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C19,
+    # HIDRO options bitfield (bit 0 = cover reduction enabled, bit 1 =
+    # shutdown-on-high-temperature enabled). Both switches read their is_on
+    # from this key; the library returns it in optimistic writes.
+    "MBF_PAR_HIDRO_COVER_ENABLE": 0x0000,
     # Pool cover sensor binary (1 = pool covered, 0 = uncovered).
     "Pool Cover": 0,
-    # Timer-block enable mirrors so light/aux relay-timer entities
-    # report the correct state (3 = always ON, 4 = always OFF, 1 = auto).
-    "relay_light_enable": TimerRelayMode.ALWAYS_OFF,
-    "relay_aux1_enable": 4,
-    "relay_aux2_enable": 4,
-    "relay_aux3_enable": 4,
-    "relay_aux4_enable": 4,
     # Cell-runtime 32-bit counters (lib 3.1.3+ collapses LOW/HIGH pairs).
     # Total = 0x0001_0000 s = 65536 s; Partial = 0x0000_0E10 s = 3600 s (1 hour);
     # Pol1/Pol2 split the partial roughly in half; pol-changes count = 7.
@@ -162,6 +182,43 @@ MOCK_POOL_DATA: dict[str, Any] = {
     "CELL_RUNTIME_POLB": 0x00000708,
     "CELL_RUNTIME_POL_CHANGES": 0x00000007,
 }
+
+
+# Aux relay timer blocks default to a manual (ALWAYS_OFF) mode so switch writes
+# pass the manual-mode guard; tests override the returned mode per case. Every
+# field consumed by the coordinator is present (enable/on/interval/period/
+# countdown/stop) so the derived data keys resolve for real timer polling.
+def _timer_block(enable: int = 4) -> dict[str, Any]:
+    """Return a full timer block dict for the mock read_all_timers."""
+    return {
+        "enable": enable,
+        "on": 0,
+        "interval": 0,
+        "period": 0,
+        "countdown": 0,
+        "stop": None,
+    }
+
+
+MOCK_TIMER_BLOCKS: dict[str, dict[str, Any]] = {
+    "relay_aux1": _timer_block(),
+    "relay_aux2": _timer_block(),
+    "relay_aux3": _timer_block(),
+    "relay_aux4": _timer_block(),
+}
+
+
+def _read_all_timers(
+    enabled_timers: list[str] | None = None, **_kwargs: Any
+) -> dict[str, dict[str, Any]]:
+    """Return the requested timer blocks, mirroring the library contract."""
+    if enabled_timers is None:
+        return {name: dict(block) for name, block in MOCK_TIMER_BLOCKS.items()}
+    return {
+        name: dict(MOCK_TIMER_BLOCKS[name])
+        for name in enabled_timers
+        if name in MOCK_TIMER_BLOCKS
+    }
 
 
 @pytest.fixture
@@ -175,11 +232,123 @@ def mock_setup_entry() -> Generator[AsyncMock]:
 
 @pytest.fixture
 def mock_config_entry() -> MockConfigEntry:
-    """Return a config entry with every optional feature toggle enabled.
+    """Return a config entry with no optional features enabled.
 
-    Keeping every option turned on by default means a single fixture covers
-    the entity-discovery happy path for every platform; tests that need a
-    leaner setup can override `options` per-test.
+    Feature-gated entities are exercised through the per-feature fixtures
+    (`mock_config_entry_light`, `mock_config_entry_switch`, ...) or by
+    overriding `options` per-test.
+    """
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title=MOCK_NAME,
+        unique_id=MOCK_SERIAL,
+        version=CURRENT_VERSION,
+        data={
+            CONF_HOST: MOCK_HOST,
+            CONF_PORT: MOCK_PORT,
+            CONF_NAME: MOCK_NAME,
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+    )
+
+
+@pytest.fixture
+def mock_config_entry_light() -> MockConfigEntry:
+    """Return a config entry with the pool light option enabled."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title=MOCK_NAME,
+        unique_id=MOCK_SERIAL,
+        version=CURRENT_VERSION,
+        data={
+            CONF_HOST: MOCK_HOST,
+            CONF_PORT: MOCK_PORT,
+            CONF_NAME: MOCK_NAME,
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_USE_LIGHT: True},
+    )
+
+
+@pytest.fixture
+def mock_config_entry_switch() -> MockConfigEntry:
+    """Return a config entry with the option-gated switches enabled."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title=MOCK_NAME,
+        unique_id=MOCK_SERIAL,
+        version=CURRENT_VERSION,
+        data={
+            CONF_HOST: MOCK_HOST,
+            CONF_PORT: MOCK_PORT,
+            CONF_NAME: MOCK_NAME,
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={
+            CONF_USE_COVER_SENSOR: True,
+            CONF_USE_AUX1: True,
+            CONF_USE_AUX2: True,
+            CONF_USE_AUX3: True,
+            CONF_USE_AUX4: True,
+        },
+    )
+
+
+# CUSTOM-ONLY START
+@pytest.fixture
+def mock_config_entry_number() -> MockConfigEntry:
+    """Return a config entry with the options the number platform gates on."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title=MOCK_NAME,
+        unique_id=MOCK_SERIAL,
+        version=CURRENT_VERSION,
+        data={
+            CONF_HOST: MOCK_HOST,
+            CONF_PORT: MOCK_PORT,
+            CONF_NAME: MOCK_NAME,
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_USE_COVER_SENSOR: True},
+    )
+
+
+@pytest.fixture
+def mock_config_entry_binary_sensor() -> MockConfigEntry:
+    """Return a config entry with the options the binary_sensor platform gates on."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title=MOCK_NAME,
+        unique_id=MOCK_SERIAL,
+        version=CURRENT_VERSION,
+        data={
+            CONF_HOST: MOCK_HOST,
+            CONF_PORT: MOCK_PORT,
+            CONF_NAME: MOCK_NAME,
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={
+            CONF_USE_LIGHT: True,
+            CONF_USE_COVER_SENSOR: True,
+            CONF_USE_AUX1: True,
+            CONF_USE_AUX2: True,
+            CONF_USE_AUX3: True,
+            CONF_USE_AUX4: True,
+        },
+    )
+
+
+@pytest.fixture
+def mock_config_entry_timers() -> MockConfigEntry:
+    """Return a config entry enabling the light, aux, and filtration timers.
+
+    Shared by the time and select platforms, which register timer / mode
+    entities for every enabled relay-timer block.
     """
     return MockConfigEntry(
         domain=DOMAIN,
@@ -194,21 +363,19 @@ def mock_config_entry() -> MockConfigEntry:
             CONF_MODBUS_FRAMER: "tcp",
         },
         options={
-            # CUSTOM-ONLY START
-            CONF_SCAN_INTERVAL: 30,
-            # CUSTOM-ONLY END
-            CONF_MODBUS_FRAMER: "tcp",
+            CONF_USE_LIGHT: True,
             CONF_USE_FILTRATION1: True,
             CONF_USE_FILTRATION2: True,
             CONF_USE_FILTRATION3: True,
-            CONF_USE_LIGHT: True,
-            CONF_USE_COVER_SENSOR: True,
             CONF_USE_AUX1: True,
             CONF_USE_AUX2: True,
             CONF_USE_AUX3: True,
             CONF_USE_AUX4: True,
         },
     )
+
+
+# CUSTOM-ONLY END
 
 
 @pytest.fixture
@@ -226,25 +393,39 @@ def mock_neopool_client() -> Generator[MagicMock]:
     ):
         mock_client = mock_client_cls.return_value
         mock_client.async_read_all = AsyncMock(return_value=dict(MOCK_POOL_DATA))
-        mock_client.read_all_timers = AsyncMock(return_value={})
+        mock_client.read_all_timers = AsyncMock(side_effect=_read_all_timers)
+        mock_client.connection_stats = {
+            "host": MOCK_HOST,
+            "port": MOCK_PORT,
+            "unit_id": DEFAULT_UNIT_ID,
+            "connected": True,
+            "total_operations": 10,
+            "successful_operations": 10,
+            "success_rate_percent": 100.0,
+        }
+        mock_client.async_set_relay_state = AsyncMock(return_value={})
+        mock_client.async_set_manual_filtration = AsyncMock(return_value={})
+        mock_client.async_set_binary_flag = AsyncMock(return_value={})
+        mock_client.async_set_bitmask_flag = AsyncMock(return_value={})
+        mock_client.async_start_backwash = AsyncMock(return_value=None)
+        mock_client.async_stop_backwash = AsyncMock(return_value=None)
+        mock_client.close = AsyncMock()
+        # CUSTOM-ONLY START
         mock_client.async_write_register = AsyncMock(
             return_value={"value": 0, "confirmed": 0}
         )
         mock_client.async_set_filtration_mode = AsyncMock(return_value=None)
         mock_client.async_set_cell_boost = AsyncMock(return_value=None)
         mock_client.async_set_filtration_speed = AsyncMock(return_value=None)
-        mock_client.async_start_backwash = AsyncMock(return_value=None)
-        mock_client.async_stop_backwash = AsyncMock(return_value=None)
         mock_client.async_set_filtvalve_mode = AsyncMock(return_value={})
         mock_client.async_set_temp_setpoint = AsyncMock(return_value=None)
         mock_client.async_set_setpoint = AsyncMock(return_value={})
         mock_client.async_set_config_option = AsyncMock(return_value={})
-        mock_client.async_set_manual_filtration = AsyncMock(return_value={})
         mock_client.async_sync_device_time = AsyncMock(return_value=None)
         mock_client.async_clear_errors = AsyncMock(return_value=None)
         mock_client.async_reset_user_counters = AsyncMock(return_value=None)
         mock_client.write_timer = AsyncMock()
-        mock_client.close = AsyncMock()
+        # CUSTOM-ONLY END
         yield mock_client
 
 
@@ -287,35 +468,6 @@ def minimal_pool_data() -> dict[str, Any]:
         "filtration_speed_state": "off",
         "Filtration Pump": False,
     }
-
-
-@pytest.fixture
-def mock_neopool_client_minimal(
-    minimal_pool_data: dict[str, Any],
-) -> Generator[MagicMock]:
-    """Like mock_neopool_client but seeded with minimal_pool_data.
-
-    Use to exercise platform 'skip-because-disabled' branches.
-    """
-    with (
-        patch(
-            "custom_components.neopool.NeoPoolModbusClient",
-            autospec=True,
-        ) as mock_client_cls,
-        patch(
-            "custom_components.neopool.config_flow.async_probe_serial",
-            new=AsyncMock(return_value=MOCK_SERIAL),
-        ),
-    ):
-        mock_client = mock_client_cls.return_value
-        mock_client.async_read_all = AsyncMock(return_value=dict(minimal_pool_data))
-        mock_client.read_all_timers = AsyncMock(return_value={})
-        mock_client.async_write_register = AsyncMock(
-            return_value={"value": 0, "confirmed": 0}
-        )
-        mock_client.write_timer = AsyncMock()
-        mock_client.close = AsyncMock()
-        yield mock_client
 
 
 @pytest.fixture

@@ -46,10 +46,9 @@ from homeassistant.components.number import (
     NumberMode,
 )
 from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_MILLION,
-    PERCENTAGE,
     EntityCategory,
     UnitOfElectricPotential,
+    UnitOfRatio,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
@@ -110,7 +109,7 @@ def _hidro_precision(data: dict[str, Any]) -> int:
 
 def _hidro_unit(data: dict[str, Any]) -> str:
     """Surface the hydrolysis target unit dynamically: % or g/h."""
-    return PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h"
+    return UnitOfRatio.PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h"
 
 
 def _hidro_max(data: dict[str, Any]) -> float | None:
@@ -128,7 +127,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     "MBF_PAR_HIDRO": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO",
         translation_key="hidro",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         native_min_value=0.0,
         native_max_value=100.0,
         native_step=1.0,
@@ -187,7 +186,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     "MBF_PAR_CL1": NeoPoolNumberEntityDescription(
         key="MBF_PAR_CL1",
         translation_key="cl1",
-        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
+        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
         native_min_value=0.0,
         native_max_value=10.0,
         native_step=0.1,
@@ -239,7 +238,7 @@ NUMBER_DESCRIPTIONS: dict[str, NeoPoolNumberEntityDescription] = {
     "MBF_PAR_HIDRO_COVER_REDUCTION": NeoPoolNumberEntityDescription(
         key="MBF_PAR_HIDRO_COVER_REDUCTION",
         translation_key="hidro_cover_reduction",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         native_min_value=0.0,
         native_max_value=100.0,
         native_step=1.0,

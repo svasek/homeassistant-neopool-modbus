@@ -23,7 +23,6 @@ from custom_components.neopool.const import (
     CONF_FILTRATION_PUMP_POWER_MID,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
-    CONF_WINTER_MODE,
     CURRENT_VERSION,
     DOMAIN,
 )
@@ -48,7 +47,9 @@ async def test_update_data_populates_firmware(
 ) -> None:
     """The first successful read populates firmware on the device entry."""
     await setup_integration(hass, mock_config_entry)
-    device = device_registry.async_get_device(identifiers={(DOMAIN, MOCK_SERIAL)})
+    device = device_registry.async_get_device_by_identifier(
+        (DOMAIN, MOCK_SERIAL), mock_config_entry.entry_id
+    )
     assert device is not None
     # MBF_POWER_MODULE_VERSION = 0x1234 → "18.52"
     assert "18.52" in (device.sw_version or "")
@@ -85,14 +86,16 @@ async def test_transient_modbus_failure_after_first_success_marks_unavailable(
 @pytest.mark.usefixtures("mock_neopool_client")
 async def test_winter_mode_skips_modbus(
     hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
 ) -> None:
-    """When winter_mode is on we never call async_read_all on subsequent updates."""
+    """When winter mode is on we never call async_read_all, even on manual refresh."""
     snapshot = {"MBF_PAR_FILT_GPIO": 1, "MBF_PAR_LIGHTING_GPIO": 2}
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Winter Pool",
         unique_id="neopool_winter",
         version=CURRENT_VERSION,
+        pref_disable_polling=True,
         data={
             "host": "192.0.2.5",
             "port": 502,
@@ -102,12 +105,17 @@ async def test_winter_mode_skips_modbus(
         },
         options={
             CONF_MODBUS_FRAMER: "tcp",
-            CONF_WINTER_MODE: True,
             CONF_CAPABILITIES: snapshot,
         },
     )
     await setup_integration(hass, entry)
     assert entry.state is ConfigEntryState.LOADED
+    assert mock_neopool_client.async_read_all.await_count == 0
+
+    # A manual refresh must still no-op against the disconnected controller.
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert mock_neopool_client.async_read_all.await_count == 0
 
 
 # ---------------------------------------------------------------------------
@@ -275,6 +283,7 @@ async def test_capability_snapshot_persisted_to_options(
 # ---------------------------------------------------------------------------
 
 
+# CUSTOM-ONLY START, automatic device-time sync is HACS-only.
 async def test_auto_time_sync_writes_when_drift_detected(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
@@ -307,6 +316,7 @@ async def test_auto_time_sync_writes_when_drift_detected(
     assert mock_neopool_client.async_sync_device_time.await_count == 1
 
 
+# CUSTOM-ONLY END
 # ---------------------------------------------------------------------------
 # Developer override JSON
 # ---------------------------------------------------------------------------

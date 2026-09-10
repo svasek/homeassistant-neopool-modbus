@@ -18,7 +18,7 @@
         "PYTHONPATH": "${workspaceFolder}"
       },
       "args": [
-        "--cov=custom_components/vistapool",
+        "--cov=custom_components/neopool",
         "--cov-report=term-missing",
         "--disable-warnings"
       ],

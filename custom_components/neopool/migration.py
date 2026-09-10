@@ -111,6 +111,8 @@ REMOVED_ENTITY_KEYS: tuple[str, ...] = (
     "select.relay_aux*_stop",
     "select.relay_light_start",
     "select.relay_light_stop",
+    # time auto-sync moved from a switch to an options toggle
+    "switch.time_auto_sync",
 )
 
 
@@ -296,7 +298,9 @@ async def _migrate_v5_to_v6(hass: HomeAssistant, config_entry: ConfigEntry) -> N
                 )
 
         device_registry = dr.async_get(hass)
-        old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_uid)})
+        old_device = device_registry.async_get_device_by_identifier(
+            (DOMAIN, old_uid), config_entry.entry_id
+        )
         if old_device:
             device_registry.async_update_device(
                 old_device.id, new_identifiers={(DOMAIN, new_uid)}
@@ -456,8 +460,8 @@ async def _migrate_v1_to_v2(
     # use (source_domain, new_unique_id), the cross-domain step (if any) flips the
     # source_domain part of the tuple separately.
     device_registry = dr.async_get(hass)
-    old_device = device_registry.async_get_device(
-        identifiers={(source_domain, old_entry_id)}
+    old_device = device_registry.async_get_device_by_identifier(
+        (source_domain, old_entry_id), config_entry.entry_id
     )
     if old_device:
         device_registry.async_update_device(
@@ -1060,9 +1064,12 @@ async def async_import_legacy_vistapool_entry(
     # identifier to (neopool, serial_key). Find each by that tuple
     # and re-apply the user-set fields.
     for serial_key, snap in snapshots.items():
-        device = device_registry.async_get_device(identifiers={(DOMAIN, serial_key)})
-        if device is None:
+        # The device was retargeted to the new neopool entry, so look it up by
+        # its serial identifier alone rather than a now-stale config entry id.
+        matches = device_registry.async_get_devices(identifiers={(DOMAIN, serial_key)})
+        if not matches:
             continue
+        device = matches[0]
         device_registry.async_update_device(
             device.id,
             area_id=snap["area_id"],

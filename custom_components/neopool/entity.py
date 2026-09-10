@@ -26,7 +26,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify as ha_slugify
 
-from .const import CONF_WINTER_MODE, DOMAIN, NAME
+from .const import DOMAIN, NAME
 from .coordinator import NeoPoolCoordinator
 
 # CUSTOM-ONLY START, detected-module labels surfaced as hw_version in HACS.
@@ -43,7 +43,7 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     """Base class for NeoPool entities."""
 
     _attr_has_entity_name = True
-    _winter_mode_active: bool = True
+    _unavailable_in_winter_mode: bool = True
 
     def __init__(self, coordinator: NeoPoolCoordinator) -> None:
         """Initialise the NeoPool base entity."""
@@ -52,10 +52,13 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     @property
     @override
     def available(self) -> bool:
-        """Return False for control entities while winter mode is active."""
-        if self._winter_mode_active and getattr(
-            self.coordinator, CONF_WINTER_MODE, False
-        ):
+        """Return False while winter mode gates this entity.
+
+        Winter mode (the native disable-polling flag) stops updates, so gated
+        entities report unavailable. Entities are gated by default; a subclass
+        can opt out by setting _unavailable_in_winter_mode to False.
+        """
+        if self._unavailable_in_winter_mode and self.coordinator.winter_mode:
             return False
         return super().available
 

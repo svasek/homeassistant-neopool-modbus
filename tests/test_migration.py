@@ -983,7 +983,7 @@ async def test_import_legacy_vistapool_entry_runs_migration_and_restores_device(
     migrated_device.id = "device_1"  # same row, same id
 
     device_registry = MagicMock()
-    device_registry.async_get_device.return_value = migrated_device
+    device_registry.async_get_devices.return_value = [migrated_device]
 
     with (
         patch(
@@ -1080,7 +1080,7 @@ async def test_import_legacy_vistapool_entry_skips_restore_when_migrated_device_
     device_registry = MagicMock()
     # After migration, the device row is gone (e.g. migration also dropped it
     # because all config_entries became empty during a partial failure)
-    device_registry.async_get_device.return_value = None
+    device_registry.async_get_devices.return_value = []
 
     with (
         patch(

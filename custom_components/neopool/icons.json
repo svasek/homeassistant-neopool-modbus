@@ -1,25 +1,7 @@
 {
   "entity": {
     "binary_sensor": {
-      "aux1": {
-        "default": "mdi:electric-switch",
-        "state": {
-          "on": "mdi:electric-switch-closed"
-        }
-      },
-      "aux2": {
-        "default": "mdi:electric-switch",
-        "state": {
-          "on": "mdi:electric-switch-closed"
-        }
-      },
-      "aux3": {
-        "default": "mdi:electric-switch",
-        "state": {
-          "on": "mdi:electric-switch-closed"
-        }
-      },
-      "aux4": {
+      "aux": {
         "default": "mdi:electric-switch",
         "state": {
           "on": "mdi:electric-switch-closed"
@@ -169,25 +151,7 @@
       }
     },
     "switch": {
-      "aux1": {
-        "default": "mdi:electric-switch",
-        "state": {
-          "on": "mdi:electric-switch-closed"
-        }
-      },
-      "aux2": {
-        "default": "mdi:electric-switch",
-        "state": {
-          "on": "mdi:electric-switch-closed"
-        }
-      },
-      "aux3": {
-        "default": "mdi:electric-switch",
-        "state": {
-          "on": "mdi:electric-switch-closed"
-        }
-      },
-      "aux4": {
+      "aux": {
         "default": "mdi:electric-switch",
         "state": {
           "on": "mdi:electric-switch-closed"
@@ -216,7 +180,6 @@
         "default": "mdi:snowflake-alert",
         "state": { "on": "mdi:snowflake-melt" }
       },
-      "time_auto_sync": { "default": "mdi:home-clock-outline" },
       "uv_mode": {
         "default": "mdi:lightbulb-fluorescent-tube-outline",
         "state": {

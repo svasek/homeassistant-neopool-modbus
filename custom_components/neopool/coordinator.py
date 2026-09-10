@@ -47,7 +47,6 @@ from .const import (
     CONF_FILTRATION_PUMP_POWER_MID,
     CONF_SCAN_INTERVAL,
     CONF_USE_LIGHT,
-    CONF_WINTER_MODE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     FOLLOW_UP_REFRESH_DELAY,
@@ -90,8 +89,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             config_entry=entry,
         )
         self.client = client
+        # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
         self.auto_time_sync = entry.options.get(CONF_AUTO_TIME_SYNC, False)
-        self.winter_mode = entry.options.get(CONF_WINTER_MODE, False)
+        # CUSTOM-ONLY END
         # Persisted in options for winter mode (no Modbus reads).
         self._capability_snapshot: dict[str, Any] = dict(
             entry.options.get(CONF_CAPABILITIES, {})
@@ -100,6 +100,17 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # None (not frozenset()) so the first poll clears any stale issue
         # persisted from a previous session.
         self._corrupted_gpio_state: frozenset[tuple[str, int]] | None = None
+
+    @property
+    def winter_mode(self) -> bool:
+        """Return whether winter mode is active.
+
+        Backed directly by the native per-entry "disable polling" system
+        option, so this stays the single source of truth even when the flag
+        is toggled outside this integration. The base coordinator already
+        skips scheduling refreshes while it is set.
+        """
+        return self.config_entry.pref_disable_polling
 
     def request_refresh_with_followup(
         self, delay: float = FOLLOW_UP_REFRESH_DELAY
@@ -344,9 +355,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data = await self.client.async_read_all()
             await self._read_timers_into_data(data)
 
+            # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
             if self.auto_time_sync and is_device_time_out_of_sync(data, self.hass):
                 _LOGGER.debug("Device time is out of sync, updating")
                 await self.client.async_sync_device_time(prepare_device_time(self.hass))
+            # CUSTOM-ONLY END
         except (NeoPoolError, OSError, TimeoutError) as err:
             raise UpdateFailed(
                 translation_domain=DOMAIN,
@@ -356,7 +369,15 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._check_gpio_registers(data)
 
+        # CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
         data[CONF_FILTRATION_PUMP_POWER] = self._compute_pump_power(data)
+        pump_power = max(
+            0, int(self.config_entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
+        )
+        data[CONF_FILTRATION_PUMP_POWER] = (
+            pump_power if data.get("Filtration Pump") else 0
+        )
+        # CUSTOM-ONLY END
 
         # CUSTOM-ONLY START
         self._apply_dev_overrides(data)
@@ -370,24 +391,25 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._persist_capability_snapshot(data)
         return data
 
-    async def set_auto_time_sync(self, enabled: bool) -> None:
-        """Persist the auto_time_sync flag and refresh the entry options."""
-        self.auto_time_sync = enabled
-        options = dict(self.config_entry.options)
-        options[CONF_AUTO_TIME_SYNC] = enabled
-        self.hass.config_entries.async_update_entry(self.config_entry, options=options)
-
+    # CUSTOM-ONLY START, winter-mode switch is HACS-only.
     async def set_winter_mode(self, enabled: bool) -> None:
-        """Toggle winter mode and persist the capability snapshot."""
-        self.winter_mode = enabled
-        options = dict(self.config_entry.options)
-        options[CONF_WINTER_MODE] = enabled
-        if enabled:
-            if self.data:
-                self._capability_snapshot = {
-                    k: self.data[k] for k in CAPABILITY_KEYS if k in self.data
-                }
+        """Toggle winter mode via the native disable-polling flag.
+
+        Winter mode is backed by ``config_entry.pref_disable_polling`` so the
+        base coordinator stops scheduling refreshes entirely (no no-op polls,
+        no reconnect attempts). When enabling, the capability snapshot is
+        persisted first so the reload can set entities up offline, then the
+        entry is reloaded to rebuild the coordinator with the new flag.
+        """
+        updates: dict[str, Any] = {"pref_disable_polling": enabled}
+        if enabled and self.data:
+            self._capability_snapshot = {
+                k: self.data[k] for k in CAPABILITY_KEYS if k in self.data
+            }
+            options = dict(self.config_entry.options)
             options[CONF_CAPABILITIES] = dict(self._capability_snapshot)
-        self.hass.config_entries.async_update_entry(self.config_entry, options=options)
-        if enabled:
-            self.async_set_updated_data(dict(self._capability_snapshot))
+            updates["options"] = options
+        self.hass.config_entries.async_update_entry(self.config_entry, **updates)
+        self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
+
+    # CUSTOM-ONLY END

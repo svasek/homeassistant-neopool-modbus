@@ -55,12 +55,11 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_MILLION,
-    PERCENTAGE,
     EntityCategory,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfRatio,
     UnitOfTemperature,
     UnitOfTime,
 )
@@ -90,18 +89,20 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
     "MBF_ION_CURRENT": NeoPoolSensorEntityDescription(
         key="MBF_ION_CURRENT",
         translation_key="ion_current",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         supported_fn=is_ionization_present,
     ),
     "MBF_HIDRO_CURRENT": NeoPoolSensorEntityDescription(
         key="MBF_HIDRO_CURRENT",
         translation_key="hidro_current",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         supported_fn=is_hydrolysis_present,
-        unit_fn=lambda data: PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h",
+        unit_fn=lambda data: (
+            UnitOfRatio.PERCENTAGE if is_hydrolysis_in_percent(data) else "g/h"
+        ),
         precision_fn=lambda data: 0 if is_hydrolysis_in_percent(data) else 1,
     ),
     "MBF_MEASURE_PH": NeoPoolSensorEntityDescription(
@@ -121,14 +122,14 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
     "MBF_MEASURE_CL": NeoPoolSensorEntityDescription(
         key="MBF_MEASURE_CL",
         translation_key="measure_cl",
-        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
+        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
         state_class=SensorStateClass.MEASUREMENT,
         supported_fn=is_chlorine_module_present,
     ),
     "MBF_MEASURE_CONDUCTIVITY": NeoPoolSensorEntityDescription(
         key="MBF_MEASURE_CONDUCTIVITY",
         translation_key="measure_conductivity",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         supported_fn=is_conductivity_module_present,
@@ -300,6 +301,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         entity_registry_enabled_default=False,
         supported_fn=is_hydrolysis_present,
     ),
+    # CUSTOM-ONLY START, filtration pump-power sensor is HACS-only.
     CONF_FILTRATION_PUMP_POWER: NeoPoolSensorEntityDescription(
         key=CONF_FILTRATION_PUMP_POWER,
         translation_key=CONF_FILTRATION_PUMP_POWER,
@@ -308,6 +310,7 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
     ),
+    # CUSTOM-ONLY END
 }
 
 
@@ -322,10 +325,13 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         NeoPoolSensor(coordinator, key, desc)
         for key, desc in SENSOR_DESCRIPTIONS.items()
-        if key != CONF_FILTRATION_PUMP_POWER
-        and (desc.supported_fn is None or desc.supported_fn(coordinator.data))
+        if (desc.supported_fn is None or desc.supported_fn(coordinator.data))
     ]
 
+    # CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
+    entities = [
+        e for e in entities if e.entity_description.key != CONF_FILTRATION_PUMP_POWER
+    ]
     pump_power = int(entry.options.get(CONF_FILTRATION_PUMP_POWER, 0) or 0)
     if pump_power > 0:
         entities.append(
@@ -336,6 +342,7 @@ async def async_setup_entry(
             )
         )
         entities.append(NeoPoolFiltrationEnergySensor(coordinator, pump_power))
+    # CUSTOM-ONLY END
 
     async_add_entities(entities)
 
@@ -362,7 +369,6 @@ _MEASURE_KEYS_REQUIRING_FILTRATION = frozenset(
 class NeoPoolSensor(NeoPoolEntity, SensorEntity):
     """Representation of a NeoPool sensor."""
 
-    _winter_mode_active = False
     entity_description: NeoPoolSensorEntityDescription
 
     def __init__(
@@ -437,6 +443,7 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         return super().options
 
 
+# CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
 class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     """Cumulative energy consumed by the filtration pump (Wh).
 
@@ -444,7 +451,6 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     Suitable for the Energy dashboard "Individual devices" energy tracking.
     """
 
-    _winter_mode_active = False
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
@@ -500,3 +506,5 @@ class NeoPoolFiltrationEnergySensor(NeoPoolEntity, RestoreSensor):
     def native_value(self) -> float:
         """Return accumulated energy in Wh."""
         return round(self._total_wh, 3)
+
+    # CUSTOM-ONLY END

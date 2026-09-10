@@ -1,4 +1,4 @@
-# Vistapool Devcontainer Quickstart
+# Neopool Devcontainer Quickstart
 
 ## Prerequisites
 
@@ -13,9 +13,9 @@
 3. Wait until the container initializes. It will automatically:
    - Build a custom Docker image with Home Assistant Core and development tools
    - Run `.devcontainer/init-ha.sh` to set up the environment
-   - Mount your code to `/workspace` and `/config/custom_components/vistapool`
+   - Mount your code to `/workspace` and `/config/custom_components/neopool`
 4. Open http://localhost:8123 in your browser to access Home Assistant.
-5. Your integration code under `custom_components/vistapool` is automatically available in HA.
+5. Your integration code under `custom_components/neopool` is automatically available in HA.
 
 ## Development workflow
 
@@ -26,7 +26,7 @@
 
 ## Useful commands
 
-- **Tests with coverage**: `pytest tests/ --cov=custom_components/vistapool --cov-report=term-missing -q`
+- **Tests with coverage**: `pytest tests/ --cov=custom_components/neopool --cov-report=term-missing -q`
 - **Linting**: Use Ruff (auto-formats and lints on save) or `ruff check .` / `ruff format .` from CLI
 - **Home Assistant logs**: Check VS Code terminal or HA web interface
 - **Restart HA**: Restart the devcontainer when making structural changes

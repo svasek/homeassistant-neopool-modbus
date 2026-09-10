@@ -57,7 +57,7 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
     mock_old_device = MagicMock()
     mock_old_device.id = "old_device_id"
     mock_device_registry = MagicMock()
-    mock_device_registry.async_get_device.return_value = mock_old_device
+    mock_device_registry.async_get_device_by_identifier.return_value = mock_old_device
 
     # Simulate HA's behavior: async_update_entry mutates entry.version so the
     # subsequent v3→v4 marker bump can see the post-v2 state of the entry.
@@ -112,8 +112,8 @@ async def test_async_migrate_entry_v1_to_v2_success() -> None:
     # because async_migrate_entry uses source_domain=DOMAIN by default;
     # legacy vistapool entries reach this code path via the cross-domain
     # migration flow which passes source_domain="vistapool" explicitly.
-    mock_device_registry.async_get_device.assert_called_once_with(
-        identifiers={("neopool", "old_entry_id_123")}
+    mock_device_registry.async_get_device_by_identifier.assert_called_once_with(
+        ("neopool", "old_entry_id_123"), config_entry.entry_id
     )
     mock_device_registry.async_update_device.assert_called_once_with(
         "old_device_id",
@@ -202,7 +202,9 @@ async def test_async_migrate_entry_v3_to_v4_marker_bump() -> None:
         ),
         patch(
             "custom_components.neopool.migration.dr.async_get",
-            return_value=MagicMock(async_get_device=MagicMock(return_value=None)),
+            return_value=MagicMock(
+                async_get_device_by_identifier=MagicMock(return_value=None)
+            ),
         ),
     ):
         result = await async_migrate_entry(hass, config_entry)
@@ -253,7 +255,9 @@ async def test_async_migrate_entry_v4_to_v5_slave_id_renamed() -> None:
         ),
         patch(
             "custom_components.neopool.migration.dr.async_get",
-            return_value=MagicMock(async_get_device=MagicMock(return_value=None)),
+            return_value=MagicMock(
+                async_get_device_by_identifier=MagicMock(return_value=None)
+            ),
         ),
     ):
         result = await async_migrate_entry(hass, config_entry)
@@ -298,7 +302,7 @@ async def test_async_migrate_entry_v5_to_v6_drops_legacy_prefix() -> None:
     mock_old_device = MagicMock()
     mock_old_device.id = "old_device_id"
     mock_device_registry = MagicMock()
-    mock_device_registry.async_get_device.return_value = mock_old_device
+    mock_device_registry.async_get_device_by_identifier.return_value = mock_old_device
 
     def _update_entry(entry: MagicMock, **kwargs: Any) -> None:
         for k, v in kwargs.items():

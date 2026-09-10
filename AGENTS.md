@@ -22,7 +22,7 @@ pytest
 pytest tests/test_sensor.py
 
 # Run tests with coverage
-pytest --cov=custom_components/vistapool --cov-report=term-missing tests/
+pytest --cov=custom_components/neopool --cov-report=term-missing tests/
 
 # Type checking (must be 0 errors)
 basedpyright
@@ -84,8 +84,15 @@ Examples: `feat/add-login-page`, `fix/header-bug`, `feature/issue-123-new-login`
 
 ### Approval
 
-- **Never commit automatically.** Always wait for my explicit approval before running `git commit`.
+- **Never commit or push automatically.** Always wait for my explicit approval before running `git commit` or `git push`.
+- **Approval is per action, not per session.** Approving one commit or push does not authorize the next one. Ask again each time.
+- **Never automatically merge pull requests.** This will be always done by me manually.
 - **Tests:** If the project has tests, run them before proposing a commit. Verify that all tests pass and that code coverage has not decreased.
+
+### Versioning & Merge Strategy
+
+- **Versioning is handled by release-please.** Never bump the `version` field in `manifest.json` by hand.
+- **PRs are squash-merged.** Only the PR title reaches the changelog, so the title must be a clean, correct commit message. Per-commit messages inside a PR are internal history only.
 
 ### Commit Message Format
 
@@ -96,6 +103,9 @@ Always use the format: `<type>(<scope>): <gitmoji> <description>`
 - `scope` is optional but use it when the change is clearly scoped to a module
   (e.g. `sensor`, `binary_sensor`, `button`, `light`, `number`, `select`, `switch`, `modbus`, `config`, `coordinator`, `entity`, `diagnostics`, `helpers`)
 - `description`: lowercase, imperative mood ("add", not "added"), no period at end
+- Keep it terse. Commit subjects, bodies, and code comments should be concise and to the point; avoid verbose prose.
+- No em-dashes anywhere (commit messages, PR text, code, comments, docs). Use a regular hyphen, comma, or separate sentence instead.
+- No `@` or `#` characters in commit messages, PR text, or comments: GitHub auto-links them. The only exception is a `Resolves #<issue-number>` trailer at the end of a commit or PR body.
 
 **Pick the type and gitmoji that best reflect the nature of the change:**
 

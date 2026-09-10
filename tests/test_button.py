@@ -1,13 +1,17 @@
 """Tests for the NeoPool button platform."""
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
+from freezegun.api import FrozenDateTimeFactory
 from neopool_modbus.exceptions import NeoPoolConnectionError
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    snapshot_platform,
+)
 from syrupy.assertion import SnapshotAssertion
 
-from custom_components.neopool.const import DOMAIN
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -15,7 +19,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
-from .conftest import MOCK_SERIAL
 
 
 def _button_entity_id(
@@ -45,14 +48,21 @@ async def test_sync_time_button_writes_time_and_commit(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
-    """SYNC_TIME button delegates to async_sync_device_time."""
+    """SYNC_TIME button writes the encoded local time and refreshes."""
+    # Non-UTC zone so a timezone or encoding regression changes the literal.
+    await hass.config.async_set_time_zone("America/New_York")
+    freezer.move_to("2024-01-02 08:04:05+00:00")
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _button_entity_id(hass, mock_config_entry, "sync_time")
     mock_neopool_client.async_sync_device_time.reset_mock()
+    reads_before = mock_neopool_client.async_read_all.await_count
     await _press(hass, entity_id)
-    assert mock_neopool_client.async_sync_device_time.await_count == 1
+
+    mock_neopool_client.async_sync_device_time.assert_awaited_once_with(1704164645)
+    assert mock_neopool_client.async_read_all.await_count > reads_before
 
 
 async def test_escape_button_writes_clear_register(
@@ -69,24 +79,13 @@ async def test_escape_button_writes_clear_register(
     mock_neopool_client.async_clear_errors.assert_awaited_once()
 
 
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_reset_cell_partial_button_writes_reset_and_save(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
     """RESET_CELL_PARTIAL delegates to async_reset_user_counters."""
-    # The reset button is destructive (clears partial counters) so it ships
-    # disabled-by-default. Pre-enable it in the registry before setup so the
-    # platform constructs the entity object.
-    mock_config_entry.add_to_hass(hass)
-    registry = er.async_get(hass)
-    registry.async_get_or_create(
-        "button",
-        DOMAIN,
-        f"{MOCK_SERIAL}_reset_cell_partial",
-        config_entry=mock_config_entry,
-        disabled_by=None,
-    )
     await setup_integration(hass, mock_config_entry)
 
     entity_id = _button_entity_id(hass, mock_config_entry, "reset_cell_partial")
@@ -98,40 +97,77 @@ async def test_reset_cell_partial_button_writes_reset_and_save(
 @pytest.mark.usefixtures("mock_neopool_client")
 async def test_reset_cell_partial_button_disabled_by_default(
     hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
 ) -> None:
     """Reset button registers but is disabled-by-default (destructive action)."""
     await setup_integration(hass, mock_config_entry)
 
-    registry = er.async_get(hass)
     matches = [
         e
-        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        for e in er.async_entries_for_config_entry(
+            entity_registry, mock_config_entry.entry_id
+        )
         if e.domain == BUTTON_DOMAIN and e.unique_id.endswith("_reset_cell_partial")
     ]
     assert len(matches) == 1
     assert matches[0].disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
 
-async def test_reset_cell_partial_button_skipped_without_hydrolysis(
+async def test_reset_cell_partial_button_skipped_without_wear_modules(
     hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """No RESET_CELL_PARTIAL entity is registered when hydrolysis isn't detected."""
-    no_hidro_data = dict(mock_neopool_client.async_read_all.return_value)
-    no_hidro_data["Hydrolysis module detected"] = False
-    mock_neopool_client.async_read_all.return_value = no_hidro_data
+    """No RESET_CELL_PARTIAL entity when no hydrolysis/ION/UV module is present."""
+    no_wear_data = dict(mock_neopool_client.async_read_all.return_value)
+    no_wear_data["Hydrolysis module detected"] = False
+    no_wear_data["MBF_PAR_MODEL"] = 0
+    mock_neopool_client.async_read_all.return_value = no_wear_data
 
     await setup_integration(hass, mock_config_entry)
 
-    registry = er.async_get(hass)
     matches = [
         e
-        for e in er.async_entries_for_config_entry(registry, mock_config_entry.entry_id)
+        for e in er.async_entries_for_config_entry(
+            entity_registry, mock_config_entry.entry_id
+        )
         if e.domain == BUTTON_DOMAIN and e.unique_id.endswith("_reset_cell_partial")
     ]
     assert matches == []
+
+
+@pytest.mark.parametrize(
+    "model",
+    [
+        pytest.param(0x0001, id="ionization-only"),
+        pytest.param(0x0004, id="uv-only"),
+    ],
+)
+async def test_reset_cell_partial_button_registers_for_wear_modules(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    model: int,
+) -> None:
+    """RESET_CELL_PARTIAL registers when ION or UV wear counters are present."""
+    data = dict(mock_neopool_client.async_read_all.return_value)
+    data["Hydrolysis module detected"] = False
+    data["MBF_PAR_MODEL"] = model
+    mock_neopool_client.async_read_all.return_value = data
+
+    await setup_integration(hass, mock_config_entry)
+
+    matches = [
+        e
+        for e in er.async_entries_for_config_entry(
+            entity_registry, mock_config_entry.entry_id
+        )
+        if e.domain == BUTTON_DOMAIN and e.unique_id.endswith("_reset_cell_partial")
+    ]
+    assert len(matches) == 1
 
 
 @pytest.mark.parametrize(
@@ -162,49 +198,38 @@ async def test_button_press_maps_communication_error_to_home_assistant_error(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.usefixtures("mock_neopool_client")
+@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_neopool_client")
 async def test_all_entities(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """Snapshot every entity registered by the button platform.
-
-    Snapshot the registry entries directly rather than via
-    `snapshot_platform`, which assumes every entity is enabled and has
-    state. NeoPool ships several `entity_registry_enabled_default=False`
-    entities; including them via state lookup would either fail or pull
-    entire state machines into the snapshot. The registry entry alone
-    (unique_id, name, disabled_by, ...) is the stable shape we care about.
-    """
+    """Snapshot every entity registered by the button platform."""
     with patch("custom_components.neopool.PLATFORMS", [Platform.BUTTON]):
         await setup_integration(hass, mock_config_entry)
-    entries = sorted(
-        er.async_entries_for_config_entry(entity_registry, mock_config_entry.entry_id),
-        key=lambda e: e.entity_id,
-    )
-    assert entries == snapshot
+    await snapshot_platform(hass, entity_registry, snapshot, mock_config_entry.entry_id)
 
 
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_setup_when_modules_absent(
     hass: HomeAssistant,
-    snapshot: SnapshotAssertion,
     entity_registry: er.EntityRegistry,
     mock_config_entry: MockConfigEntry,
-    mock_neopool_client_minimal: MagicMock,
+    mock_neopool_client: MagicMock,
+    minimal_pool_data: dict[str, Any],
 ) -> None:
-    """Snapshot the button entities registered when no modules are present.
+    """Only the ungated buttons register when no optional modules are present."""
+    mock_neopool_client.async_read_all.return_value = minimal_pool_data
+    await setup_integration(hass, mock_config_entry)
 
-    Drives setup with the lean `mock_neopool_client_minimal` fixture (no
-    modules detected, no relay GPIOs assigned). Each platform's gating
-    branches fire and entities depending on the missing hardware are
-    skipped; the resulting registry shape is captured as a snapshot.
-    """
-    with patch("custom_components.neopool.PLATFORMS", [Platform.BUTTON]):
-        await setup_integration(hass, mock_config_entry)
-    entries = sorted(
-        er.async_entries_for_config_entry(entity_registry, mock_config_entry.entry_id),
-        key=lambda e: e.entity_id,
-    )
-    assert entries == snapshot
+    button_ids = [
+        e.unique_id
+        for e in er.async_entries_for_config_entry(
+            entity_registry, mock_config_entry.entry_id
+        )
+        if e.domain == BUTTON_DOMAIN
+    ]
+    assert any(uid.endswith("_sync_time") for uid in button_ids)
+    assert any(uid.endswith("_mbf_escape") for uid in button_ids)
+    assert not any(uid.endswith("_reset_cell_partial") for uid in button_ids)

@@ -23,7 +23,7 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import NeoPoolConfigEntry
 
-TO_REDACT = {"password", "token", "host", "port"}
+TO_REDACT = {"password", "token", "host", "port", "name", "MBF_PAR_SERNUM"}
 
 
 async def async_get_config_entry_diagnostics(
@@ -31,41 +31,32 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics for a NeoPool config entry."""
 
-    diagnostics: dict[str, Any] = {}
+    coordinator = entry.runtime_data
+    data = coordinator.data or {}
 
-    diagnostics["config_entry"] = async_redact_data(
-        {
-            "data": dict(entry.data),
-            "options": dict(entry.options),
-            "title": entry.title,
-            "entry_id": entry.entry_id,
-            "unique_id": entry.unique_id,
-            "version": entry.version,
+    # Expose the exception type only; str(exc) would leak host:port.
+    last_exception = coordinator.last_exception
+
+    return {
+        "config_entry": async_redact_data(
+            {
+                "data": dict(entry.data),
+                "options": dict(entry.options),
+                "title": entry.title,
+                "entry_id": entry.entry_id,
+                "unique_id": entry.unique_id,
+                "version": entry.version,
+            },
+            TO_REDACT | {"title", "unique_id"},
+        ),
+        "coordinator": {
+            "last_update_success": coordinator.last_update_success,
+            "data": async_redact_data(data, TO_REDACT),
+            "update_interval": str(coordinator.update_interval),
+            "last_exception": type(last_exception).__name__ if last_exception else None,
+            "firmware": parse_version(data.get("MBF_POWER_MODULE_VERSION")),
         },
-        TO_REDACT | {"title", "unique_id"},
-    )
-
-    coordinator = getattr(entry, "runtime_data", None)
-
-    if coordinator is None:
-        diagnostics["coordinator"] = {"status": "not loaded"}
-        return diagnostics
-
-    diagnostics["coordinator"] = {
-        "last_update_success": getattr(coordinator, "last_update_success", None),
-        "last_update_time": str(getattr(coordinator, "last_update_time", None)),
-        "data": getattr(coordinator, "data", {}),
-        "update_interval": str(getattr(coordinator, "update_interval", None)),
-        "last_exception": str(getattr(coordinator, "last_exception", "")),
-        "firmware": parse_version(
-            (getattr(coordinator, "data", None) or {}).get("MBF_POWER_MODULE_VERSION")
+        "connection_stats": async_redact_data(
+            dict(coordinator.client.connection_stats), TO_REDACT
         ),
     }
-
-    client = getattr(coordinator, "client", None)
-    if client and hasattr(client, "connection_stats"):
-        diagnostics["connection_stats"] = async_redact_data(
-            dict(client.connection_stats), TO_REDACT
-        )
-
-    return diagnostics

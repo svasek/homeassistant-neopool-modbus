@@ -2,15 +2,14 @@
     "config": {
         "abort": {
             "already_configured": "Gerät ist bereits konfiguriert",
-            "entry_not_found": "Der Integrationseintrag wurde nicht gefunden.",
             "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
             "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work.",
-            "reconfigure_successful": "Neukonfiguration war erfolgreich"
+            "reconfigure_successful": "Neukonfiguration war erfolgreich",
+            "serial_mismatch": "Das Gerät an dieser Adresse hat eine andere Seriennummer als das ursprünglich konfigurierte."
         },
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen",
-            "cannot_read_modbus": "Verbunden, aber Modbus-Gerät kann nicht gelesen werden. Überprüfen Sie Unit-ID und Framer-Einstellungen.",
-            "serial_mismatch": "Das Gerät an dieser Adresse hat eine andere Seriennummer als das ursprünglich konfigurierte."
+            "cannot_read_modbus": "Verbunden, aber Modbus-Gerät kann nicht gelesen werden. Überprüfen Sie Unit-ID und Framer-Einstellungen."
         },
         "step": {
             "import_from_vistapool": {
@@ -55,18 +54,6 @@
     },
     "entity": {
         "binary_sensor": {
-            "aux1": {
-                "name": "Relais Aux1"
-            },
-            "aux2": {
-                "name": "Relais Aux2"
-            },
-            "aux3": {
-                "name": "Relais Aux3"
-            },
-            "aux4": {
-                "name": "Relais Aux4"
-            },
             "chlorine_control_module": {
                 "name": "Chlor-Regelung aktiv"
             },
@@ -153,6 +140,9 @@
             },
             "uv_lamp": {
                 "name": "UV-Lampe"
+            },
+            "aux": {
+                "name": "Relais Aux {number}"
             }
         },
         "button": {
@@ -160,7 +150,7 @@
                 "name": "Fehlermeldungen löschen"
             },
             "reset_cell_partial": {
-                "name": "Zellenlaufzeit-Zähler zurücksetzen"
+                "name": "Teillaufzeit-Zähler zurücksetzen"
             },
             "sync_time": {
                 "name": "Gerätezeit synchronisieren"
@@ -221,30 +211,6 @@
                     "intelligent": "Intelligent",
                     "manual": "Manuell",
                     "smart": "Smart"
-                }
-            },
-            "filtration1_speed": {
-                "name": "Timer 1 - Filtergeschwindigkeit",
-                "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
-                    "mid": "Mittel"
-                }
-            },
-            "filtration2_speed": {
-                "name": "Timer 2 - Filtergeschwindigkeit",
-                "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
-                    "mid": "Mittel"
-                }
-            },
-            "filtration3_speed": {
-                "name": "Timer 3 - Filtergeschwindigkeit",
-                "state": {
-                    "high": "Hoch",
-                    "low": "Niedrig",
-                    "mid": "Mittel"
                 }
             },
             "filtration_speed": {
@@ -310,154 +276,6 @@
                     "900": "15 Minuten"
                 }
             },
-            "relay_aux1_mode": {
-                "name": "Relaismodus Aux1",
-                "state": {
-                    "auto": "Automatisch",
-                    "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "manual": "Manuell"
-                }
-            },
-            "relay_aux1_period": {
-                "name": "Timer Aux1 (1) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
-            "relay_aux1b_period": {
-                "name": "Timer Aux1 (2) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
-            "relay_aux2_mode": {
-                "name": "Relaismodus Aux2",
-                "state": {
-                    "auto": "Automatisch",
-                    "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "manual": "Manuell"
-                }
-            },
-            "relay_aux2_period": {
-                "name": "Timer Aux2 (1) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
-            "relay_aux2b_period": {
-                "name": "Timer Aux2 (2) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
-            "relay_aux3_mode": {
-                "name": "Relaismodus Aux3",
-                "state": {
-                    "auto": "Automatisch",
-                    "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "manual": "Manuell"
-                }
-            },
-            "relay_aux3_period": {
-                "name": "Timer Aux3 (1) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
-            "relay_aux3b_period": {
-                "name": "Timer Aux3 (2) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
-            "relay_aux4_mode": {
-                "name": "Relaismodus Aux4",
-                "state": {
-                    "auto": "Automatisch",
-                    "auto_linked": "Automatisch (verknüpft)",
-                    "disabled": "Deaktiviert",
-                    "manual": "Manuell"
-                }
-            },
-            "relay_aux4_period": {
-                "name": "Timer Aux4 (1) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
-            "relay_aux4b_period": {
-                "name": "Timer Aux4 (2) - Intervall",
-                "state": {
-                    "1_day": "1 Tag",
-                    "1_week": "1 Woche",
-                    "2_days": "2 Tage",
-                    "2_weeks": "2 Wochen",
-                    "3_days": "3 Tage",
-                    "3_weeks": "3 Wochen",
-                    "4_days": "4 Tage",
-                    "4_weeks": "4 Wochen",
-                    "5_days": "5 Tage"
-                }
-            },
             "relay_light_mode": {
                 "name": "Lichtmodus",
                 "state": {
@@ -468,6 +286,37 @@
             },
             "relay_light_period": {
                 "name": "Licht-Timer - Intervall",
+                "state": {
+                    "1_day": "1 Tag",
+                    "1_week": "1 Woche",
+                    "2_days": "2 Tage",
+                    "2_weeks": "2 Wochen",
+                    "3_days": "3 Tage",
+                    "3_weeks": "3 Wochen",
+                    "4_days": "4 Tage",
+                    "4_weeks": "4 Wochen",
+                    "5_days": "5 Tage"
+                }
+            },
+            "filtration_speed_timer": {
+                "name": "Timer {number} - Filtergeschwindigkeit",
+                "state": {
+                    "high": "Hoch",
+                    "low": "Niedrig",
+                    "mid": "Mittel"
+                }
+            },
+            "relay_aux_mode": {
+                "name": "Relaismodus Aux {number}",
+                "state": {
+                    "auto": "Automatisch",
+                    "auto_linked": "Automatisch (verknüpft)",
+                    "disabled": "Deaktiviert",
+                    "manual": "Manuell"
+                }
+            },
+            "relay_aux_period": {
+                "name": "Timer Aux {number} ({subtimer}) - Intervall",
                 "state": {
                     "1_day": "1 Tag",
                     "1_week": "1 Woche",
@@ -602,18 +451,6 @@
             }
         },
         "switch": {
-            "aux1": {
-                "name": "Relais Aux1"
-            },
-            "aux2": {
-                "name": "Relais Aux2"
-            },
-            "aux3": {
-                "name": "Relais Aux3"
-            },
-            "aux4": {
-                "name": "Relais Aux4"
-            },
             "backwash": {
                 "name": "Rückspülung"
             },
@@ -632,88 +469,34 @@
             "smart_anti_freeze": {
                 "name": "Smart: Frostschutz"
             },
-            "time_auto_sync": {
-                "name": "Zeit automatische Synchronisierung"
-            },
             "uv_mode": {
                 "name": "UV-Modus"
             },
             "winter_mode": {
                 "name": "Wintermodus"
+            },
+            "aux": {
+                "name": "Relais Aux {number}"
             }
         },
         "time": {
-            "filtration1_start": {
-                "name": "Timer 1 - Filtration Start"
-            },
-            "filtration1_stop": {
-                "name": "Timer 1 - Filtration Stop"
-            },
-            "filtration2_start": {
-                "name": "Timer 2 - Filtration Start"
-            },
-            "filtration2_stop": {
-                "name": "Timer 2 - Filtration Stop"
-            },
-            "filtration3_start": {
-                "name": "Timer 3 - Filtration Start"
-            },
-            "filtration3_stop": {
-                "name": "Timer 3 - Filtration Stop"
-            },
-            "relay_aux1_start": {
-                "name": "Timer Aux1 (1) - Start"
-            },
-            "relay_aux1_stop": {
-                "name": "Timer Aux1 (1) - Stopp"
-            },
-            "relay_aux1b_start": {
-                "name": "Timer Aux1 (2) - Start"
-            },
-            "relay_aux1b_stop": {
-                "name": "Timer Aux1 (2) - Stopp"
-            },
-            "relay_aux2_start": {
-                "name": "Timer Aux2 (1) - Start"
-            },
-            "relay_aux2_stop": {
-                "name": "Timer Aux2 (1) - Stopp"
-            },
-            "relay_aux2b_start": {
-                "name": "Timer Aux2 (2) - Start"
-            },
-            "relay_aux2b_stop": {
-                "name": "Timer Aux2 (2) - Stopp"
-            },
-            "relay_aux3_start": {
-                "name": "Timer Aux3 (1) - Start"
-            },
-            "relay_aux3_stop": {
-                "name": "Timer Aux3 (1) - Stopp"
-            },
-            "relay_aux3b_start": {
-                "name": "Timer Aux3 (2) - Start"
-            },
-            "relay_aux3b_stop": {
-                "name": "Timer Aux3 (2) - Stopp"
-            },
-            "relay_aux4_start": {
-                "name": "Timer Aux4 (1) - Start"
-            },
-            "relay_aux4_stop": {
-                "name": "Timer Aux4 (1) - Stopp"
-            },
-            "relay_aux4b_start": {
-                "name": "Timer Aux4 (2) - Start"
-            },
-            "relay_aux4b_stop": {
-                "name": "Timer Aux4 (2) - Stopp"
-            },
             "relay_light_start": {
                 "name": "Licht-Timer - Start"
             },
             "relay_light_stop": {
                 "name": "Licht-Timer - Stopp"
+            },
+            "filtration_start": {
+                "name": "Timer {number} - Filtration Start"
+            },
+            "filtration_stop": {
+                "name": "Timer {number} - Filtration Stop"
+            },
+            "relay_aux_start": {
+                "name": "Timer Aux {number} ({subtimer}) - Start"
+            },
+            "relay_aux_stop": {
+                "name": "Timer Aux {number} ({subtimer}) - Stopp"
             }
         }
     },
@@ -803,6 +586,7 @@
         "step": {
             "init": {
                 "data": {
+                    "auto_time_sync": "Gerätezeit automatisch synchronisieren",
                     "filtration_pump_power": "Leistung der Filtrationspumpe (W, 0 = deaktiviert)",
                     "measure_when_filtration_off": "Messwerte auch bei ausgeschalteter Filterung erfassen",
                     "scan_interval": "Datenaktualisierungsintervall (Sekunden)",
@@ -817,6 +601,7 @@
                     "use_light": "Licht-Relais aktivieren"
                 },
                 "data_description": {
+                    "auto_time_sync": "Wenn aktiviert, wird die Uhr des Reglers bei jeder Abfrage korrigiert, falls sie von der Home Assistant-Zeit abweicht.",
                     "filtration_pump_power": "Geben Sie die Nennleistung der Filtrationspumpe an. Bei einem Wert ungleich null werden zwei Sensoren erstellt: momentane Leistung (W) und kumulierter Energieverbrauch (Wh), beide nutzbar im Energie-Dashboard.",
                     "measure_when_filtration_off": "Wenn deaktiviert, werden chemische Messungen (pH, ORP usw.) nur bei laufender Filterpumpe durchgeführt.",
                     "scan_interval": "Niedrigere Werte erhöhen die Reaktionsfähigkeit, erzeugen aber mehr Modbus-Verkehr.",
@@ -824,7 +609,7 @@
                     "use_aux2": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
                     "use_aux3": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
                     "use_aux4": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
-                    "use_cover_sensor": "Erstellt einen Binärsensor und aktiviert abdeckungsbezogene Entitäten (Hydrolyse-Reduzierung, Abschalttemperatur).",
+                    "use_cover_sensor": "Erstellt einen Binärsensor und aktiviert den Schalter zur Hydrolyse-Reduzierung bei Abdeckung.",
                     "use_filtration1": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
                     "use_filtration2": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
                     "use_filtration3": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",

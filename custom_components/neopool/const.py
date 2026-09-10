@@ -37,16 +37,16 @@ FOLLOW_UP_REFRESH_DELAY = 2.0  # seconds  (delay before a 2nd refresh for IO ent
 DEFAULT_PORT = 502
 DEFAULT_UNIT_ID = 1
 
-# Config-entry data keys (connection settings).
 CONF_UNIT_ID = "unit_id"
 CONF_MODBUS_FRAMER = "modbus_framer"
 
-# Options-flow keys.
+# CUSTOM-ONLY START, filtration pump-power sensors are HACS-only.
 CONF_FILTRATION_PUMP_POWER = "filtration_pump_power"
 # Optional per-speed overrides for variable-speed pumps. When set they refine
 # the base power (which acts as the high-speed value); empty falls back to it.
 CONF_FILTRATION_PUMP_POWER_MID = "filtration_pump_power_mid"
 CONF_FILTRATION_PUMP_POWER_LOW = "filtration_pump_power_low"
+# CUSTOM-ONLY END
 CONF_MEASURE_WHEN_FILTRATION_OFF = "measure_when_filtration_off"
 CONF_USE_FILTRATION1 = "use_filtration1"
 CONF_USE_FILTRATION2 = "use_filtration2"
@@ -59,8 +59,14 @@ CONF_USE_AUX3 = "use_aux3"
 CONF_USE_AUX4 = "use_aux4"
 
 # Internal option keys
+# CUSTOM-ONLY START, automatic device-time sync is HACS-only.
 CONF_AUTO_TIME_SYNC = "auto_time_sync"
+# CUSTOM-ONLY END
+# CUSTOM-ONLY START, winter-mode switch is HACS-only.
+# Winter mode is backed by the native config_entry.pref_disable_polling flag;
+# this constant survives only as the winter-mode switch translation_key.
 CONF_WINTER_MODE = "winter_mode"
+# CUSTOM-ONLY END
 CONF_CAPABILITIES = "_capabilities"
 
 # CUSTOM-ONLY START
@@ -85,6 +91,8 @@ _CUSTOM_CAPABILITY_KEYS: tuple[str, ...] = (
     "MBF_PAR_RELAY_PH",
     "MBF_PAR_FILT_GPIO",
     "MBF_PAR_LIGHTING_GPIO",
+    "MBF_POWER_MODULE_VERSION",
+    "MBF_PAR_VERSION",
 )
 
 CAPABILITY_KEYS: tuple[str, ...] = tuple(

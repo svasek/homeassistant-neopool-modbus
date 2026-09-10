@@ -45,13 +45,14 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
-    CONF_AUTO_TIME_SYNC,
     CONF_USE_AUX1,
     CONF_USE_AUX2,
     CONF_USE_AUX3,
     CONF_USE_AUX4,
     CONF_USE_COVER_SENSOR,
+    # CUSTOM-ONLY START, winter-mode switch is HACS-only.
     CONF_WINTER_MODE,
+    # CUSTOM-ONLY END
     DOMAIN,
 )
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
@@ -59,12 +60,13 @@ from .entity import NeoPoolEntity
 
 PARALLEL_UPDATES = 1
 
+# CUSTOM-ONLY START, winter-mode switch is HACS-only.
 # Switch types that are HA-side settings, not device state: they don't need a
 # client, don't participate in the winter-mode guard, and stay available even
 # while winter mode is active.
 _HA_SETTING_WINTER_MODE = CONF_WINTER_MODE
-_HA_SETTING_AUTO_TIME_SYNC = CONF_AUTO_TIME_SYNC
-_HA_SETTING_TYPES = frozenset({_HA_SETTING_WINTER_MODE, _HA_SETTING_AUTO_TIME_SYNC})
+_HA_SETTING_TYPES = frozenset({_HA_SETTING_WINTER_MODE})
+# CUSTOM-ONLY END
 
 
 type _WriteFn = Callable[["NeoPoolSwitch", Any, bool], Awaitable[dict[str, Any]]]
@@ -75,15 +77,13 @@ type _IsOnFn = Callable[[dict[str, Any]], bool]
 class NeoPoolSwitchEntityDescription(SwitchEntityDescription):
     """Describes a NeoPool switch entity."""
 
+    # CUSTOM-ONLY START, ha_setting backs the HACS-only winter-mode switch.
     ha_setting: str | None = None
+    # CUSTOM-ONLY END
     supported_fn: Callable[[dict[str, Any]], bool] | None = None
     write_fn: _WriteFn | None = None
     is_on_fn: _IsOnFn | None = None
-
-
-# ---------------------------------------------------------------------------
-# Write paths (per switch flavor)
-# ---------------------------------------------------------------------------
+    translation_placeholders: dict[str, str] | None = None
 
 
 async def _write_manual_filtration(
@@ -182,11 +182,6 @@ def _make_write_bitmask_flag(flag: BitmaskConfigFlag) -> _WriteFn:
     return _write
 
 
-# ---------------------------------------------------------------------------
-# is_on readers
-# ---------------------------------------------------------------------------
-
-
 def _make_is_on_from_key(data_key: str) -> _IsOnFn:
     """Read a truthy value from a specific coordinator-data key."""
     return lambda data: bool(data.get(data_key))
@@ -202,29 +197,23 @@ def _make_is_on_bitmask(data_key: str, mask: int) -> _IsOnFn:
     return lambda data: bool(int(data.get(data_key, 0) or 0) & mask)
 
 
-# ---------------------------------------------------------------------------
-# Entity descriptions
-# ---------------------------------------------------------------------------
-
-
 SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
+    # CUSTOM-ONLY START, winter-mode switch is HACS-only.
     "WINTER_MODE": NeoPoolSwitchEntityDescription(
         key="WINTER_MODE",
         translation_key=CONF_WINTER_MODE,
         entity_category=EntityCategory.CONFIG,
         ha_setting=_HA_SETTING_WINTER_MODE,
     ),
-    "TIME_AUTO_SYNC": NeoPoolSwitchEntityDescription(
-        key="TIME_AUTO_SYNC",
-        translation_key="time_auto_sync",
-        entity_category=EntityCategory.CONFIG,
-        ha_setting=_HA_SETTING_AUTO_TIME_SYNC,
-    ),
+    # CUSTOM-ONLY END
     "MBF_PAR_FILT_MANUAL_STATE": NeoPoolSwitchEntityDescription(
         key="MBF_PAR_FILT_MANUAL_STATE",
         translation_key="filt_manual_state",
         write_fn=_write_manual_filtration,
         is_on_fn=_make_is_on_from_key("Filtration Pump"),
+        supported_fn=lambda data: is_valid_relay_gpio(
+            data.get("MBF_PAR_FILT_GPIO", 0) or 0
+        ),
     ),
     "BACKWASH": NeoPoolSwitchEntityDescription(
         key="BACKWASH",
@@ -285,25 +274,29 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
     ),
     "aux1": NeoPoolSwitchEntityDescription(
         key="aux1",
-        translation_key="aux1",
+        translation_key="aux",
+        translation_placeholders={"number": "1"},
         write_fn=_make_write_relay_state(RelayKind.AUX1),
         is_on_fn=_make_is_on_from_key("AUX1"),
     ),
     "aux2": NeoPoolSwitchEntityDescription(
         key="aux2",
-        translation_key="aux2",
+        translation_key="aux",
+        translation_placeholders={"number": "2"},
         write_fn=_make_write_relay_state(RelayKind.AUX2),
         is_on_fn=_make_is_on_from_key("AUX2"),
     ),
     "aux3": NeoPoolSwitchEntityDescription(
         key="aux3",
-        translation_key="aux3",
+        translation_key="aux",
+        translation_placeholders={"number": "3"},
         write_fn=_make_write_relay_state(RelayKind.AUX3),
         is_on_fn=_make_is_on_from_key("AUX3"),
     ),
     "aux4": NeoPoolSwitchEntityDescription(
         key="aux4",
-        translation_key="aux4",
+        translation_key="aux",
+        translation_placeholders={"number": "4"},
         write_fn=_make_write_relay_state(RelayKind.AUX4),
         is_on_fn=_make_is_on_from_key("AUX4"),
     ),
@@ -313,7 +306,6 @@ SWITCH_DESCRIPTIONS: dict[str, NeoPoolSwitchEntityDescription] = {
 # Entities gated on a config-entry option (in addition to their supported_fn).
 _ENTITY_OPTION_KEY: dict[str, str] = {
     "MBF_PAR_HIDRO_COVER_ENABLE": CONF_USE_COVER_SENSOR,
-    "MBF_PAR_HIDRO_TEMP_SHUTDOWN": CONF_USE_COVER_SENSOR,
     "aux1": CONF_USE_AUX1,
     "aux2": CONF_USE_AUX2,
     "aux3": CONF_USE_AUX3,
@@ -331,7 +323,7 @@ async def async_setup_entry(
     options = entry.options
 
     async_add_entities(
-        NeoPoolSwitch(coordinator, key, desc)
+        NeoPoolSwitch(coordinator, desc)
         for key, desc in SWITCH_DESCRIPTIONS.items()
         if (
             (option_key := _ENTITY_OPTION_KEY.get(key)) is None
@@ -360,20 +352,22 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
     def __init__(
         self,
         coordinator: NeoPoolCoordinator,
-        key: str,
         description: NeoPoolSwitchEntityDescription,
     ) -> None:
         """Initialize the NeoPool switch entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self.key = key
+        if description.translation_placeholders is not None:
+            self._attr_translation_placeholders = description.translation_placeholders
         self._attr_unique_id = (
-            f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
+            f"{self.coordinator.config_entry.unique_id}_{description.key.lower()}"
         )
 
+        # CUSTOM-ONLY START, winter-mode switch is HACS-only.
         # The winter_mode switch itself must remain available while winter mode is on.
         if description.ha_setting == _HA_SETTING_WINTER_MODE:
-            self._winter_mode_active = False
+            self._unavailable_in_winter_mode = False
+        # CUSTOM-ONLY END
 
     @override
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -389,17 +383,12 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         """Dispatch turn_on / turn_off via the description callables."""
         desc = self.entity_description
 
+        # CUSTOM-ONLY START, winter-mode switch is HACS-only.
         # HA-side settings live entirely outside the Modbus client.
         if desc.ha_setting == _HA_SETTING_WINTER_MODE:
             await self.coordinator.set_winter_mode(state)
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
             return
-        if desc.ha_setting == _HA_SETTING_AUTO_TIME_SYNC:
-            await self.coordinator.set_auto_time_sync(state)
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
-            return
+        # CUSTOM-ONLY END
 
         if (
             desc.write_fn is None
@@ -435,12 +424,13 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         desc = self.entity_description
         if desc.is_on_fn is not None:
             return desc.is_on_fn(self.coordinator.data)
-        if desc.ha_setting == _HA_SETTING_AUTO_TIME_SYNC:
-            return getattr(self.coordinator, CONF_AUTO_TIME_SYNC, False)
+        # CUSTOM-ONLY START, winter-mode switch is HACS-only.
         if desc.ha_setting == _HA_SETTING_WINTER_MODE:
-            return getattr(self.coordinator, CONF_WINTER_MODE, False)
-        return False  # pragma: no cover
+            return self.coordinator.config_entry.pref_disable_polling
+        # CUSTOM-ONLY END
+        return False  # pragma: no cover - all device switches wire is_on_fn
 
+    # CUSTOM-ONLY START, winter-mode switch is HACS-only.
     @property
     @override
     def available(self) -> bool:
@@ -449,3 +439,5 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         if self.entity_description.ha_setting in _HA_SETTING_TYPES:
             return True
         return super().available
+
+    # CUSTOM-ONLY END

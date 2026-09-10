@@ -2,15 +2,14 @@
     "config": {
         "abort": {
             "already_configured": "L'appareil est déjà configuré",
-            "entry_not_found": "L'entrée d'intégration est introuvable.",
             "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
             "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work.",
-            "reconfigure_successful": "La reconfiguration a réussi"
+            "reconfigure_successful": "La reconfiguration a réussi",
+            "serial_mismatch": "L'appareil à cette adresse a un numéro de série différent de celui configuré à l'origine."
         },
         "error": {
             "cannot_connect": "Échec de la connexion",
-            "cannot_read_modbus": "Connecté, mais impossible de lire le périphérique Modbus. Vérifiez l'ID d'unité et les paramètres du cadre.",
-            "serial_mismatch": "L'appareil à cette adresse a un numéro de série différent de celui configuré à l'origine."
+            "cannot_read_modbus": "Connecté, mais impossible de lire le périphérique Modbus. Vérifiez l'ID d'unité et les paramètres du cadre."
         },
         "step": {
             "import_from_vistapool": {
@@ -55,18 +54,6 @@
     },
     "entity": {
         "binary_sensor": {
-            "aux1": {
-                "name": "Relais Aux1"
-            },
-            "aux2": {
-                "name": "Relais Aux2"
-            },
-            "aux3": {
-                "name": "Relais Aux3"
-            },
-            "aux4": {
-                "name": "Relais Aux4"
-            },
             "chlorine_control_module": {
                 "name": "Régulation chlore active"
             },
@@ -153,6 +140,9 @@
             },
             "uv_lamp": {
                 "name": "Lampe UV"
+            },
+            "aux": {
+                "name": "Relais Aux {number}"
             }
         },
         "button": {
@@ -160,7 +150,7 @@
                 "name": "Effacer les messages d'erreur"
             },
             "reset_cell_partial": {
-                "name": "Réinitialiser le compteur de fonctionnement de la cellule"
+                "name": "Réinitialiser les compteurs de fonctionnement partiel"
             },
             "sync_time": {
                 "name": "Synchroniser l’heure de l’appareil"
@@ -221,30 +211,6 @@
                     "intelligent": "Intelligent",
                     "manual": "Manuel",
                     "smart": "Smart"
-                }
-            },
-            "filtration1_speed": {
-                "name": "Minuteur 1 - Vitesse de filtration",
-                "state": {
-                    "high": "Haute",
-                    "low": "Basse",
-                    "mid": "Moyenne"
-                }
-            },
-            "filtration2_speed": {
-                "name": "Minuteur 2 - Vitesse de filtration",
-                "state": {
-                    "high": "Haute",
-                    "low": "Basse",
-                    "mid": "Moyenne"
-                }
-            },
-            "filtration3_speed": {
-                "name": "Minuteur 3 - Vitesse de filtration",
-                "state": {
-                    "high": "Haute",
-                    "low": "Basse",
-                    "mid": "Moyenne"
                 }
             },
             "filtration_speed": {
@@ -310,154 +276,6 @@
                     "900": "15 minutes"
                 }
             },
-            "relay_aux1_mode": {
-                "name": "Mode relais Aux1",
-                "state": {
-                    "auto": "Automatique",
-                    "auto_linked": "Automatique (lié)",
-                    "disabled": "Désactivé",
-                    "manual": "Manuel"
-                }
-            },
-            "relay_aux1_period": {
-                "name": "Minuteur Aux1 (1) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
-            "relay_aux1b_period": {
-                "name": "Minuteur Aux1 (2) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
-            "relay_aux2_mode": {
-                "name": "Mode relais Aux2",
-                "state": {
-                    "auto": "Automatique",
-                    "auto_linked": "Automatique (lié)",
-                    "disabled": "Désactivé",
-                    "manual": "Manuel"
-                }
-            },
-            "relay_aux2_period": {
-                "name": "Minuteur Aux2 (1) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
-            "relay_aux2b_period": {
-                "name": "Minuteur Aux2 (2) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
-            "relay_aux3_mode": {
-                "name": "Mode relais Aux3",
-                "state": {
-                    "auto": "Automatique",
-                    "auto_linked": "Automatique (lié)",
-                    "disabled": "Désactivé",
-                    "manual": "Manuel"
-                }
-            },
-            "relay_aux3_period": {
-                "name": "Minuteur Aux3 (1) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
-            "relay_aux3b_period": {
-                "name": "Minuteur Aux3 (2) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
-            "relay_aux4_mode": {
-                "name": "Mode relais Aux4",
-                "state": {
-                    "auto": "Automatique",
-                    "auto_linked": "Automatique (lié)",
-                    "disabled": "Désactivé",
-                    "manual": "Manuel"
-                }
-            },
-            "relay_aux4_period": {
-                "name": "Minuteur Aux4 (1) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
-            "relay_aux4b_period": {
-                "name": "Minuteur Aux4 (2) - Intervalle",
-                "state": {
-                    "1_day": "1 jour",
-                    "1_week": "1 semaine",
-                    "2_days": "2 jours",
-                    "2_weeks": "2 semaines",
-                    "3_days": "3 jours",
-                    "3_weeks": "3 semaines",
-                    "4_days": "4 jours",
-                    "4_weeks": "4 semaines",
-                    "5_days": "5 jours"
-                }
-            },
             "relay_light_mode": {
                 "name": "Mode lumière",
                 "state": {
@@ -468,6 +286,37 @@
             },
             "relay_light_period": {
                 "name": "Minuteur Lumière - Intervalle",
+                "state": {
+                    "1_day": "1 jour",
+                    "1_week": "1 semaine",
+                    "2_days": "2 jours",
+                    "2_weeks": "2 semaines",
+                    "3_days": "3 jours",
+                    "3_weeks": "3 semaines",
+                    "4_days": "4 jours",
+                    "4_weeks": "4 semaines",
+                    "5_days": "5 jours"
+                }
+            },
+            "filtration_speed_timer": {
+                "name": "Minuteur {number} - Vitesse de filtration",
+                "state": {
+                    "high": "Haute",
+                    "low": "Basse",
+                    "mid": "Moyenne"
+                }
+            },
+            "relay_aux_mode": {
+                "name": "Mode relais Aux {number}",
+                "state": {
+                    "auto": "Automatique",
+                    "auto_linked": "Automatique (lié)",
+                    "disabled": "Désactivé",
+                    "manual": "Manuel"
+                }
+            },
+            "relay_aux_period": {
+                "name": "Minuteur Aux {number} ({subtimer}) - Intervalle",
                 "state": {
                     "1_day": "1 jour",
                     "1_week": "1 semaine",
@@ -602,18 +451,6 @@
             }
         },
         "switch": {
-            "aux1": {
-                "name": "Relais Aux1"
-            },
-            "aux2": {
-                "name": "Relais Aux2"
-            },
-            "aux3": {
-                "name": "Relais Aux3"
-            },
-            "aux4": {
-                "name": "Relais Aux4"
-            },
             "backwash": {
                 "name": "Contre-lavage"
             },
@@ -632,88 +469,34 @@
             "smart_anti_freeze": {
                 "name": "Smart: antigel"
             },
-            "time_auto_sync": {
-                "name": "Synchronisation automatique de l’heure"
-            },
             "uv_mode": {
                 "name": "Mode UV"
             },
             "winter_mode": {
                 "name": "Mode hiver"
+            },
+            "aux": {
+                "name": "Relais Aux {number}"
             }
         },
         "time": {
-            "filtration1_start": {
-                "name": "Minuteur 1 - Début de filtration"
-            },
-            "filtration1_stop": {
-                "name": "Minuteur 1 - Fin de filtration"
-            },
-            "filtration2_start": {
-                "name": "Minuteur 2 - Début de filtration"
-            },
-            "filtration2_stop": {
-                "name": "Minuteur 2 - Fin de filtration"
-            },
-            "filtration3_start": {
-                "name": "Minuteur 3 - Début de filtration"
-            },
-            "filtration3_stop": {
-                "name": "Minuteur 3 - Fin de filtration"
-            },
-            "relay_aux1_start": {
-                "name": "Minuteur Aux1 (1) - Démarrage"
-            },
-            "relay_aux1_stop": {
-                "name": "Minuteur Aux1 (1) - Arrêt"
-            },
-            "relay_aux1b_start": {
-                "name": "Minuteur Aux1 (2) - Démarrage"
-            },
-            "relay_aux1b_stop": {
-                "name": "Minuteur Aux1 (2) - Arrêt"
-            },
-            "relay_aux2_start": {
-                "name": "Minuteur Aux2 (1) - Démarrage"
-            },
-            "relay_aux2_stop": {
-                "name": "Minuteur Aux2 (1) - Arrêt"
-            },
-            "relay_aux2b_start": {
-                "name": "Minuteur Aux2 (2) - Démarrage"
-            },
-            "relay_aux2b_stop": {
-                "name": "Minuteur Aux2 (2) - Arrêt"
-            },
-            "relay_aux3_start": {
-                "name": "Minuteur Aux3 (1) - Démarrage"
-            },
-            "relay_aux3_stop": {
-                "name": "Minuteur Aux3 (1) - Arrêt"
-            },
-            "relay_aux3b_start": {
-                "name": "Minuteur Aux3 (2) - Démarrage"
-            },
-            "relay_aux3b_stop": {
-                "name": "Minuteur Aux3 (2) - Arrêt"
-            },
-            "relay_aux4_start": {
-                "name": "Minuteur Aux4 (1) - Démarrage"
-            },
-            "relay_aux4_stop": {
-                "name": "Minuteur Aux4 (1) - Arrêt"
-            },
-            "relay_aux4b_start": {
-                "name": "Minuteur Aux4 (2) - Démarrage"
-            },
-            "relay_aux4b_stop": {
-                "name": "Minuteur Aux4 (2) - Arrêt"
-            },
             "relay_light_start": {
                 "name": "Minuteur Lumière - Démarrage"
             },
             "relay_light_stop": {
                 "name": "Minuteur Lumière - Arrêt"
+            },
+            "filtration_start": {
+                "name": "Minuteur {number} - Début de filtration"
+            },
+            "filtration_stop": {
+                "name": "Minuteur {number} - Fin de filtration"
+            },
+            "relay_aux_start": {
+                "name": "Minuteur Aux {number} ({subtimer}) - Démarrage"
+            },
+            "relay_aux_stop": {
+                "name": "Minuteur Aux {number} ({subtimer}) - Arrêt"
             }
         }
     },
@@ -803,6 +586,7 @@
         "step": {
             "init": {
                 "data": {
+                    "auto_time_sync": "Synchroniser automatiquement l'heure de l'appareil",
                     "filtration_pump_power": "Puissance de la pompe de filtration (W, 0 = désactivé)",
                     "measure_when_filtration_off": "Mesurer les valeurs même lorsque la filtration est arrêtée",
                     "scan_interval": "Intervalle de mise à jour des données (secondes)",
@@ -817,6 +601,7 @@
                     "use_light": "Activer le relais Lumière"
                 },
                 "data_description": {
+                    "auto_time_sync": "Lorsque activé, l'horloge du contrôleur est corrigée à chaque interrogation si elle dévie de l'heure de Home Assistant.",
                     "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique.",
                     "measure_when_filtration_off": "Lorsque désactivé, les mesures chimiques (pH, ORP, etc.) ne sont effectuées que lorsque la pompe de filtration fonctionne.",
                     "scan_interval": "Des valeurs plus basses augmentent la réactivité mais génèrent plus de trafic Modbus.",
@@ -824,7 +609,7 @@
                     "use_aux2": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
                     "use_aux3": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
                     "use_aux4": "Crée des entités d'interrupteur et de minuterie pour cette sortie relais auxiliaire.",
-                    "use_cover_sensor": "Crée un capteur binaire et active les entités liées à la couverture (réduction d'hydrolyse, température d'arrêt).",
+                    "use_cover_sensor": "Crée un capteur binaire et active l'interrupteur de réduction d'hydrolyse lorsque la piscine est couverte.",
                     "use_filtration1": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
                     "use_filtration2": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",
                     "use_filtration3": "Crée des entités de minuterie pour configurer le programme automatique de filtration.",

@@ -17,6 +17,8 @@ from custom_components.neopool.config_flow import (
 )
 from custom_components.neopool.const import (
     CONF_ADVANCED,
+    CONF_AUTO_TIME_SYNC,
+    CONF_CAPABILITIES,
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_MEASURE_WHEN_FILTRATION_OFF,
@@ -31,6 +33,8 @@ from custom_components.neopool.const import (
     CONF_USE_FILTRATION2,
     CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
+    CURRENT_VERSION,
+    DEFAULT_UNIT_ID,
     DOMAIN,
 )
 from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
@@ -249,13 +253,8 @@ async def test_reconfigure_flow_serial_mismatch(
                 CONF_MODBUS_FRAMER: "tcp",
             },
         )
-    assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {CONF_HOST: "serial_mismatch"}
-
-
-# ---------------------------------------------------------------------------
-# Edge cases on the reconfigure step
-# ---------------------------------------------------------------------------
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "serial_mismatch"
 
 
 async def test_async_get_options_flow_returns_handler() -> None:
@@ -263,32 +262,6 @@ async def test_async_get_options_flow_returns_handler() -> None:
 
     handler = NeoPoolConfigFlow.async_get_options_flow(MagicMock())
     assert isinstance(handler, NeoPoolOptionsFlowHandler)
-
-
-async def test_reconfigure_flow_aborts_when_entry_id_missing(
-    hass: HomeAssistant,
-) -> None:
-    """async_step_reconfigure aborts when context has no entry_id."""
-
-    flow = NeoPoolConfigFlow()
-    flow.hass = hass
-    flow.context = {}  # no entry_id at all
-    result = await flow.async_step_reconfigure()
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "entry_not_found"
-
-
-async def test_reconfigure_flow_aborts_when_entry_not_found(
-    hass: HomeAssistant,
-) -> None:
-    """async_step_reconfigure aborts when the referenced entry was deleted."""
-
-    flow = NeoPoolConfigFlow()
-    flow.hass = hass
-    flow.context = {"entry_id": "nonexistent"}
-    result = await flow.async_step_reconfigure()
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "entry_not_found"
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
@@ -325,8 +298,13 @@ async def test_options_flow_save_changes(
             CONF_USE_AUX2: False,
             CONF_USE_AUX3: False,
             CONF_USE_AUX4: False,
+            # CUSTOM-ONLY START, filtration pump-power is HACS-only.
             "filtration_pump_power": 0,
+            # CUSTOM-ONLY END
             CONF_MEASURE_WHEN_FILTRATION_OFF: False,
+            # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
+            CONF_AUTO_TIME_SYNC: True,
+            # CUSTOM-ONLY END
             # CUSTOM-ONLY START
             CONF_ADVANCED: {},
             # CUSTOM-ONLY END
@@ -336,10 +314,69 @@ async def test_options_flow_save_changes(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options[CONF_USE_LIGHT] is True
     assert mock_config_entry.options[CONF_USE_FILTRATION1] is False
+    # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
+    assert mock_config_entry.options[CONF_AUTO_TIME_SYNC] is True
+    # CUSTOM-ONLY END
 
     # CREATE_ENTRY triggers a background reload of the config entry. Wait for
     # it to finish before the test exits so the pytest-hass fixture can unload
     # cleanly and no coordinator refresh timer lingers.
+    await hass.async_block_till_done()
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_options_flow_preserves_capability_snapshot(
+    hass: HomeAssistant,
+) -> None:
+    """The options flow keeps the capability snapshot while winter mode is on.
+
+    In winter mode the coordinator skips the poll, so the snapshot persisted in
+    options is the only source for offline setup; the flow must not drop it.
+    """
+    snapshot = {"MBF_PAR_FILT_GPIO": 1, "MBF_PAR_LIGHTING_GPIO": 2}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=MOCK_SERIAL,
+        version=CURRENT_VERSION,
+        pref_disable_polling=True,
+        data={
+            CONF_HOST: MOCK_HOST,
+            CONF_PORT: MOCK_PORT,
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_CAPABILITIES: snapshot},
+    )
+    await setup_integration(hass, entry)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            CONF_USE_FILTRATION1: False,
+            CONF_USE_FILTRATION2: False,
+            CONF_USE_FILTRATION3: False,
+            CONF_USE_LIGHT: True,
+            CONF_USE_COVER_SENSOR: False,
+            CONF_USE_AUX1: False,
+            CONF_USE_AUX2: False,
+            CONF_USE_AUX3: False,
+            CONF_USE_AUX4: False,
+            # CUSTOM-ONLY START, filtration pump-power is HACS-only.
+            "filtration_pump_power": 0,
+            # CUSTOM-ONLY END
+            CONF_MEASURE_WHEN_FILTRATION_OFF: False,
+            # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
+            CONF_AUTO_TIME_SYNC: False,
+            # CUSTOM-ONLY END
+            CONF_ADVANCED: {},
+        },
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options[CONF_USE_LIGHT] is True
+    assert entry.options[CONF_CAPABILITIES] == snapshot
+
     await hass.async_block_till_done()
 
 

@@ -68,19 +68,25 @@ def _gpio_ok(gpio_key: str) -> _SupportedFn:
     return lambda data: gpio_key not in data or is_valid_relay_gpio(data[gpio_key] or 0)
 
 
+# CUSTOM-ONLY START, device time-drift sensor is HACS-only.
 def _device_time_drift(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
-    """Compute whether the device clock is out of sync with HA."""
+    """Compute whether the device clock is out of sync with HA.
+
+    Uses the helper's default tolerance (a few minutes), so only a clock that
+    drifted far, e.g. after a power loss, trips the sensor.
+    """
     if data.get("MBF_PAR_TIME") is None:
         return None
     return is_device_time_out_of_sync(data, hass)
 
 
+# CUSTOM-ONLY END
 def _pool_cover_open(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
     """Invert the raw cover state for the OPENING device class.
 
-    The cover bit is only valid while filtration runs; off, report unknown.
+    The cover bit is only valid while filtration runs; otherwise report unknown.
     """
-    if data.get("Filtration Pump") is False:
+    if data.get("Filtration Pump") is not True:
         return None
     value = data.get("Pool Cover")
     if value is None:
@@ -89,6 +95,7 @@ def _pool_cover_open(data: dict[str, Any], hass: HomeAssistant) -> bool | None:
 
 
 BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
+    # CUSTOM-ONLY START, device time-drift sensor is HACS-only.
     "Device Time Out Of Sync": NeoPoolBinarySensorEntityDescription(
         key="Device Time Out Of Sync",
         translation_key="device_time_out_of_sync",
@@ -96,6 +103,7 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_device_time_drift,
     ),
+    # CUSTOM-ONLY END
     # Relay states
     "pH Acid Pump": NeoPoolBinarySensorEntityDescription(
         key="pH Acid Pump",
@@ -118,22 +126,26 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
     ),
     "AUX1": NeoPoolBinarySensorEntityDescription(
         key="AUX1",
-        translation_key="aux1",
+        translation_key="aux",
+        translation_placeholders={"number": "1"},
         device_class=BinarySensorDeviceClass.POWER,
     ),
     "AUX2": NeoPoolBinarySensorEntityDescription(
         key="AUX2",
-        translation_key="aux2",
+        translation_key="aux",
+        translation_placeholders={"number": "2"},
         device_class=BinarySensorDeviceClass.POWER,
     ),
     "AUX3": NeoPoolBinarySensorEntityDescription(
         key="AUX3",
-        translation_key="aux3",
+        translation_key="aux",
+        translation_placeholders={"number": "3"},
         device_class=BinarySensorDeviceClass.POWER,
     ),
     "AUX4": NeoPoolBinarySensorEntityDescription(
         key="AUX4",
-        translation_key="aux4",
+        translation_key="aux",
+        translation_placeholders={"number": "4"},
         device_class=BinarySensorDeviceClass.POWER,
     ),
     "pH module control status": NeoPoolBinarySensorEntityDescription(
@@ -351,10 +363,10 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, NeoPoolBinarySensorEntityDescription] = {
 }
 
 
-_MEASUREMENT_SUFFIXES = ("_measurement_active", "_module_active")
-
-
 # Entities gated on a config-entry option (in addition to their supported_fn).
+# The controller cannot detect what is physically wired to the light or aux
+# relays, nor whether a cover sensor is present, so these entities are opt-in
+# per config entry rather than surfaced from a device capability bit.
 _ENTITY_OPTION_KEY: dict[str, str] = {
     "Pool Light": CONF_USE_LIGHT,
     "AUX1": CONF_USE_AUX1,
@@ -388,7 +400,6 @@ async def async_setup_entry(
 class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
     """Representation of a NeoPool binary sensor."""
 
-    _winter_mode_active = False
     entity_description: NeoPoolBinarySensorEntityDescription
 
     def __init__(
@@ -412,14 +423,5 @@ class NeoPoolBinarySensor(NeoPoolEntity, BinarySensorEntity):
         if (value_fn := self.entity_description.value_fn) is not None:
             value: bool | None = value_fn(self.coordinator.data, self.hass)
             return value
-        if self._is_measurement_active_suppressed():
-            return False
         value = self.coordinator.data.get(self._key)
         return None if value is None else bool(value)
-
-    def _is_measurement_active_suppressed(self) -> bool:
-        """Return True if a "*_measurement_active" / "*_module_active" flag should be forced off."""
-        translation_key = self.entity_description.translation_key or ""
-        if not translation_key.endswith(_MEASUREMENT_SUFFIXES):
-            return False
-        return self.coordinator.data.get("Filtration Pump") is False

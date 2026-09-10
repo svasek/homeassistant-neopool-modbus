@@ -18,6 +18,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          # Use the PAT so the manifest-bump push below is attributed to the
+          # token owner, not github-actions[bot]. Without it checkout stores
+          # the default GITHUB_TOKEN as the push credential, which makes the
+          # bot the triggering_actor and forces the PR workflows into the
+          # "action_required" approval gate.
+          token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
 
       - name: Run release-please
         uses: googleapis/release-please-action@v5

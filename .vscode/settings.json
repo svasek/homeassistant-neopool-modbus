@@ -4,7 +4,7 @@
     "source.organizeImports.ruff": "always"
   },
   "python.testing.pytestEnabled": true,
-  "python.testing.pytestArgs": ["tests", "--cov=custom_components/vistapool"],
+  "python.testing.pytestArgs": ["tests", "--cov=custom_components/neopool"],
   "python-envs.defaultEnvManager": "ms-python.python:system",
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"

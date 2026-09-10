@@ -2,13 +2,12 @@
   "config": {
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
-      "entry_not_found": "The integration entry could not be found.",
-      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]",
+      "serial_mismatch": "The device at this address has a different serial number than the one originally configured."
     },
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check unit ID and framer settings.",
-      "serial_mismatch": "The device at this address has a different serial number than the one originally configured."
+      "cannot_read_modbus": "Connected, but cannot read from the Modbus device. Check unit ID and framer settings."
     },
     "step": {
       "reconfigure": {
@@ -49,10 +48,7 @@
   },
   "entity": {
     "binary_sensor": {
-      "aux1": { "name": "Relay Aux1" },
-      "aux2": { "name": "Relay Aux2" },
-      "aux3": { "name": "Relay Aux3" },
-      "aux4": { "name": "Relay Aux4" },
+      "aux": { "name": "Auxiliary relay {number}" },
       "chlorine_control_module": { "name": "Chlorine regulation active" },
       "chlorine_flow_sensor_problem": { "name": "Chlorine flow sensor" },
       "chlorine_measurement_active": { "name": "Chlorine measurement" },
@@ -93,7 +89,7 @@
     },
     "button": {
       "escape": { "name": "Clear error messages" },
-      "reset_cell_partial": { "name": "Reset cell runtime counter" },
+      "reset_cell_partial": { "name": "Reset partial runtime counters" },
       "sync_time": { "name": "Synchronize device time" }
     },
     "light": { "light": { "name": "Pool light" } },
@@ -131,16 +127,8 @@
           "smart": "Smart"
         }
       },
-      "filtration1_speed": {
-        "name": "Timer 1 - filtration speed",
-        "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium" }
-      },
-      "filtration2_speed": {
-        "name": "Timer 2 - filtration speed",
-        "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium" }
-      },
-      "filtration3_speed": {
-        "name": "Timer 3 - filtration speed",
+      "filtration_speed_timer": {
+        "name": "Timer {number} - filtration speed",
         "state": { "high": "[%key:common::state::high%]", "low": "[%key:common::state::low%]", "mid": "Medium" }
       },
       "filtration_speed": {
@@ -202,8 +190,8 @@
           "10800": "3 Hours"
         }
       },
-      "relay_aux1_mode": {
-        "name": "Relay Aux1 mode",
+      "relay_aux_mode": {
+        "name": "Relay Aux {number} mode",
         "state": {
           "auto": "Automatic",
           "auto_linked": "Automatic (linked)",
@@ -211,133 +199,8 @@
           "manual": "[%key:common::state::manual%]"
         }
       },
-      "relay_aux1_period": {
-        "name": "Timer Aux1 (1) - interval",
-        "state": {
-          "1_day": "1 Day",
-          "1_week": "1 Week",
-          "2_days": "2 Days",
-          "2_weeks": "2 Weeks",
-          "3_days": "3 Days",
-          "3_weeks": "3 Weeks",
-          "4_days": "4 Days",
-          "4_weeks": "4 Weeks",
-          "5_days": "5 Days"
-        }
-      },
-      "relay_aux1b_period": {
-        "name": "Timer Aux1 (2) - interval",
-        "state": {
-          "1_day": "1 Day",
-          "1_week": "1 Week",
-          "2_days": "2 Days",
-          "2_weeks": "2 Weeks",
-          "3_days": "3 Days",
-          "3_weeks": "3 Weeks",
-          "4_days": "4 Days",
-          "4_weeks": "4 Weeks",
-          "5_days": "5 Days"
-        }
-      },
-      "relay_aux2_mode": {
-        "name": "Relay Aux2 mode",
-        "state": {
-          "auto": "Automatic",
-          "auto_linked": "Automatic (linked)",
-          "disabled": "[%key:common::state::disabled%]",
-          "manual": "[%key:common::state::manual%]"
-        }
-      },
-      "relay_aux2_period": {
-        "name": "Timer Aux2 (1) - interval",
-        "state": {
-          "1_day": "1 Day",
-          "1_week": "1 Week",
-          "2_days": "2 Days",
-          "2_weeks": "2 Weeks",
-          "3_days": "3 Days",
-          "3_weeks": "3 Weeks",
-          "4_days": "4 Days",
-          "4_weeks": "4 Weeks",
-          "5_days": "5 Days"
-        }
-      },
-      "relay_aux2b_period": {
-        "name": "Timer Aux2 (2) - interval",
-        "state": {
-          "1_day": "1 Day",
-          "1_week": "1 Week",
-          "2_days": "2 Days",
-          "2_weeks": "2 Weeks",
-          "3_days": "3 Days",
-          "3_weeks": "3 Weeks",
-          "4_days": "4 Days",
-          "4_weeks": "4 Weeks",
-          "5_days": "5 Days"
-        }
-      },
-      "relay_aux3_mode": {
-        "name": "Relay Aux3 mode",
-        "state": {
-          "auto": "Automatic",
-          "auto_linked": "Automatic (linked)",
-          "disabled": "[%key:common::state::disabled%]",
-          "manual": "[%key:common::state::manual%]"
-        }
-      },
-      "relay_aux3_period": {
-        "name": "Timer Aux3 (1) - interval",
-        "state": {
-          "1_day": "1 Day",
-          "1_week": "1 Week",
-          "2_days": "2 Days",
-          "2_weeks": "2 Weeks",
-          "3_days": "3 Days",
-          "3_weeks": "3 Weeks",
-          "4_days": "4 Days",
-          "4_weeks": "4 Weeks",
-          "5_days": "5 Days"
-        }
-      },
-      "relay_aux3b_period": {
-        "name": "Timer Aux3 (2) - interval",
-        "state": {
-          "1_day": "1 Day",
-          "1_week": "1 Week",
-          "2_days": "2 Days",
-          "2_weeks": "2 Weeks",
-          "3_days": "3 Days",
-          "3_weeks": "3 Weeks",
-          "4_days": "4 Days",
-          "4_weeks": "4 Weeks",
-          "5_days": "5 Days"
-        }
-      },
-      "relay_aux4_mode": {
-        "name": "Relay Aux4 mode",
-        "state": {
-          "auto": "Automatic",
-          "auto_linked": "Automatic (linked)",
-          "disabled": "[%key:common::state::disabled%]",
-          "manual": "[%key:common::state::manual%]"
-        }
-      },
-      "relay_aux4_period": {
-        "name": "Timer Aux4 (1) - interval",
-        "state": {
-          "1_day": "1 Day",
-          "1_week": "1 Week",
-          "2_days": "2 Days",
-          "2_weeks": "2 Weeks",
-          "3_days": "3 Days",
-          "3_weeks": "3 Weeks",
-          "4_days": "4 Days",
-          "4_weeks": "4 Weeks",
-          "5_days": "5 Days"
-        }
-      },
-      "relay_aux4b_period": {
-        "name": "Timer Aux4 (2) - interval",
+      "relay_aux_period": {
+        "name": "Timer Aux {number} ({subtimer}) - interval",
         "state": {
           "1_day": "1 Day",
           "1_week": "1 Week",
@@ -453,10 +316,7 @@
       }
     },
     "switch": {
-      "aux1": { "name": "Relay Aux1" },
-      "aux2": { "name": "Relay Aux2" },
-      "aux3": { "name": "Relay Aux3" },
-      "aux4": { "name": "Relay Aux4" },
+      "aux": { "name": "Auxiliary relay {number}" },
       "backwash": { "name": "Backwash" },
       "clima_onoff": { "name": "Climate mode for heating" },
       "filt_manual_state": { "name": "Filtration" },
@@ -465,33 +325,14 @@
         "name": "Enable hydrolysis shutdown on high temperature"
       },
       "smart_anti_freeze": { "name": "Smart antifreeze" },
-      "time_auto_sync": { "name": "Time auto sync" },
       "uv_mode": { "name": "UV mode" },
       "winter_mode": { "name": "Winter mode" }
     },
     "time": {
-      "filtration1_start": { "name": "Timer 1 - filtration start" },
-      "filtration1_stop": { "name": "Timer 1 - filtration stop" },
-      "filtration2_start": { "name": "Timer 2 - filtration start" },
-      "filtration2_stop": { "name": "Timer 2 - filtration stop" },
-      "filtration3_start": { "name": "Timer 3 - filtration start" },
-      "filtration3_stop": { "name": "Timer 3 - filtration stop" },
-      "relay_aux1_start": { "name": "Timer Aux1 (1) - start" },
-      "relay_aux1_stop": { "name": "Timer Aux1 (1) - stop" },
-      "relay_aux1b_start": { "name": "Timer Aux1 (2) - start" },
-      "relay_aux1b_stop": { "name": "Timer Aux1 (2) - stop" },
-      "relay_aux2_start": { "name": "Timer Aux2 (1) - start" },
-      "relay_aux2_stop": { "name": "Timer Aux2 (1) - stop" },
-      "relay_aux2b_start": { "name": "Timer Aux2 (2) - start" },
-      "relay_aux2b_stop": { "name": "Timer Aux2 (2) - stop" },
-      "relay_aux3_start": { "name": "Timer Aux3 (1) - start" },
-      "relay_aux3_stop": { "name": "Timer Aux3 (1) - stop" },
-      "relay_aux3b_start": { "name": "Timer Aux3 (2) - start" },
-      "relay_aux3b_stop": { "name": "Timer Aux3 (2) - stop" },
-      "relay_aux4_start": { "name": "Timer Aux4 (1) - start" },
-      "relay_aux4_stop": { "name": "Timer Aux4 (1) - stop" },
-      "relay_aux4b_start": { "name": "Timer Aux4 (2) - start" },
-      "relay_aux4b_stop": { "name": "Timer Aux4 (2) - stop" },
+      "filtration_start": { "name": "Timer {number} - filtration start" },
+      "filtration_stop": { "name": "Timer {number} - filtration stop" },
+      "relay_aux_start": { "name": "Timer Aux {number} ({subtimer}) - start" },
+      "relay_aux_stop": { "name": "Timer Aux {number} ({subtimer}) - stop" },
       "relay_light_start": { "name": "Light timer - start" },
       "relay_light_stop": { "name": "Light timer - stop" }
     }
@@ -570,6 +411,7 @@
     "step": {
       "init": {
         "data": {
+          "auto_time_sync": "Automatically sync device clock",
           "filtration_pump_power": "[%key:component::neopool::config::step::user::data::filtration_pump_power%]",
           "measure_when_filtration_off": "Measure values even when filtration is off",
           "scan_interval": "Data update interval (seconds)",
@@ -584,6 +426,7 @@
           "use_light": "Enable Light Relay"
         },
         "data_description": {
+          "auto_time_sync": "When enabled, the controller clock is corrected on each poll if it drifts from Home Assistant time.",
           "filtration_pump_power": "[%key:component::neopool::config::step::user::data_description::filtration_pump_power%]",
           "measure_when_filtration_off": "When disabled, chemical measurements (pH, ORP, etc.) are only taken while the filtration pump is running.",
           "scan_interval": "Lower values increase responsiveness but generate more Modbus traffic.",
@@ -591,7 +434,7 @@
           "use_aux2": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
           "use_aux3": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
           "use_aux4": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
-          "use_cover_sensor": "Creates a binary sensor and enables cover-related entities (hydrolysis cover reduction, shutdown temperature).",
+          "use_cover_sensor": "Creates a binary sensor and enables the hydrolysis cover reduction switch.",
           "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
           "use_filtration2": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",
           "use_filtration3": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",

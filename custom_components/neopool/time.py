@@ -20,11 +20,13 @@ from dataclasses import dataclass
 from datetime import time as dt_time
 from typing import Any, Literal, override
 
-from neopool_modbus.decoders import seconds_to_hhmm
+from neopool_modbus.decoders import get_timer_interval
+from neopool_modbus.exceptions import NeoPoolError
 
 from homeassistant.components.time import TimeEntity, TimeEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
@@ -51,6 +53,7 @@ class NeoPoolTimeEntityDescription(TimeEntityDescription):
     timer_block: str
     timer_field: Literal["start", "stop"]
     supported_fn: Callable[[dict[str, Any], Mapping[str, Any]], bool] | None = None
+    translation_placeholders: dict[str, str] | None = None
 
 
 _DEBOUNCE_DELAY = 10.0
@@ -77,9 +80,24 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
     for block, opt_flag, enabled_default in _TIMER_BLOCKS:
         for field in ("start", "stop"):
             key = f"{block}_{field}"
+            # Filtration and aux timers share one translation per field with
+            # number placeholders; other blocks keep their own translation key.
+            translation_key = key
+            placeholders: dict[str, str] | None = None
+            if block.startswith("filtration"):
+                translation_key = f"filtration_{field}"
+                placeholders = {"number": block.removeprefix("filtration")}
+            elif block.startswith("relay_aux"):
+                translation_key = f"relay_aux_{field}"
+                digits = block.removeprefix("relay_aux")
+                placeholders = {
+                    "number": digits.rstrip("b"),
+                    "subtimer": "2" if digits.endswith("b") else "1",
+                }
             out[key] = NeoPoolTimeEntityDescription(
                 key=key,
-                translation_key=key,
+                translation_key=translation_key,
+                translation_placeholders=placeholders,
                 entity_category=EntityCategory.CONFIG,
                 entity_registry_enabled_default=enabled_default,
                 timer_block=block,
@@ -123,6 +141,8 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._key = key
+        if description.translation_placeholders is not None:
+            self._attr_translation_placeholders = description.translation_placeholders
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
         )
@@ -165,18 +185,20 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
             await asyncio.sleep(self._debounce_delay)
         except asyncio.CancelledError:  # pragma: no cover
             return
-        desc = self.entity_description
-        block = desc.timer_block
+        block = self.entity_description.timer_block
         data = self.coordinator.data
-        start = seconds_to_hhmm(int(data.get(f"{block}_start", 0)))
-        stop = seconds_to_hhmm(int(data.get(f"{block}_stop", 0)))
-        await self.hass.services.async_call(
-            DOMAIN,
-            "set_timer",
-            {
-                "entry_id": self.coordinator.config_entry.entry_id,
-                "timer": block,
-                "start": start,
-                "stop": stop,
-            },
-        )
+        start_sec = int(data.get(f"{block}_start", 0))
+        stop_sec = int(data.get(f"{block}_stop", 0))
+        timer_data = {
+            "on": start_sec,
+            "interval": get_timer_interval(start_sec, stop_sec),
+        }
+        try:
+            await self.coordinator.client.write_timer(block, timer_data)
+        except (NeoPoolError, OSError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="modbus_communication_error",
+                translation_placeholders={"error": str(err)},
+            ) from err
+        self.coordinator.request_refresh_with_followup()

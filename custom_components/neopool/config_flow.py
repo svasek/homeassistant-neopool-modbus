@@ -41,6 +41,8 @@ from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 # CUSTOM-ONLY END
 from .const import (
     CONF_ADVANCED,
+    CONF_AUTO_TIME_SYNC,
+    CONF_CAPABILITIES,
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_FILTRATION_PUMP_POWER,
@@ -95,6 +97,15 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for NeoPool."""
 
     VERSION = CURRENT_VERSION
+
+    @staticmethod
+    @callback
+    @override
+    def async_get_options_flow(
+        config_entry: NeoPoolConfigEntry,
+    ) -> "NeoPoolOptionsFlowHandler":
+        """Return the options flow handler."""
+        return NeoPoolOptionsFlowHandler()
 
     @override
     async def async_step_user(
@@ -172,18 +183,12 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle reconfiguration of an existing entry."""
-        entry_id = self.context.get("entry_id")
-        if entry_id is None:
-            return self.async_abort(reason="entry_not_found")
-        entry = self.hass.config_entries.async_get_entry(entry_id)
-        if entry is None:
-            return self.async_abort(reason="entry_not_found")
-
+        entry = self._get_reconfigure_entry()
         current = entry.data
 
         data_schema = vol.Schema(
             {
-                vol.Required(CONF_HOST, default=current.get(CONF_HOST, "")): str,
+                vol.Required(CONF_HOST, default=current[CONF_HOST]): str,
                 vol.Optional(
                     CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)
                 ): vol.Coerce(int),
@@ -204,25 +209,18 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
             serial, error_key = await _async_probe(merged)
             if error_key:
                 errors[CONF_HOST] = error_key
-            elif entry.unique_id and serial != entry.unique_id:
-                errors[CONF_HOST] = "serial_mismatch"
             else:
+                await self.async_set_unique_id(serial)
+                self._abort_if_unique_id_mismatch(reason="serial_mismatch")
                 return self.async_update_reload_and_abort(entry, data=merged)
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=data_schema,
+            data_schema=self.add_suggested_values_to_schema(
+                data_schema, user_input or current
+            ),
             errors=errors,
         )
-
-    @staticmethod
-    @callback
-    @override
-    def async_get_options_flow(
-        config_entry: NeoPoolConfigEntry,
-    ) -> "NeoPoolOptionsFlowHandler":
-        """Return the options flow."""
-        return NeoPoolOptionsFlowHandler()
 
 
 class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
@@ -249,10 +247,17 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_MEASURE_WHEN_FILTRATION_OFF,
                 default=options.get(CONF_MEASURE_WHEN_FILTRATION_OFF, False),
             ): bool,
+            # CUSTOM-ONLY START, auto device-time sync and filtration
+            # pump-power sensors are HACS-only.
+            vol.Optional(
+                CONF_AUTO_TIME_SYNC,
+                default=options.get(CONF_AUTO_TIME_SYNC, False),
+            ): bool,
             vol.Optional(
                 CONF_FILTRATION_PUMP_POWER,
                 default=options.get(CONF_FILTRATION_PUMP_POWER, 0),
             ): vol.All(int, vol.Range(min=0)),
+            # CUSTOM-ONLY END
             vol.Optional(
                 CONF_USE_FILTRATION1,
                 default=options.get(CONF_USE_FILTRATION1, False),
@@ -326,6 +331,11 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
             advanced = user_input.pop(CONF_ADVANCED, {})
             user_input.update(advanced)
             # CUSTOM-ONLY END
+            # Preserve the internal capability snapshot the coordinator persists
+            # in options; the form only carries the user-selected toggles, so it
+            # would otherwise drop and break offline setup while winter mode is on.
+            if CONF_CAPABILITIES in options:
+                user_input[CONF_CAPABILITIES] = options[CONF_CAPABILITIES]
             return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
