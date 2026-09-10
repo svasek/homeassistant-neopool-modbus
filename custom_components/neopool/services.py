@@ -17,9 +17,14 @@
 import logging
 from typing import Any
 
-from neopool_modbus.decoders import get_timer_interval, hhmm_to_seconds
+from neopool_modbus.decoders import (
+    combine_u32,
+    decode_device_time,
+    get_timer_interval,
+    hhmm_to_seconds,
+)
 from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import TIMER_BLOCKS
+from neopool_modbus.registers import DEVICE_TIME_REGISTER, TIMER_BLOCKS
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntryState
@@ -37,7 +42,7 @@ import homeassistant.util.dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import NeoPoolCoordinator
-from .helpers import get_device_time, parse_register_int, prepare_device_time
+from .helpers import parse_register_int, prepare_device_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -302,15 +307,15 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
 async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
     """Return the device RTC wall-clock and its drift from Home Assistant.
 
-    Reads the clock directly from the controller at call time so the drift is
-    accurate regardless of the polling interval, rather than reusing the
-    coordinator's last cached poll.
+    Reads only the two clock registers directly from the controller at call
+    time, so the drift is accurate regardless of the polling interval and
+    without pulling the full register set.
     """
     coordinator = _get_coordinator(call.hass, call)
 
     try:
-        data = await coordinator.client.async_read_all()
-    except (NeoPoolError, OSError) as err:
+        regs = await coordinator.client.async_read_register(DEVICE_TIME_REGISTER, 2)
+    except (NeoPoolError, OSError, ValueError) as err:
         _LOGGER.error("Failed to read device time: %s (%s)", err, type(err).__name__)
         raise ServiceValidationError(
             translation_domain=DOMAIN,
@@ -318,7 +323,8 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
             translation_placeholders={"error": str(err)},
         ) from err
 
-    device_dt = get_device_time(data, call.hass)
+    tz = dt_util.get_time_zone(call.hass.config.time_zone) or dt_util.UTC
+    device_dt = decode_device_time(combine_u32(regs[0], regs[1]), tz)
     if device_dt is None:
         raise ServiceValidationError(
             translation_domain=DOMAIN,

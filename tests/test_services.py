@@ -663,16 +663,16 @@ async def test_get_device_time_reads_fresh_from_device(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """The service always reads the clock fresh, ignoring the cached poll."""
+    """The service reads only the clock registers fresh, ignoring the cache."""
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
 
     # A stale cached value that must NOT be used.
     coordinator.data["MBF_PAR_TIME"] = prepare_device_time(hass) - 3600
-    # A device clock two minutes ahead of Home Assistant time.
+    # A device clock two minutes ahead of Home Assistant time, split into words.
     device_ts = prepare_device_time(hass) + 120
-    mock_neopool_client.async_read_all = AsyncMock(
-        return_value={"MBF_PAR_TIME": device_ts}
+    mock_neopool_client.async_read_register = AsyncMock(
+        return_value=[device_ts & 0xFFFF, device_ts >> 16]
     )
 
     response = await hass.services.async_call(
@@ -683,7 +683,7 @@ async def test_get_device_time_reads_fresh_from_device(
         return_response=True,
     )
 
-    mock_neopool_client.async_read_all.assert_awaited_once()
+    mock_neopool_client.async_read_register.assert_awaited_once_with(0x0408, 2)
     tz = dt_util.get_time_zone(hass.config.time_zone) or UTC
     assert response is not None
     assert response["device_time"] == decode_device_time(device_ts, tz).isoformat()
@@ -697,9 +697,9 @@ async def test_get_device_time_unavailable_when_register_absent(
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """A fresh read that still lacks the register raises a translated error."""
+    """A clock register that decodes to nothing raises a translated error."""
     await setup_integration(hass, mock_config_entry)
-    mock_neopool_client.async_read_all = AsyncMock(return_value={})
+    mock_neopool_client.async_read_register = AsyncMock(return_value=[None, None])
 
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
@@ -719,7 +719,7 @@ async def test_get_device_time_read_error_translates(
 ) -> None:
     """A library error while reading the time surfaces as ServiceValidationError."""
     await setup_integration(hass, mock_config_entry)
-    mock_neopool_client.async_read_all = AsyncMock(
+    mock_neopool_client.async_read_register = AsyncMock(
         side_effect=ConnectionError("Modbus down")
     )
 
