@@ -622,10 +622,14 @@
                         "name": "Advanced Settings",
                         "description": "⚠️ WARNING: Incorrect use may damage filtration!",
                         "data": {
+                            "filtration_pump_power_mid": "Filtration pump power at medium speed (W, 0 = use high value)",
+                            "filtration_pump_power_low": "Filtration pump power at low speed (W, 0 = use high value)",
                             "dev_overrides": "Developer overrides (JSON object of \"key\":value)",
                             "dev_overrides_enabled": "Enable developer overrides"
                         },
                         "data_description": {
+                            "filtration_pump_power_mid": "Wattage drawn at medium speed. Leave at 0 to reuse the main filtration pump power. Only affects variable-speed pumps.",
+                            "filtration_pump_power_low": "Wattage drawn at low speed. Leave at 0 to reuse the main filtration pump power. Only affects variable-speed pumps.",
                             "dev_overrides": "A JSON object where each key is a Modbus register name and each value overrides the actual reading.",
                             "dev_overrides_enabled": "When enabled, values from the override JSON are injected into coordinator data for testing."
                         }

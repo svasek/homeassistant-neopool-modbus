@@ -622,10 +622,14 @@
                         "name": "Ustawienia zaawansowane",
                         "description": "⚠️ UWAGA: Niewłaściwe użycie może uszkodzić filtrację!",
                         "data": {
+                            "filtration_pump_power_mid": "Moc pompy filtracyjnej przy średniej prędkości (W, 0 = użyj wartości wysokiej)",
+                            "filtration_pump_power_low": "Moc pompy filtracyjnej przy niskiej prędkości (W, 0 = użyj wartości wysokiej)",
                             "dev_overrides": "Nadpisania deweloperskie (obiekt JSON \"klucz\":wartość)",
                             "dev_overrides_enabled": "Włącz nadpisania deweloperskie"
                         },
                         "data_description": {
+                            "filtration_pump_power_mid": "Pobór mocy przy średniej prędkości. Pozostaw 0, aby użyć głównej mocy pompy filtracyjnej. Dotyczy tylko pomp o zmiennej prędkości.",
+                            "filtration_pump_power_low": "Pobór mocy przy niskiej prędkości. Pozostaw 0, aby użyć głównej mocy pompy filtracyjnej. Dotyczy tylko pomp o zmiennej prędkości.",
                             "dev_overrides": "Obiekt JSON, gdzie każdy klucz to nazwa rejestru Modbus, a wartość zastępuje rzeczywisty odczyt.",
                             "dev_overrides_enabled": "Gdy włączone, wartości z JSON nadpisań są wstrzykiwane do danych koordynatora w celach testowych."
                         }

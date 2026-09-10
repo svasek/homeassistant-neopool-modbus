@@ -622,10 +622,14 @@
                         "name": "Configuraciones avanzadas",
                         "description": "⚠️ ¡ADVERTENCIA! El uso incorrecto puede dañar la filtración.",
                         "data": {
+                            "filtration_pump_power_mid": "Potencia de la bomba de filtración a velocidad media (W, 0 = usar el valor alto)",
+                            "filtration_pump_power_low": "Potencia de la bomba de filtración a velocidad baja (W, 0 = usar el valor alto)",
                             "dev_overrides": "Sobrescrituras de desarrollador (objeto JSON \"clave\":valor)",
                             "dev_overrides_enabled": "Habilitar sobrescrituras de desarrollador"
                         },
                         "data_description": {
+                            "filtration_pump_power_mid": "Potencia consumida a velocidad media. Deje 0 para reutilizar la potencia principal de la bomba de filtración. Solo afecta a bombas de velocidad variable.",
+                            "filtration_pump_power_low": "Potencia consumida a velocidad baja. Deje 0 para reutilizar la potencia principal de la bomba de filtración. Solo afecta a bombas de velocidad variable.",
                             "dev_overrides": "Un objeto JSON donde cada clave es un nombre de registro Modbus y cada valor reemplaza la lectura real.",
                             "dev_overrides_enabled": "Cuando está habilitado, los valores del JSON de sobrescritura se inyectan en los datos del coordinador para pruebas."
                         }

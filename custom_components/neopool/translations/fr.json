@@ -622,10 +622,14 @@
                         "name": "Paramètres avancés",
                         "description": "⚠️ ATTENTION : Une mauvaise utilisation peut endommager la filtration !",
                         "data": {
+                            "filtration_pump_power_mid": "Puissance de la pompe de filtration en vitesse moyenne (W, 0 = utiliser la valeur haute)",
+                            "filtration_pump_power_low": "Puissance de la pompe de filtration en vitesse basse (W, 0 = utiliser la valeur haute)",
                             "dev_overrides": "Substitutions développeur (objet JSON \"clé\":valeur)",
                             "dev_overrides_enabled": "Activer les substitutions développeur"
                         },
                         "data_description": {
+                            "filtration_pump_power_mid": "Puissance consommée en vitesse moyenne. Laissez 0 pour réutiliser la puissance principale de la pompe de filtration. Concerne uniquement les pompes à vitesse variable.",
+                            "filtration_pump_power_low": "Puissance consommée en vitesse basse. Laissez 0 pour réutiliser la puissance principale de la pompe de filtration. Concerne uniquement les pompes à vitesse variable.",
                             "dev_overrides": "Un objet JSON où chaque clé est un nom de registre Modbus et chaque valeur remplace la lecture réelle.",
                             "dev_overrides_enabled": "Lorsqu'activé, les valeurs du JSON de substitution sont injectées dans les données du coordinateur pour les tests."
                         }

@@ -622,10 +622,14 @@
                         "name": "Erweiterte Einstellungen",
                         "description": "⚠️ ACHTUNG: Unsachgemäße Verwendung kann die Filterung beschädigen!",
                         "data": {
+                            "filtration_pump_power_mid": "Leistung der Filterpumpe bei mittlerer Drehzahl (W, 0 = hohen Wert verwenden)",
+                            "filtration_pump_power_low": "Leistung der Filterpumpe bei niedriger Drehzahl (W, 0 = hohen Wert verwenden)",
                             "dev_overrides": "Entwickler-Overrides (JSON Objekt \"Schlüssel\":Wert)",
                             "dev_overrides_enabled": "Entwickler-Overrides aktivieren"
                         },
                         "data_description": {
+                            "filtration_pump_power_mid": "Leistungsaufnahme bei mittlerer Drehzahl. Bei 0 wird die Hauptleistung der Filterpumpe verwendet. Betrifft nur drehzahlvariable Pumpen.",
+                            "filtration_pump_power_low": "Leistungsaufnahme bei niedriger Drehzahl. Bei 0 wird die Hauptleistung der Filterpumpe verwendet. Betrifft nur drehzahlvariable Pumpen.",
                             "dev_overrides": "Ein JSON-Objekt, bei dem jeder Schlüssel ein Modbus-Registername ist und jeder Wert den tatsächlichen Messwert überschreibt.",
                             "dev_overrides_enabled": "Wenn aktiviert, werden Werte aus dem Override-JSON zu Testzwecken in die Koordinator-Daten eingefügt."
                         }

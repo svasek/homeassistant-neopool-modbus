@@ -622,10 +622,14 @@
                         "name": "Pokročilá nastavení",
                         "description": "⚠️ POZOR: Nesprávné použití může poškodit filtraci!",
                         "data": {
+                            "filtration_pump_power_mid": "Příkon filtračního čerpadla při střední rychlosti (W, 0 = použít hodnotu vysoké)",
+                            "filtration_pump_power_low": "Příkon filtračního čerpadla při nízké rychlosti (W, 0 = použít hodnotu vysoké)",
                             "dev_overrides": "Vývojářské přepisy (JSON objekt \"klíč\":hodnota)",
                             "dev_overrides_enabled": "Povolit vývojářské přepisy hodnot"
                         },
                         "data_description": {
+                            "filtration_pump_power_mid": "Příkon při střední rychlosti. Ponechte 0 pro použití hlavního příkonu filtračního čerpadla. Týká se pouze čerpadel s proměnnými otáčkami.",
+                            "filtration_pump_power_low": "Příkon při nízké rychlosti. Ponechte 0 pro použití hlavního příkonu filtračního čerpadla. Týká se pouze čerpadel s proměnnými otáčkami.",
                             "dev_overrides": "JSON objekt, kde každý klíč je název Modbus registru a hodnota nahrazuje skutečné čtení.",
                             "dev_overrides_enabled": "Pokud je povoleno, hodnoty z JSON přepisů se vkládají do dat koordinátoru pro testování."
                         }

@@ -622,10 +622,14 @@
                         "name": "Impostazioni avanzate",
                         "description": "⚠️ ATTENZIONE: Un uso scorretto può danneggiare la filtrazione!",
                         "data": {
+                            "filtration_pump_power_mid": "Potenza della pompa di filtrazione a velocità media (W, 0 = usa il valore alto)",
+                            "filtration_pump_power_low": "Potenza della pompa di filtrazione a velocità bassa (W, 0 = usa il valore alto)",
                             "dev_overrides": "Override sviluppatore (oggetto JSON \"chiave\":valore)",
                             "dev_overrides_enabled": "Abilita override sviluppatore"
                         },
                         "data_description": {
+                            "filtration_pump_power_mid": "Potenza assorbita a velocità media. Lasciare 0 per riutilizzare la potenza principale della pompa di filtrazione. Riguarda solo le pompe a velocità variabile.",
+                            "filtration_pump_power_low": "Potenza assorbita a velocità bassa. Lasciare 0 per riutilizzare la potenza principale della pompa di filtrazione. Riguarda solo le pompe a velocità variabile.",
                             "dev_overrides": "Un oggetto JSON dove ogni chiave è un nome di registro Modbus e ogni valore sostituisce la lettura reale.",
                             "dev_overrides_enabled": "Quando abilitato, i valori dal JSON di override vengono iniettati nei dati del coordinatore per i test."
                         }
