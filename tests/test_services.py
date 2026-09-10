@@ -30,8 +30,8 @@ from . import setup_integration
 
 def _device_id(hass: HomeAssistant, entry: MockConfigEntry) -> str:
     """Resolve the registry device_id for a loaded NeoPool config entry."""
-    device = dr.async_get(hass).async_get_device(
-        identifiers={(DOMAIN, entry.unique_id)}
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, entry.unique_id), entry.entry_id
     )
     assert device is not None
     return device.id
