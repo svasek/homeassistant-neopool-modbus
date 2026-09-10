@@ -324,7 +324,7 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
             translation_key="device_time_unavailable",
         )
 
-    now = dt_util.utcnow()
+    now = dt_util.utcnow().replace(microsecond=0)
     drift = round((device_dt - now).total_seconds())
     return {
         "device_time": device_dt.isoformat(),

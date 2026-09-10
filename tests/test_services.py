@@ -1,6 +1,6 @@
 """Tests for the NeoPool services."""
 
-from datetime import UTC
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 from neopool_modbus.decoders import decode_device_time
@@ -685,6 +685,8 @@ async def test_get_device_time_from_coordinator_data(
     assert response is not None
     assert response["device_time"] == decode_device_time(device_ts, tz).isoformat()
     assert response["drift_seconds"] == pytest.approx(120, abs=2)
+    # ha_time is rounded to whole seconds to match the device RTC precision.
+    assert datetime.fromisoformat(response["ha_time"]).microsecond == 0
 
 
 async def test_get_device_time_falls_back_to_read_all(
