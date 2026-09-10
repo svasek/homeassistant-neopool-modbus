@@ -300,22 +300,23 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
 
 
 async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
-    """Return the device RTC wall-clock and its drift from Home Assistant."""
+    """Return the device RTC wall-clock and its drift from Home Assistant.
+
+    Reads the clock directly from the controller at call time so the drift is
+    accurate regardless of the polling interval, rather than reusing the
+    coordinator's last cached poll.
+    """
     coordinator = _get_coordinator(call.hass, call)
 
-    data = coordinator.data
-    if not data or data.get("MBF_PAR_TIME") is None:
-        try:
-            data = await coordinator.client.async_read_all()
-        except (NeoPoolError, OSError) as err:
-            _LOGGER.error(
-                "Failed to read device time: %s (%s)", err, type(err).__name__
-            )
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="device_time_read_failed",
-                translation_placeholders={"error": str(err)},
-            ) from err
+    try:
+        data = await coordinator.client.async_read_all()
+    except (NeoPoolError, OSError) as err:
+        _LOGGER.error("Failed to read device time: %s (%s)", err, type(err).__name__)
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="device_time_read_failed",
+            translation_placeholders={"error": str(err)},
+        ) from err
 
     device_dt = get_device_time(data, call.hass)
     if device_dt is None:

@@ -658,48 +658,19 @@ async def test_read_register_value_error_translates(
 # ---------------------------------------------------------------------------
 
 
-async def test_get_device_time_from_coordinator_data(
+async def test_get_device_time_reads_fresh_from_device(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """A cached MBF_PAR_TIME is decoded and returned without a fresh read."""
+    """The service always reads the clock fresh, ignoring the cached poll."""
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
 
+    # A stale cached value that must NOT be used.
+    coordinator.data["MBF_PAR_TIME"] = prepare_device_time(hass) - 3600
     # A device clock two minutes ahead of Home Assistant time.
     device_ts = prepare_device_time(hass) + 120
-    coordinator.data["MBF_PAR_TIME"] = device_ts
-    mock_neopool_client.async_read_all.reset_mock()
-
-    response = await hass.services.async_call(
-        DOMAIN,
-        SERVICE_GET_DEVICE_TIME,
-        {"device_id": _device_id(hass, mock_config_entry)},
-        blocking=True,
-        return_response=True,
-    )
-
-    mock_neopool_client.async_read_all.assert_not_awaited()
-    tz = dt_util.get_time_zone(hass.config.time_zone) or UTC
-    assert response is not None
-    assert response["device_time"] == decode_device_time(device_ts, tz).isoformat()
-    assert response["drift_seconds"] == pytest.approx(120, abs=2)
-    # ha_time is rounded to whole seconds to match the device RTC precision.
-    assert datetime.fromisoformat(response["ha_time"]).microsecond == 0
-
-
-async def test_get_device_time_falls_back_to_read_all(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_neopool_client: MagicMock,
-) -> None:
-    """When the cache lacks MBF_PAR_TIME the service reads it fresh."""
-    await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data.pop("MBF_PAR_TIME", None)
-
-    device_ts = prepare_device_time(hass)
     mock_neopool_client.async_read_all = AsyncMock(
         return_value={"MBF_PAR_TIME": device_ts}
     )
@@ -713,8 +684,12 @@ async def test_get_device_time_falls_back_to_read_all(
     )
 
     mock_neopool_client.async_read_all.assert_awaited_once()
+    tz = dt_util.get_time_zone(hass.config.time_zone) or UTC
     assert response is not None
-    assert response["drift_seconds"] == pytest.approx(0, abs=2)
+    assert response["device_time"] == decode_device_time(device_ts, tz).isoformat()
+    assert response["drift_seconds"] == pytest.approx(120, abs=2)
+    # ha_time is rounded to whole seconds to match the device RTC precision.
+    assert datetime.fromisoformat(response["ha_time"]).microsecond == 0
 
 
 async def test_get_device_time_unavailable_when_register_absent(
@@ -724,8 +699,6 @@ async def test_get_device_time_unavailable_when_register_absent(
 ) -> None:
     """A fresh read that still lacks the register raises a translated error."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data.pop("MBF_PAR_TIME", None)
     mock_neopool_client.async_read_all = AsyncMock(return_value={})
 
     with pytest.raises(ServiceValidationError) as exc_info:
@@ -746,8 +719,6 @@ async def test_get_device_time_read_error_translates(
 ) -> None:
     """A library error while reading the time surfaces as ServiceValidationError."""
     await setup_integration(hass, mock_config_entry)
-    coordinator = mock_config_entry.runtime_data
-    coordinator.data.pop("MBF_PAR_TIME", None)
     mock_neopool_client.async_read_all = AsyncMock(
         side_effect=ConnectionError("Modbus down")
     )
