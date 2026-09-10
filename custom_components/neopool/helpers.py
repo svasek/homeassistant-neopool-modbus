@@ -18,6 +18,7 @@ import datetime
 from typing import Any
 
 from neopool_modbus.decoders import (
+    decode_device_time,
     encode_device_time,
     parse_register_int as _lib_parse_register_int,
 )
@@ -33,6 +34,14 @@ def prepare_device_time(hass: HomeAssistant) -> int:
     """Return the unix timestamp the device should display as local wall-clock."""
     tz = dt_util.get_time_zone(hass.config.time_zone) or datetime.UTC
     return encode_device_time(dt_util.now(tz))
+
+
+def get_device_time(
+    data: dict[str, Any], hass: HomeAssistant
+) -> datetime.datetime | None:
+    """Return the device wall-clock as a tz-aware datetime, or None if absent."""
+    tz = dt_util.get_time_zone(hass.config.time_zone) or datetime.UTC
+    return decode_device_time(data.get("MBF_PAR_TIME"), tz)
 
 
 # CUSTOM-ONLY START, device time-drift helpers are HACS-only.

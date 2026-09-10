@@ -501,8 +501,8 @@
         }
     },
     "exceptions": {
-        "entry_not_found": {
-            "message": "Nie znaleziono wpisu konfiguracji NeoPool dla entry_id {entry_id}"
+        "device_not_found": {
+            "message": "Nie znaleziono załadowanego urządzenia NeoPool dla device_id {device_id}"
         },
         "filtration_boost_active": {
             "message": "Filtracji nie można włączyć ani wyłączyć, gdy tryb boost jest aktywny. Najpierw wyłącz tryb boost."
@@ -566,6 +566,18 @@
         },
         "write_verification_failed": {
             "message": "Weryfikacja zapisu pod adresem {address} nie powiodła się: zapisano {value}, odczytano {confirmed}"
+        },
+        "multiple_entries_no_device": {
+            "message": "Skonfigurowano wiele urządzeń NeoPool. Określ urządzenie docelowe."
+        },
+        "device_time_read_failed": {
+            "message": "Nie udało się odczytać czasu urządzenia: {error}"
+        },
+        "device_time_unavailable": {
+            "message": "Urządzenie nie zgłosiło swojego czasu (rejestr MBF_PAR_TIME jest niedostępny)."
+        },
+        "device_time_write_failed": {
+            "message": "Nie udało się zapisać czasu urządzenia: {error}"
         }
     },
     "issues": {
@@ -642,9 +654,9 @@
                     "description": "Relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off). Used by the relay_mode select platform.",
                     "name": "Enable mode"
                 },
-                "entry_id": {
-                    "description": "Unikalny identyfikator wpisu integracji. Opcjonalne.",
-                    "name": "ID wpisu"
+                "device_id": {
+                    "description": "Docelowe urządzenie NeoPool. Opcjonalne, gdy skonfigurowano tylko jedno.",
+                    "name": "Urządzenie"
                 },
                 "period": {
                     "description": "Interwał powtarzania w sekundach dla timerów AUX/Światło (np. 86400 = codziennie). Nie jest używany dla timerów filtracji.",
@@ -676,9 +688,9 @@
                     "description": "Zapisz do EEPROM i wykonaj po zapisie (domyślnie: true).",
                     "name": "Zastosuj"
                 },
-                "entry_id": {
-                    "description": "Unikalny identyfikator wpisu integracji. Opcjonalne.",
-                    "name": "ID wpisu"
+                "device_id": {
+                    "description": "Docelowe urządzenie NeoPool. Opcjonalne, gdy skonfigurowano tylko jedno.",
+                    "name": "Urządzenie"
                 },
                 "value": {
                     "description": "Wartość do zapisu (0-65535, dziesiętnie lub szesnastkowo).",
@@ -698,12 +710,32 @@
                     "description": "Liczba kolejnych rejestrów do odczytu (1-31; firmware odrzuca większe żądania).",
                     "name": "Liczba"
                 },
-                "entry_id": {
-                    "description": "Unikalny identyfikator wpisu integracji. Opcjonalne.",
-                    "name": "ID wpisu"
+                "device_id": {
+                    "description": "Docelowe urządzenie NeoPool. Opcjonalne, gdy skonfigurowano tylko jedno.",
+                    "name": "Urządzenie"
                 }
             },
             "name": "Odczyt rejestru"
+        },
+        "get_device_time": {
+            "description": "Odczytuje bieżący czas z zegara RTC urządzenia i zgłasza jego odchylenie od czasu Home Assistant.",
+            "fields": {
+                "device_id": {
+                    "description": "Docelowe urządzenie NeoPool. Opcjonalne, gdy skonfigurowano tylko jedno.",
+                    "name": "Urządzenie"
+                }
+            },
+            "name": "Pobierz czas urządzenia"
+        },
+        "set_device_time": {
+            "description": "Zapisuje bieżący czas Home Assistant do zegara RTC urządzenia.",
+            "fields": {
+                "device_id": {
+                    "description": "Docelowe urządzenie NeoPool. Opcjonalne, gdy skonfigurowano tylko jedno.",
+                    "name": "Urządzenie"
+                }
+            },
+            "name": "Ustaw czas urządzenia"
         }
     }
 }

@@ -23,6 +23,7 @@ from neopool_modbus.registers import TIMER_BLOCKS
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -31,19 +32,21 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, device_registry as dr
+import homeassistant.util.dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import NeoPoolCoordinator
-from .helpers import parse_register_int
+from .helpers import get_device_time, parse_register_int, prepare_device_time
 
 _LOGGER = logging.getLogger(__name__)
 
 SERVICE_SET_TIMER = "set_timer"
 SERVICE_WRITE_REGISTER = "write_register"
 SERVICE_READ_REGISTER = "read_register"
+SERVICE_GET_DEVICE_TIME = "get_device_time"
+SERVICE_SET_DEVICE_TIME = "set_device_time"
 
-ATTR_ENTRY_ID = "entry_id"
 ATTR_TIMER = "timer"
 ATTR_START = "start"
 ATTR_STOP = "stop"
@@ -56,7 +59,7 @@ ATTR_COUNT = "count"
 
 SERVICE_SET_TIMER_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_ENTRY_ID): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
         vol.Required(ATTR_TIMER): cv.string,
         vol.Optional(ATTR_START): cv.string,
         vol.Optional(ATTR_STOP): cv.string,
@@ -67,7 +70,7 @@ SERVICE_SET_TIMER_SCHEMA = vol.Schema(
 
 SERVICE_WRITE_REGISTER_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_ENTRY_ID): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
         vol.Required(ATTR_ADDRESS): cv.string,
         vol.Required(ATTR_VALUE): cv.string,
         vol.Optional(ATTR_APPLY, default=True): cv.boolean,
@@ -76,9 +79,15 @@ SERVICE_WRITE_REGISTER_SCHEMA = vol.Schema(
 
 SERVICE_READ_REGISTER_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_ENTRY_ID): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
         vol.Required(ATTR_ADDRESS): cv.string,
         vol.Optional(ATTR_COUNT, default=1): vol.All(int, vol.Range(min=1, max=31)),
+    }
+)
+
+SERVICE_DEVICE_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
     }
 )
 
@@ -86,39 +95,44 @@ SERVICE_READ_REGISTER_SCHEMA = vol.Schema(
 def _get_coordinator(hass: HomeAssistant, call: ServiceCall) -> NeoPoolCoordinator:
     """Resolve the coordinator for a service call.
 
-    If `entry_id` is provided in the service data, look up that specific
-    entry and require it to be in `ConfigEntryState.LOADED`; otherwise pick
-    the first loaded config entry. In both cases the resolved entry must
-    have a populated `runtime_data` (the coordinator). Raises
+    If `device_id` is provided in the service data, resolve it via the device
+    registry to a loaded NeoPool config entry. If omitted, fall back to the
+    single loaded entry; error if none or more than one exist. The resolved
+    entry must have a populated `runtime_data` (the coordinator). Raises
     ServiceValidationError if any of those conditions is not met.
     """
-    entries = hass.config_entries.async_entries(DOMAIN)
-    entry_id = call.data.get(ATTR_ENTRY_ID)
-    if entry_id:
-        entry = next(
-            (
-                e
-                for e in entries
-                if e.entry_id == entry_id and e.state == ConfigEntryState.LOADED
-            ),
-            None,
-        )
-    else:
-        entry = next(
-            (e for e in entries if e.state == ConfigEntryState.LOADED),
-            None,
-        )
-    if not entry:
-        if entry_id:
+    loaded = [
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.state == ConfigEntryState.LOADED
+    ]
+    device_id = call.data.get(ATTR_DEVICE_ID)
+    if device_id:
+        device = dr.async_get(hass).async_get(device_id)
+        entry = None
+        if device is not None:
+            entry = next(
+                (e for e in loaded if e.entry_id in device.config_entries),
+                None,
+            )
+        if entry is None:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
-                translation_key="entry_not_found",
-                translation_placeholders={"entry_id": entry_id},
+                translation_key="device_not_found",
+                translation_placeholders={"device_id": device_id},
             )
+    elif not loaded:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="no_loaded_entry",
         )
+    elif len(loaded) > 1:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="multiple_entries_no_device",
+        )
+    else:
+        entry = loaded[0]
     coordinator: NeoPoolCoordinator | None = entry.runtime_data
     if coordinator is None:
         raise ServiceValidationError(
@@ -285,6 +299,66 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
     return response
 
 
+async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
+    """Return the device RTC wall-clock and its drift from Home Assistant."""
+    coordinator = _get_coordinator(call.hass, call)
+
+    data = coordinator.data
+    if not data or data.get("MBF_PAR_TIME") is None:
+        try:
+            data = await coordinator.client.async_read_all()
+        except (NeoPoolError, OSError) as err:
+            _LOGGER.error(
+                "Failed to read device time: %s (%s)", err, type(err).__name__
+            )
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="device_time_read_failed",
+                translation_placeholders={"error": str(err)},
+            ) from err
+
+    device_dt = get_device_time(data, call.hass)
+    if device_dt is None:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="device_time_unavailable",
+        )
+
+    now = dt_util.utcnow()
+    drift = round((device_dt - now).total_seconds())
+    return {
+        "device_time": device_dt.isoformat(),
+        "ha_time": now.isoformat(),
+        "drift_seconds": drift,
+    }
+
+
+async def _async_set_device_time(call: ServiceCall) -> None:
+    """Write the current Home Assistant time to the device RTC."""
+    coordinator = _get_coordinator(call.hass, call)
+    timestamp = prepare_device_time(call.hass)
+
+    try:
+        result = await coordinator.client.async_sync_device_time(timestamp)
+    except (NeoPoolError, OSError) as err:
+        _LOGGER.error("Failed to set device time: %s (%s)", err, type(err).__name__)
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="device_time_write_failed",
+            translation_placeholders={"error": str(err)},
+        ) from err
+
+    if result is None:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="device_time_write_failed",
+            translation_placeholders={"error": "no response"},
+        )
+
+    _LOGGER.info("Service set_device_time: wrote %s to device RTC", timestamp)
+    coordinator.request_refresh_with_followup()
+
+
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     """Register the NeoPool services."""
@@ -306,4 +380,17 @@ def async_setup_services(hass: HomeAssistant) -> None:
         _async_read_register,
         schema=SERVICE_READ_REGISTER_SCHEMA,
         supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GET_DEVICE_TIME,
+        _async_get_device_time,
+        schema=SERVICE_DEVICE_TIME_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_DEVICE_TIME,
+        _async_set_device_time,
+        schema=SERVICE_DEVICE_TIME_SCHEMA,
     )

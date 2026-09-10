@@ -501,8 +501,8 @@
         }
     },
     "exceptions": {
-        "entry_not_found": {
-            "message": "Kein NeoPool-Konfigurationseintrag für entry_id {entry_id} gefunden"
+        "device_not_found": {
+            "message": "Kein geladenes NeoPool-Gerät für device_id {device_id} gefunden"
         },
         "filtration_boost_active": {
             "message": "Die Filtration kann nicht ein- oder ausgeschaltet werden, während der Boost-Modus aktiv ist. Schalten Sie zuerst den Boost-Modus aus."
@@ -566,6 +566,18 @@
         },
         "write_verification_failed": {
             "message": "Schreibverifizierung bei {address} fehlgeschlagen: geschrieben {value}, zurückgelesen {confirmed}"
+        },
+        "multiple_entries_no_device": {
+            "message": "Es sind mehrere NeoPool-Geräte konfiguriert. Geben Sie das anzusteuernde Gerät an."
+        },
+        "device_time_read_failed": {
+            "message": "Gerätezeit konnte nicht gelesen werden: {error}"
+        },
+        "device_time_unavailable": {
+            "message": "Das Gerät hat seine Zeit nicht gemeldet (Register MBF_PAR_TIME ist nicht verfügbar)."
+        },
+        "device_time_write_failed": {
+            "message": "Gerätezeit konnte nicht geschrieben werden: {error}"
         }
     },
     "issues": {
@@ -642,9 +654,9 @@
                     "description": "Relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off). Used by the relay_mode select platform.",
                     "name": "Enable mode"
                 },
-                "entry_id": {
-                    "description": "Die eindeutige ID des Integrationseintrags. Optional.",
-                    "name": "Entry ID"
+                "device_id": {
+                    "description": "Das anzusteuernde NeoPool-Gerät. Optional, wenn nur eines konfiguriert ist.",
+                    "name": "Gerät"
                 },
                 "period": {
                     "description": "Wiederholungsintervall in Sekunden für AUX/Licht-Timer (z. B. 86400 = täglich). Wird nicht für Filtrationstimer verwendet.",
@@ -676,9 +688,9 @@
                     "description": "Nach dem Schreiben ins EEPROM speichern und ausführen (Standard: true).",
                     "name": "Anwenden"
                 },
-                "entry_id": {
-                    "description": "Die eindeutige ID des Integrationseintrags. Optional.",
-                    "name": "Entry ID"
+                "device_id": {
+                    "description": "Das anzusteuernde NeoPool-Gerät. Optional, wenn nur eines konfiguriert ist.",
+                    "name": "Gerät"
                 },
                 "value": {
                     "description": "Zu schreibender Wert (0-65535, dezimal oder hexadezimal).",
@@ -698,12 +710,32 @@
                     "description": "Anzahl aufeinanderfolgender Register zum Lesen (1-31; die Firmware lehnt größere Anfragen ab).",
                     "name": "Anzahl"
                 },
-                "entry_id": {
-                    "description": "Die eindeutige ID des Integrationseintrags. Optional.",
-                    "name": "Entry ID"
+                "device_id": {
+                    "description": "Das anzusteuernde NeoPool-Gerät. Optional, wenn nur eines konfiguriert ist.",
+                    "name": "Gerät"
                 }
             },
             "name": "Register lesen"
+        },
+        "get_device_time": {
+            "description": "Liest die aktuelle Uhrzeit aus der RTC des Geräts und meldet die Abweichung von der Home Assistant-Zeit.",
+            "fields": {
+                "device_id": {
+                    "description": "Das anzusteuernde NeoPool-Gerät. Optional, wenn nur eines konfiguriert ist.",
+                    "name": "Gerät"
+                }
+            },
+            "name": "Gerätezeit abrufen"
+        },
+        "set_device_time": {
+            "description": "Schreibt die aktuelle Home Assistant-Zeit in die RTC des Geräts.",
+            "fields": {
+                "device_id": {
+                    "description": "Das anzusteuernde NeoPool-Gerät. Optional, wenn nur eines konfiguriert ist.",
+                    "name": "Gerät"
+                }
+            },
+            "name": "Gerätezeit einstellen"
         }
     }
 }

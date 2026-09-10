@@ -14,10 +14,11 @@
 
 set_timer:
   fields:
-    entry_id:
-      example: "your-entry-id"
+    device_id:
+      example: "abc123device456"
       selector:
-        text:
+        device:
+          integration: neopool
     timer:
       required: true
       example: "filtration1"
@@ -48,10 +49,11 @@ set_timer:
 
 write_register:
   fields:
-    entry_id:
-      example: "your-entry-id"
+    device_id:
+      example: "abc123device456"
       selector:
-        text:
+        device:
+          integration: neopool
     address:
       required: true
       example: "0x0432"
@@ -70,10 +72,11 @@ write_register:
 
 read_register:
   fields:
-    entry_id:
-      example: "your-entry-id"
+    device_id:
+      example: "abc123device456"
       selector:
-        text:
+        device:
+          integration: neopool
     address:
       required: true
       example: "0x0102"
@@ -87,3 +90,19 @@ read_register:
           min: 1
           max: 31
           step: 1
+
+get_device_time:
+  fields:
+    device_id:
+      example: "abc123device456"
+      selector:
+        device:
+          integration: neopool
+
+set_device_time:
+  fields:
+    device_id:
+      example: "abc123device456"
+      selector:
+        device:
+          integration: neopool
