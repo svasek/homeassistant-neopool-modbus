@@ -501,8 +501,8 @@
         }
     },
     "exceptions": {
-        "entry_not_found": {
-            "message": "Nebyla nalezena konfigurace NeoPool pro entry_id {entry_id}"
+        "device_not_found": {
+            "message": "Nebylo nalezeno žádné načtené zařízení NeoPool pro device_id {device_id}"
         },
         "filtration_boost_active": {
             "message": "Filtraci nelze zapnout ani vypnout, když je aktivní režim boost. Nejprve vypněte režim boost."
@@ -566,6 +566,18 @@
         },
         "write_verification_failed": {
             "message": "Ověření zápisu na adrese {address} selhalo: zapsáno {value}, přečteno {confirmed}"
+        },
+        "multiple_entries_no_device": {
+            "message": "Je nakonfigurováno více zařízení NeoPool. Zadejte cílové zařízení."
+        },
+        "device_time_read_failed": {
+            "message": "Nepodařilo se přečíst čas zařízení: {error}"
+        },
+        "device_time_unavailable": {
+            "message": "Zařízení nehlásí svůj čas (registr MBF_PAR_TIME není k dispozici)."
+        },
+        "device_time_write_failed": {
+            "message": "Nepodařilo se zapsat čas zařízení: {error}"
         }
     },
     "issues": {
@@ -642,9 +654,9 @@
                     "description": "Relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off). Used by the relay_mode select platform.",
                     "name": "Enable mode"
                 },
-                "entry_id": {
-                    "description": "Jedinečný identifikátor záznamu integrace. Volitelné.",
-                    "name": "ID záznamu"
+                "device_id": {
+                    "description": "Cílové zařízení NeoPool. Volitelné, pokud je nakonfigurováno jen jedno.",
+                    "name": "Zařízení"
                 },
                 "period": {
                     "description": "Interval opakování v sekundách pro AUX/Light časovače (např. 86400 = každý den). Nepoužívá se pro filtrační časovače.",
@@ -676,9 +688,9 @@
                     "description": "Uložit do EEPROM a provést po zápisu (výchozí: true).",
                     "name": "Použít"
                 },
-                "entry_id": {
-                    "description": "Jedinečný identifikátor záznamu integrace. Volitelné.",
-                    "name": "ID záznamu"
+                "device_id": {
+                    "description": "Cílové zařízení NeoPool. Volitelné, pokud je nakonfigurováno jen jedno.",
+                    "name": "Zařízení"
                 },
                 "value": {
                     "description": "Hodnota k zápisu (0-65535, dekadicky nebo hexadecimálně).",
@@ -698,12 +710,32 @@
                     "description": "Počet po sobě jdoucích registrů ke čtení (1-31; firmware větší požadavky odmítá).",
                     "name": "Počet"
                 },
-                "entry_id": {
-                    "description": "Jedinečný identifikátor záznamu integrace. Volitelné.",
-                    "name": "ID záznamu"
+                "device_id": {
+                    "description": "Cílové zařízení NeoPool. Volitelné, pokud je nakonfigurováno jen jedno.",
+                    "name": "Zařízení"
                 }
             },
             "name": "Čtení registru"
+        },
+        "get_device_time": {
+            "description": "Přečte aktuální čas z RTC zařízení a nahlásí jeho odchylku od času Home Assistant.",
+            "fields": {
+                "device_id": {
+                    "description": "Cílové zařízení NeoPool. Volitelné, pokud je nakonfigurováno jen jedno.",
+                    "name": "Zařízení"
+                }
+            },
+            "name": "Získat čas zařízení"
+        },
+        "set_device_time": {
+            "description": "Zapíše aktuální čas Home Assistant do RTC zařízení.",
+            "fields": {
+                "device_id": {
+                    "description": "Cílové zařízení NeoPool. Volitelné, pokud je nakonfigurováno jen jedno.",
+                    "name": "Zařízení"
+                }
+            },
+            "name": "Nastavit čas zařízení"
         }
     }
 }

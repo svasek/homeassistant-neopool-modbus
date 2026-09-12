@@ -501,8 +501,8 @@
         }
     },
     "exceptions": {
-        "entry_not_found": {
-            "message": "Aucune entrée de configuration NeoPool trouvée pour entry_id {entry_id}"
+        "device_not_found": {
+            "message": "Aucun appareil NeoPool chargé trouvé pour device_id {device_id}"
         },
         "filtration_boost_active": {
             "message": "La filtration ne peut pas être activée ou désactivée lorsque le mode boost est actif. Désactivez d'abord le mode boost."
@@ -566,6 +566,18 @@
         },
         "write_verification_failed": {
             "message": "Vérification d'écriture échouée à {address} : écrit {value}, relu {confirmed}"
+        },
+        "multiple_entries_no_device": {
+            "message": "Plusieurs appareils NeoPool sont configurés. Précisez l'appareil à cibler."
+        },
+        "device_time_read_failed": {
+            "message": "Échec de la lecture de l'heure de l'appareil : {error}"
+        },
+        "device_time_unavailable": {
+            "message": "L'appareil n'a pas signalé son heure (le registre MBF_PAR_TIME n'est pas disponible)."
+        },
+        "device_time_write_failed": {
+            "message": "Échec de l'écriture de l'heure de l'appareil : {error}"
         }
     },
     "issues": {
@@ -642,9 +654,9 @@
                     "description": "Relay-mode integer (0=disabled, 1=auto, 2=auto_linked, 3=on, 4=off). Used by the relay_mode select platform.",
                     "name": "Enable mode"
                 },
-                "entry_id": {
-                    "description": "Identifiant unique de l'entrée d'intégration. Optionnel.",
-                    "name": "ID d'entrée"
+                "device_id": {
+                    "description": "L'appareil NeoPool ciblé. Optionnel lorsqu'un seul est configuré.",
+                    "name": "Appareil"
                 },
                 "period": {
                     "description": "Intervalle de répétition en secondes pour les minuteurs AUX/Lumière (par ex. 86400 = tous les jours). Non utilisé pour les minuteurs de filtration.",
@@ -676,9 +688,9 @@
                     "description": "Enregistrer en EEPROM et exécuter après l'écriture (par défaut : true).",
                     "name": "Appliquer"
                 },
-                "entry_id": {
-                    "description": "Identifiant unique de l'entrée d'intégration. Optionnel.",
-                    "name": "ID d'entrée"
+                "device_id": {
+                    "description": "L'appareil NeoPool ciblé. Optionnel lorsqu'un seul est configuré.",
+                    "name": "Appareil"
                 },
                 "value": {
                     "description": "Valeur à écrire (0-65535, décimal ou hexadécimal).",
@@ -698,12 +710,32 @@
                     "description": "Nombre de registres consécutifs à lire (1-31 ; le firmware refuse les requêtes plus grandes).",
                     "name": "Nombre"
                 },
-                "entry_id": {
-                    "description": "Identifiant unique de l'entrée d'intégration. Optionnel.",
-                    "name": "ID d'entrée"
+                "device_id": {
+                    "description": "L'appareil NeoPool ciblé. Optionnel lorsqu'un seul est configuré.",
+                    "name": "Appareil"
                 }
             },
             "name": "Lire registre"
+        },
+        "get_device_time": {
+            "description": "Lit l'heure actuelle depuis le RTC de l'appareil et signale son écart par rapport à l'heure de Home Assistant.",
+            "fields": {
+                "device_id": {
+                    "description": "L'appareil NeoPool ciblé. Optionnel lorsqu'un seul est configuré.",
+                    "name": "Appareil"
+                }
+            },
+            "name": "Obtenir l'heure de l'appareil"
+        },
+        "set_device_time": {
+            "description": "Écrit l'heure actuelle de Home Assistant dans le RTC de l'appareil.",
+            "fields": {
+                "device_id": {
+                    "description": "L'appareil NeoPool ciblé. Optionnel lorsqu'un seul est configuré.",
+                    "name": "Appareil"
+                }
+            },
+            "name": "Définir l'heure de l'appareil"
         }
     }
 }
