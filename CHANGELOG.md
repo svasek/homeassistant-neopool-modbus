@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.7.3](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.7.2...v6.7.3) (2026-09-12)
+
+
+### 🐛 Bug Fixes
+
+* 🩹 adopt UnitOfRatio to drop deprecated unit constants ([#246](https://github.com/svasek/homeassistant-neopool-modbus/issues/246)) ([7160170](https://github.com/svasek/homeassistant-neopool-modbus/commit/7160170da49d4bca4cf67dfe7597a36f490634e8))
+* **binary_sensor:** 🐛 refine pool cover gating, aux naming, and measurement reporting ([#261](https://github.com/svasek/homeassistant-neopool-modbus/issues/261)) ([e61cc1c](https://github.com/svasek/homeassistant-neopool-modbus/commit/e61cc1c88bd3168c426325fe82ffe3f7cbed09f1))
+* **config:** 🐛 harden winter mode against external flag toggles and options-flow snapshot loss ([#268](https://github.com/svasek/homeassistant-neopool-modbus/issues/268)) ([11ff860](https://github.com/svasek/homeassistant-neopool-modbus/commit/11ff860b4ddbddcd5b210eb780401c935fa94138))
+* **coordinator:** 🐛 persist hydrolysis unit registers in offline snapshot ([#273](https://github.com/svasek/homeassistant-neopool-modbus/issues/273)) ([02d0706](https://github.com/svasek/homeassistant-neopool-modbus/commit/02d0706916ef86200ee2d34be62e0c227554307d))
+* **number:** 🐛 correct packed heating/intelligent temperature setpoint ([#270](https://github.com/svasek/homeassistant-neopool-modbus/issues/270)) ([aba6a42](https://github.com/svasek/homeassistant-neopool-modbus/commit/aba6a429862c6f9cd021e652066742830ab152fd)), closes [#269](https://github.com/svasek/homeassistant-neopool-modbus/issues/269)
+
+
+### ♻️ Refactoring
+
+* **config:** ♻️ move time auto-sync from a switch to an options toggle ([#266](https://github.com/svasek/homeassistant-neopool-modbus/issues/266)) ([b525694](https://github.com/svasek/homeassistant-neopool-modbus/commit/b52569419cfb71c096aa6c3df322a704271fab7e))
+* **helpers:** ♻️ compare device clock in its wall-clock epoch domain ([#267](https://github.com/svasek/homeassistant-neopool-modbus/issues/267)) ([995d6eb](https://github.com/svasek/homeassistant-neopool-modbus/commit/995d6ebe5ccfa4e606fe699ee10d387992cab48a))
+
 ## [6.7.2](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.7.1...v6.7.2) (2026-09-03)
 
 
