@@ -111,6 +111,7 @@ MOCK_POOL_DATA: dict[str, Any] = {
     # also register their entities.
     "MBF_PAR_TEMPERATURE_ACTIVE": 1,
     "MBF_PAR_UICFG_MACHINE": 0,
+    "MBF_PAR_UICFG_MACH_VISUAL_STYLE": 0,
     "MBF_PAR_RELAY_PH": 0,
     "Hydrolysis module detected": True,
     "Redox measurement module detected": True,
