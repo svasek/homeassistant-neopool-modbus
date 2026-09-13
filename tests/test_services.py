@@ -19,7 +19,7 @@ from custom_components.neopool.services import (
 )
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_DEVICE_ID
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.setup import async_setup_component
@@ -208,7 +208,7 @@ async def test_get_coordinator_raises_when_runtime_data_missing(
     fake_call.data = {}
 
     with pytest.raises(ServiceValidationError) as exc_info:
-        _get_coordinator(hass, fake_call)
+        await _get_coordinator(hass, fake_call)
     assert exc_info.value.translation_key == "no_coordinator"
 
 
@@ -235,7 +235,7 @@ async def test_get_coordinator_raises_when_multiple_entries_and_no_device(
     fake_call.data = {}
 
     with pytest.raises(ServiceValidationError) as exc_info:
-        _get_coordinator(hass, fake_call)
+        await _get_coordinator(hass, fake_call)
     assert exc_info.value.translation_key == "multiple_entries_no_device"
 
 
@@ -247,10 +247,14 @@ async def test_get_coordinator_resolves_by_device_id(
     """An explicit device_id resolves to that entry's coordinator."""
     await setup_integration(hass, mock_config_entry)
 
-    fake_call = MagicMock()
-    fake_call.data = {ATTR_DEVICE_ID: _device_id(hass, mock_config_entry)}
+    fake_call = ServiceCall(
+        hass,
+        DOMAIN,
+        SERVICE_SET_TIMER,
+        {ATTR_DEVICE_ID: _device_id(hass, mock_config_entry)},
+    )
 
-    assert _get_coordinator(hass, fake_call) is mock_config_entry.runtime_data
+    assert await _get_coordinator(hass, fake_call) is mock_config_entry.runtime_data
 
 
 async def test_set_timer_invalid_timer_name_raises(

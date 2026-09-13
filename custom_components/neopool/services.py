@@ -27,7 +27,6 @@ from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import DEVICE_TIME_REGISTER, TIMER_BLOCKS
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import (
     HomeAssistant,
@@ -37,7 +36,8 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.service import async_extract_config_entry_ids
 import homeassistant.util.dt as dt_util
 
 from .const import DOMAIN
@@ -97,29 +97,23 @@ SERVICE_DEVICE_TIME_SCHEMA = vol.Schema(
 )
 
 
-def _get_coordinator(hass: HomeAssistant, call: ServiceCall) -> NeoPoolCoordinator:
+async def _get_coordinator(
+    hass: HomeAssistant, call: ServiceCall
+) -> NeoPoolCoordinator:
     """Resolve the coordinator for a service call.
 
-    If `device_id` is provided in the service data, resolve it via the device
-    registry to a loaded NeoPool config entry. If omitted, fall back to the
-    single loaded entry; error if none or more than one exist. The resolved
-    entry must have a populated `runtime_data` (the coordinator). Raises
-    ServiceValidationError if any of those conditions is not met.
+    If a target `device_id` is provided in the service data, resolve it via
+    the config-entry extraction helper to a loaded NeoPool config entry. If
+    omitted, fall back to the single loaded entry; error if none or more than
+    one exist. The resolved entry must have a populated `runtime_data` (the
+    coordinator). Raises ServiceValidationError if any of those conditions is
+    not met.
     """
-    loaded = [
-        e
-        for e in hass.config_entries.async_entries(DOMAIN)
-        if e.state == ConfigEntryState.LOADED
-    ]
+    loaded = hass.config_entries.async_loaded_entries(DOMAIN)
     device_id = call.data.get(ATTR_DEVICE_ID)
     if device_id:
-        device = dr.async_get(hass).async_get(device_id)
-        entry = None
-        if device is not None:
-            entry = next(
-                (e for e in loaded if e.entry_id in device.config_entries),
-                None,
-            )
+        target_ids = await async_extract_config_entry_ids(call)
+        entry = next((e for e in loaded if e.entry_id in target_ids), None)
         if entry is None:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -161,7 +155,7 @@ async def _async_set_timer(call: ServiceCall) -> None:
             },
         )
 
-    coordinator = _get_coordinator(call.hass, call)
+    coordinator = await _get_coordinator(call.hass, call)
     start = call.data.get(ATTR_START)
     stop = call.data.get(ATTR_STOP)
     period = call.data.get(ATTR_PERIOD)
@@ -213,7 +207,7 @@ async def _async_write_register(call: ServiceCall) -> None:
     address = parse_register_int(call.data[ATTR_ADDRESS], "address")
     value = parse_register_int(call.data[ATTR_VALUE], "value")
     apply = call.data[ATTR_APPLY]
-    coordinator = _get_coordinator(call.hass, call)
+    coordinator = await _get_coordinator(call.hass, call)
 
     try:
         result = await coordinator.client.async_write_register(
@@ -267,7 +261,7 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
     """Read one or more Modbus registers and return the raw u16 values."""
     address = parse_register_int(call.data[ATTR_ADDRESS], "address")
     count = call.data[ATTR_COUNT]
-    coordinator = _get_coordinator(call.hass, call)
+    coordinator = await _get_coordinator(call.hass, call)
 
     try:
         registers = await coordinator.client.async_read_register(address, count)
@@ -311,7 +305,7 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
     time, so the drift is accurate regardless of the polling interval and
     without pulling the full register set.
     """
-    coordinator = _get_coordinator(call.hass, call)
+    coordinator = await _get_coordinator(call.hass, call)
 
     try:
         regs = await coordinator.client.async_read_register(DEVICE_TIME_REGISTER, 2)
@@ -345,7 +339,7 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
 
 async def _async_set_device_time(call: ServiceCall) -> None:
     """Write the current Home Assistant time to the device RTC."""
-    coordinator = _get_coordinator(call.hass, call)
+    coordinator = await _get_coordinator(call.hass, call)
     timestamp = prepare_device_time(call.hass)
 
     try:
