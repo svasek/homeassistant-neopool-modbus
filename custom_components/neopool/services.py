@@ -24,7 +24,11 @@ from neopool_modbus.decoders import (
     hhmm_to_seconds,
 )
 from neopool_modbus.exceptions import NeoPoolError
-from neopool_modbus.registers import DEVICE_TIME_REGISTER, TIMER_BLOCKS
+from neopool_modbus.registers import (
+    DEVICE_TIME_REGISTER,
+    MAX_REGISTERS_PER_READ,
+    TIMER_BLOCKS,
+)
 import voluptuous as vol
 
 from homeassistant.const import ATTR_DEVICE_ID
@@ -86,7 +90,9 @@ SERVICE_READ_REGISTER_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_DEVICE_ID): cv.string,
         vol.Required(ATTR_ADDRESS): cv.string,
-        vol.Optional(ATTR_COUNT, default=1): vol.All(int, vol.Range(min=1, max=31)),
+        vol.Optional(ATTR_COUNT, default=1): vol.All(
+            int, vol.Range(min=1, max=MAX_REGISTERS_PER_READ)
+        ),
     }
 )
 
@@ -237,7 +243,7 @@ async def _async_write_register(call: ServiceCall) -> None:
         )
 
     confirmed = result.get("confirmed")
-    _LOGGER.info(
+    _LOGGER.debug(
         "Service write_register: 0x%04X = %s (confirmed: %s, apply: %s)",
         address,
         result.get("value"),
@@ -282,7 +288,7 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
             },
         ) from err
 
-    _LOGGER.info(
+    _LOGGER.debug(
         "Service read_register: 0x%04X (count=%d) -> %s",
         address,
         count,
@@ -317,17 +323,21 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
             translation_placeholders={"error": str(err)},
         ) from err
 
-    tz = dt_util.get_time_zone(call.hass.config.time_zone) or dt_util.UTC
-    device_dt = decode_device_time(combine_u32(regs[0], regs[1]), tz)
-    if device_dt is None:  # pragma: no cover
-        # async_read_register always returns a list[int] of exactly `count`
-        # raw u16 values, so combine_u32/decode_device_time never yield None
-        # here; the guard exists only to narrow the datetime | None type.
+    if len(regs) < 2:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
-            translation_key="device_time_unavailable",
+            translation_key="device_time_read_failed",
+            translation_placeholders={"error": f"short read ({len(regs)} words)"},
         )
 
+    tz = dt_util.get_time_zone(call.hass.config.time_zone) or dt_util.UTC
+    device_dt = decode_device_time(combine_u32(regs[0], regs[1]), tz)
+    if device_dt is None:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="device_time_read_failed",
+            translation_placeholders={"error": "invalid clock value"},
+        )
     now = dt_util.utcnow().replace(microsecond=0)
     drift = round((device_dt - now).total_seconds())
     return {
@@ -359,7 +369,7 @@ async def _async_set_device_time(call: ServiceCall) -> None:
             translation_placeholders={"error": "no response"},
         )
 
-    _LOGGER.info("Service set_device_time: wrote %s to device RTC", timestamp)
+    _LOGGER.debug("Service set_device_time: wrote %s to device RTC", timestamp)
     coordinator.request_refresh_with_followup()
 
 

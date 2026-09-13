@@ -344,9 +344,6 @@
     "device_time_read_failed": {
       "message": "Failed to read the device time: {error}"
     },
-    "device_time_unavailable": {
-      "message": "The device did not report its time (register MBF_PAR_TIME is unavailable)."
-    },
     "device_time_write_failed": {
       "message": "Failed to write the device time: {error}"
     },

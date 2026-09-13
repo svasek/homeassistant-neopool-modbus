@@ -1,7 +1,7 @@
 """Tests for the NeoPool services."""
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from neopool_modbus.decoders import decode_device_time
 import pytest
@@ -708,6 +708,52 @@ async def test_get_device_time_read_error_translates(
     )
 
     with pytest.raises(ServiceValidationError) as exc_info:
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_GET_DEVICE_TIME,
+            {"device_id": _device_id(hass, mock_config_entry)},
+            blocking=True,
+            return_response=True,
+        )
+    assert exc_info.value.translation_key == "device_time_read_failed"
+
+
+async def test_get_device_time_short_read_translates(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A truncated clock read surfaces as ServiceValidationError, not IndexError."""
+    await setup_integration(hass, mock_config_entry)
+    mock_neopool_client.async_read_register = AsyncMock(return_value=[123])
+
+    with pytest.raises(ServiceValidationError) as exc_info:
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_GET_DEVICE_TIME,
+            {"device_id": _device_id(hass, mock_config_entry)},
+            blocking=True,
+            return_response=True,
+        )
+    assert exc_info.value.translation_key == "device_time_read_failed"
+
+
+async def test_get_device_time_undecodable_translates(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """An unparseable clock value surfaces as ServiceValidationError, not a crash."""
+    await setup_integration(hass, mock_config_entry)
+    mock_neopool_client.async_read_register = AsyncMock(return_value=[0, 0])
+
+    with (
+        patch(
+            "custom_components.neopool.services.decode_device_time",
+            return_value=None,
+        ),
+        pytest.raises(ServiceValidationError) as exc_info,
+    ):
         await hass.services.async_call(
             DOMAIN,
             SERVICE_GET_DEVICE_TIME,

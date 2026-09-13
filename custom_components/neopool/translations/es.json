@@ -573,9 +573,6 @@
         "device_time_read_failed": {
             "message": "No se pudo leer la hora del dispositivo: {error}"
         },
-        "device_time_unavailable": {
-            "message": "El dispositivo no informó su hora (el registro MBF_PAR_TIME no está disponible)."
-        },
         "device_time_write_failed": {
             "message": "No se pudo escribir la hora del dispositivo: {error}"
         }
