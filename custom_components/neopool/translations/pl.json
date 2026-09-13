@@ -561,6 +561,12 @@
         "timer_failed": {
             "message": "Ustawienie timera nie powiodło się: {error}"
         },
+        "timer_no_fields": {
+            "message": "Brak pól timera do aktualizacji. Podaj co najmniej jedno z: start, stop, period lub enable."
+        },
+        "timer_stop_without_start": {
+            "message": "Czas zatrzymania wymaga czasu rozpoczęcia. Podaj zarówno start, jak i stop."
+        },
         "write_failed": {
             "message": "Zapis do rejestru {address} nie powiódł się"
         },

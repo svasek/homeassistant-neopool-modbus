@@ -561,6 +561,12 @@
         "timer_failed": {
             "message": "Échec du réglage du minuteur : {error}"
         },
+        "timer_no_fields": {
+            "message": "Aucun champ du minuteur à mettre à jour. Fournissez au moins un des champs start, stop, period ou enable."
+        },
+        "timer_stop_without_start": {
+            "message": "Une heure d'arrêt nécessite une heure de début. Fournissez à la fois start et stop."
+        },
         "write_failed": {
             "message": "Échec de l'écriture dans le registre {address}"
         },

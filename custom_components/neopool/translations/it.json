@@ -561,6 +561,12 @@
         "timer_failed": {
             "message": "Impostazione timer fallita: {error}"
         },
+        "timer_no_fields": {
+            "message": "Nessun campo del timer da aggiornare. Fornisci almeno uno tra start, stop, period o enable."
+        },
+        "timer_stop_without_start": {
+            "message": "Un orario di stop richiede un orario di start. Fornisci sia start che stop."
+        },
         "write_failed": {
             "message": "Scrittura nel registro {address} fallita"
         },

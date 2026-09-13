@@ -561,6 +561,12 @@
         "timer_failed": {
             "message": "Error al configurar el temporizador: {error}"
         },
+        "timer_no_fields": {
+            "message": "No hay campos del temporizador para actualizar. Indica al menos uno entre start, stop, period o enable."
+        },
+        "timer_stop_without_start": {
+            "message": "Una hora de parada requiere una hora de inicio. Indica tanto start como stop."
+        },
         "write_failed": {
             "message": "Error al escribir en el registro {address}"
         },

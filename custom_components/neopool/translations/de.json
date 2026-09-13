@@ -561,6 +561,12 @@
         "timer_failed": {
             "message": "Timer-Einstellung fehlgeschlagen: {error}"
         },
+        "timer_no_fields": {
+            "message": "Keine Timer-Felder zum Aktualisieren. Gib mindestens eines von start, stop, period oder enable an."
+        },
+        "timer_stop_without_start": {
+            "message": "Eine Stoppzeit erfordert eine Startzeit. Gib sowohl start als auch stop an."
+        },
         "write_failed": {
             "message": "Schreiben in Register {address} fehlgeschlagen"
         },

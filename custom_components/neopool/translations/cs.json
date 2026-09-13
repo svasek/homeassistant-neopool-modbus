@@ -561,6 +561,12 @@
         "timer_failed": {
             "message": "Nastavení časovače selhalo: {error}"
         },
+        "timer_no_fields": {
+            "message": "Žádná pole časovače k aktualizaci. Zadejte alespoň jedno z: start, stop, period nebo enable."
+        },
+        "timer_stop_without_start": {
+            "message": "Čas zastavení vyžaduje čas spuštění. Zadejte start i stop."
+        },
         "write_failed": {
             "message": "Zápis do registru {address} selhal"
         },
