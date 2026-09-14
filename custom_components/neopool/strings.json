@@ -96,7 +96,7 @@
     "number": {
       "cl1": { "name": "Chlorine setpoint" },
       "heating_temp": { "name": "Temperature setpoint" },
-      "hidro": { "name": "Hydrolisis target production level" },
+      "hidro": { "name": "Hydrolysis target production level" },
       "hidro_cover_reduction": { "name": "Cover reduction (when covered)" },
       "hidro_shutdown_temperature": {
         "name": "Hydrolysis shutdown temp. threshold"
