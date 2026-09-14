@@ -39,7 +39,7 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.service import (
     async_extract_config_entry_ids,
@@ -215,7 +215,7 @@ async def _async_set_timer(call: ServiceCall) -> None:
             err,
             type(err).__name__,
         )
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="timer_failed",
             translation_placeholders={"error": str(err)},
@@ -241,7 +241,7 @@ async def _async_write_register(call: ServiceCall) -> None:
             err,
             type(err).__name__,
         )
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="register_write_failed",
             translation_placeholders={
@@ -251,7 +251,7 @@ async def _async_write_register(call: ServiceCall) -> None:
         ) from err
 
     if result is None:
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="write_failed",
             translation_placeholders={"address": f"0x{address:04X}"},
@@ -266,7 +266,7 @@ async def _async_write_register(call: ServiceCall) -> None:
         apply,
     )
     if confirmed != value:
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="write_verification_failed",
             translation_placeholders={
@@ -294,7 +294,7 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
             err,
             type(err).__name__,
         )
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="register_read_failed",
             translation_placeholders={
@@ -304,7 +304,7 @@ async def _async_read_register(call: ServiceCall) -> ServiceResponse:
         ) from err
 
     if len(registers) != count:
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="register_read_failed",
             translation_placeholders={
@@ -342,14 +342,14 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
         regs = await coordinator.client.async_read_register(DEVICE_TIME_REGISTER, 2)
     except (NeoPoolError, OSError, ValueError) as err:
         _LOGGER.error("Failed to read device time: %s (%s)", err, type(err).__name__)
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="device_time_read_failed",
             translation_placeholders={"error": str(err)},
         ) from err
 
     if len(regs) < 2:
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="device_time_read_failed",
             translation_placeholders={"error": f"short read ({len(regs)} words)"},
@@ -358,7 +358,7 @@ async def _async_get_device_time(call: ServiceCall) -> ServiceResponse:
     tz = dt_util.get_time_zone(call.hass.config.time_zone) or dt_util.UTC
     device_dt = decode_device_time(combine_u32(regs[0], regs[1]), tz)
     if device_dt is None:
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="device_time_read_failed",
             translation_placeholders={"error": "invalid clock value"},
@@ -381,14 +381,14 @@ async def _async_set_device_time(call: ServiceCall) -> None:
         result = await coordinator.client.async_sync_device_time(timestamp)
     except (NeoPoolError, OSError) as err:
         _LOGGER.error("Failed to set device time: %s (%s)", err, type(err).__name__)
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="device_time_write_failed",
             translation_placeholders={"error": str(err)},
         ) from err
 
     if result is None:
-        raise ServiceValidationError(
+        raise HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key="device_time_write_failed",
             translation_placeholders={"error": "no response"},
