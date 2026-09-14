@@ -25,7 +25,7 @@ from homeassistant.components.number import (
 from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT, PERCENTAGE, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import entity_platform, entity_registry as er
 
 from . import setup_integration
 from .conftest import MOCK_POOL_DATA
@@ -425,20 +425,42 @@ async def test_masked_number_state_decodes_field(
     assert shutdown is not None and float(shutdown.state) == 12
 
 
+@pytest.mark.parametrize(
+    ("key_suffix", "flag", "value", "register_result"),
+    [
+        (
+            "mbf_par_hidro_cover_reduction",
+            MaskedFlag.HIDRO_COVER_REDUCTION_PERCENT,
+            50,
+            0x0C32,  # shutdown temp 12 (0x0C) in the high byte, cover 50 (0x32)
+        ),
+        (
+            "mbf_par_hidro_shutdown_temperature",
+            MaskedFlag.HIDRO_SHUTDOWN_TEMPERATURE,
+            15,
+            0x0F19,  # shutdown temp 15 (0x0F) in the high byte, cover 25 (0x19)
+        ),
+    ],
+)
 async def test_masked_number_write_passes_field_value(
     hass: HomeAssistant,
     mock_config_entry_number: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
+    key_suffix: str,
+    flag: MaskedFlag,
+    value: float,
+    register_result: int,
 ) -> None:
     """Writing one masked number dispatches to async_set_masked_register.
 
     The read-modify-write that keeps the sibling byte intact is a lib concern
-    (``async_set_masked_register`` performs it internally). The entity passes
-    the *field value* (25 -> 50), not the packed 16-bit register.
+    (``async_set_masked_register`` performs it internally). Each entity passes
+    its own *field value*, not the packed 16-bit register, tagged with its own
+    masked flag: the two share register 0x042D but map to distinct fields.
     """
     mock_neopool_client.async_set_masked_register = AsyncMock(
-        return_value={"MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C32}
+        return_value={"MBF_PAR_HIDRO_COVER_REDUCTION": register_result}
     )
 
     await setup_integration(hass, mock_config_entry_number)
@@ -449,19 +471,50 @@ async def test_masked_number_write_passes_field_value(
         {**MOCK_POOL_DATA, "MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C19},
     )
 
-    cover_id = _number_entity_id(
-        hass, mock_config_entry_number, "mbf_par_hidro_cover_reduction"
-    )
+    entity_id = _number_entity_id(hass, mock_config_entry_number, key_suffix)
     mock_neopool_client.async_set_masked_register.reset_mock()
 
-    await _write(hass, freezer, cover_id, 50)
+    await _write(hass, freezer, entity_id, value)
 
-    mock_neopool_client.async_set_masked_register.assert_awaited_once_with(
-        MaskedFlag.HIDRO_COVER_REDUCTION_PERCENT, 50
-    )
-    state = hass.states.get(cover_id)
+    mock_neopool_client.async_set_masked_register.assert_awaited_once_with(flag, value)
+    state = hass.states.get(entity_id)
     assert state is not None
-    assert float(state.state) == 50
+    assert float(state.state) == value
+
+
+async def test_write_works_after_entity_id_change(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry_number: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A write still reaches the device after the entity is renamed.
+
+    Changing the entity ID removes and re-adds the same object. If removal
+    leaves the removing flag set, every later flush aborts and the write never
+    reaches the device, so the write must run against the new entity ID.
+    """
+    mock_neopool_client.async_set_setpoint = AsyncMock(
+        return_value={"MBF_PAR_PH1": 750}
+    )
+    await setup_integration(hass, mock_config_entry_number)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry_number, "mbf_par_ph1")
+    new_entity_id = f"{ph1_entity_id}_renamed"
+    entity_registry.async_update_entity(ph1_entity_id, new_entity_id=new_entity_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(new_entity_id) is not None
+
+    mock_neopool_client.async_set_setpoint.reset_mock()
+    await _write(hass, freezer, new_entity_id, 7.5)
+
+    mock_neopool_client.async_set_setpoint.assert_awaited_once_with(
+        SetpointKind.PH_MAX, 750
+    )
+    state = hass.states.get(new_entity_id)
+    assert state is not None
+    assert float(state.state) == 7.5
 
 
 async def test_masked_writes_are_serialized(
@@ -513,6 +566,56 @@ async def test_masked_writes_are_serialized(
 
     assert not overlap
     assert mock_neopool_client.async_set_masked_register.await_count == 2
+
+
+def _get_number_entity(hass: HomeAssistant, entity_id: str) -> Any:
+    """Return the live NeoPoolNumber object for entity_id."""
+    for platform in entity_platform.async_get_platforms(hass, "neopool"):
+        if entity_id in platform.entities:
+            return platform.entities[entity_id]
+    raise AssertionError(f"no number entity {entity_id}")
+
+
+async def test_flush_aborts_when_removed_while_holding_lock(
+    hass: HomeAssistant,
+    mock_config_entry_number: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A flush that finds the entity removed after winning the lock aborts.
+
+    Removal normally cancels every tracked flush task, so this in-lock guard
+    only fires if a flush wins the lock in the same tick removal flips the
+    flag. Drive that race directly: hold the flush lock from the test, flip
+    removing, then release the lock so the parked flush hits the guard before
+    it touches the device.
+    """
+    mock_neopool_client.async_set_setpoint = AsyncMock(
+        return_value={"MBF_PAR_PH1": 750}
+    )
+    await setup_integration(hass, mock_config_entry_number)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry_number, "mbf_par_ph1")
+    entity = _get_number_entity(hass, ph1_entity_id)
+
+    await entity._flush_lock.acquire()
+    task = _set_value_nowait(hass, ph1_entity_id, 7.5)
+    await _let_park(hass)
+    # Fire the debounce timer without async_block_till_done: the flush task
+    # parks on the lock we hold, so waiting on it here would deadlock.
+    freezer.tick(FLUSH)
+    async_fire_time_changed(hass)
+    await _let_park(hass)
+
+    # The flush is parked on the lock the test holds. Flip removing, then hand
+    # the lock over so the flush enters and aborts at the in-lock guard.
+    entity._removing = True
+    entity._flush_lock.release()
+    await task
+
+    # The guard aborted before any device write.
+    mock_neopool_client.async_set_setpoint.assert_not_awaited()
+    entity._removing = False
 
 
 @pytest.mark.parametrize(
