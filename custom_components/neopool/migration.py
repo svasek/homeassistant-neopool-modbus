@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Any
 from neopool_modbus import async_probe_serial
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
-import voluptuous as vol
+import probatio
 
 from homeassistant.config_entries import (
     ConfigEntry,
@@ -1193,7 +1193,7 @@ async def async_handle_import_step(
     if user_input is None:
         return flow.async_show_form(
             step_id="import_from_vistapool",
-            data_schema=vol.Schema({}),
+            data_schema=probatio.Schema({}),
             description_placeholders={
                 "entry_title": legacy_entry_title,
             },

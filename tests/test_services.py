@@ -4,9 +4,9 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from neopool_modbus.decoders import decode_device_time
+import probatio
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry, MockUser
-import voluptuous as vol
 
 from custom_components.neopool.const import DOMAIN
 from custom_components.neopool.helpers import prepare_device_time
@@ -671,11 +671,11 @@ async def test_read_register_count_out_of_range_rejected_by_schema(
     mock_neopool_client: MagicMock,
     count: int,
 ) -> None:
-    """Schema vol.Range(min=1, max=31) rejects bad counts before we touch the client."""
+    """Schema probatio.Range(min=1, max=31) rejects bad counts before we touch the client."""
     await setup_integration(hass, mock_config_entry)
     mock_neopool_client.async_read_register = AsyncMock()
 
-    with pytest.raises(vol.Invalid):
+    with pytest.raises(probatio.Invalid):
         await hass.services.async_call(
             DOMAIN,
             "read_register",

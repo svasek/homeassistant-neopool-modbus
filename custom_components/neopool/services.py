@@ -29,7 +29,7 @@ from neopool_modbus.registers import (
     MAX_REGISTERS_PER_READ,
     TIMER_BLOCKS,
 )
-import voluptuous as vol
+import probatio
 
 from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import (
@@ -69,39 +69,41 @@ ATTR_VALUE = "value"
 ATTR_APPLY = "apply"
 ATTR_COUNT = "count"
 
-SERVICE_SET_TIMER_SCHEMA = vol.Schema(
+SERVICE_SET_TIMER_SCHEMA = probatio.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-        vol.Required(ATTR_TIMER): cv.string,
-        vol.Optional(ATTR_START): cv.string,
-        vol.Optional(ATTR_STOP): cv.string,
-        vol.Optional(ATTR_PERIOD): vol.All(int, vol.Range(min=1, max=604800)),
-        vol.Optional(ATTR_ENABLE): vol.All(int, vol.Range(min=0, max=4)),
+        probatio.Optional(ATTR_DEVICE_ID): cv.string,
+        probatio.Required(ATTR_TIMER): cv.string,
+        probatio.Optional(ATTR_START): cv.string,
+        probatio.Optional(ATTR_STOP): cv.string,
+        probatio.Optional(ATTR_PERIOD): probatio.All(
+            int, probatio.Range(min=1, max=604800)
+        ),
+        probatio.Optional(ATTR_ENABLE): probatio.All(int, probatio.Range(min=0, max=4)),
     }
 )
 
-SERVICE_WRITE_REGISTER_SCHEMA = vol.Schema(
+SERVICE_WRITE_REGISTER_SCHEMA = probatio.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-        vol.Required(ATTR_ADDRESS): cv.string,
-        vol.Required(ATTR_VALUE): cv.string,
-        vol.Optional(ATTR_APPLY, default=True): cv.boolean,
+        probatio.Optional(ATTR_DEVICE_ID): cv.string,
+        probatio.Required(ATTR_ADDRESS): cv.string,
+        probatio.Required(ATTR_VALUE): cv.string,
+        probatio.Optional(ATTR_APPLY, default=True): cv.boolean,
     }
 )
 
-SERVICE_READ_REGISTER_SCHEMA = vol.Schema(
+SERVICE_READ_REGISTER_SCHEMA = probatio.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-        vol.Required(ATTR_ADDRESS): cv.string,
-        vol.Optional(ATTR_COUNT, default=1): vol.All(
-            int, vol.Range(min=1, max=MAX_REGISTERS_PER_READ)
+        probatio.Optional(ATTR_DEVICE_ID): cv.string,
+        probatio.Required(ATTR_ADDRESS): cv.string,
+        probatio.Optional(ATTR_COUNT, default=1): probatio.All(
+            int, probatio.Range(min=1, max=MAX_REGISTERS_PER_READ)
         ),
     }
 )
 
-SERVICE_DEVICE_TIME_SCHEMA = vol.Schema(
+SERVICE_DEVICE_TIME_SCHEMA = probatio.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
+        probatio.Optional(ATTR_DEVICE_ID): cv.string,
     }
 )
 
