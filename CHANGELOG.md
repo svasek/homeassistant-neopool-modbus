@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.8.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.8.0...v6.8.1) (2026-09-15)
+
+
+### 🐛 Bug Fixes
+
+* **number:** 🐛 track every overlapping debounced write task ([#276](https://github.com/svasek/homeassistant-neopool-modbus/issues/276)) ([ca6c4f7](https://github.com/svasek/homeassistant-neopool-modbus/commit/ca6c4f796236b4f761b1271733c1ca35f575e0cb))
+* **services:** 🐛 reject empty device_id and reclassify I/O errors ([#275](https://github.com/svasek/homeassistant-neopool-modbus/issues/275)) ([27d276b](https://github.com/svasek/homeassistant-neopool-modbus/commit/27d276b86b8b8828cdd8a4171600edfb5696e084))
+
+
+### ♻️ Refactoring
+
+* ♻️ use probatio instead of voluptuous ([#274](https://github.com/svasek/homeassistant-neopool-modbus/issues/274)) ([63eb02f](https://github.com/svasek/homeassistant-neopool-modbus/commit/63eb02fd05b974f82c2dabcc568a922956ac4307))
+
 ## [6.8.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.7.2...v6.8.0) (2026-09-14)
 
 
