@@ -213,14 +213,9 @@ async def test_set_value_on_start_writes_timer(
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Setting *_start preserves the existing stop."""
+    """Setting *_start passes only the on endpoint; the library holds the stop."""
     await setup_integration(hass, mock_config_entry_timers)
-    await _poll(
-        hass,
-        freezer,
-        mock_neopool_client,
-        {**MOCK_POOL_DATA, "filtration1_stop": 10 * 3600},
-    )
+    await _poll(hass, freezer, mock_neopool_client, MOCK_POOL_DATA)
 
     entity_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_start")
     mock_neopool_client.write_timer.reset_mock()
@@ -229,8 +224,7 @@ async def test_set_value_on_start_writes_timer(
     assert mock_neopool_client.write_timer.await_count == 1
     timer_name, payload = mock_neopool_client.write_timer.await_args.args
     assert timer_name == "filtration1"
-    assert payload["on"] == 6 * 3600
-    assert payload["interval"] == 4 * 3600
+    assert payload == {"on": 6 * 3600}
 
 
 async def test_set_value_on_stop_writes_timer(
@@ -239,14 +233,9 @@ async def test_set_value_on_stop_writes_timer(
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Setting *_stop preserves the existing start."""
+    """Setting *_stop passes only the stop endpoint; the library holds the on."""
     await setup_integration(hass, mock_config_entry_timers)
-    await _poll(
-        hass,
-        freezer,
-        mock_neopool_client,
-        {**MOCK_POOL_DATA, "filtration1_start": 6 * 3600},
-    )
+    await _poll(hass, freezer, mock_neopool_client, MOCK_POOL_DATA)
 
     entity_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_stop")
     mock_neopool_client.write_timer.reset_mock()
@@ -255,8 +244,7 @@ async def test_set_value_on_stop_writes_timer(
     assert mock_neopool_client.write_timer.await_count == 1
     timer_name, payload = mock_neopool_client.write_timer.await_args.args
     assert timer_name == "filtration1"
-    assert payload["on"] == 6 * 3600
-    assert payload["interval"] == 4 * 3600
+    assert payload == {"stop": 10 * 3600}
 
 
 async def test_pending_value_shown_optimistically_before_write(
@@ -399,7 +387,7 @@ async def test_rapid_set_value_coalesces_via_debounce(
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Sibling start/stop writes both reach the device with the latest pair."""
+    """Sibling start/stop are independent single-endpoint writes to one block."""
     await setup_integration(hass, mock_config_entry_timers)
     await _poll(
         hass,
@@ -417,10 +405,17 @@ async def test_rapid_set_value_coalesces_via_debounce(
     await _flush(hass, freezer)
     await asyncio.gather(start_task, stop_task)
 
-    timer_name, payload = mock_neopool_client.write_timer.await_args.args
-    assert timer_name == "filtration1"
-    assert payload["on"] == 6 * 3600
-    assert payload["interval"] == 4 * 3600
+    # Per-entity debounce: each endpoint flushes on its own; order not guaranteed.
+    assert mock_neopool_client.write_timer.await_count == 2
+    payloads = [
+        call.args[1] for call in mock_neopool_client.write_timer.await_args_list
+    ]
+    assert {"on": 6 * 3600} in payloads
+    assert {"stop": 10 * 3600} in payloads
+    assert all(
+        call.args[0] == "filtration1"
+        for call in mock_neopool_client.write_timer.await_args_list
+    )
 
 
 async def test_repeated_set_value_writes_only_latest(
@@ -431,12 +426,7 @@ async def test_repeated_set_value_writes_only_latest(
 ) -> None:
     """Two quick set_value calls debounce to a single write of the last value."""
     await setup_integration(hass, mock_config_entry_timers)
-    await _poll(
-        hass,
-        freezer,
-        mock_neopool_client,
-        {**MOCK_POOL_DATA, "filtration1_stop": 12 * 3600},
-    )
+    await _poll(hass, freezer, mock_neopool_client, MOCK_POOL_DATA)
 
     entity_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_start")
     mock_neopool_client.write_timer.reset_mock()
@@ -448,7 +438,7 @@ async def test_repeated_set_value_writes_only_latest(
 
     assert mock_neopool_client.write_timer.await_count == 1
     _timer_name, payload = mock_neopool_client.write_timer.await_args.args
-    assert payload["on"] == 6 * 3600
+    assert payload == {"on": 6 * 3600}
 
 
 async def test_settle_restarts_timer(
@@ -476,7 +466,36 @@ async def test_settle_restarts_timer(
 
     assert mock_neopool_client.write_timer.await_count == 1
     _timer_name, payload = mock_neopool_client.write_timer.await_args.args
-    assert payload["on"] == 6 * 3600
+    assert payload == {"on": 6 * 3600}
+
+
+async def test_no_write_when_settled_value_unchanged(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Setting the value the device already holds writes nothing.
+
+    The settled seconds equal the decoded register, so the EEPROM cycle is
+    skipped and the optimistic state falls back to the device reading.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+    await _poll(
+        hass,
+        freezer,
+        mock_neopool_client,
+        {**MOCK_POOL_DATA, "filtration1_start": 6 * 3600},
+    )
+
+    entity_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_start")
+    mock_neopool_client.write_timer.reset_mock()
+    await _write(hass, freezer, entity_id, dt_time(6, 0))
+
+    mock_neopool_client.write_timer.assert_not_awaited()
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "06:00:00"
 
 
 async def test_coalesced_callers_all_succeed_together(

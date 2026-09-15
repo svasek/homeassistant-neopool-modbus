@@ -21,7 +21,6 @@ from dataclasses import dataclass
 from datetime import datetime, time as dt_time, timedelta
 from typing import Any, Literal, override
 
-from neopool_modbus.decoders import get_timer_interval
 from neopool_modbus.exceptions import NeoPoolError
 
 from homeassistant.components.time import TimeEntity, TimeEntityDescription
@@ -45,10 +44,9 @@ from .const import (
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
-# The platform coalesces rapid writes per entity via a debounce timer. Sibling
-# start/stop of one block recompute the on/interval pair from coordinator data,
-# so each flush writes the same target pair and a platform semaphore would only
-# add latency between independent interactions.
+# The platform coalesces rapid writes per entity via a debounce timer. Each
+# start/stop entity flushes its own endpoint independently, so a platform
+# semaphore would only add latency between independent UI interactions.
 PARALLEL_UPDATES = 0
 
 # Wait for editing to settle so only the final value hits the device's EEPROM.
@@ -306,24 +304,24 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
                     resolved = True
                     return
                 block = self.entity_description.timer_block
-                data = self.coordinator.data
-                # Recompute the on/interval pair from the sibling start/stop so
-                # the settled value and its partner both reach the device.
-                key = f"{block}_{self.entity_description.timer_field}"
-                start_sec = int(
-                    pending
-                    if key == f"{block}_start"
-                    else data.get(f"{block}_start", 0)
+                # The device stores (on, interval); stop is derived. The library
+                # does the read-modify-write, so pass only this entity's endpoint
+                # and let it hold the sibling: start -> on, stop -> stop.
+                lib_key = (
+                    "on" if self.entity_description.timer_field == "start" else "stop"
                 )
-                stop_sec = int(
-                    pending if key == f"{block}_stop" else data.get(f"{block}_stop", 0)
-                )
-                timer_data = {
-                    "on": start_sec,
-                    "interval": get_timer_interval(start_sec, stop_sec),
-                }
+                # Skip the EEPROM cycle if the device already holds this value.
+                if (current := self._decode_raw()) is not None and (
+                    current.hour * 3600 + current.minute * 60 + current.second
+                    == pending % 86400
+                ):
+                    self._clear_pending_if_current(token)
+                    if future is not None and not future.done():
+                        future.set_result(None)
+                    resolved = True
+                    return
                 try:
-                    await self.coordinator.client.write_timer(block, timer_data)
+                    await self.coordinator.client.write_timer(block, {lib_key: pending})
                 except (NeoPoolError, OSError, TimeoutError) as err:
                     self._report_write_failure(
                         future,
@@ -351,7 +349,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
                     # Merge before clearing, else the stale register reading
                     # briefly surfaces as a rollback event.
                     self.coordinator.async_set_updated_data(
-                        {**self.coordinator.data, key: pending}
+                        {**self.coordinator.data, self._key: pending}
                     )
                     self._clear_pending_if_current(token)
                     self.coordinator.request_refresh_with_followup()
