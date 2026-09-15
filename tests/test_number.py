@@ -2,6 +2,7 @@
 
 import asyncio
 from datetime import timedelta
+import gc
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -24,7 +25,7 @@ from homeassistant.components.number import (
 from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT, PERCENTAGE, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import entity_platform, entity_registry as er
 
 from . import setup_integration
 from .conftest import MOCK_POOL_DATA
@@ -424,20 +425,42 @@ async def test_masked_number_state_decodes_field(
     assert shutdown is not None and float(shutdown.state) == 12
 
 
+@pytest.mark.parametrize(
+    ("key_suffix", "flag", "value", "register_result"),
+    [
+        (
+            "mbf_par_hidro_cover_reduction",
+            MaskedFlag.HIDRO_COVER_REDUCTION_PERCENT,
+            50,
+            0x0C32,  # shutdown temp 12 (0x0C) in the high byte, cover 50 (0x32)
+        ),
+        (
+            "mbf_par_hidro_shutdown_temperature",
+            MaskedFlag.HIDRO_SHUTDOWN_TEMPERATURE,
+            15,
+            0x0F19,  # shutdown temp 15 (0x0F) in the high byte, cover 25 (0x19)
+        ),
+    ],
+)
 async def test_masked_number_write_passes_field_value(
     hass: HomeAssistant,
     mock_config_entry_number: MockConfigEntry,
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
+    key_suffix: str,
+    flag: MaskedFlag,
+    value: float,
+    register_result: int,
 ) -> None:
     """Writing one masked number dispatches to async_set_masked_register.
 
     The read-modify-write that keeps the sibling byte intact is a lib concern
-    (``async_set_masked_register`` performs it internally). The entity passes
-    the *field value* (25 -> 50), not the packed 16-bit register.
+    (``async_set_masked_register`` performs it internally). Each entity passes
+    its own *field value*, not the packed 16-bit register, tagged with its own
+    masked flag: the two share register 0x042D but map to distinct fields.
     """
     mock_neopool_client.async_set_masked_register = AsyncMock(
-        return_value={"MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C32}
+        return_value={"MBF_PAR_HIDRO_COVER_REDUCTION": register_result}
     )
 
     await setup_integration(hass, mock_config_entry_number)
@@ -448,19 +471,50 @@ async def test_masked_number_write_passes_field_value(
         {**MOCK_POOL_DATA, "MBF_PAR_HIDRO_COVER_REDUCTION": 0x0C19},
     )
 
-    cover_id = _number_entity_id(
-        hass, mock_config_entry_number, "mbf_par_hidro_cover_reduction"
-    )
+    entity_id = _number_entity_id(hass, mock_config_entry_number, key_suffix)
     mock_neopool_client.async_set_masked_register.reset_mock()
 
-    await _write(hass, freezer, cover_id, 50)
+    await _write(hass, freezer, entity_id, value)
 
-    mock_neopool_client.async_set_masked_register.assert_awaited_once_with(
-        MaskedFlag.HIDRO_COVER_REDUCTION_PERCENT, 50
-    )
-    state = hass.states.get(cover_id)
+    mock_neopool_client.async_set_masked_register.assert_awaited_once_with(flag, value)
+    state = hass.states.get(entity_id)
     assert state is not None
-    assert float(state.state) == 50
+    assert float(state.state) == value
+
+
+async def test_write_works_after_entity_id_change(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry_number: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A write still reaches the device after the entity is renamed.
+
+    Changing the entity ID removes and re-adds the same object. If removal
+    leaves the removing flag set, every later flush aborts and the write never
+    reaches the device, so the write must run against the new entity ID.
+    """
+    mock_neopool_client.async_set_setpoint = AsyncMock(
+        return_value={"MBF_PAR_PH1": 750}
+    )
+    await setup_integration(hass, mock_config_entry_number)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry_number, "mbf_par_ph1")
+    new_entity_id = f"{ph1_entity_id}_renamed"
+    entity_registry.async_update_entity(ph1_entity_id, new_entity_id=new_entity_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(new_entity_id) is not None
+
+    mock_neopool_client.async_set_setpoint.reset_mock()
+    await _write(hass, freezer, new_entity_id, 7.5)
+
+    mock_neopool_client.async_set_setpoint.assert_awaited_once_with(
+        SetpointKind.PH_MAX, 750
+    )
+    state = hass.states.get(new_entity_id)
+    assert state is not None
+    assert float(state.state) == 7.5
 
 
 async def test_masked_writes_are_serialized(
@@ -512,6 +566,56 @@ async def test_masked_writes_are_serialized(
 
     assert not overlap
     assert mock_neopool_client.async_set_masked_register.await_count == 2
+
+
+def _get_number_entity(hass: HomeAssistant, entity_id: str) -> Any:
+    """Return the live NeoPoolNumber object for entity_id."""
+    for platform in entity_platform.async_get_platforms(hass, "neopool"):
+        if entity_id in platform.entities:
+            return platform.entities[entity_id]
+    raise AssertionError(f"no number entity {entity_id}")
+
+
+async def test_flush_aborts_when_removed_while_holding_lock(
+    hass: HomeAssistant,
+    mock_config_entry_number: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A flush that finds the entity removed after winning the lock aborts.
+
+    Removal normally cancels every tracked flush task, so this in-lock guard
+    only fires if a flush wins the lock in the same tick removal flips the
+    flag. Drive that race directly: hold the flush lock from the test, flip
+    removing, then release the lock so the parked flush hits the guard before
+    it touches the device.
+    """
+    mock_neopool_client.async_set_setpoint = AsyncMock(
+        return_value={"MBF_PAR_PH1": 750}
+    )
+    await setup_integration(hass, mock_config_entry_number)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry_number, "mbf_par_ph1")
+    entity = _get_number_entity(hass, ph1_entity_id)
+
+    await entity._flush_lock.acquire()
+    task = _set_value_nowait(hass, ph1_entity_id, 7.5)
+    await _let_park(hass)
+    # Fire the debounce timer without async_block_till_done: the flush task
+    # parks on the lock we hold, so waiting on it here would deadlock.
+    freezer.tick(FLUSH)
+    async_fire_time_changed(hass)
+    await _let_park(hass)
+
+    # The flush is parked on the lock the test holds. Flip removing, then hand
+    # the lock over so the flush enters and aborts at the in-lock guard.
+    entity._removing = True
+    entity._flush_lock.release()
+    await task
+
+    # The guard aborted before any device write.
+    mock_neopool_client.async_set_setpoint.assert_not_awaited()
+    entity._removing = False
 
 
 @pytest.mark.parametrize(
@@ -643,6 +747,63 @@ async def test_coalesced_callers_all_raise_together(
         SetpointKind.PH_MAX, 750
     )
     assert all(isinstance(r, HomeAssistantError) for r in results)
+
+
+async def test_failed_write_survives_a_cancelled_coalesced_caller(
+    hass: HomeAssistant,
+    mock_config_entry_number: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A failed coalesced write raises for the survivor and logs no warning.
+
+    Two callers share one coalesce future; one is cancelled before the delayed
+    write fails. Cancelling a caller makes asyncio.shield attach its own logger
+    to the shared future, so failing it via set_exception would be reported as
+    an unretrieved error at teardown. The write instead carries its outcome as
+    the future's result, so the survivor still re-raises the device error and
+    no "exception in shielded future" warning is logged.
+    """
+    in_write = asyncio.Event()
+    release = asyncio.Event()
+
+    async def _blocking_boom(kind: SetpointKind, value: int) -> dict[str, Any]:
+        in_write.set()
+        await release.wait()
+        raise NeoPoolConnectionError("boom")
+
+    mock_neopool_client.async_set_setpoint = AsyncMock(side_effect=_blocking_boom)
+    await setup_integration(hass, mock_config_entry_number)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry_number, "mbf_par_ph1")
+
+    # Two callers coalesce onto one batch; the write enters the library call and
+    # blocks there, so both are parked on the shared shielded future.
+    victim = _set_value_nowait(hass, ph1_entity_id, 7.5)
+    survivor = _set_value_nowait(hass, ph1_entity_id, 7.5)
+    await _let_park(hass)
+    freezer.tick(FLUSH)
+    async_fire_time_changed(hass)
+    await in_write.wait()
+
+    # Cancel one caller; the shield spares the batch, so the write still runs.
+    victim.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await victim
+
+    # Let the shielded write finish and fail; the survivor observes the error.
+    release.set()
+    with pytest.raises(HomeAssistantError):
+        await survivor
+    await hass.async_block_till_done()
+
+    # Force a GC pass so any unretrieved shielded future would surface a warning.
+    gc.collect()
+    await asyncio.sleep(0)
+
+    assert "exception in shielded future" not in caplog.text
+    assert "exception was never retrieved" not in caplog.text
 
 
 async def test_write_queued_during_flush_gets_its_own_outcome(
@@ -1137,6 +1298,126 @@ async def test_queued_flush_aborts_after_lock_when_removed(
     mock_neopool_client.async_set_setpoint.assert_awaited_once_with(
         SetpointKind.PH_MAX, 700
     )
+
+
+async def test_client_close_waits_for_inflight_flush(
+    hass: HomeAssistant,
+    mock_config_entry_number: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """The client close waits for an in-flight flush, so no write outlives it.
+
+    Removal cancels the flush task and awaits it before ``async_unload_entry``
+    closes the client, so the device call has unwound by the time the client
+    goes away. A close reaching a live connection while the write is still in
+    the library call would race the teardown.
+    """
+    in_write = asyncio.Event()
+    write_active = False
+    close_saw_write_active: bool | None = None
+
+    async def _blocking_setpoint(kind: SetpointKind, value: int) -> dict[str, Any]:
+        nonlocal write_active
+        write_active = True
+        in_write.set()
+        try:
+            # Never released: removal must cancel this to let the unload finish.
+            await asyncio.Event().wait()
+            return {"MBF_PAR_PH1": value}
+        finally:
+            write_active = False
+
+    async def _record_close() -> None:
+        nonlocal close_saw_write_active
+        close_saw_write_active = write_active
+
+    mock_neopool_client.async_set_setpoint = AsyncMock(side_effect=_blocking_setpoint)
+    mock_neopool_client.close = AsyncMock(side_effect=_record_close)
+    await setup_integration(hass, mock_config_entry_number)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry_number, "mbf_par_ph1")
+    task = _set_value_nowait(hass, ph1_entity_id, 7.5)
+    await _let_park(hass)
+
+    # Let the timer fire and the write enter the library call, then block there.
+    freezer.tick(FLUSH)
+    async_fire_time_changed(hass)
+    await in_write.wait()
+
+    # Unload while the write is in flight. Removal cancels and awaits the flush
+    # task, unwinding the setpoint call, so the unload completes without a hang.
+    assert await hass.config_entries.async_unload(mock_config_entry_number.entry_id)
+    await hass.async_block_till_done(wait_background_tasks=True)
+
+    await task
+    mock_neopool_client.close.assert_awaited_once()
+    # The in-flight device call had unwound before the client was closed.
+    assert close_saw_write_active is False
+
+
+async def test_client_close_waits_for_all_overlapping_flushes(
+    hass: HomeAssistant,
+    mock_config_entry_number: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Removal cancels every overlapping flush, not just the most recent one.
+
+    Two set_value calls spaced beyond the settle delay start two flush tasks.
+    The first is inside the library call (holding the flush lock) when the
+    second fires and blocks on that lock. Tracking only the latest task would
+    leave the first device call live past removal, racing the client close.
+    """
+    in_write = asyncio.Event()
+    write_active = False
+    close_saw_write_active: bool | None = None
+
+    async def _blocking_setpoint(kind: SetpointKind, value: int) -> dict[str, Any]:
+        nonlocal write_active
+        write_active = True
+        in_write.set()
+        try:
+            # Never released: removal must cancel this to let the unload finish.
+            await asyncio.Event().wait()
+            return {"MBF_PAR_PH1": value}
+        finally:
+            write_active = False
+
+    async def _record_close() -> None:
+        nonlocal close_saw_write_active
+        close_saw_write_active = write_active
+
+    mock_neopool_client.async_set_setpoint = AsyncMock(side_effect=_blocking_setpoint)
+    mock_neopool_client.close = AsyncMock(side_effect=_record_close)
+    await setup_integration(hass, mock_config_entry_number)
+
+    ph1_entity_id = _number_entity_id(hass, mock_config_entry_number, "mbf_par_ph1")
+
+    # First write enters the library call and blocks, holding the flush lock.
+    first = _set_value_nowait(hass, ph1_entity_id, 7.0)
+    await _let_park(hass)
+    freezer.tick(FLUSH)
+    async_fire_time_changed(hass)
+    await in_write.wait()
+
+    # A second value's flush fires while the first is in flight; it blocks on
+    # the flush lock as a separate task, so two flush tasks are now active.
+    second = _set_value_nowait(hass, ph1_entity_id, 8.0)
+    await _let_park(hass)
+    freezer.tick(FLUSH)
+    async_fire_time_changed(hass)
+    await _let_park(hass)
+
+    # Unload must cancel and await both tasks, including the first still in the
+    # library call, before the client closes.
+    assert await hass.config_entries.async_unload(mock_config_entry_number.entry_id)
+    await hass.async_block_till_done(wait_background_tasks=True)
+
+    await first
+    await second
+    mock_neopool_client.close.assert_awaited_once()
+    assert close_saw_write_active is False
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
