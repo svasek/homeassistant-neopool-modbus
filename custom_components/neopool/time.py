@@ -63,6 +63,13 @@ class NeoPoolTimeEntityDescription(TimeEntityDescription):
     translation_placeholders: dict[str, str] | None = None
 
 
+def _option_supported(
+    opt_flag: str,
+) -> Callable[[dict[str, Any], Mapping[str, Any]], bool]:
+    """Return a supported_fn gating an entity on the given option flag."""
+    return lambda _data, opts: bool(opts.get(opt_flag))
+
+
 _TIMER_BLOCKS: tuple[tuple[str, str, bool], ...] = (
     ("filtration1", CONF_USE_FILTRATION1, True),
     ("filtration2", CONF_USE_FILTRATION2, True),
@@ -107,7 +114,7 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
                 entity_registry_enabled_default=enabled_default,
                 timer_block=block,
                 timer_field=field,
-                supported_fn=lambda data, opts, _flag=opt_flag: bool(opts.get(_flag)),
+                supported_fn=_option_supported(opt_flag),
             )
     return out
 
