@@ -137,8 +137,11 @@ async def _poll(
     Filtration timer fields land in coordinator data via read_all_timers, not
     async_read_all, so any filtration1_start/stop override in ``data`` is
     reflected into the mocked timer block (start -> on, stop -> stop).
+
+    Copy ``data`` so the coordinator's in-place merge cannot mutate a shared
+    module-level dict.
     """
-    mock_client.async_read_all.return_value = data
+    mock_client.async_read_all.return_value = dict(data)
     start = data.get("filtration1_start")
     stop = data.get("filtration1_stop")
 

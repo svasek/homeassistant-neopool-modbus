@@ -146,7 +146,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': '00:00:00',
+    'state': 'unknown',
   })
 # ---
 # name: test_all_entities[time.neopool_timer_1_filtration_stop-entry]
