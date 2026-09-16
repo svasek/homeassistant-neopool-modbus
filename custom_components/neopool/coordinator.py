@@ -45,6 +45,10 @@ from .const import (
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_FILTRATION_PUMP_POWER,
     CONF_SCAN_INTERVAL,
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
     CONF_USE_LIGHT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -53,6 +57,20 @@ from .const import (
 from .helpers import is_device_time_out_of_sync, prepare_device_time
 
 _FILT_TIMERS = ("filtration1", "filtration2", "filtration3")
+
+# Config option gating each aux and light timer block. Base and second-subtimer
+# aux blocks share the same option; the b subtimer additionally needs context.
+_TIMER_OPTIONS: dict[str, str] = {
+    "relay_aux1": CONF_USE_AUX1,
+    "relay_aux1b": CONF_USE_AUX1,
+    "relay_aux2": CONF_USE_AUX2,
+    "relay_aux2b": CONF_USE_AUX2,
+    "relay_aux3": CONF_USE_AUX3,
+    "relay_aux3b": CONF_USE_AUX3,
+    "relay_aux4": CONF_USE_AUX4,
+    "relay_aux4b": CONF_USE_AUX4,
+    "relay_light": CONF_USE_LIGHT,
+}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -197,11 +215,8 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 active.update(ctx)
         enabled: list[str] = []
         for key in TIMER_BLOCKS:
-            if key.startswith("relay_aux"):
-                option_key = f"use_aux{key[len('relay_aux')]}"
-            elif key == "relay_light":
-                option_key = CONF_USE_LIGHT
-            else:
+            option_key = _TIMER_OPTIONS.get(key)
+            if option_key is None:
                 # Filtration timers gate on context below, not an option.
                 continue
             if not options.get(option_key, False):
