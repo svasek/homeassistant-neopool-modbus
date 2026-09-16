@@ -19,6 +19,7 @@ from custom_components.neopool.const import (
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
+    CONF_USE_AUX1,
     CURRENT_VERSION,
     DOMAIN,
 )
@@ -731,3 +732,73 @@ async def test_filtration_remaining_enabled_polls_all_three(
     assert "filtration1" in enabled_timers
     assert "filtration2" in enabled_timers
     assert "filtration3" in enabled_timers
+
+
+async def test_aux_base_polls_but_b_subtimer_gated_when_disabled(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """With use_aux1 on, the base block polls but the second subtimer does not.
+
+    relay_aux1 stays option-gated (the aux switch needs its enable state); the
+    relay_aux1b start/stop and period entities are registry-disabled by default,
+    so they never register a context and the block stays out of the read.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_gate_aux_default",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.22",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp", CONF_USE_AUX1: True},
+    )
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, entry)
+    await _poll_once_more(hass, entry.runtime_data, freezer)
+
+    enabled_timers = calls[-1][0]
+    assert enabled_timers is not None
+    assert "relay_aux1" in enabled_timers
+    assert "relay_aux1b" not in enabled_timers
+
+
+async def test_aux_b_subtimer_polls_when_enabled(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+    entity_registry_enabled_by_default: None,
+) -> None:
+    """Enabling the second aux subtimer's entities starts polling its block.
+
+    With every entity enabled, relay_aux1b start/stop and period register their
+    block as an update context, so it joins the read alongside the base block.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_gate_aux_b",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.23",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp", CONF_USE_AUX1: True},
+    )
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, entry)
+    await _poll_once_more(hass, entry.runtime_data, freezer)
+
+    enabled_timers = calls[-1][0]
+    assert enabled_timers is not None
+    assert "relay_aux1" in enabled_timers
+    assert "relay_aux1b" in enabled_timers

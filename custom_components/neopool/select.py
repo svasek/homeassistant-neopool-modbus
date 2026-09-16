@@ -605,7 +605,11 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         description: NeoPoolSelectEntityDescription,
     ) -> None:
         """Initialize the NeoPool select entity."""
-        super().__init__(coordinator)
+        # The second aux subtimer's period select gates its block on context;
+        # other selects need none.
+        block = key.removesuffix("_period").removesuffix("_mode")
+        context = block if block.endswith("b") else None
+        super().__init__(coordinator, context=context)
         self.entity_description = description
         self.key = key
         if description.translation_placeholders is not None:

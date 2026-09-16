@@ -180,8 +180,21 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
 
     def _get_enabled_timers(self, data: dict[str, Any]) -> list[str]:
-        """Return the list of timer block names enabled in entry options."""
+        """Return the timer block names to poll.
+
+        Base aux and light blocks poll on their config option. The second aux
+        subtimer and filtration blocks additionally require an active context,
+        so they poll only while one of their entities is enabled. A context is a
+        block name or a collection of them (FILTRATION_REMAINING spans all three
+        filtration blocks).
+        """
         options = self.config_entry.options
+        active: set[str] = set()
+        for ctx in self.async_contexts():
+            if isinstance(ctx, str):
+                active.add(ctx)
+            elif isinstance(ctx, (set, frozenset, tuple, list)):
+                active.update(ctx)
         enabled: list[str] = []
         for key in TIMER_BLOCKS:
             if key.startswith("relay_aux"):
@@ -189,28 +202,22 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             elif key == "relay_light":
                 option_key = CONF_USE_LIGHT
             else:
-                # Filtration timers are gated on active update contexts below,
-                # not on an option flag.
+                # Filtration timers gate on context below, not an option.
                 continue
             if not options.get(option_key, False):
                 continue
-            # Skip if the lighting GPIO is invalid; the light entity gates
-            # on the same condition, so relay_light_enable has no consumer.
+            # Base blocks stay option-gated so the aux switch / light entity
+            # keep their enable state for the write guard; the b subtimer
+            # (time + select only) also needs an active context.
+            if key.endswith("b") and key not in active:
+                continue
+            # Light GPIO invalid: the light entity gates the same, so
+            # relay_light_enable has no consumer.
             if key == "relay_light" and not is_valid_relay_gpio(
                 data.get("MBF_PAR_LIGHTING_GPIO", 0) or 0
             ):
                 continue
             enabled.append(key)
-        # A filtration timer is polled only while at least one of its entities
-        # is enabled, signalled by that entity's coordinator update context. A
-        # context is either a block name (time start/stop) or a collection of
-        # them (the FILTRATION_REMAINING sensor spans all three).
-        active: set[str] = set()
-        for ctx in self.async_contexts():
-            if isinstance(ctx, str):
-                active.add(ctx)
-            elif isinstance(ctx, (set, frozenset, tuple, list)):
-                active.update(ctx)
         enabled += [ft for ft in _FILT_TIMERS if ft in active]
         return enabled
 

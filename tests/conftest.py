@@ -203,9 +203,13 @@ MOCK_TIMER_BLOCKS: dict[str, dict[str, Any]] = {
     "filtration2": _timer_block(),
     "filtration3": _timer_block(),
     "relay_aux1": _timer_block(),
+    "relay_aux1b": _timer_block(),
     "relay_aux2": _timer_block(),
+    "relay_aux2b": _timer_block(),
     "relay_aux3": _timer_block(),
+    "relay_aux3b": _timer_block(),
     "relay_aux4": _timer_block(),
+    "relay_aux4b": _timer_block(),
 }
 
 

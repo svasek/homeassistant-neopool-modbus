@@ -152,10 +152,13 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         description: NeoPoolTimeEntityDescription,
     ) -> None:
         """Initialize the entity."""
-        # Filtration timers poll only while an entity is enabled; register the
-        # block as update context so the coordinator can gate the read. Option-
-        # gated blocks need no context.
-        context = description.timer_block if description.supported_fn is None else None
+        # Filtration and the second aux subtimer poll only while an entity is
+        # enabled; register the block as context so the coordinator can gate.
+        # Base aux and light poll on their option flag, so they need none.
+        block = description.timer_block
+        context = (
+            block if (description.supported_fn is None or block.endswith("b")) else None
+        )
         super().__init__(coordinator, context=context)
         self.entity_description = description
         self._key = key
