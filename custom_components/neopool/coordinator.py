@@ -189,7 +189,9 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             elif key == "relay_light":
                 option_key = CONF_USE_LIGHT
             else:
-                option_key = f"use_{key}"
+                # Filtration timers always read (back FILTRATION_REMAINING);
+                # appended unconditionally below.
+                continue
             if not options.get(option_key, False):
                 continue
             # Skip if the lighting GPIO is invalid; the light entity gates

@@ -14,7 +14,7 @@
 
 """Base entity class for the NeoPool integration."""
 
-from typing import override
+from typing import Any, override
 
 from neopool_modbus.decoders import (
     decode_par_model_modules,
@@ -45,9 +45,9 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     _attr_has_entity_name = True
     _unavailable_in_winter_mode: bool = True
 
-    def __init__(self, coordinator: NeoPoolCoordinator) -> None:
+    def __init__(self, coordinator: NeoPoolCoordinator, context: Any = None) -> None:
         """Initialise the NeoPool base entity."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, context=context)
 
     @property
     @override

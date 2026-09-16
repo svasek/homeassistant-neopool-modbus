@@ -35,9 +35,6 @@ from .const import (
     CONF_USE_AUX2,
     CONF_USE_AUX3,
     CONF_USE_AUX4,
-    CONF_USE_FILTRATION1,
-    CONF_USE_FILTRATION2,
-    CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
     DOMAIN,
 )
@@ -70,10 +67,13 @@ def _option_supported(
     return lambda _data, opts: bool(opts.get(opt_flag))
 
 
-_TIMER_BLOCKS: tuple[tuple[str, str, bool], ...] = (
-    ("filtration1", CONF_USE_FILTRATION1, True),
-    ("filtration2", CONF_USE_FILTRATION2, True),
-    ("filtration3", CONF_USE_FILTRATION3, True),
+# Filtration timers exist on every device, so they are not option-gated:
+# filtration1 is enabled by default, filtration2/3 created disabled. Aux and
+# light timers stay gated on their option flags.
+_TIMER_BLOCKS: tuple[tuple[str, str | None, bool], ...] = (
+    ("filtration1", None, True),
+    ("filtration2", None, False),
+    ("filtration3", None, False),
     ("relay_aux1", CONF_USE_AUX1, True),
     ("relay_aux1b", CONF_USE_AUX1, False),
     ("relay_aux2", CONF_USE_AUX2, True),
@@ -114,7 +114,9 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
                 entity_registry_enabled_default=enabled_default,
                 timer_block=block,
                 timer_field=field,
-                supported_fn=_option_supported(opt_flag),
+                supported_fn=(
+                    _option_supported(opt_flag) if opt_flag is not None else None
+                ),
             )
     return out
 
@@ -150,7 +152,11 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         description: NeoPoolTimeEntityDescription,
     ) -> None:
         """Initialize the entity."""
-        super().__init__(coordinator)
+        # Filtration timers poll only while an entity is enabled; register the
+        # block as update context so the coordinator can gate the read. Option-
+        # gated blocks need no context.
+        context = description.timer_block if description.supported_fn is None else None
+        super().__init__(coordinator, context=context)
         self.entity_description = description
         self._key = key
         if description.translation_placeholders is not None:

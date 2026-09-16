@@ -610,9 +610,6 @@
                     "use_aux3": "Aux3-Relais aktivieren",
                     "use_aux4": "Aux4-Relais aktivieren",
                     "use_cover_sensor": "Abdeckungssensor aktivieren",
-                    "use_filtration1": "1. Filter-Timer für Automatikbetrieb aktivieren",
-                    "use_filtration2": "2. Filter-Timer für Automatikbetrieb aktivieren",
-                    "use_filtration3": "3. Filter-Timer für Automatikbetrieb aktivieren",
                     "use_light": "Licht-Relais aktivieren"
                 },
                 "data_description": {
@@ -625,9 +622,6 @@
                     "use_aux3": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
                     "use_aux4": "Erstellt Schalter- und Timer-Entitäten für diesen Hilfsrelais-Ausgang.",
                     "use_cover_sensor": "Erstellt einen Binärsensor und aktiviert den Schalter zur Hydrolyse-Reduzierung bei Abdeckung.",
-                    "use_filtration1": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
-                    "use_filtration2": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
-                    "use_filtration3": "Erstellt Timer-Entitäten zur Konfiguration des automatischen Filterplans.",
                     "use_light": "Erstellt Entitäten zur Steuerung und Überwachung des Licht-Relais."
                 },
                 "description": "ACHTUNG: Das Ändern der aktivierten Relais lädt die Integration automatisch neu! Änderungen werden sofort wirksam.",
