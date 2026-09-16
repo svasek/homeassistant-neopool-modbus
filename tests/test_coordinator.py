@@ -310,7 +310,10 @@ async def test_auto_time_sync_writes_when_drift_detected(
         },
     )
     await setup_integration(hass, entry)
-    assert mock_neopool_client.async_sync_device_time.await_count == 1
+    # The time entities seed a refresh once their context registers, so a second
+    # poll may re-detect the (static-mock) drift; assert the sync ran, not how
+    # many times.
+    assert mock_neopool_client.async_sync_device_time.await_count >= 1
 
 
 # CUSTOM-ONLY END
@@ -560,6 +563,12 @@ async def test_follow_up_refresh_callback_runs(
     await setup_integration(hass, mock_config_entry)
     coordinator = mock_config_entry.runtime_data
 
+    # Let the setup-time seed refresh's debounce cooldown (10s) lapse without
+    # tripping the scheduled poll, so the follow-up refresh below is not
+    # coalesced into that debounce window.
+    freezer.tick(timedelta(seconds=11))
+    await hass.async_block_till_done()
+
     initial_count = mock_neopool_client.async_read_all.await_count
     coordinator.request_refresh_with_followup(delay=0.1)
     freezer.tick(timedelta(seconds=0.2))
@@ -697,11 +706,11 @@ async def test_no_filtration_polled_when_all_entities_disabled(
     assert "filtration3" not in enabled_timers
 
 
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_filtration_remaining_enabled_polls_all_three(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
-    entity_registry_enabled_by_default: None,
 ) -> None:
     """Enabling FILTRATION_REMAINING keeps all three filtration blocks polled.
 
@@ -769,11 +778,11 @@ async def test_aux_base_polls_but_b_subtimer_gated_when_disabled(
     assert "relay_aux1b" not in enabled_timers
 
 
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_aux_b_subtimer_polls_when_enabled(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
     freezer: FrozenDateTimeFactory,
-    entity_registry_enabled_by_default: None,
 ) -> None:
     """Enabling the second aux subtimer's entities starts polling its block.
 

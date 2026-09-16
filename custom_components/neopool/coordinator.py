@@ -15,6 +15,7 @@
 """Data update coordinator for the NeoPool integration."""
 
 import asyncio
+from collections import defaultdict
 from datetime import timedelta
 import json
 import logging
@@ -116,6 +117,12 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._follow_up_unsub: CALLBACK_TYPE | None = None
         # Serializes masked read-modify-write across siblings sharing a register.
         self.masked_write_lock = asyncio.Lock()
+        # One lock per timer block serializes the library's read-modify-write
+        # across the block's start/stop sibling entities, which share a register
+        # set. Distinct blocks keep distinct locks, so they still write freely.
+        self._timer_write_locks: defaultdict[str, asyncio.Lock] = defaultdict(
+            asyncio.Lock
+        )
         # None (not frozenset()) so the first poll clears any stale issue
         # persisted from a previous session.
         self._corrupted_gpio_state: frozenset[tuple[str, int]] | None = None
@@ -146,6 +153,10 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._follow_up_unsub:
             self._follow_up_unsub()
             self._follow_up_unsub = None
+
+    def timer_write_lock(self, block: str) -> asyncio.Lock:
+        """Return the lock serializing sibling writes to one timer block."""
+        return self._timer_write_locks[block]
 
     def _schedule_follow_up_refresh(self, delay: float) -> None:
         """Schedule a delayed follow-up refresh."""
