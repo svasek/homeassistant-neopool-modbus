@@ -199,6 +199,9 @@ def _timer_block(enable: int = 4) -> dict[str, Any]:
 
 
 MOCK_TIMER_BLOCKS: dict[str, dict[str, Any]] = {
+    "filtration1": _timer_block(),
+    "filtration2": _timer_block(),
+    "filtration3": _timer_block(),
     "relay_aux1": _timer_block(),
     "relay_aux2": _timer_block(),
     "relay_aux3": _timer_block(),

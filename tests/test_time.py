@@ -23,7 +23,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
-from .conftest import MOCK_POOL_DATA
+from .conftest import MOCK_POOL_DATA, _read_all_timers
 
 # Longer than the entity's settle delay so a single tick flushes the write.
 FLUSH = timedelta(seconds=5)
@@ -132,8 +132,28 @@ async def _poll(
     mock_client: MagicMock,
     data: dict[str, Any],
 ) -> None:
-    """Push a coordinator poll returning ``data``."""
+    """Push a coordinator poll returning ``data``.
+
+    Filtration timer fields land in coordinator data via read_all_timers, not
+    async_read_all, so any filtration1_start/stop override in ``data`` is
+    reflected into the mocked timer block (start -> on, stop -> stop).
+    """
     mock_client.async_read_all.return_value = data
+    start = data.get("filtration1_start")
+    stop = data.get("filtration1_stop")
+
+    def _timers(
+        enabled_timers: list[str] | None = None, **_kwargs: Any
+    ) -> dict[str, dict[str, Any]]:
+        blocks = _read_all_timers(enabled_timers)
+        if "filtration1" in blocks:
+            if start is not None:
+                blocks["filtration1"]["on"] = start
+            if stop is not None:
+                blocks["filtration1"]["stop"] = stop
+        return blocks
+
+    mock_client.read_all_timers.side_effect = _timers
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
@@ -173,8 +193,21 @@ async def test_native_value_returns_none_when_data_missing(
 ) -> None:
     """Missing coordinator key surfaces as 'unknown'."""
     await setup_integration(hass, mock_config_entry_timers)
-    reduced = {k: v for k, v in MOCK_POOL_DATA.items() if k != "filtration1_start"}
-    await _poll(hass, freezer, mock_neopool_client, reduced)
+    # A timer block with on=None leaves filtration1_start absent from data.
+    mock_neopool_client.read_all_timers.side_effect = None
+    mock_neopool_client.read_all_timers.return_value = {
+        "filtration1": {
+            "enable": 0,
+            "on": None,
+            "interval": None,
+            "stop": None,
+            "period": None,
+            "countdown": 0,
+        }
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_start")
     state = hass.states.get(entity_id)

@@ -189,8 +189,8 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             elif key == "relay_light":
                 option_key = CONF_USE_LIGHT
             else:
-                # Filtration timers always read (back FILTRATION_REMAINING);
-                # appended unconditionally below.
+                # Filtration timers are gated on active update contexts below,
+                # not on an option flag.
                 continue
             if not options.get(option_key, False):
                 continue
@@ -201,20 +201,36 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ):
                 continue
             enabled.append(key)
-        for ft in _FILT_TIMERS:
-            if ft not in enabled:
-                enabled.append(ft)
+        # A filtration timer is polled only while at least one of its entities
+        # is enabled, signalled by that entity's coordinator update context. A
+        # context is either a block name (time start/stop) or a collection of
+        # them (the FILTRATION_REMAINING sensor spans all three).
+        active: set[str] = set()
+        for ctx in self.async_contexts():
+            if isinstance(ctx, str):
+                active.add(ctx)
+            elif isinstance(ctx, (set, frozenset, tuple, list)):
+                active.update(ctx)
+        enabled += [ft for ft in _FILT_TIMERS if ft in active]
         return enabled
 
     async def _read_timers_into_data(self, data: dict[str, Any]) -> None:
         """Read every enabled timer block and merge derived fields into data."""
+        enabled_timers = self._get_enabled_timers(data)
+        # FILTRATION_REMAINING must stay fresh while the pump runs, so force-read
+        # the gated-in filtration blocks even if their countdown looks static.
         prev_remaining = self.data.get("FILTRATION_REMAINING") if self.data else None
         filtration_active = bool(data.get("Filtration Pump")) or bool(
             prev_remaining and prev_remaining > 0
         )
+        force_read = (
+            [ft for ft in _FILT_TIMERS if ft in enabled_timers]
+            if filtration_active
+            else None
+        )
         timers = await self.client.read_all_timers(
-            enabled_timers=self._get_enabled_timers(data),
-            force_read=_FILT_TIMERS if filtration_active else None,
+            enabled_timers=enabled_timers,
+            force_read=force_read,
         )
         for t_name, t in timers.items():
             data[f"{t_name}_enable"] = t["enable"]
