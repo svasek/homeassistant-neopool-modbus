@@ -29,9 +29,6 @@ from custom_components.neopool.const import (
     CONF_USE_AUX3,
     CONF_USE_AUX4,
     CONF_USE_COVER_SENSOR,
-    CONF_USE_FILTRATION1,
-    CONF_USE_FILTRATION2,
-    CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
     CURRENT_VERSION,
     DEFAULT_UNIT_ID,
@@ -289,9 +286,6 @@ async def test_options_flow_save_changes(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            CONF_USE_FILTRATION1: False,
-            CONF_USE_FILTRATION2: False,
-            CONF_USE_FILTRATION3: False,
             CONF_USE_LIGHT: True,
             CONF_USE_COVER_SENSOR: False,
             CONF_USE_AUX1: False,
@@ -313,7 +307,6 @@ async def test_options_flow_save_changes(
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options[CONF_USE_LIGHT] is True
-    assert mock_config_entry.options[CONF_USE_FILTRATION1] is False
     # CUSTOM-ONLY START, automatic device-time sync is HACS-only.
     assert mock_config_entry.options[CONF_AUTO_TIME_SYNC] is True
     # CUSTOM-ONLY END
@@ -353,9 +346,6 @@ async def test_options_flow_preserves_capability_snapshot(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            CONF_USE_FILTRATION1: False,
-            CONF_USE_FILTRATION2: False,
-            CONF_USE_FILTRATION3: False,
             CONF_USE_LIGHT: True,
             CONF_USE_COVER_SENSOR: False,
             CONF_USE_AUX1: False,
@@ -394,9 +384,6 @@ async def test_options_flow_advanced_section_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            CONF_USE_FILTRATION1: False,
-            CONF_USE_FILTRATION2: False,
-            CONF_USE_FILTRATION3: False,
             CONF_USE_LIGHT: False,
             CONF_USE_COVER_SENSOR: False,
             CONF_USE_AUX1: False,

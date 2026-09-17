@@ -429,9 +429,6 @@
           "use_aux3": "Enable Aux3 Relay",
           "use_aux4": "Enable Aux4 Relay",
           "use_cover_sensor": "Enable Pool Cover Sensor",
-          "use_filtration1": "Enable 1st filtration timer for automatic mode",
-          "use_filtration2": "Enable 2nd filtration timer for automatic mode",
-          "use_filtration3": "Enable 3rd filtration timer for automatic mode",
           "use_light": "Enable Light Relay"
         },
         "data_description": {
@@ -444,9 +441,6 @@
           "use_aux3": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
           "use_aux4": "[%key:component::neopool::options::step::init::data_description::use_aux1%]",
           "use_cover_sensor": "Creates a binary sensor and enables the hydrolysis cover reduction switch.",
-          "use_filtration1": "Creates timer entities for configuring automatic filtration schedule.",
-          "use_filtration2": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",
-          "use_filtration3": "[%key:component::neopool::options::step::init::data_description::use_filtration1%]",
           "use_light": "Creates entities to control and monitor the pool light relay."
         },
         "sections": {

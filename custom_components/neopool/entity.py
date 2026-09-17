@@ -45,10 +45,6 @@ class NeoPoolEntity(CoordinatorEntity[NeoPoolCoordinator]):
     _attr_has_entity_name = True
     _unavailable_in_winter_mode: bool = True
 
-    def __init__(self, coordinator: NeoPoolCoordinator) -> None:
-        """Initialise the NeoPool base entity."""
-        super().__init__(coordinator)
-
     @property
     @override
     def available(self) -> bool:
