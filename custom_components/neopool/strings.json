@@ -408,6 +408,9 @@
     "write_failed": { "message": "Write to register {address} failed" },
     "write_verification_failed": {
       "message": "Write verification failed at {address}: wrote {value}, read back {confirmed}"
+    },
+    "winter_mode_active": {
+      "message": "This service is unavailable because polling is disabled for this device. Re-enable polling in the device's system options to communicate with the controller."
     }
   },
   "issues": {
