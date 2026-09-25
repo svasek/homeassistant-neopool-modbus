@@ -200,7 +200,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
             return None
         try:
             seconds = int(seconds) % 86400
-        except (TypeError, ValueError):  # pragma: no cover
+        except TypeError, ValueError:  # pragma: no cover
             return None
         return dt_time(
             hour=seconds // 3600,
