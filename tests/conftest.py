@@ -20,9 +20,6 @@ from custom_components.neopool.const import (
     CONF_USE_AUX3,
     CONF_USE_AUX4,
     CONF_USE_COVER_SENSOR,
-    CONF_USE_FILTRATION1,
-    CONF_USE_FILTRATION2,
-    CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
     CURRENT_VERSION,
     DEFAULT_PORT,
@@ -202,10 +199,18 @@ def _timer_block(enable: int = 4) -> dict[str, Any]:
 
 
 MOCK_TIMER_BLOCKS: dict[str, dict[str, Any]] = {
+    "filtration1": _timer_block(),
+    "filtration2": _timer_block(),
+    "filtration3": _timer_block(),
     "relay_aux1": _timer_block(),
+    "relay_aux1b": _timer_block(),
     "relay_aux2": _timer_block(),
+    "relay_aux2b": _timer_block(),
     "relay_aux3": _timer_block(),
+    "relay_aux3b": _timer_block(),
     "relay_aux4": _timer_block(),
+    "relay_aux4b": _timer_block(),
+    "relay_light": _timer_block(),
 }
 
 
@@ -365,9 +370,6 @@ def mock_config_entry_timers() -> MockConfigEntry:
         },
         options={
             CONF_USE_LIGHT: True,
-            CONF_USE_FILTRATION1: True,
-            CONF_USE_FILTRATION2: True,
-            CONF_USE_FILTRATION3: True,
             CONF_USE_AUX1: True,
             CONF_USE_AUX2: True,
             CONF_USE_AUX3: True,

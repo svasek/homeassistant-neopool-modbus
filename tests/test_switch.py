@@ -27,7 +27,6 @@ from custom_components.neopool.const import (
     CONF_CAPABILITIES,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
-    CONF_USE_FILTRATION1,
     CURRENT_VERSION,
     FOLLOW_UP_REFRESH_DELAY,
 )
@@ -755,7 +754,6 @@ async def test_io_switch_unavailable_in_winter_mode(
         },
         options={
             CONF_MODBUS_FRAMER: "tcp",
-            CONF_USE_FILTRATION1: True,
             CONF_CAPABILITIES: {"MBF_PAR_FILT_GPIO": 1},
         },
     )

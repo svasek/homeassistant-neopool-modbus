@@ -22,6 +22,7 @@ from datetime import datetime, time as dt_time, timedelta
 from typing import Any, Literal, override
 
 from neopool_modbus.exceptions import NeoPoolError
+from neopool_modbus.registers import is_valid_relay_gpio
 
 from homeassistant.components.time import TimeEntity, TimeEntityDescription
 from homeassistant.const import EntityCategory
@@ -35,9 +36,6 @@ from .const import (
     CONF_USE_AUX2,
     CONF_USE_AUX3,
     CONF_USE_AUX4,
-    CONF_USE_FILTRATION1,
-    CONF_USE_FILTRATION2,
-    CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
     DOMAIN,
 )
@@ -70,10 +68,21 @@ def _option_supported(
     return lambda _data, opts: bool(opts.get(opt_flag))
 
 
-_TIMER_BLOCKS: tuple[tuple[str, str, bool], ...] = (
-    ("filtration1", CONF_USE_FILTRATION1, True),
-    ("filtration2", CONF_USE_FILTRATION2, True),
-    ("filtration3", CONF_USE_FILTRATION3, True),
+def _light_supported(data: dict[str, Any], opts: Mapping[str, Any]) -> bool:
+    """Gate the light timer on its option and a valid lighting GPIO.
+
+    The coordinator skips the relay_light block when the GPIO is invalid.
+    """
+    return bool(opts.get(CONF_USE_LIGHT)) and is_valid_relay_gpio(
+        data.get("MBF_PAR_LIGHTING_GPIO", 0) or 0
+    )
+
+
+# Filtration timers exist on every device; aux and light timers gate on options.
+_TIMER_BLOCKS: tuple[tuple[str, str | None, bool], ...] = (
+    ("filtration1", None, True),
+    ("filtration2", None, False),
+    ("filtration3", None, False),
     ("relay_aux1", CONF_USE_AUX1, True),
     ("relay_aux1b", CONF_USE_AUX1, False),
     ("relay_aux2", CONF_USE_AUX2, True),
@@ -92,8 +101,8 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
     for block, opt_flag, enabled_default in _TIMER_BLOCKS:
         for field in ("start", "stop"):
             key = f"{block}_{field}"
-            # Filtration and aux timers share one translation per field with
-            # number placeholders; other blocks keep their own translation key.
+            # Filtration and aux blocks share one translation per field with
+            # number placeholders; other blocks keep their own key.
             translation_key = key
             placeholders: dict[str, str] | None = None
             if block.startswith("filtration"):
@@ -106,6 +115,14 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
                     "number": digits.rstrip("b"),
                     "subtimer": "2" if digits.endswith("b") else "1",
                 }
+            if block == "relay_light":
+                supported_fn: (
+                    Callable[[dict[str, Any], Mapping[str, Any]], bool] | None
+                ) = _light_supported
+            elif opt_flag is not None:
+                supported_fn = _option_supported(opt_flag)
+            else:
+                supported_fn = None
             out[key] = NeoPoolTimeEntityDescription(
                 key=key,
                 translation_key=translation_key,
@@ -114,7 +131,7 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
                 entity_registry_enabled_default=enabled_default,
                 timer_block=block,
                 timer_field=field,
-                supported_fn=_option_supported(opt_flag),
+                supported_fn=supported_fn,
             )
     return out
 
@@ -150,7 +167,14 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         description: NeoPoolTimeEntityDescription,
     ) -> None:
         """Initialize the entity."""
-        super().__init__(coordinator)
+        # Filtration and second-aux-subtimer blocks poll only while an entity
+        # is enabled, so register the block as coordinator context. Base aux and
+        # light poll on their option flag and need none.
+        block = description.timer_block
+        context = (
+            block if (description.supported_fn is None or block.endswith("b")) else None
+        )
+        super().__init__(coordinator, context=context)
         self.entity_description = description
         self._key = key
         if description.translation_placeholders is not None:
@@ -176,7 +200,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
             return None
         try:
             seconds = int(seconds) % 86400
-        except (TypeError, ValueError):  # pragma: no cover
+        except TypeError, ValueError:  # pragma: no cover
             return None
         return dt_time(
             hour=seconds // 3600,
@@ -201,10 +225,8 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
     async def async_added_to_hass(self) -> None:
         """Clear transient write state, in case this entity is re-added.
 
-        An entity-ID change removes and then re-adds the same object, so
-        async_will_remove_from_hass leaves _removing set and a cancelled
-        pending value behind. Reset both here, else every later flush aborts
-        and the stale optimistic value stays visible.
+        An entity-ID change re-adds the same object, leaving _removing set and a
+        cancelled pending value behind; reset both so later flushes do not abort.
         """
         self._removing = False
         self._pending_value = None
@@ -218,9 +240,8 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         if self._write_future is not None and not self._write_future.done():
             # Awaiting callers treat cancellation as a clean exit.
             self._write_future.cancel()
-        # A flush that already fired runs as its own task; cancel and await
-        # every in-flight one so no device call outlives removal and races the
-        # client close in async_unload_entry. Two set_value calls spaced beyond
+        # Cancel and await every in-flight flush so no device call outlives
+        # removal and races the client close. Two set_value calls spaced beyond
         # WRITE_DELAY can overlap, so more than one task may be active.
         for task in list(self._flush_tasks):
             task.cancel()
@@ -245,8 +266,8 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         write resolves, so a blocking service call still sees the outcome.
         """
         self._pending_value = value.hour * 3600 + value.minute * 60 + value.second
-        # A later same-valued set_value takes a fresh token, so a flush clears
-        # exactly the value it queued, not a newer batch's identical one.
+        # A fresh token per set_value lets a flush clear exactly the value it
+        # queued, not a newer batch's identical one.
         self._pending_token += 1
         self.async_write_ha_state()
         self._cancel_pending_write()
@@ -257,12 +278,10 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
             self.hass, WRITE_DELAY, self._schedule_flush
         )
         try:
-            # Shield so cancelling one caller's task does not cancel the batch.
-            # The coalesced write never fails the future: cancelling any caller
-            # makes asyncio.shield attach its own logger to the shared future,
-            # which would report a later set_exception as an unretrieved error.
-            # So the write carries its outcome as the future's result instead:
-            # None on success, or the error to re-raise here.
+            # Shield so cancelling one caller does not cancel the batch. The
+            # write carries its outcome as the future's result (None on success,
+            # else the error to re-raise) rather than via set_exception, which a
+            # cancelled caller's shield logger would report as unretrieved.
             outcome = await asyncio.shield(future)
         except asyncio.CancelledError:
             if self._removing:
@@ -275,10 +294,9 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
     def _schedule_flush(self, _now: datetime) -> None:
         """Run the debounced write as a tracked task so removal can await it."""
         self._write_unsub = None
-        # Detach this batch synchronously, before the task is scheduled: a
-        # set_value that runs before _async_flush must start a fresh future and
-        # its own timer, not reuse this batch or have its newer timer cleared by
-        # the coroutine. _pending_value stays put to back the optimistic value.
+        # Detach this batch synchronously so a set_value racing _async_flush
+        # starts a fresh future and timer instead of reusing this one.
+        # _pending_value stays put to back the optimistic value.
         future = self._write_future
         self._write_future = None
         token = self._pending_token
@@ -288,9 +306,9 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
             self._async_flush(future, pending, token),
             name=f"{self._attr_unique_id}_flush",
         )
-        # Track every in-flight flush: a second set_value spaced beyond
-        # WRITE_DELAY can start a new task while an earlier one is still in its
-        # device call, and removal must cancel and await all of them.
+        # Track every in-flight flush so removal can cancel and await them all;
+        # a set_value spaced beyond WRITE_DELAY can start a second task while an
+        # earlier one is still writing.
         self._flush_tasks.add(task)
         task.add_done_callback(self._flush_tasks.discard)
 
@@ -301,7 +319,6 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         token: int,
     ) -> None:
         """Write the settled value, resolving the awaited coalesce future."""
-        # False until a run reaches the end; the finally fails any earlier exit.
         resolved = False
         try:
             if pending is None:  # pragma: no cover - timer fires only when queued
@@ -311,9 +328,8 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
                     resolved = True
                     return
                 block = self.entity_description.timer_block
-                # The device stores (on, interval); stop is derived. The library
-                # does the read-modify-write, so pass only this entity's endpoint
-                # and let it hold the sibling: start -> on, stop -> stop.
+                # The library does the read-modify-write, so pass only this
+                # entity's endpoint: start -> on, stop -> stop.
                 lib_key = (
                     "on" if self.entity_description.timer_field == "start" else "stop"
                 )
@@ -328,7 +344,12 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
                     resolved = True
                     return
                 try:
-                    await self.coordinator.client.write_timer(block, {lib_key: pending})
+                    # Siblings (start/stop) share the block's register set, so
+                    # serialize the library's read-modify-write per block.
+                    async with self.coordinator.timer_write_lock(block):
+                        await self.coordinator.client.write_timer(
+                            block, {lib_key: pending}
+                        )
                 except (NeoPoolError, OSError, TimeoutError) as err:
                     self._report_write_failure(
                         future,
@@ -347,14 +368,12 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
                     resolved = True
                     return
                 if self._abort_if_removing(future):  # pragma: no cover
-                    # Removal cancels every tracked flush task, so a batch
-                    # waiting on the lock unwinds before it writes; this
-                    # post-write removal check is a defensive guard.
+                    # Defensive: removal cancels tracked tasks before they write.
                     resolved = True
                     return
                 try:
-                    # Merge before clearing, else the stale register reading
-                    # briefly surfaces as a rollback event.
+                    # Merge before clearing, else the stale register briefly
+                    # surfaces as a rollback.
                     self.coordinator.async_set_updated_data(
                         {**self.coordinator.data, self._key: pending}
                     )
@@ -393,9 +412,7 @@ class NeoPoolTime(NeoPoolEntity, TimeEntity):
         """Roll the optimistic value back and fail the awaiting caller."""
         self._clear_pending_if_current(batch_token)
         if future is not None and not future.done():
-            # Carry the error as the result, not via set_exception: a cancelled
-            # caller leaves asyncio.shield's logger on the shared future, which
-            # would report a set_exception as unretrieved. Surviving callers
+            # Carry the error as the result, not via set_exception; callers
             # re-raise it after the shield returns.
             future.set_result(exc)
 

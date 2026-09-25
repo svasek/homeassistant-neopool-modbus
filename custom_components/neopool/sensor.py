@@ -83,6 +83,9 @@ class NeoPoolSensorEntityDescription(SensorEntityDescription):
     options_fn: Callable[[dict[str, Any]], list[str]] | None = None
     unit_fn: Callable[[dict[str, Any]], str | None] | None = None
     precision_fn: Callable[[dict[str, Any]], int | None] | None = None
+    # Coordinator update context, so the coordinator polls a timer block only
+    # while an entity that needs it is enabled (see FILTRATION_REMAINING).
+    context: Any = None
 
 
 SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
@@ -243,6 +246,9 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
         device_class=SensorDeviceClass.DURATION,
         suggested_display_precision=0,
         entity_registry_enabled_default=False,
+        # Aggregates all three filtration countdowns, so keep every block polled
+        # while this sensor is enabled.
+        context=("filtration1", "filtration2", "filtration3"),
     ),
     "CELL_RUNTIME_TOTAL": NeoPoolSensorEntityDescription(
         key="CELL_RUNTIME_TOTAL",
@@ -378,7 +384,9 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         description: NeoPoolSensorEntityDescription,
     ) -> None:
         """Initialize the NeoPool sensor entity."""
-        super().__init__(coordinator)
+        # A None context is equivalent to the bare call; only FILTRATION_REMAINING
+        # sets one, to keep its filtration blocks polled while it is enabled.
+        super().__init__(coordinator, context=description.context)
         self.entity_description = description
         self._key = key
         self._attr_unique_id = (

@@ -610,9 +610,6 @@
                     "use_aux3": "Abilita relè Aux3",
                     "use_aux4": "Abilita relè Aux4",
                     "use_cover_sensor": "Abilita sensore copertura piscina",
-                    "use_filtration1": "Abilita il 1° timer di filtrazione per la modalità automatica",
-                    "use_filtration2": "Abilita il 2° timer di filtrazione per la modalità automatica",
-                    "use_filtration3": "Abilita il 3° timer di filtrazione per la modalità automatica",
                     "use_light": "Abilita relè luce"
                 },
                 "data_description": {
@@ -625,9 +622,6 @@
                     "use_aux3": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
                     "use_aux4": "Crea entità interruttore e timer per questa uscita relè ausiliaria.",
                     "use_cover_sensor": "Crea un sensore binario e abilita l'interruttore di riduzione idrolisi con copertura.",
-                    "use_filtration1": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
-                    "use_filtration2": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
-                    "use_filtration3": "Crea entità timer per configurare la programmazione automatica della filtrazione.",
                     "use_light": "Crea entità per controllare e monitorare il relè luce della piscina."
                 },
                 "description": "ATTENZIONE: Cambiare i relè abilitati ricaricherà automaticamente l’integrazione! Le modifiche hanno effetto immediato.",

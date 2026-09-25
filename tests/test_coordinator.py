@@ -19,6 +19,7 @@ from custom_components.neopool.const import (
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
+    CONF_USE_AUX1,
     CURRENT_VERSION,
     DOMAIN,
 )
@@ -28,7 +29,7 @@ from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 from . import setup_integration
-from .conftest import MOCK_POOL_DATA, MOCK_SERIAL
+from .conftest import MOCK_POOL_DATA, MOCK_SERIAL, _read_all_timers
 
 # ---------------------------------------------------------------------------
 # Update cycle
@@ -309,7 +310,10 @@ async def test_auto_time_sync_writes_when_drift_detected(
         },
     )
     await setup_integration(hass, entry)
-    assert mock_neopool_client.async_sync_device_time.await_count == 1
+    # Setup seeds one extra refresh once entity contexts register, so a second
+    # poll may re-detect the (static-mock) drift; assert the sync ran, not how
+    # many times.
+    assert mock_neopool_client.async_sync_device_time.await_count >= 1
 
 
 # CUSTOM-ONLY END
@@ -606,3 +610,198 @@ async def test_timer_block_data_merged_into_coordinator(
     assert coordinator.data["filtration2_stop"] is None
     # Aggregated filtration_remaining picks up the 1-hour countdown.
     assert coordinator.data["FILTRATION_REMAINING"] == 3600
+
+
+# ---------------------------------------------------------------------------
+# Filtration timer poll gating via async_contexts
+# ---------------------------------------------------------------------------
+
+
+def _capture_timer_calls(mock_neopool_client: MagicMock) -> list[tuple]:
+    """Record (enabled_timers, force_read) per read_all_timers call."""
+    calls: list[tuple] = []
+
+    def _capture(
+        enabled_timers: list[str] | None = None, **kwargs: object
+    ) -> dict[str, dict[str, object]]:
+        calls.append((enabled_timers, kwargs.get("force_read")))
+        return _read_all_timers(enabled_timers)
+
+    mock_neopool_client.read_all_timers.side_effect = _capture
+    return calls
+
+
+async def _poll_once_more(
+    hass: HomeAssistant,
+    coordinator: object,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Trigger a poll after entity listeners have registered their contexts."""
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+
+def test_get_enabled_timers_flattens_context_shapes(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """_get_enabled_timers accepts both a bare block name and a collection.
+
+    A time entity registers its block as a string context; the
+    FILTRATION_REMAINING sensor registers a tuple spanning all three. Both
+    shapes must resolve into the enabled set, in _FILT_TIMERS order.
+    """
+    from custom_components.neopool.coordinator import NeoPoolCoordinator
+
+    coordinator = MagicMock(spec=NeoPoolCoordinator)
+    coordinator.config_entry = MagicMock()
+    coordinator.config_entry.options = {}
+    coordinator.async_contexts = MagicMock(
+        return_value=iter(["filtration1", ("filtration3", "filtration2")])
+    )
+
+    enabled = NeoPoolCoordinator._get_enabled_timers(coordinator, {})
+    assert enabled == ["filtration1", "filtration2", "filtration3"]
+
+
+async def test_no_filtration_polled_when_all_entities_disabled(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """With filtration2/3 time and FILTRATION_REMAINING disabled, only filtration1 polls.
+
+    filtration1 start/stop are registry-enabled by default; filtration2/3 and
+    the aggregate sensor are not, so their blocks must stay out of the read.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_gate_default",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.20",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp"},
+    )
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, entry)
+    await _poll_once_more(hass, entry.runtime_data, freezer)
+
+    enabled_timers = calls[-1][0]
+    assert enabled_timers is not None
+    assert "filtration1" in enabled_timers
+    assert "filtration2" not in enabled_timers
+    assert "filtration3" not in enabled_timers
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_enabled_polls_all_three(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Enabling FILTRATION_REMAINING keeps all three filtration blocks polled.
+
+    Its tuple context spans the three blocks; the coordinator flattens it, so
+    filtration1/2/3 all appear in the read even though 2/3 are disabled by
+    default individually.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_gate_remaining",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.21",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp"},
+    )
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, entry)
+    await _poll_once_more(hass, entry.runtime_data, freezer)
+
+    enabled_timers = calls[-1][0]
+    assert enabled_timers is not None
+    assert "filtration1" in enabled_timers
+    assert "filtration2" in enabled_timers
+    assert "filtration3" in enabled_timers
+
+
+async def test_aux_base_polls_but_b_subtimer_gated_when_disabled(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """With use_aux1 on, the base block polls but the second subtimer does not.
+
+    relay_aux1 stays option-gated (the aux switch needs its enable state); the
+    relay_aux1b start/stop and period entities are registry-disabled by default,
+    so they never register a context and the block stays out of the read.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_gate_aux_default",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.22",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp", CONF_USE_AUX1: True},
+    )
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, entry)
+    await _poll_once_more(hass, entry.runtime_data, freezer)
+
+    enabled_timers = calls[-1][0]
+    assert enabled_timers is not None
+    assert "relay_aux1" in enabled_timers
+    assert "relay_aux1b" not in enabled_timers
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_aux_b_subtimer_polls_when_enabled(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Enabling the second aux subtimer's entities starts polling its block.
+
+    With every entity enabled, relay_aux1b start/stop and period register their
+    block as an update context, so it joins the read alongside the base block.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_gate_aux_b",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.23",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp", CONF_USE_AUX1: True},
+    )
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, entry)
+    await _poll_once_more(hass, entry.runtime_data, freezer)
+
+    enabled_timers = calls[-1][0]
+    assert enabled_timers is not None
+    assert "relay_aux1" in enabled_timers
+    assert "relay_aux1b" in enabled_timers

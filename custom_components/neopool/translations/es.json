@@ -610,9 +610,6 @@
                     "use_aux3": "Activar relé Aux3",
                     "use_aux4": "Activar relé Aux4",
                     "use_cover_sensor": "Activar sensor de cubierta de piscina",
-                    "use_filtration1": "Activar el 1º temporizador de filtración para modo automático",
-                    "use_filtration2": "Activar el 2º temporizador de filtración para modo automático",
-                    "use_filtration3": "Activar el 3º temporizador de filtración para modo automático",
                     "use_light": "Activar relé de luz"
                 },
                 "data_description": {
@@ -625,9 +622,6 @@
                     "use_aux3": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
                     "use_aux4": "Crea entidades de interruptor y temporizador para esta salida de relé auxiliar.",
                     "use_cover_sensor": "Crea un sensor binario y habilita el interruptor de reducción de hidrólisis con cubierta.",
-                    "use_filtration1": "Crea entidades de temporizador para configurar el horario automático de filtración.",
-                    "use_filtration2": "Crea entidades de temporizador para configurar el horario automático de filtración.",
-                    "use_filtration3": "Crea entidades de temporizador para configurar el horario automático de filtración.",
                     "use_light": "Crea entidades para controlar y monitorear el relé de luz de la piscina."
                 },
                 "description": "¡ADVERTENCIA! Cambiar los relés habilitados recargará automáticamente la integración. Los cambios se aplican de inmediato.",

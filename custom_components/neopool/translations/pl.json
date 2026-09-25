@@ -610,9 +610,6 @@
                     "use_aux3": "Włącz przekaźnik Aux3",
                     "use_aux4": "Włącz przekaźnik Aux4",
                     "use_cover_sensor": "Włącz czujnik przykrycia basenu",
-                    "use_filtration1": "Włącz 1. timer filtracji w trybie automatycznym",
-                    "use_filtration2": "Włącz 2. timer filtracji w trybie automatycznym",
-                    "use_filtration3": "Włącz 3. timer filtracji w trybie automatycznym",
                     "use_light": "Włącz przekaźnik oświetlenia"
                 },
                 "data_description": {
@@ -625,9 +622,6 @@
                     "use_aux3": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
                     "use_aux4": "Tworzy encje przełącznika i timera dla tego pomocniczego wyjścia przekaźnikowego.",
                     "use_cover_sensor": "Tworzy czujnik binarny i włącza przełącznik redukcji hydrolizy przy przykryciu.",
-                    "use_filtration1": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
-                    "use_filtration2": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
-                    "use_filtration3": "Tworzy encje timerów do konfiguracji automatycznego harmonogramu filtracji.",
                     "use_light": "Tworzy encje do sterowania i monitorowania przekaźnika oświetlenia basenu."
                 },
                 "description": "UWAGA: Zmiana dozwolonych przekaźników automatycznie przeładuje integrację! Zmiany są natychmiastowe.",

@@ -55,9 +55,6 @@ from .const import (
     CONF_USE_AUX3,
     CONF_USE_AUX4,
     CONF_USE_COVER_SENSOR,
-    CONF_USE_FILTRATION1,
-    CONF_USE_FILTRATION2,
-    CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
     CURRENT_VERSION,
     DEFAULT_PORT,
@@ -260,18 +257,6 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 default=options.get(CONF_FILTRATION_PUMP_POWER, 0),
             ): probatio.All(int, probatio.Range(min=0)),
             # CUSTOM-ONLY END
-            probatio.Optional(
-                CONF_USE_FILTRATION1,
-                default=options.get(CONF_USE_FILTRATION1, False),
-            ): bool,
-            probatio.Optional(
-                CONF_USE_FILTRATION2,
-                default=options.get(CONF_USE_FILTRATION2, False),
-            ): bool,
-            probatio.Optional(
-                CONF_USE_FILTRATION3,
-                default=options.get(CONF_USE_FILTRATION3, False),
-            ): bool,
             probatio.Optional(
                 CONF_USE_LIGHT,
                 default=options.get(CONF_USE_LIGHT, False),

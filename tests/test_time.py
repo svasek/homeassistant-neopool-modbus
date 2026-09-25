@@ -23,7 +23,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform as ep, entity_registry as er
 
 from . import setup_integration
-from .conftest import MOCK_POOL_DATA
+from .conftest import MOCK_POOL_DATA, _read_all_timers
 
 # Longer than the entity's settle delay so a single tick flushes the write.
 FLUSH = timedelta(seconds=5)
@@ -132,8 +132,31 @@ async def _poll(
     mock_client: MagicMock,
     data: dict[str, Any],
 ) -> None:
-    """Push a coordinator poll returning ``data``."""
-    mock_client.async_read_all.return_value = data
+    """Push a coordinator poll returning ``data``.
+
+    Filtration timer fields land in coordinator data via read_all_timers, not
+    async_read_all, so any filtration1_start/stop override in ``data`` is
+    reflected into the mocked timer block (start -> on, stop -> stop).
+
+    Copy ``data`` so the coordinator's in-place merge cannot mutate a shared
+    module-level dict.
+    """
+    mock_client.async_read_all.return_value = dict(data)
+    start = data.get("filtration1_start")
+    stop = data.get("filtration1_stop")
+
+    def _timers(
+        enabled_timers: list[str] | None = None, **_kwargs: Any
+    ) -> dict[str, dict[str, Any]]:
+        blocks = _read_all_timers(enabled_timers)
+        if "filtration1" in blocks:
+            if start is not None:
+                blocks["filtration1"]["on"] = start
+            if stop is not None:
+                blocks["filtration1"]["stop"] = stop
+        return blocks
+
+    mock_client.read_all_timers.side_effect = _timers
     freezer.tick(timedelta(seconds=60))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
@@ -173,8 +196,21 @@ async def test_native_value_returns_none_when_data_missing(
 ) -> None:
     """Missing coordinator key surfaces as 'unknown'."""
     await setup_integration(hass, mock_config_entry_timers)
-    reduced = {k: v for k, v in MOCK_POOL_DATA.items() if k != "filtration1_start"}
-    await _poll(hass, freezer, mock_neopool_client, reduced)
+    # A timer block with on=None leaves filtration1_start absent from data.
+    mock_neopool_client.read_all_timers.side_effect = None
+    mock_neopool_client.read_all_timers.return_value = {
+        "filtration1": {
+            "enable": 0,
+            "on": None,
+            "interval": None,
+            "stop": None,
+            "period": None,
+            "countdown": 0,
+        }
+    }
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
 
     entity_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_start")
     state = hass.states.get(entity_id)
@@ -417,6 +453,53 @@ async def test_rapid_set_value_coalesces_via_debounce(
         call.args[0] == "filtration1"
         for call in mock_neopool_client.write_timer.await_args_list
     )
+
+
+async def test_sibling_writes_to_same_block_are_serialized(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Concurrent start/stop writes to one block never overlap in the library.
+
+    write_timer is a read-modify-write of the shared block, so overlapping
+    sibling writes could read a stale endpoint and clobber each other. A
+    per-block lock must serialize them: the in-flight count never exceeds one.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+    await _poll(
+        hass,
+        freezer,
+        mock_neopool_client,
+        {**MOCK_POOL_DATA, "filtration1_start": 0, "filtration1_stop": 0},
+    )
+
+    start_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_start")
+    stop_id = _time_entity_id(hass, mock_config_entry_timers, "filtration1_stop")
+
+    in_flight = 0
+    max_in_flight = 0
+
+    async def _tracking_write(block: str, timer_data: dict[str, Any]) -> bool:
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        # Yield so a second write not held by the lock would overlap here.
+        await asyncio.sleep(0)
+        in_flight -= 1
+        return True
+
+    mock_neopool_client.write_timer.reset_mock()
+    mock_neopool_client.write_timer.side_effect = _tracking_write
+
+    start_task = _set_time_nowait(hass, start_id, dt_time(6, 0))
+    stop_task = _set_time_nowait(hass, stop_id, dt_time(10, 0))
+    await _flush(hass, freezer)
+    await asyncio.gather(start_task, stop_task)
+
+    assert mock_neopool_client.write_timer.await_count == 2
+    assert max_in_flight == 1
 
 
 async def test_repeated_set_value_writes_only_latest(
