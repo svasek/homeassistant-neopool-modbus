@@ -13,6 +13,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.neopool.const import (
+    CAPABILITY_KEYS,
     CONF_AUTO_TIME_SYNC,
     CONF_CAPABILITIES,
     CONF_DEV_OVERRIDES,
@@ -272,6 +273,11 @@ async def test_capability_snapshot_persisted_to_options(
     # Each GPIO key from MOCK_POOL_DATA should be present in the snapshot.
     assert snap["MBF_PAR_FILT_GPIO"] == 1
     assert snap["MBF_PAR_LIGHTING_GPIO"] == 2
+    # Every capability key the live poll produced must survive into the
+    # snapshot, so a supported_fn that tolerates a missing key cannot mask a
+    # dropped key on an offline restart.
+    live_data = mock_config_entry.runtime_data.data
+    assert {k for k in CAPABILITY_KEYS if k in live_data} <= snap.keys()
 
 
 # ---------------------------------------------------------------------------

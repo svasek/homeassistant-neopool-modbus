@@ -408,6 +408,9 @@
     "write_failed": { "message": "Write to register {address} failed" },
     "write_verification_failed": {
       "message": "Write verification failed at {address}: wrote {value}, read back {confirmed}"
+    },
+    "winter_mode_active": {
+      "message": "This service is unavailable while winter mode is active. Turn off winter mode first to communicate with the controller."
     }
   },
   "issues": {

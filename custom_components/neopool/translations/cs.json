@@ -581,6 +581,9 @@
         },
         "device_time_write_failed": {
             "message": "Nepodařilo se zapsat čas zařízení: {error}"
+        },
+        "winter_mode_active": {
+            "message": "Tato služba není dostupná, když je aktivní Zimní režim. Nejprve vypněte Zimní režim, abyste mohli komunikovat s ovladačem."
         }
     },
     "issues": {

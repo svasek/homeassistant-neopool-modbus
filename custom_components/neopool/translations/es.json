@@ -581,6 +581,9 @@
         },
         "device_time_write_failed": {
             "message": "No se pudo escribir la hora del dispositivo: {error}"
+        },
+        "winter_mode_active": {
+            "message": "Este servicio no está disponible mientras el Modo invierno está activo. Desactive primero el Modo invierno para comunicarse con el controlador."
         }
     },
     "issues": {
