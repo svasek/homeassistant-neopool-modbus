@@ -581,6 +581,9 @@
         },
         "device_time_write_failed": {
             "message": "Impossibile scrivere l'ora del dispositivo: {error}"
+        },
+        "winter_mode_active": {
+            "message": "Questo servizio non è disponibile mentre la Modalità invernale è attiva. Disattivare prima la Modalità invernale per comunicare con il controller."
         }
     },
     "issues": {

@@ -581,6 +581,9 @@
         },
         "device_time_write_failed": {
             "message": "Échec de l'écriture de l'heure de l'appareil : {error}"
+        },
+        "winter_mode_active": {
+            "message": "Ce service est indisponible lorsque le Mode hiver est actif. Désactivez d'abord le Mode hiver pour communiquer avec le contrôleur."
         }
     },
     "issues": {

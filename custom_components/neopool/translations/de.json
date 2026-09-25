@@ -581,6 +581,9 @@
         },
         "device_time_write_failed": {
             "message": "Gerätezeit konnte nicht geschrieben werden: {error}"
+        },
+        "winter_mode_active": {
+            "message": "Dieser Dienst ist nicht verfügbar, während der Wintermodus aktiv ist. Deaktivieren Sie zuerst den Wintermodus, um mit dem Controller zu kommunizieren."
         }
     },
     "issues": {

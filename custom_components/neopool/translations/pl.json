@@ -581,6 +581,9 @@
         },
         "device_time_write_failed": {
             "message": "Nie udało się zapisać czasu urządzenia: {error}"
+        },
+        "winter_mode_active": {
+            "message": "Ta usługa jest niedostępna, gdy Tryb zimowy jest aktywny. Najpierw wyłącz Tryb zimowy, aby komunikować się ze sterownikiem."
         }
     },
     "issues": {
