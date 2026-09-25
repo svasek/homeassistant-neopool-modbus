@@ -15,6 +15,7 @@
 """Data update coordinator for the NeoPool integration."""
 
 import asyncio
+from collections import defaultdict
 from datetime import timedelta
 import json
 import logging
@@ -45,6 +46,10 @@ from .const import (
     CONF_DEV_OVERRIDES_ENABLED,
     CONF_FILTRATION_PUMP_POWER,
     CONF_SCAN_INTERVAL,
+    CONF_USE_AUX1,
+    CONF_USE_AUX2,
+    CONF_USE_AUX3,
+    CONF_USE_AUX4,
     CONF_USE_LIGHT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -53,6 +58,19 @@ from .const import (
 from .helpers import is_device_time_out_of_sync, prepare_device_time
 
 _FILT_TIMERS = ("filtration1", "filtration2", "filtration3")
+
+# Config option gating each aux and light timer block.
+_TIMER_OPTIONS: dict[str, str] = {
+    "relay_aux1": CONF_USE_AUX1,
+    "relay_aux1b": CONF_USE_AUX1,
+    "relay_aux2": CONF_USE_AUX2,
+    "relay_aux2b": CONF_USE_AUX2,
+    "relay_aux3": CONF_USE_AUX3,
+    "relay_aux3b": CONF_USE_AUX3,
+    "relay_aux4": CONF_USE_AUX4,
+    "relay_aux4b": CONF_USE_AUX4,
+    "relay_light": CONF_USE_LIGHT,
+}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -98,6 +116,11 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._follow_up_unsub: CALLBACK_TYPE | None = None
         # Serializes masked read-modify-write across siblings sharing a register.
         self.masked_write_lock = asyncio.Lock()
+        # One lock per timer block serializes the library's read-modify-write
+        # across the block's start/stop sibling entities, which share a register.
+        self._timer_write_locks: defaultdict[str, asyncio.Lock] = defaultdict(
+            asyncio.Lock
+        )
         # None (not frozenset()) so the first poll clears any stale issue
         # persisted from a previous session.
         self._corrupted_gpio_state: frozenset[tuple[str, int]] | None = None
@@ -128,6 +151,10 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._follow_up_unsub:
             self._follow_up_unsub()
             self._follow_up_unsub = None
+
+    def timer_write_lock(self, block: str) -> asyncio.Lock:
+        """Return the lock serializing sibling writes to one timer block."""
+        return self._timer_write_locks[block]
 
     def _schedule_follow_up_refresh(self, delay: float) -> None:
         """Schedule a delayed follow-up refresh."""
@@ -180,39 +207,58 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ir.async_delete_issue(self.hass, DOMAIN, "corrupted_gpio")
 
     def _get_enabled_timers(self, data: dict[str, Any]) -> list[str]:
-        """Return the list of timer block names enabled in entry options."""
+        """Return the timer block names to poll.
+
+        Base aux and light blocks poll on their config option. The second aux
+        subtimer and filtration blocks additionally require an active context: a
+        block name or a collection of them (FILTRATION_REMAINING spans all three
+        filtration blocks).
+        """
         options = self.config_entry.options
+        active: set[str] = set()
+        for ctx in self.async_contexts():
+            if isinstance(ctx, str):
+                active.add(ctx)
+            elif isinstance(ctx, (set, frozenset, tuple, list)):
+                active.update(ctx)
         enabled: list[str] = []
         for key in TIMER_BLOCKS:
-            if key.startswith("relay_aux"):
-                option_key = f"use_aux{key[len('relay_aux')]}"
-            elif key == "relay_light":
-                option_key = CONF_USE_LIGHT
-            else:
-                option_key = f"use_{key}"
+            option_key = _TIMER_OPTIONS.get(key)
+            if option_key is None:
+                # Filtration timers gate on context below, not an option.
+                continue
             if not options.get(option_key, False):
                 continue
-            # Skip if the lighting GPIO is invalid; the light entity gates
-            # on the same condition, so relay_light_enable has no consumer.
+            # The b subtimer (time + select only) also needs an active context.
+            if key.endswith("b") and key not in active:
+                continue
+            # Light GPIO invalid: the light entity gates the same, so
+            # relay_light_enable has no consumer.
             if key == "relay_light" and not is_valid_relay_gpio(
                 data.get("MBF_PAR_LIGHTING_GPIO", 0) or 0
             ):
                 continue
             enabled.append(key)
-        for ft in _FILT_TIMERS:
-            if ft not in enabled:
-                enabled.append(ft)
+        enabled += [ft for ft in _FILT_TIMERS if ft in active]
         return enabled
 
     async def _read_timers_into_data(self, data: dict[str, Any]) -> None:
         """Read every enabled timer block and merge derived fields into data."""
+        enabled_timers = self._get_enabled_timers(data)
+        # FILTRATION_REMAINING must stay fresh while the pump runs, so force-read
+        # the gated-in filtration blocks even if their countdown looks static.
         prev_remaining = self.data.get("FILTRATION_REMAINING") if self.data else None
         filtration_active = bool(data.get("Filtration Pump")) or bool(
             prev_remaining and prev_remaining > 0
         )
+        force_read = (
+            [ft for ft in _FILT_TIMERS if ft in enabled_timers]
+            if filtration_active
+            else None
+        )
         timers = await self.client.read_all_timers(
-            enabled_timers=self._get_enabled_timers(data),
-            force_read=_FILT_TIMERS if filtration_active else None,
+            enabled_timers=enabled_timers,
+            force_read=force_read,
         )
         for t_name, t in timers.items():
             data[f"{t_name}_enable"] = t["enable"]

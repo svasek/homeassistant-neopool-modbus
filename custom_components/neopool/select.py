@@ -63,9 +63,6 @@ from .const import (
     CONF_USE_AUX2,
     CONF_USE_AUX3,
     CONF_USE_AUX4,
-    CONF_USE_FILTRATION1,
-    CONF_USE_FILTRATION2,
-    CONF_USE_FILTRATION3,
     CONF_USE_LIGHT,
     DOMAIN,
     PERIOD_MAP,
@@ -419,6 +416,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="filtration_speed_timer",
         translation_placeholders={"number": "2"},
         entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
         options_map=FILTRATION_SPEED_LABELS,
         supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
@@ -431,6 +429,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="filtration_speed_timer",
         translation_placeholders={"number": "3"},
         entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
         options_map=FILTRATION_SPEED_LABELS,
         supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
@@ -557,9 +556,6 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
 
 # Entities gated on a config-entry option (in addition to their supported_fn).
 _ENTITY_OPTION_KEY: dict[str, str] = {
-    "filtration1_speed": CONF_USE_FILTRATION1,
-    "filtration2_speed": CONF_USE_FILTRATION2,
-    "filtration3_speed": CONF_USE_FILTRATION3,
     "relay_aux1_period": CONF_USE_AUX1,
     "relay_aux1b_period": CONF_USE_AUX1,
     "relay_aux2_period": CONF_USE_AUX2,
@@ -609,7 +605,11 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         description: NeoPoolSelectEntityDescription,
     ) -> None:
         """Initialize the NeoPool select entity."""
-        super().__init__(coordinator)
+        # The second aux subtimer's period select gates its block on context;
+        # other selects need none.
+        block = key.removesuffix("_period").removesuffix("_mode")
+        context = block if block.endswith("b") else None
+        super().__init__(coordinator, context=context)
         self.entity_description = description
         self.key = key
         if description.translation_placeholders is not None:
