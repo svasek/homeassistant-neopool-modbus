@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.9.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.8.0...v6.9.0) (2026-09-26)
+
+
+### ✨ Features
+
+* **config:** ✨ gate filtration timers by registry default, not options ([#279](https://github.com/svasek/homeassistant-neopool-modbus/issues/279)) ([aa4e6c8](https://github.com/svasek/homeassistant-neopool-modbus/commit/aa4e6c81f170e88ba9e722530ab266602a02e84c))
+
+
+### 🐛 Bug Fixes
+
+* **number:** 🐛 track every overlapping debounced write task ([#276](https://github.com/svasek/homeassistant-neopool-modbus/issues/276)) ([ca6c4f7](https://github.com/svasek/homeassistant-neopool-modbus/commit/ca6c4f796236b4f761b1271733c1ca35f575e0cb))
+* **services:** 🐛 reject device-time services in winter mode ([#280](https://github.com/svasek/homeassistant-neopool-modbus/issues/280)) ([3278ce1](https://github.com/svasek/homeassistant-neopool-modbus/commit/3278ce164a0dcd3ffebd6f386880e30085ca3ed2))
+* **services:** 🐛 reject empty device_id and reclassify I/O errors ([#275](https://github.com/svasek/homeassistant-neopool-modbus/issues/275)) ([27d276b](https://github.com/svasek/homeassistant-neopool-modbus/commit/27d276b86b8b8828cdd8a4171600edfb5696e084))
+* **time:** 🐛 pass single timer endpoint to the reworked write_timer ([#278](https://github.com/svasek/homeassistant-neopool-modbus/issues/278)) ([a68ec5f](https://github.com/svasek/homeassistant-neopool-modbus/commit/a68ec5f438a467c3900d8da6b2130fa42284d4b4))
+
+
+### ♻️ Refactoring
+
+* ♻️ use probatio instead of voluptuous ([#274](https://github.com/svasek/homeassistant-neopool-modbus/issues/274)) ([63eb02f](https://github.com/svasek/homeassistant-neopool-modbus/commit/63eb02fd05b974f82c2dabcc568a922956ac4307))
+
 ## [6.8.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.7.2...v6.8.0) (2026-09-14)
 
 
