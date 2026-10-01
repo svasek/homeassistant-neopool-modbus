@@ -648,10 +648,10 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if desc.select_type == "timer_period":
             options_list = list(PERIOD_MAP.keys())
             value = data.get(self._key)
-            if value is not None:
-                current_key = PERIOD_SECONDS_TO_KEY.get(value)
-                if current_key and current_key not in options_list:  # pragma: no cover
-                    options_list.insert(0, current_key)
+            # Mirror current_option: a device period outside the canonical map
+            # is surfaced as a raw-seconds string so the two stay in sync.
+            if isinstance(value, int) and value not in PERIOD_SECONDS_TO_KEY:
+                return [str(value), *options_list]
             return options_list
 
         if desc.select_type == "relay_mode":
@@ -702,7 +702,8 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             value = data.get(self._key)
             if value is None:  # pragma: no cover
                 return None
-            return PERIOD_SECONDS_TO_KEY.get(int(value), str(value))
+            int_value = int(value)
+            return PERIOD_SECONDS_TO_KEY.get(int_value, str(int_value))
 
         if desc.select_type == "relay_mode":
             timer_name = self._key.rsplit("_", 1)[0]
