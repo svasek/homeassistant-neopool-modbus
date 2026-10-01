@@ -170,7 +170,20 @@
         }
       },
       "intelligent_filt_min_time": {
-        "name": "Intelligent: minimum filtration time"
+        "name": "Intelligent: minimum filtration time",
+        "state": {
+          "2h": "2 Hours",
+          "3h": "3 Hours",
+          "4h": "4 Hours",
+          "5h": "5 Hours",
+          "6h": "6 Hours",
+          "7h": "7 Hours",
+          "8h": "8 Hours",
+          "9h": "9 Hours",
+          "10h": "10 Hours",
+          "11h": "11 Hours",
+          "12h": "12 Hours"
+        }
       },
       "relay_activation_delay": {
         "name": "pH pump activation delay",

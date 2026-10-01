@@ -71,16 +71,15 @@ async def test_filt_mode_select_writes_register(
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
-async def test_filt_mode_leaving_manual_stops_pump_first(
+async def test_filt_mode_leaving_manual_delegates_exit_to_lib(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Switching from manual to a non-backwash mode preemptively stops the pump.
+    """Leaving manual mode is a single lib call; the lib sequences the pump stop.
 
-    Custom-pre-condition: filtration_mode == "manual". Switching to "auto"
-    must first call ``async_set_manual_filtration(False)`` before the mode
-    write.
+    The manual-mode exit (pump off + settle delay) lives in
+    async_set_filtration_mode, so the platform must not stop the pump itself.
     """
 
     mock_neopool_client.async_read_all.return_value = {
@@ -96,7 +95,7 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
     mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _select_option(hass, entity_id, "auto")
 
-    mock_neopool_client.async_set_manual_filtration.assert_awaited_once_with(False)
+    mock_neopool_client.async_set_manual_filtration.assert_not_awaited()
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
@@ -412,7 +411,7 @@ async def test_timer_period_options_and_current_option(
         for ent in platforms.entities.values():
             if (
                 ent.entity_id.startswith("select.")
-                and getattr(ent, "key", None) == "relay_aux1_period"
+                and getattr(ent, "_key", None) == "relay_aux1_period"
             ):
                 entity_obj = ent
                 break
@@ -518,6 +517,47 @@ async def test_filtration_speed_current_option_decodes_filtration_conf(
     state = hass.states.get(entity_id)
     assert state is not None
     assert state.state == expected
+
+
+async def test_filtration_speed_timer_writes_per_timer_slot(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A per-timer speed select writes its own slot, not the live speed.
+
+    Guards against the live-vs-timer slot mix-up: the entity must call
+    async_set_filtration_speed_timer(1, ...), never async_set_filtration_speed.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "filtration1_speed")
+    mock_neopool_client.async_set_filtration_speed.reset_mock()
+    mock_neopool_client.async_set_filtration_speed_timer.reset_mock()
+    await _select_option(hass, entity_id, "high")
+    mock_neopool_client.async_set_filtration_speed_timer.assert_awaited_once_with(
+        1, "high"
+    )
+    mock_neopool_client.async_set_filtration_speed.assert_not_awaited()
+
+
+async def test_filtration_speed_timer_current_option_decodes_timer_slot(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Timer 1 decodes bits 7-9 of MBF_PAR_FILTRATION_CONF, not the live slot."""
+    # Timer1 "high" (2) at shift 7 == 0x0100, live-speed slot left at low.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTRATION_CONF": 0x0100 | 0x0001,
+    }
+    await setup_integration(hass, mock_config_entry_timers)
+
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "filtration1_speed")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "high"
 
 
 # ---------------------------------------------------------------------------
