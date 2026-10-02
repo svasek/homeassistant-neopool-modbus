@@ -215,6 +215,7 @@
       "relay_aux_period": {
         "name": "Timer Aux {number} ({subtimer}) - interval",
         "state": {
+          "no_repeat": "No repeat",
           "1_day": "1 Day",
           "1_week": "1 Week",
           "2_days": "2 Days",
@@ -237,6 +238,7 @@
       "relay_light_period": {
         "name": "Light timer - interval",
         "state": {
+          "no_repeat": "No repeat",
           "1_day": "1 Day",
           "1_week": "1 Week",
           "2_days": "2 Days",
