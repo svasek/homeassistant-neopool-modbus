@@ -20,4 +20,13 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Hassfest validation
-        uses: "home-assistant/actions/hassfest@master"
+        # uses: "home-assistant/actions/hassfest@master"
+        # The official action runs the hassfest image with no arguments. We run
+        # the same image directly so we can skip the requirements plugin: it
+        # flags our neopool-modbus pin as incompatible with the pin the core
+        # neopool integration ships, a false positive since a custom integration
+        # fully overrides its core namesake at runtime. Drop the skip once a
+        # released core ships the matching library pin.
+        run: |
+          docker run --rm -v "${{ github.workspace }}://github/workspace" \
+            ghcr.io/home-assistant/hassfest --skip-plugins requirements
