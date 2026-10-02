@@ -16,9 +16,9 @@
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-import logging
 from typing import Any, override
 
+from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.capabilities import (
     has_filtvalve,
     has_heating_relay,
@@ -70,11 +70,9 @@ from .const import (
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
-_LOGGER = logging.getLogger(__name__)
-
 PARALLEL_UPDATES = 1
 
-type _WriteFn = Callable[["NeoPoolSelect", Any, str], Awaitable[None]]
+type _WriteFn = Callable[["NeoPoolSelect", NeoPoolModbusClient, str], Awaitable[None]]
 type _OptionsFn = Callable[[dict[str, Any]], list[str]]
 type _CurrentOptionFn = Callable[[dict[str, Any]], str | None]
 
@@ -125,7 +123,7 @@ def _cell_boost_options(data: dict[str, Any]) -> list[str]:
 def _decode_cell_boost(data: dict[str, Any]) -> str | None:
     """Surface the current cell boost mode via the lib decoder."""
     reg_val = data.get("MBF_CELL_BOOST")
-    if reg_val is None:  # pragma: no cover
+    if reg_val is None:  # pragma: no cover - register always present once polled
         return None
     return decode_cell_boost(reg_val) or CELL_BOOST_MODE_LABELS[0]
 
@@ -137,9 +135,9 @@ def _make_filtration_speed_decoder(
 
     def _decode(data: dict[str, Any]) -> str | None:
         raw = data.get("MBF_PAR_FILTRATION_CONF")
-        if raw is None:  # pragma: no cover
+        if raw is None:  # pragma: no cover - register always present once polled
             return None
-        if mask is None or shift is None:  # pragma: no cover
+        if mask is None or shift is None:  # pragma: no cover - set for every slot
             return None
         speed_value = (int(raw) & mask) >> shift
         return FILTRATION_SPEED_LABELS.get(speed_value)
@@ -148,7 +146,7 @@ def _make_filtration_speed_decoder(
 
 
 async def _write_config_option(
-    entity: "NeoPoolSelect", client: Any, option: str
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
 ) -> None:
     """Reverse-lookup the option label and write it through async_set_config_option.
 
@@ -161,9 +159,9 @@ async def _write_config_option(
     reverse_map = {v: k for k, v in desc.options_map.items()}
     value = reverse_map.get(option)
     if value is None:
-        try:  # pragma: no cover
+        try:  # pragma: no cover - mapped_register options cover every value
             value = int(option.rstrip("ms"))
-        except ValueError:  # pragma: no cover
+        except ValueError:  # pragma: no cover - option list is numeric
             return
     write_val = max(0, value + desc.write_offset)
     await client.async_set_config_option(desc.config_kind, write_val)
@@ -173,7 +171,7 @@ async def _write_config_option(
 
 
 async def _write_timer_period(
-    entity: "NeoPoolSelect", client: Any, option: str
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
 ) -> None:
     """Update the repeat period of a timer via the library's write_timer."""
     timer_name = entity.entity_description.key.rsplit("_", 1)[0]
@@ -194,7 +192,9 @@ _RELAY_MODE_ENTITY_KIND: dict[str, RelayKind] = {
 }
 
 
-async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -> None:
+async def _write_relay_mode(
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
+) -> None:
     """Switch the relay between automatic (timer-driven) and manual modes."""
     timer_name = entity.entity_description.key.rsplit("_", 1)[0]
     current = int(entity.coordinator.data.get(f"{timer_name}_enable", 0) or 0)
@@ -212,7 +212,7 @@ async def _write_relay_mode(entity: "NeoPoolSelect", client: Any, option: str) -
 
 
 async def _write_filtvalve_mode(
-    entity: "NeoPoolSelect", client: Any, option: str
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
 ) -> None:
     """Switch the filter valve between automatic and manual modes."""
     current = int(entity.coordinator.data.get("MBF_PAR_FILTVALVE_MODE", 0) or 0)
@@ -223,19 +223,21 @@ async def _write_filtvalve_mode(
         # Already in a manual mode; do not touch the physical valve state.
         return
     mode = FiltValveMode.AUTO if option == "auto" else FiltValveMode.ALWAYS_OFF
-    overrides = await client.async_set_filtvalve_mode(mode)
+    overrides = await client.async_set_filtvalve_mode(mode) or {}
     entity.coordinator.async_set_updated_data({**entity.coordinator.data, **overrides})
     entity.coordinator.request_refresh_with_followup()
 
 
-async def _write_cell_boost(entity: "NeoPoolSelect", client: Any, option: str) -> None:
+async def _write_cell_boost(
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
+) -> None:
     """Encode the cell boost mode into the composite cell-status register."""
     await client.async_set_cell_boost(option)
     entity.coordinator.request_refresh_with_followup()
 
 
 async def _write_filtration_speed(
-    entity: "NeoPoolSelect", client: Any, option: str
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
 ) -> None:
     """Pack the live filtration speed into the composite filtration_conf register."""
     if entity.coordinator.data.get("MBF_PAR_FILT_MODE") != 0:
@@ -248,7 +250,7 @@ async def _write_filtration_speed(
 
 
 async def _write_filtration_speed_timer(
-    entity: "NeoPoolSelect", client: Any, option: str
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
 ) -> None:
     """Pack a per-timer filtration speed into the composite filtration_conf register."""
     timer = int(
@@ -258,7 +260,9 @@ async def _write_filtration_speed_timer(
     entity.coordinator.request_refresh_with_followup()
 
 
-async def _write_filt_mode(entity: "NeoPoolSelect", client: Any, option: str) -> None:
+async def _write_filt_mode(
+    entity: "NeoPoolSelect", client: NeoPoolModbusClient, option: str
+) -> None:
     """Drive the MBF_PAR_FILT_MODE transition.
 
     The library sequences the manual-mode exit (pump off + settle delay)
@@ -286,7 +290,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         key="MBF_PAR_FILTRATION_SPEED",
         translation_key="filtration_speed",
         options_map=FILTRATION_SPEED_LABELS,
-        supported_fn=has_variable_speed_pump,  # pragma: no cover
+        supported_fn=has_variable_speed_pump,
         write_fn=_write_filtration_speed,
         current_option_fn=_make_filtration_speed_decoder(
             FILTRATION_SPEED_MASK, FILTRATION_SPEED_SHIFT
@@ -297,7 +301,7 @@ SELECT_DESCRIPTIONS: dict[str, NeoPoolSelectEntityDescription] = {
         translation_key="cell_boost",
         options_map=CELL_BOOST_MODE_LABELS,
         entity_registry_enabled_default=False,
-        supported_fn=is_hydrolysis_present,  # pragma: no cover
+        supported_fn=is_hydrolysis_present,
         write_fn=_write_cell_boost,
         options_fn=_cell_boost_options,
         current_option_fn=_decode_cell_boost,
@@ -660,7 +664,9 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             value = data.get(f"{timer_name}_enable")
             if value == 0 and "disabled" not in options:
                 options = ["disabled", *options]
-            if value == 2 and "auto_linked" not in options:  # pragma: no cover
+            if (
+                value == 2 and "auto_linked" not in options
+            ):  # pragma: no cover - auto_linked out of scope
                 options = ["auto_linked", *options]
             return options
 
@@ -670,7 +676,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
             value = data.get(self._key)
             if (
                 isinstance(value, int) and value not in desc.options_map
-            ):  # pragma: no cover
+            ):  # pragma: no cover - device values stay within the mapped set
                 suffix = desc.fallback_suffix
                 return [f"{value}{suffix}", *options]
             return options
@@ -679,7 +685,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
     def apply_optimistic_update(self, value: int | None) -> dict[str, Any]:
         """Return the coordinator-data overrides for an optimistic state update."""
-        if value is None:  # pragma: no cover
+        if value is None:  # pragma: no cover - callers pass a resolved value
             return {}
         desc = self.entity_description
         if self._key == "MBF_PAR_FILT_MODE":
@@ -700,7 +706,7 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
         if desc.select_type == "timer_period":
             value = data.get(self._key)
-            if value is None:  # pragma: no cover
+            if value is None:  # pragma: no cover - timer block present once polled
                 return None
             int_value = int(value)
             return PERIOD_SECONDS_TO_KEY.get(int_value, str(int_value))
@@ -708,20 +714,22 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
         if desc.select_type == "relay_mode":
             timer_name = self._key.rsplit("_", 1)[0]
             value = data.get(f"{timer_name}_enable")
-            if value is None:  # pragma: no cover
+            if value is None:  # pragma: no cover - enable key present once polled
                 return None
             int_value = int(value)
             if int_value == 0:
                 return "disabled"
-            if int_value == 2:  # pragma: no cover
+            if int_value == 2:  # pragma: no cover - auto_linked out of scope
                 return "auto_linked"
             if int_value in (TimerRelayMode.ALWAYS_ON, TimerRelayMode.ALWAYS_OFF):
                 return "manual"
-            return desc.options_map.get(int_value)  # pragma: no cover
+            return desc.options_map.get(
+                int_value
+            )  # pragma: no cover - value is 0/2/manual
 
         if desc.select_type == "filtvalve_mode":
             value = data.get(self._key)
-            if value is None:  # pragma: no cover
+            if value is None:  # pragma: no cover - register present once polled
                 return None
             int_value = int(value)
             if int_value in (FiltValveMode.ALWAYS_ON, FiltValveMode.ALWAYS_OFF):
@@ -730,12 +738,12 @@ class NeoPoolSelect(NeoPoolEntity, SelectEntity):
 
         if desc.select_type == "mapped_register":
             value = data.get(self._key)
-            if value is None:  # pragma: no cover
+            if value is None:  # pragma: no cover - register present once polled
                 return None
             suffix = desc.fallback_suffix
             return desc.options_map.get(int(value), f"{value}{suffix}")
 
         value = data.get(self._key)
-        if value is None:  # pragma: no cover
+        if value is None:  # pragma: no cover - register present once polled
             return None
         return desc.options_map.get(value)
