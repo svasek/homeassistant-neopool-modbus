@@ -127,6 +127,11 @@ async def test_filt_mode_backwash_option_is_display_only(
     assert state is not None
     assert "backwash" in state.attributes["options"]
 
+    # Reselecting the display-only backwash option must not write to the device.
+    mock_neopool_client.async_set_filtration_mode.reset_mock()
+    await _select_option(hass, entity_id, "backwash")
+    mock_neopool_client.async_set_filtration_mode.assert_not_awaited()
+
 
 # ---------------------------------------------------------------------------
 # mapped_register dispatch
