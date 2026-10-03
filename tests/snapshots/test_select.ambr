@@ -533,6 +533,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -579,6 +580,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Light timer - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -595,7 +597,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_ph_pump_activation_delay-entry]
@@ -1106,6 +1108,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1152,6 +1155,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 1 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1168,7 +1172,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_timer_aux_1_2_interval-entry]
@@ -1179,6 +1183,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1225,6 +1230,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 1 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1241,7 +1247,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_timer_aux_2_1_interval-entry]
@@ -1252,6 +1258,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1298,6 +1305,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 2 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1314,7 +1322,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_timer_aux_2_2_interval-entry]
@@ -1325,6 +1333,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1371,6 +1380,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 2 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1387,7 +1397,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_timer_aux_3_1_interval-entry]
@@ -1398,6 +1408,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1444,6 +1455,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 3 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1460,7 +1472,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_timer_aux_3_2_interval-entry]
@@ -1471,6 +1483,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1517,6 +1530,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 3 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1533,7 +1547,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_timer_aux_4_1_interval-entry]
@@ -1544,6 +1558,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1590,6 +1605,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 4 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1606,7 +1622,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_all_entities[select.neopool_timer_aux_4_2_interval-entry]
@@ -1617,6 +1633,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1663,6 +1680,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 4 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -1679,7 +1697,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_filtration_mode-entry]
@@ -1739,138 +1757,6 @@
     'last_reported': <ANY>,
     'last_updated': <ANY>,
     'state': 'manual',
-  })
-# ---
-# name: test_setup_when_modules_absent[select.neopool_light_mode-entry]
-  EntityRegistryEntrySnapshot({
-    'aliases': list([
-      None,
-    ]),
-    'area_id': None,
-    'capabilities': dict({
-      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
-        'auto',
-        'manual',
-      ]),
-    }),
-    'config_entry_id': <ANY>,
-    'config_subentry_id': <ANY>,
-    'device_class': None,
-    'device_id': <ANY>,
-    'disabled_by': None,
-    'domain': 'select',
-    'entity_category': None,
-    'entity_id': 'select.neopool_light_mode',
-    'has_entity_name': True,
-    'hidden_by': None,
-    'icon': None,
-    'id': <ANY>,
-    'labels': set({
-    }),
-    'name': None,
-    'object_id_base': 'Light mode',
-    'options': dict({
-    }),
-    'original_device_class': None,
-    'original_icon': None,
-    'original_name': 'Light mode',
-    'platform': 'neopool',
-    'previous_unique_id': None,
-    'suggested_object_id': None,
-    'supported_features': 0,
-    'translation_key': 'relay_light_mode',
-    'unique_id': '1234567890_relay_light_mode',
-    'unit_of_measurement': None,
-  })
-# ---
-# name: test_setup_when_modules_absent[select.neopool_light_mode-state]
-  StateSnapshot({
-    'attributes': ReadOnlyDict({
-      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Light mode',
-      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
-        'auto',
-        'manual',
-      ]),
-    }),
-    'context': <ANY>,
-    'entity_id': 'select.neopool_light_mode',
-    'last_changed': <ANY>,
-    'last_reported': <ANY>,
-    'last_updated': <ANY>,
-    'state': 'unknown',
-  })
-# ---
-# name: test_setup_when_modules_absent[select.neopool_light_timer_interval-entry]
-  EntityRegistryEntrySnapshot({
-    'aliases': list([
-      None,
-    ]),
-    'area_id': None,
-    'capabilities': dict({
-      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
-        '1_day',
-        '2_days',
-        '3_days',
-        '4_days',
-        '5_days',
-        '1_week',
-        '2_weeks',
-        '3_weeks',
-        '4_weeks',
-      ]),
-    }),
-    'config_entry_id': <ANY>,
-    'config_subentry_id': <ANY>,
-    'device_class': None,
-    'device_id': <ANY>,
-    'disabled_by': None,
-    'domain': 'select',
-    'entity_category': <EntityCategory.CONFIG: 'config'>,
-    'entity_id': 'select.neopool_light_timer_interval',
-    'has_entity_name': True,
-    'hidden_by': None,
-    'icon': None,
-    'id': <ANY>,
-    'labels': set({
-    }),
-    'name': None,
-    'object_id_base': 'Light timer - interval',
-    'options': dict({
-    }),
-    'original_device_class': None,
-    'original_icon': None,
-    'original_name': 'Light timer - interval',
-    'platform': 'neopool',
-    'previous_unique_id': None,
-    'suggested_object_id': None,
-    'supported_features': 0,
-    'translation_key': 'relay_light_period',
-    'unique_id': '1234567890_relay_light_period',
-    'unit_of_measurement': None,
-  })
-# ---
-# name: test_setup_when_modules_absent[select.neopool_light_timer_interval-state]
-  StateSnapshot({
-    'attributes': ReadOnlyDict({
-      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Light timer - interval',
-      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
-        '1_day',
-        '2_days',
-        '3_days',
-        '4_days',
-        '5_days',
-        '1_week',
-        '2_weeks',
-        '3_weeks',
-        '4_weeks',
-      ]),
-    }),
-    'context': <ANY>,
-    'entity_id': 'select.neopool_light_timer_interval',
-    'last_changed': <ANY>,
-    'last_reported': <ANY>,
-    'last_updated': <ANY>,
-    'state': 'unknown',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_relay_aux_1_mode-entry]
@@ -2117,6 +2003,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2163,6 +2050,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 1 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2179,7 +2067,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_timer_aux_1_2_interval-entry]
@@ -2190,6 +2078,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2236,6 +2125,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 1 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2252,7 +2142,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_timer_aux_2_1_interval-entry]
@@ -2263,6 +2153,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2309,6 +2200,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 2 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2325,7 +2217,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_timer_aux_2_2_interval-entry]
@@ -2336,6 +2228,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2382,6 +2275,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 2 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2398,7 +2292,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_timer_aux_3_1_interval-entry]
@@ -2409,6 +2303,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2455,6 +2350,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 3 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2471,7 +2367,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_timer_aux_3_2_interval-entry]
@@ -2482,6 +2378,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2528,6 +2425,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 3 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2544,7 +2442,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_timer_aux_4_1_interval-entry]
@@ -2555,6 +2453,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2601,6 +2500,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 4 (1) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2617,7 +2517,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
 # name: test_setup_when_modules_absent[select.neopool_timer_aux_4_2_interval-entry]
@@ -2628,6 +2528,7 @@
     'area_id': None,
     'capabilities': dict({
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2674,6 +2575,7 @@
     'attributes': ReadOnlyDict({
       <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'NeoPool Timer Aux 4 (2) - interval',
       <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'no_repeat',
         '1_day',
         '2_days',
         '3_days',
@@ -2690,6 +2592,6 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unknown',
+    'state': 'no_repeat',
   })
 # ---
