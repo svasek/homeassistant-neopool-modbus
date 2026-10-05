@@ -225,6 +225,7 @@
                 "name": "Rückspülventil-Modus",
                 "state": {
                     "auto": "Automatisch",
+                    "disabled": "Deaktiviert",
                     "manual": "Manuell"
                 }
             },

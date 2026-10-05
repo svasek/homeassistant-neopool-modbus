@@ -225,6 +225,7 @@
                 "name": "Tryb zaworu płukania wstecznego",
                 "state": {
                     "auto": "Automatyczny",
+                    "disabled": "Wyłączone",
                     "manual": "Ręczny"
                 }
             },

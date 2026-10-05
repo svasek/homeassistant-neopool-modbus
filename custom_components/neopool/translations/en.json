@@ -233,6 +233,7 @@
                 "name": "Backwash valve mode",
                 "state": {
                     "auto": "Automatic",
+                    "disabled": "Disabled",
                     "manual": "Manual"
                 }
             },

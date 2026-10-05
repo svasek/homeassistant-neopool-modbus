@@ -225,6 +225,7 @@
                 "name": "Modo de válvula de retrolavado",
                 "state": {
                     "auto": "Automático",
+                    "disabled": "Desactivado",
                     "manual": "Manual"
                 }
             },

@@ -225,6 +225,7 @@
                 "name": "Modalità valvola di controlavaggio",
                 "state": {
                     "auto": "Automatico",
+                    "disabled": "Disabilitato",
                     "manual": "Manuale"
                 }
             },

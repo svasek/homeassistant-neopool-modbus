@@ -225,6 +225,7 @@
                 "name": "Mode de la vanne de rétrolavage",
                 "state": {
                     "auto": "Automatique",
+                    "disabled": "Désactivé",
                     "manual": "Manuel"
                 }
             },

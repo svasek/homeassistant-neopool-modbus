@@ -225,6 +225,7 @@
                 "name": "Režim ventilu zpětného proplachování",
                 "state": {
                     "auto": "Automatický",
+                    "disabled": "Zakázáno",
                     "manual": "Ruční"
                 }
             },
