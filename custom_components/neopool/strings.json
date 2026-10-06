@@ -387,6 +387,9 @@
     "invalid_register_type": {
       "message": "Invalid {name} {value}: use a decimal number or hex (0x…)"
     },
+    "invalid_state": {
+      "message": "The controller rejected this change because it is not in a valid state for it."
+    },
     "invalid_timer": {
       "message": "Invalid timer name {timer_name}. Valid timers: {valid_timers}"
     },

@@ -529,6 +529,9 @@
         "invalid_register_type": {
             "message": "Nieprawidłowa wartość {name} {value}: użyj liczby dziesiętnej lub hex (0x…)"
         },
+        "invalid_state": {
+            "message": "Sterownik odrzucił tę zmianę, ponieważ nie jest w odpowiednim stanie, aby ją wykonać."
+        },
         "invalid_timer": {
             "message": "Nieprawidłowa nazwa timera {timer_name}. Prawidłowe timery: {valid_timers}"
         },

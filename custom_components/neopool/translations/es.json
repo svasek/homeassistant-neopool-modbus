@@ -529,6 +529,9 @@
         "invalid_register_type": {
             "message": "Valor no válido {name} {value}: use un número decimal o hex (0x…)"
         },
+        "invalid_state": {
+            "message": "El controlador rechazó este cambio porque no se encuentra en un estado válido para realizarlo."
+        },
         "invalid_timer": {
             "message": "Nombre de temporizador no válido {timer_name}. Temporizadores válidos: {valid_timers}"
         },
