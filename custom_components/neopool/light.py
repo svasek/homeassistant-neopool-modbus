@@ -22,11 +22,8 @@ from neopool_modbus import NeoPoolInvalidStateError
 from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import RelayKind, TimerRelayMode, is_valid_relay_gpio
 
-from homeassistant.components.light import (
-    ColorMode,
-    LightEntity,
-    LightEntityDescription,
-)
+from homeassistant.components.light import LightEntity, LightEntityDescription
+from homeassistant.components.light.const import ColorMode
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
