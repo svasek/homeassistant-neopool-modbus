@@ -225,6 +225,7 @@
                 "name": "Modalità valvola di controlavaggio",
                 "state": {
                     "auto": "Automatico",
+                    "disabled": "Disabilitato",
                     "manual": "Manuale"
                 }
             },
@@ -527,6 +528,9 @@
         },
         "invalid_register_type": {
             "message": "Valore {name} non valido {value}: usare un numero decimale o hex (0x…)"
+        },
+        "invalid_state": {
+            "message": "Il controller ha rifiutato questa modifica perché non si trova in uno stato valido per eseguirla."
         },
         "invalid_timer": {
             "message": "Nome timer non valido {timer_name}. Timer validi: {valid_timers}"

@@ -225,6 +225,7 @@
                 "name": "Mode de la vanne de rétrolavage",
                 "state": {
                     "auto": "Automatique",
+                    "disabled": "Désactivé",
                     "manual": "Manuel"
                 }
             },
@@ -527,6 +528,9 @@
         },
         "invalid_register_type": {
             "message": "Valeur {name} non valide {value} : utilisez un nombre décimal ou hex (0x…)"
+        },
+        "invalid_state": {
+            "message": "Le contrôleur a rejeté cette modification car il n'est pas dans un état valide pour l'effectuer."
         },
         "invalid_timer": {
             "message": "Nom de minuteur non valide {timer_name}. Minuteurs valides : {valid_timers}"

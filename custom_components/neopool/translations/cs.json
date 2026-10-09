@@ -225,6 +225,7 @@
                 "name": "Režim ventilu zpětného proplachování",
                 "state": {
                     "auto": "Automatický",
+                    "disabled": "Zakázáno",
                     "manual": "Ruční"
                 }
             },
@@ -527,6 +528,9 @@
         },
         "invalid_register_type": {
             "message": "Neplatná hodnota {name} {value}: použijte desítkové číslo nebo hex (0x…)"
+        },
+        "invalid_state": {
+            "message": "Ovladač odmítl tuto změnu, protože pro ni není ve správném stavu."
         },
         "invalid_timer": {
             "message": "Neplatný název časovače {timer_name}. Platné časovače: {valid_timers}"
