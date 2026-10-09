@@ -4,6 +4,7 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from neopool_modbus import NeoPoolError
+from neopool_modbus.exceptions import InvalidStateReason, NeoPoolInvalidStateError
 from neopool_modbus.registers import ConfigKind, FiltValveMode, RelayKind, RelayMode
 import pytest
 from pytest_homeassistant_custom_component.common import (
@@ -16,7 +17,7 @@ from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.const import ATTR_OPTION, SERVICE_SELECT_OPTION, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
-from homeassistant.helpers import entity_platform as ep, entity_registry as er
+from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
 from .conftest import MOCK_POOL_DATA
@@ -71,16 +72,15 @@ async def test_filt_mode_select_writes_register(
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
-async def test_filt_mode_leaving_manual_stops_pump_first(
+async def test_filt_mode_leaving_manual_delegates_exit_to_lib(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """Switching from manual to a non-backwash mode preemptively stops the pump.
+    """Leaving manual mode is a single lib call; the lib sequences the pump stop.
 
-    Custom-pre-condition: filtration_mode == "manual". Switching to "auto"
-    must first call ``async_set_manual_filtration(False)`` before the mode
-    write.
+    The manual-mode exit (pump off + settle delay) lives in
+    async_set_filtration_mode, so the platform must not stop the pump itself.
     """
 
     mock_neopool_client.async_read_all.return_value = {
@@ -96,7 +96,7 @@ async def test_filt_mode_leaving_manual_stops_pump_first(
     mock_neopool_client.async_set_filtration_mode.reset_mock()
     await _select_option(hass, entity_id, "auto")
 
-    mock_neopool_client.async_set_manual_filtration.assert_awaited_once_with(False)
+    mock_neopool_client.async_set_manual_filtration.assert_not_awaited()
     mock_neopool_client.async_set_filtration_mode.assert_awaited_once_with("auto")
 
 
@@ -127,6 +127,52 @@ async def test_filt_mode_backwash_option_is_display_only(
     state = hass.states.get(entity_id)
     assert state is not None
     assert "backwash" in state.attributes["options"]
+
+    # Reselecting the display-only backwash option must not write to the device.
+    mock_neopool_client.async_set_filtration_mode.reset_mock()
+    await _select_option(hass, entity_id, "backwash")
+    mock_neopool_client.async_set_filtration_mode.assert_not_awaited()
+
+
+async def test_filt_mode_invalid_state_maps_to_validation_error(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A library invalid-state rejection surfaces as ServiceValidationError.
+
+    Leaving manual mode while a cell boost is active makes the library raise
+    NeoPoolInvalidStateError; that is a fixable device state, not a comms
+    failure, so it maps to the reason's validation message, not
+    modbus_communication_error.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "mbf_par_filt_mode")
+    mock_neopool_client.async_set_filtration_mode = AsyncMock(
+        side_effect=NeoPoolInvalidStateError(
+            "boost active",
+            reason=InvalidStateReason.FILTRATION_BOOST_ACTIVE,
+        ),
+    )
+    with pytest.raises(ServiceValidationError) as err:
+        await _select_option(hass, entity_id, "auto")
+    assert err.value.translation_key == "filtration_boost_active"
+
+
+async def test_filt_mode_invalid_state_unmapped_reason_falls_back(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """An invalid-state rejection without a reason falls back to a generic key."""
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "mbf_par_filt_mode")
+    mock_neopool_client.async_set_filtration_mode = AsyncMock(
+        side_effect=NeoPoolInvalidStateError("unexpected"),
+    )
+    with pytest.raises(ServiceValidationError) as err:
+        await _select_option(hass, entity_id, "auto")
+    assert err.value.translation_key == "invalid_state"
 
 
 # ---------------------------------------------------------------------------
@@ -166,6 +212,53 @@ async def test_filtvalve_interval_writes_mapped_register(
     mock_neopool_client.async_set_config_option.assert_any_await(
         ConfigKind.FILTVALVE_INTERVAL, 150
     )
+
+
+async def test_relay_activation_delay_uses_dedicated_lib_method(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """The activation-delay select calls the lib method with user-facing seconds.
+
+    The library owns the firmware -10 s offset, so the integration passes the
+    selected seconds unchanged.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(
+        hass, mock_config_entry_timers, "mbf_par_relay_activation_delay"
+    )
+    mock_neopool_client.async_set_relay_activation_delay.reset_mock()
+    await _select_option(hass, entity_id, "20")
+    mock_neopool_client.async_set_relay_activation_delay.assert_any_await(20)
+    # The generic raw-write path is not used for this entity.
+    mock_neopool_client.async_set_config_option.assert_not_awaited()
+
+
+async def test_relay_activation_delay_reads_back_user_facing_value(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A poll surfaces the user-facing value, so current_option round-trips.
+
+    The library applies the firmware +10 s offset on reads, so
+    MBF_PAR_RELAY_ACTIVATION_DELAY already holds the user-facing seconds; the
+    generic mapped-register reader must map it straight back to its option.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(
+        hass, mock_config_entry_timers, "mbf_par_relay_activation_delay"
+    )
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_RELAY_ACTIVATION_DELAY": 20,
+    }
+    await mock_config_entry_timers.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "20"
 
 
 async def test_filtvalve_interval_current_option_reads_register(
@@ -259,34 +352,63 @@ async def test_filtvalve_mode_manual_to_manual_is_noop(
     mock_neopool_client.async_set_filtvalve_mode.assert_not_awaited()
 
 
-async def test_filtvalve_mode_current_option_maps_register(
+async def test_filtvalve_mode_disabled_is_read_only(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
     mock_neopool_client: MagicMock,
 ) -> None:
-    """current_option reduces the 3 register values to auto / manual.
+    """Mode 0 surfaces 'disabled' as a read-only option that offers no write."""
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_MODE": 0,
+    }
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(
+        hass, mock_config_entry_timers, "mbf_par_filtvalve_mode"
+    )
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "disabled"
+    assert "disabled" in state.attributes["options"]
+    mock_neopool_client.async_set_filtvalve_mode = AsyncMock(return_value={})
+    await _select_option(hass, entity_id, "disabled")
+    mock_neopool_client.async_set_filtvalve_mode.assert_not_awaited()
 
-    AUTO (1) -> 'auto'; ALWAYS_ON (3) and ALWAYS_OFF (4) -> 'manual'.
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (0, "disabled"),
+        (FiltValveMode.AUTO.value, "auto"),
+        (FiltValveMode.ALWAYS_ON.value, "manual"),
+        (FiltValveMode.ALWAYS_OFF.value, "manual"),
+    ],
+)
+async def test_filtvalve_mode_current_option_maps_register(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    raw: int,
+    expected: str,
+) -> None:
+    """current_option reduces the register values to disabled / auto / manual.
+
+    0 -> 'disabled'; AUTO (1) -> 'auto'; ALWAYS_ON (3) and ALWAYS_OFF (4) -> 'manual'.
     """
     await setup_integration(hass, mock_config_entry_timers)
     entity_id = _select_entity_id(
         hass, mock_config_entry_timers, "mbf_par_filtvalve_mode"
     )
 
-    for raw, expected in (
-        (FiltValveMode.AUTO.value, "auto"),
-        (FiltValveMode.ALWAYS_ON.value, "manual"),
-        (FiltValveMode.ALWAYS_OFF.value, "manual"),
-    ):
-        mock_neopool_client.async_read_all.return_value = {
-            **MOCK_POOL_DATA,
-            "MBF_PAR_FILTVALVE_MODE": raw,
-        }
-        await mock_config_entry_timers.runtime_data.async_refresh()
-        await hass.async_block_till_done()
-        state = hass.states.get(entity_id)
-        assert state is not None
-        assert state.state == expected
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTVALVE_MODE": raw,
+    }
+    await mock_config_entry_timers.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == expected
 
 
 async def test_filtvalve_mode_maps_communication_error_to_home_assistant_error(
@@ -407,23 +529,12 @@ async def test_timer_period_options_and_current_option(
     }
     await setup_integration(hass, mock_config_entry_timers)
 
-    entity_obj = None
-    for platforms in ep.async_get_platforms(hass, "neopool"):
-        for ent in platforms.entities.values():
-            if (
-                ent.entity_id.startswith("select.")
-                and getattr(ent, "key", None) == "relay_aux1_period"
-            ):
-                entity_obj = ent
-                break
-        if entity_obj is not None:
-            break
-    assert entity_obj is not None
-    # current_option resolves the seconds value back to its key.
-    assert entity_obj.current_option == "1_day"
-    # options list is the full PERIOD_MAP.
-    assert "1_day" in entity_obj.options
-    assert "1_week" in entity_obj.options
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_period")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "1_day"
+    assert "1_day" in state.attributes["options"]
+    assert "1_week" in state.attributes["options"]
 
 
 @pytest.mark.usefixtures("entity_registry_enabled_by_default")
@@ -520,6 +631,47 @@ async def test_filtration_speed_current_option_decodes_filtration_conf(
     assert state.state == expected
 
 
+async def test_filtration_speed_timer_writes_per_timer_slot(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A per-timer speed select writes its own slot, not the live speed.
+
+    Guards against the live-vs-timer slot mix-up: the entity must call
+    async_set_filtration_speed_timer(1, ...), never async_set_filtration_speed.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "filtration1_speed")
+    mock_neopool_client.async_set_filtration_speed.reset_mock()
+    mock_neopool_client.async_set_filtration_speed_timer.reset_mock()
+    await _select_option(hass, entity_id, "high")
+    mock_neopool_client.async_set_filtration_speed_timer.assert_awaited_once_with(
+        1, "high"
+    )
+    mock_neopool_client.async_set_filtration_speed.assert_not_awaited()
+
+
+async def test_filtration_speed_timer_current_option_decodes_timer_slot(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Timer 1 decodes bits 7-9 of MBF_PAR_FILTRATION_CONF, not the live slot."""
+    # Timer1 "high" (2) at shift 7 == 0x0100, live-speed slot left at low.
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "MBF_PAR_FILTRATION_CONF": 0x0100 | 0x0001,
+    }
+    await setup_integration(hass, mock_config_entry_timers)
+
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "filtration1_speed")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "high"
+
+
 # ---------------------------------------------------------------------------
 # timer_period + relay_mode dispatch via the lib API
 # ---------------------------------------------------------------------------
@@ -540,6 +692,85 @@ async def test_timer_period_select_calls_set_timer_service(
     assert payload["period"] == 604800
 
 
+async def test_timer_period_no_repeat_writes_zero(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Selecting no_repeat writes a period of 0, returning the timer to run-once."""
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_period")
+    mock_neopool_client.write_timer.reset_mock()
+    await _select_option(hass, entity_id, "no_repeat")
+    timer_name, payload = mock_neopool_client.write_timer.await_args.args
+    assert timer_name == "relay_aux1"
+    assert payload["period"] == 0
+
+
+async def test_timer_period_off_map_value_surfaced_as_raw_seconds(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A non-zero period outside the canonical map shows as a raw-seconds option."""
+    mock_neopool_client.read_all_timers.side_effect = None
+    mock_neopool_client.read_all_timers.return_value = {
+        "relay_aux1": {
+            "enable": 4,
+            "on": 0,
+            "interval": 0,
+            "period": 12345,  # off-map, non-zero
+            "countdown": 0,
+            "stop": None,
+        }
+    }
+    await setup_integration(hass, mock_config_entry_timers)
+
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_period")
+    state = hass.states.get(entity_id)
+    assert state.state == "12345"
+    assert "12345" in state.attributes["options"]
+    assert "no_repeat" in state.attributes["options"]
+
+
+async def test_timer_period_zero_reads_as_no_repeat(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """A device period of 0 surfaces as no_repeat, which stays selectable."""
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_period")
+    state = hass.states.get(entity_id)
+    assert state.state == "no_repeat"
+    assert "no_repeat" in state.attributes["options"]
+
+
+async def test_timer_period_write_holds_block_lock(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """The period write runs under the block's timer_write_lock.
+
+    write_timer is a read-modify-write of the whole block, so it must be
+    serialized against the time platform's start/stop writes on the same block.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_period")
+    coordinator = mock_config_entry_timers.runtime_data
+
+    locked_during_write = False
+
+    async def _check_lock(_timer: str, _payload: dict) -> None:
+        nonlocal locked_during_write
+        locked_during_write = coordinator.timer_write_lock("relay_aux1").locked()
+
+    mock_neopool_client.write_timer = AsyncMock(side_effect=_check_lock)
+    await _select_option(hass, entity_id, "1_week")
+    assert locked_during_write
+
+
 async def test_relay_mode_select_switches_via_lib_api(
     hass: HomeAssistant,
     mock_config_entry_timers: MockConfigEntry,
@@ -557,6 +788,32 @@ async def test_relay_mode_select_switches_via_lib_api(
     )
     # The returned overrides merge in optimistically: the select now reads auto.
     assert hass.states.get(entity_id).state == "auto"
+
+
+async def test_relay_mode_write_holds_block_lock(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """The relay-mode write runs under the block's timer_write_lock.
+
+    async_set_relay_mode rewrites the whole block, so it must be serialized
+    against the time and select platforms' writes on the same block.
+    """
+    await setup_integration(hass, mock_config_entry_timers)
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_mode")
+    coordinator = mock_config_entry_timers.runtime_data
+
+    locked_during_write = False
+
+    async def _check_lock(_relay: object, _mode: object) -> dict[str, object]:
+        nonlocal locked_during_write
+        locked_during_write = coordinator.timer_write_lock("relay_aux1").locked()
+        return {}
+
+    mock_neopool_client.async_set_relay_mode = AsyncMock(side_effect=_check_lock)
+    await _select_option(hass, entity_id, "auto")
+    assert locked_during_write
 
 
 async def test_relay_mode_manual_to_manual_is_noop(
@@ -581,6 +838,32 @@ async def test_relay_mode_manual_to_manual_is_noop(
     entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_mode")
     mock_neopool_client.async_set_relay_mode = AsyncMock(return_value={})
     await _select_option(hass, entity_id, "manual")
+    mock_neopool_client.async_set_relay_mode.assert_not_awaited()
+
+
+async def test_relay_mode_selecting_disabled_is_noop(
+    hass: HomeAssistant,
+    mock_config_entry_timers: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+) -> None:
+    """Selecting the read-only 'disabled' state does not write to the relay."""
+    mock_neopool_client.read_all_timers.side_effect = None
+    mock_neopool_client.read_all_timers.return_value = {
+        "relay_aux1": {
+            "enable": 0,  # disabled: read-only state surfaced in options
+            "on": 0,
+            "interval": 0,
+            "period": 0,
+            "countdown": 0,
+            "stop": None,
+        }
+    }
+    await setup_integration(hass, mock_config_entry_timers)
+
+    entity_id = _select_entity_id(hass, mock_config_entry_timers, "relay_aux1_mode")
+    assert "disabled" in hass.states.get(entity_id).attributes["options"]
+    mock_neopool_client.async_set_relay_mode = AsyncMock(return_value={})
+    await _select_option(hass, entity_id, "disabled")
     mock_neopool_client.async_set_relay_mode.assert_not_awaited()
 
 

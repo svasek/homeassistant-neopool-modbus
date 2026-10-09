@@ -225,6 +225,7 @@
                 "name": "Rückspülventil-Modus",
                 "state": {
                     "auto": "Automatisch",
+                    "disabled": "Deaktiviert",
                     "manual": "Manuell"
                 }
             },
@@ -527,6 +528,9 @@
         },
         "invalid_register_type": {
             "message": "Ungültiger Wert {name} {value}: verwenden Sie eine Dezimalzahl oder Hex (0x…)"
+        },
+        "invalid_state": {
+            "message": "Der Controller hat diese Änderung abgelehnt, weil er sich nicht in einem gültigen Zustand dafür befindet."
         },
         "invalid_timer": {
             "message": "Ungültiger Timer-Name {timer_name}. Gültige Timer: {valid_timers}"
