@@ -119,6 +119,37 @@ async def test_setup_borrows_shared_unit(
     assert mock_client_cls.call_args.kwargs["unit"] is sentinel
 
 
+async def test_unload_does_not_close_borrowed_unit(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """Unload must not tear down the shared unit; core releases it on unload.
+
+    The borrowed connection is owned by the modbus integration, which registers
+    its own release via async_get_unit. NeoPool must never close or disconnect
+    the handle itself.
+    """
+    sentinel = MagicMock()
+    with (
+        patch("custom_components.neopool.async_get_unit", return_value=sentinel),
+        patch(
+            "custom_components.neopool.NeoPoolModbusClient", autospec=True
+        ) as mock_client_cls,
+    ):
+        mock_client = mock_client_cls.return_value
+        mock_client.async_read_all = AsyncMock(return_value={})
+        mock_client.read_all_timers = AsyncMock(return_value={})
+        mock_client.close = AsyncMock()
+        await setup_integration(hass, mock_config_entry)
+
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    # The integration never calls teardown on the borrowed unit itself.
+    for teardown in ("close", "disconnect", "async_close"):
+        assert not getattr(sentinel, teardown).called
+
+
 @pytest.mark.usefixtures("mock_neopool_client")
 async def test_setup_retries_when_unit_unavailable(
     hass: HomeAssistant,
@@ -148,6 +179,21 @@ def test_build_modbus_params_framer(framer: str, expected: str) -> None:
     assert params.host == "1.2.3.4"
     assert params.port == 502
     assert params.framer == expected
+
+
+@pytest.mark.parametrize("framer", ["tcp", "socket"])
+def test_build_modbus_params_tcp_is_warning_free(
+    framer: str, recwarn: pytest.WarningsRecorder
+) -> None:
+    """The TCP path omits the framer, so it emits no DeprecationWarning.
+
+    A Modbus TCP link is always MBAP-framed; passing framer= is deprecated,
+    and the TCP path is the common case, so it must stay warning-free.
+    """
+    _build_modbus_params(
+        {CONF_HOST: "1.2.3.4", CONF_PORT: 502, CONF_MODBUS_FRAMER: framer}
+    )
+    assert not [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)]
 
 
 def test_build_modbus_params_defaults_port_and_framer() -> None:

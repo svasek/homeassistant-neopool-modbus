@@ -50,16 +50,17 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 def _build_modbus_params(data: Mapping[str, Any]) -> ModbusTcpParams:
     """Build the shared-connection link parameters from config entry data.
 
-    Both Modbus TCP (``socket``) and RTU/ASCII-over-TCP are expressed as
-    ``ModbusTcpParams``; the modbus integration canonicalises an RTU/ASCII TCP
-    connection to a serial link over a ``socket://`` device itself, so there is
-    nothing to translate here beyond the framer name.
+    A Modbus TCP link is always MBAP-framed, so the framer is omitted for it
+    (passing it is deprecated). RTU/ASCII-over-TCP still names its framer; the
+    modbus integration canonicalises that to a serial link over a ``socket://``
+    device itself, so there is nothing more to translate here.
     """
-    return ModbusTcpParams(
-        host=data[CONF_HOST],
-        port=data.get(CONF_PORT, DEFAULT_PORT),
-        framer=framer_to_socket_name(data.get(CONF_MODBUS_FRAMER, "tcp")),
-    )
+    host = data[CONF_HOST]
+    port = data.get(CONF_PORT, DEFAULT_PORT)
+    framer = framer_to_socket_name(data.get(CONF_MODBUS_FRAMER, "tcp"))
+    if framer == "socket":
+        return ModbusTcpParams(host=host, port=port)
+    return ModbusTcpParams(host=host, port=port, framer=framer)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
