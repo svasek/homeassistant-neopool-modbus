@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.9.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.9.0...v6.9.1) (2026-10-09)
+
+
+### 🐛 Bug Fixes
+
+* 🩹 satisfy stricter homeassistant-stubs 2026.10 typing ([#282](https://github.com/svasek/homeassistant-neopool-modbus/issues/282)) ([24da78d](https://github.com/svasek/homeassistant-neopool-modbus/commit/24da78dccf5ef5a22b6df02e46d176189cd46692))
+* **binary_sensor:** 🩹 import BinarySensorDeviceClass from correct ([50601d8](https://github.com/svasek/homeassistant-neopool-modbus/commit/50601d863c63fdfabbcf38f8618a4be53f17cc2e))
+* **select:** 🐛 write per-timer filtration speed to its own slot ([#281](https://github.com/svasek/homeassistant-neopool-modbus/issues/281)) ([a1b39bd](https://github.com/svasek/homeassistant-neopool-modbus/commit/a1b39bd429f3ea1819d2504c683499c071eceb9d))
+
 ## [6.9.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.8.0...v6.9.0) (2026-09-26)
 
 
