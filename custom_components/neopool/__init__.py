@@ -14,13 +14,21 @@
 
 """NeoPool integration for Home Assistant."""
 
-from neopool_modbus import NeoPoolModbusClient
+from collections.abc import Mapping
+from typing import Any
 
+from modbus_connection import ModbusTcpParams
+from neopool_modbus import NeoPoolModbusClient
+from neopool_modbus.registers import framer_to_socket_name
+
+from homeassistant.components.modbus import async_get_unit
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, PLATFORMS
+from .const import CONF_MODBUS_FRAMER, CONF_UNIT_ID, DEFAULT_PORT, DOMAIN, PLATFORMS
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 
 # Re-exported for Home Assistant, HA discovers async_migrate_entry from __init__.
@@ -39,6 +47,21 @@ __all__ = ["async_migrate_entry"]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
+def _build_modbus_params(data: Mapping[str, Any]) -> ModbusTcpParams:
+    """Build the shared-connection link parameters from config entry data.
+
+    Both Modbus TCP (``socket``) and RTU/ASCII-over-TCP are expressed as
+    ``ModbusTcpParams``; the modbus integration canonicalises an RTU/ASCII TCP
+    connection to a serial link over a ``socket://`` device itself, so there is
+    nothing to translate here beyond the framer name.
+    """
+    return ModbusTcpParams(
+        host=data[CONF_HOST],
+        port=data.get(CONF_PORT, DEFAULT_PORT),
+        framer=framer_to_socket_name(data.get(CONF_MODBUS_FRAMER, "tcp")),
+    )
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the NeoPool integration."""
     async_setup_services(hass)
@@ -47,7 +70,21 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
     """Set up the NeoPool integration from a config entry."""
-    client = NeoPoolModbusClient(entry.data)
+    # Borrow a shared Modbus connection from the modbus integration so several
+    # integrations on one device share a single link.
+    try:
+        unit = async_get_unit(
+            hass,
+            entry,
+            _build_modbus_params(entry.data),
+            entry.data.get(CONF_UNIT_ID, 1),
+        )
+    except HomeAssistantError as err:
+        # The device is already in use over different link settings, which one
+        # shared connection cannot honour.
+        raise ConfigEntryNotReady(str(err)) from err
+
+    client = NeoPoolModbusClient(entry.data, unit=unit)
     coordinator = NeoPoolCoordinator(hass, client, entry)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator

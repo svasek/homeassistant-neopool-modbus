@@ -393,6 +393,12 @@ def mock_neopool_client() -> Generator[MagicMock]:
             "custom_components.neopool.config_flow.async_probe_serial",
             new=AsyncMock(return_value=MOCK_SERIAL),
         ),
+        # Setup borrows a shared Modbus unit from the modbus integration; hand
+        # back a stub so setup does not touch a real connection.
+        patch(
+            "custom_components.neopool.async_get_unit",
+            return_value=MagicMock(),
+        ),
     ):
         mock_client = mock_client_cls.return_value
         mock_client.async_read_all = AsyncMock(return_value=dict(MOCK_POOL_DATA))
