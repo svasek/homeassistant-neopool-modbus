@@ -1,5 +1,9 @@
 # Runtime dependency (Modbus communication via NeoPool library)
-neopool-modbus>=4.10.0
+neopool-modbus>=4.12.1
+
+# Shared Modbus connection support (provided at runtime by the modbus
+# integration; needed here so tests and type checks can import it)
+modbus-connection[tmodbus]>=4.12.4
 
 # Type stubs for Home Assistant Core
 homeassistant-stubs
