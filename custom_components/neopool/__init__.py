@@ -21,19 +21,12 @@ from modbus_connection import ModbusTcpParams
 from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.registers import framer_to_socket_name
 
+from homeassistant.components.modbus import async_get_unit
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
-
-# HACS runs on Home Assistant versions older than the one that added the shared
-# Modbus connection (async_get_unit). Fall back to a self-owned pymodbus
-# connection there; async_get_unit is None signals that path.
-try:
-    from homeassistant.components.modbus import async_get_unit
-except ImportError:  # Home Assistant < 2026.9
-    async_get_unit = None
 
 from .const import CONF_MODBUS_FRAMER, CONF_UNIT_ID, DEFAULT_PORT, DOMAIN, PLATFORMS
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
@@ -84,12 +77,6 @@ def _async_build_client(
     Several integrations on one device share a single connection this way, and
     it appears in the Modbus connections panel.
     """
-    # CUSTOM-ONLY START, older Home Assistant has no shared Modbus connection;
-    # fall back to a self-owned pymodbus client there. Core pins a new enough
-    # version, so this block is stripped and only the borrowed path remains.
-    if async_get_unit is None:
-        return NeoPoolModbusClient(entry.data)
-    # CUSTOM-ONLY END
     try:
         unit = async_get_unit(
             hass,

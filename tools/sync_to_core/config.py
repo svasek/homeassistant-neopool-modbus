@@ -83,22 +83,6 @@ EXCLUDE_TEST_DIRS: frozenset[str] = frozenset({"__pycache__"})
 # Order matters — longer matches first, so the more specific replacement
 # does not get partially eaten by a later one.
 PYTHON_REPLACEMENTS: tuple[tuple[str, str], ...] = (
-    # The HACS fallback for Home Assistant < 2026.9 (no shared Modbus
-    # connection) collapses to a plain import in core, which pins a new enough
-    # version. Longer, more specific match first so it is applied before the
-    # generic `from …` rewrites below.
-    (
-        "# HACS runs on Home Assistant versions older than the one that added "
-        "the shared\n"
-        "# Modbus connection (async_get_unit). Fall back to a self-owned "
-        "pymodbus\n"
-        "# connection there; async_get_unit is None signals that path.\n"
-        "try:\n"
-        "    from homeassistant.components.modbus import async_get_unit\n"
-        "except ImportError:  # Home Assistant < 2026.9\n"
-        "    async_get_unit = None\n",
-        "from homeassistant.components.modbus import async_get_unit\n",
-    ),
     # patch("custom_components.neopool…")  →  patch("homeassistant.components.neopool…")
     ('"custom_components.neopool', '"homeassistant.components.neopool'),
     ("'custom_components.neopool", "'homeassistant.components.neopool"),
