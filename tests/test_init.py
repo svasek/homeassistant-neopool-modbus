@@ -119,6 +119,33 @@ async def test_setup_borrows_shared_unit(
     assert mock_client_cls.call_args.kwargs["unit"] is sentinel
 
 
+async def test_setup_without_shared_connection_support(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """On Home Assistant without async_get_unit, setup falls back to self-owned.
+
+    HACS runs on versions older than the shared Modbus connection, where
+    async_get_unit is absent (patched to None here). Setup must still load,
+    building the client without a borrowed unit.
+    """
+    with (
+        patch("custom_components.neopool.async_get_unit", None),
+        patch(
+            "custom_components.neopool.NeoPoolModbusClient", autospec=True
+        ) as mock_client_cls,
+    ):
+        mock_client = mock_client_cls.return_value
+        mock_client.async_read_all = AsyncMock(return_value={})
+        mock_client.read_all_timers = AsyncMock(return_value={})
+        mock_client.close = AsyncMock()
+        await setup_integration(hass, mock_config_entry)
+
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+    # The self-owned path constructs the client without a borrowed unit.
+    assert "unit" not in mock_client_cls.call_args.kwargs
+
+
 async def test_unload_does_not_close_borrowed_unit(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
