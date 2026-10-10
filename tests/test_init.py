@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from modbus_connection import ModbusSerialParams, ModbusTcpParams
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -167,28 +168,37 @@ async def test_setup_retries_when_unit_unavailable(
     assert mock_config_entry.state is ConfigEntryState.SETUP_RETRY
 
 
-@pytest.mark.parametrize(
-    ("framer", "expected"),
-    [("tcp", "socket"), ("socket", "socket"), ("rtu", "rtu")],
-)
-def test_build_modbus_params_framer(framer: str, expected: str) -> None:
-    """The config framer value is translated to a shared-connection framer name."""
+@pytest.mark.parametrize("framer", ["tcp", "socket"])
+def test_build_modbus_params_tcp(framer: str) -> None:
+    """Modbus TCP framers build ModbusTcpParams reaching host/port directly."""
     params = _build_modbus_params(
         {CONF_HOST: "1.2.3.4", CONF_PORT: 502, CONF_MODBUS_FRAMER: framer}
     )
+    assert isinstance(params, ModbusTcpParams)
     assert params.host == "1.2.3.4"
     assert params.port == 502
-    assert params.framer == expected
 
 
-@pytest.mark.parametrize("framer", ["tcp", "socket"])
-def test_build_modbus_params_tcp_is_warning_free(
+def test_build_modbus_params_rtu_is_serial_over_socket() -> None:
+    """RTU framing builds a serial link over a socket:// device (no deprecation)."""
+    params = _build_modbus_params(
+        {CONF_HOST: "1.2.3.4", CONF_PORT: 1502, CONF_MODBUS_FRAMER: "rtu"}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "socket://1.2.3.4:1502"
+    assert params.framer == "rtu"
+    # 19200 (NeoPool's RS485 rate) lands on tmodbus's 1.75 ms inter-frame floor.
+    assert params.baudrate == 19200
+
+
+@pytest.mark.parametrize("framer", ["tcp", "socket", "rtu"])
+def test_build_modbus_params_is_warning_free(
     framer: str, recwarn: pytest.WarningsRecorder
 ) -> None:
-    """The TCP path omits the framer, so it emits no DeprecationWarning.
+    """No path emits a DeprecationWarning.
 
-    A Modbus TCP link is always MBAP-framed; passing framer= is deprecated,
-    and the TCP path is the common case, so it must stay warning-free.
+    TCP omits the framer (passing it is deprecated), and RTU builds
+    ModbusSerialParams directly rather than a deprecated ModbusTcpParams(rtu).
     """
     _build_modbus_params(
         {CONF_HOST: "1.2.3.4", CONF_PORT: 502, CONF_MODBUS_FRAMER: framer}

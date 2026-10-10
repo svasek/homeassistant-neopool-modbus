@@ -17,7 +17,7 @@
 from collections.abc import Mapping
 from typing import Any
 
-from modbus_connection import ModbusTcpParams
+from modbus_connection import ModbusSerialParams, ModbusTcpParams
 from neopool_modbus import NeoPoolModbusClient
 from neopool_modbus.registers import framer_to_socket_name
 
@@ -47,20 +47,28 @@ __all__ = ["async_migrate_entry"]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
-def _build_modbus_params(data: Mapping[str, Any]) -> ModbusTcpParams:
+def _build_modbus_params(
+    data: Mapping[str, Any],
+) -> ModbusTcpParams | ModbusSerialParams:
     """Build the shared-connection link parameters from config entry data.
 
-    A Modbus TCP link is always MBAP-framed, so the framer is omitted for it
-    (passing it is deprecated). RTU/ASCII-over-TCP still names its framer; the
-    modbus integration canonicalises that to a serial link over a ``socket://``
-    device itself, so there is nothing more to translate here.
+    A Modbus TCP link is always MBAP-framed, so it uses ``ModbusTcpParams``
+    with the framer omitted (passing it is deprecated). RTU/ASCII framing over a
+    socket is a serial link reached through a ``socket://`` device, so it uses
+    ``ModbusSerialParams`` directly; that is what the modbus integration would
+    canonicalise an RTU ``ModbusTcpParams`` to anyway, built here to avoid the
+    deprecation warning. The baud rate only sets the inter-frame timing for the
+    socket-carried serial framing; 19200 (NeoPool's RS485 rate) lands on the
+    1.75 ms floor used for any rate at or above 19200.
     """
     host = data[CONF_HOST]
     port = data.get(CONF_PORT, DEFAULT_PORT)
     framer = framer_to_socket_name(data.get(CONF_MODBUS_FRAMER, "tcp"))
     if framer == "socket":
         return ModbusTcpParams(host=host, port=port)
-    return ModbusTcpParams(host=host, port=port, framer=framer)
+    return ModbusSerialParams(
+        device=f"socket://{host}:{port}", framer=framer, baudrate=19200
+    )
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
