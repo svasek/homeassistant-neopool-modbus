@@ -58,16 +58,18 @@ def _build_modbus_params(
     ``ModbusSerialParams`` directly; that is what the modbus integration would
     canonicalise an RTU ``ModbusTcpParams`` to anyway, built here to avoid the
     deprecation warning. The baud rate only sets the inter-frame timing for the
-    socket-carried serial framing; 19200 (NeoPool's RS485 rate) lands on the
-    1.75 ms floor used for any rate at or above 19200.
+    socket-carried serial framing; 19200 is NeoPool's RS485 rate, giving the
+    spec's 3.5-character gap (~2 ms) for that line.
     """
     host = data[CONF_HOST]
     port = data.get(CONF_PORT, DEFAULT_PORT)
     framer = framer_to_socket_name(data.get(CONF_MODBUS_FRAMER, "tcp"))
     if framer == "socket":
         return ModbusTcpParams(host=host, port=port)
+    # An IPv6 literal must be bracketed, or its colons read as the port separator.
+    device_host = f"[{host}]" if ":" in host else host
     return ModbusSerialParams(
-        device=f"socket://{host}:{port}", framer=framer, baudrate=19200
+        device=f"socket://{device_host}:{port}", framer=framer, baudrate=19200
     )
 
 

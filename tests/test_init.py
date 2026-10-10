@@ -187,11 +187,20 @@ def test_build_modbus_params_rtu_is_serial_over_socket() -> None:
     assert isinstance(params, ModbusSerialParams)
     assert params.device == "socket://1.2.3.4:1502"
     assert params.framer == "rtu"
-    # 19200 (NeoPool's RS485 rate) lands on tmodbus's 1.75 ms inter-frame floor.
+    # 19200 is NeoPool's RS485 rate; it only sets the socket-carried inter-frame gap.
     assert params.baudrate == 19200
 
 
-@pytest.mark.parametrize("framer", ["tcp", "socket", "rtu"])
+def test_build_modbus_params_rtu_brackets_ipv6_host() -> None:
+    """An IPv6 host is bracketed so its colons do not read as the port separator."""
+    params = _build_modbus_params(
+        {CONF_HOST: "fd00::1", CONF_PORT: 502, CONF_MODBUS_FRAMER: "rtu"}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "socket://[fd00::1]:502"
+
+
+@pytest.mark.parametrize("framer", ["tcp", "socket", "rtu", "ascii"])
 def test_build_modbus_params_is_warning_free(
     framer: str, recwarn: pytest.WarningsRecorder
 ) -> None:
