@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from modbus_connection import ModbusSerialParams, ModbusTcpParams
+from neopool_modbus import NeoPoolModbusClient
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -152,6 +153,23 @@ async def test_unload_does_not_close_borrowed_unit(
     # The integration never calls teardown on the borrowed unit itself.
     for teardown in ("close", "disconnect", "async_close"):
         assert not getattr(sentinel, teardown).called
+
+
+async def test_client_close_leaves_borrowed_unit_open() -> None:
+    """A client built on a borrowed unit must not close it on unload.
+
+    This locks the ownership boundary at the layer the mocked unload test
+    cannot reach: async_unload_entry calls client.close(), and with an injected
+    unit that close has to be a no-op, since the modbus integration owns the
+    shared connection and may be lending it to other consumers.
+    """
+    unit = MagicMock()
+    client = NeoPoolModbusClient({CONF_UNIT_ID: 1}, unit=unit)
+
+    await client.close()
+
+    for teardown in ("close", "disconnect", "async_close"):
+        assert not getattr(unit, teardown).called
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
