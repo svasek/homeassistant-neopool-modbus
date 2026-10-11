@@ -22,7 +22,7 @@ from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const import CONF_UNIT_ID, DOMAIN, PLATFORMS
+from .const import CONF_UNIT_ID, DEFAULT_UNIT_ID, DOMAIN, PLATFORMS
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .helpers import build_modbus_params
 
@@ -61,7 +61,7 @@ def _async_build_client(
             hass,
             entry,
             build_modbus_params(entry.data),
-            entry.data.get(CONF_UNIT_ID, 1),
+            entry.data.get(CONF_UNIT_ID, DEFAULT_UNIT_ID),
         )
     except HomeAssistantError as err:
         # The device is already in use over different link settings, which one
