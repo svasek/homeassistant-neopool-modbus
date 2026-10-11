@@ -16,7 +16,7 @@
 
 from collections.abc import Mapping
 import datetime
-from typing import Any
+from typing import Any, Literal
 
 from modbus_connection import ModbusSerialParams, ModbusTcpParams
 from neopool_modbus.decoders import (
@@ -75,9 +75,10 @@ def build_modbus_params(
         return ModbusTcpParams(host=host, port=port)
     # An IPv6 literal must be bracketed, or its colons read as the port separator.
     device_host = f"[{host}]" if ":" in host else host
+    serial_framer: Literal["rtu", "ascii"] = "ascii" if framer == "ascii" else "rtu"
     return ModbusSerialParams(
         device=f"socket://{device_host}:{port}",
-        framer=framer,
+        framer=serial_framer,
         baudrate=DEFAULT_BAUDRATE,
     )
 
