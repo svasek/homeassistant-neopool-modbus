@@ -14,22 +14,17 @@
 
 """NeoPool integration for Home Assistant."""
 
-from collections.abc import Mapping
-from typing import Any
-
-from modbus_connection import ModbusSerialParams, ModbusTcpParams
 from neopool_modbus import NeoPoolModbusClient
-from neopool_modbus.registers import framer_to_socket_name
 
 from homeassistant.components.modbus import async_get_unit
-from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const import CONF_MODBUS_FRAMER, CONF_UNIT_ID, DEFAULT_PORT, DOMAIN, PLATFORMS
+from .const import CONF_UNIT_ID, DOMAIN, PLATFORMS
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
+from .helpers import build_modbus_params
 
 # Re-exported for Home Assistant, HA discovers async_migrate_entry from __init__.
 from .migration import (
@@ -45,32 +40,6 @@ __all__ = ["async_migrate_entry"]
 # CUSTOM-ONLY END
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-
-def _build_modbus_params(
-    data: Mapping[str, Any],
-) -> ModbusTcpParams | ModbusSerialParams:
-    """Build the shared-connection link parameters from config entry data.
-
-    A Modbus TCP link is always MBAP-framed, so it uses ``ModbusTcpParams``
-    with the framer omitted (passing it is deprecated). RTU/ASCII framing over a
-    socket is a serial link reached through a ``socket://`` device, so it uses
-    ``ModbusSerialParams`` directly; that is what the modbus integration would
-    canonicalise an RTU ``ModbusTcpParams`` to anyway, built here to avoid the
-    deprecation warning. The baud rate only sets the inter-frame timing for the
-    socket-carried serial framing; 19200 is NeoPool's RS485 rate, giving the
-    spec's 3.5-character gap (~2 ms) for that line.
-    """
-    host = data[CONF_HOST]
-    port = data.get(CONF_PORT, DEFAULT_PORT)
-    framer = framer_to_socket_name(data.get(CONF_MODBUS_FRAMER, "tcp"))
-    if framer == "socket":
-        return ModbusTcpParams(host=host, port=port)
-    # An IPv6 literal must be bracketed, or its colons read as the port separator.
-    device_host = f"[{host}]" if ":" in host else host
-    return ModbusSerialParams(
-        device=f"socket://{device_host}:{port}", framer=framer, baudrate=19200
-    )
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -91,7 +60,7 @@ def _async_build_client(
         unit = async_get_unit(
             hass,
             entry,
-            _build_modbus_params(entry.data),
+            build_modbus_params(entry.data),
             entry.data.get(CONF_UNIT_ID, 1),
         )
     except HomeAssistantError as err:

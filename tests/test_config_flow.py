@@ -1,23 +1,23 @@
 """Test the NeoPool config flow."""
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock
 
-from neopool_modbus.exceptions import (
-    NeoPoolConnectionError,
-    NeoPoolModbusError,
-    NeoPoolTimeoutError,
-)
+from neopool_modbus.exceptions import NeoPoolModbusError, NeoPoolTimeoutError
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool import config_flow
 from custom_components.neopool.config_flow import (
+    SECTION_MORE_OPTIONS,
     NeoPoolConfigFlow,
     NeoPoolOptionsFlowHandler,
 )
 from custom_components.neopool.const import (
     CONF_ADVANCED,
     CONF_AUTO_TIME_SYNC,
+    CONF_BAUDRATE,
     CONF_CAPABILITIES,
     CONF_DEV_OVERRIDES,
     CONF_DEV_OVERRIDES_ENABLED,
@@ -33,24 +33,46 @@ from custom_components.neopool.const import (
     CURRENT_VERSION,
     DEFAULT_UNIT_ID,
     DOMAIN,
+    TYPE_SERIAL,
+    TYPE_TCP,
 )
 from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.exceptions import HomeAssistantError
 
 from . import setup_integration
 from .conftest import MOCK_HOST, MOCK_PORT, MOCK_SERIAL
 
-# Every config-flow test in this module patches the lib probe so we don't
-# hit the network. Tests that need a failing probe override the patch
-# locally via monkeypatch.
+# Every config-flow test in this module patches the probe so we don't hit the
+# network. Tests that need a failing probe override the patch locally.
 pytestmark = pytest.mark.usefixtures("mock_socket_connection")
 
-USER_INPUT = {
+# Sectioned step input: the device ID lives in a collapsed section.
+TCP_INPUT = {
     CONF_HOST: MOCK_HOST,
     CONF_PORT: MOCK_PORT,
+    CONF_MODBUS_FRAMER: "tcp",
+    SECTION_MORE_OPTIONS: {CONF_UNIT_ID: DEFAULT_UNIT_ID},
 }
+SERIAL_INPUT = {
+    CONF_DEVICE: "/dev/ttyUSB0",
+    CONF_BAUDRATE: 19200,
+    SECTION_MORE_OPTIONS: {CONF_UNIT_ID: DEFAULT_UNIT_ID},
+}
+
+
+async def _advance_to_step(hass: HomeAssistant, step: str) -> dict:
+    """Start a user flow and pick a connection type from the menu."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "user"
+    return await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": step}
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -59,26 +81,50 @@ USER_INPUT = {
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
-async def test_user_flow(
+async def test_user_flow_tcp(
     hass: HomeAssistant,
     mock_setup_entry: AsyncMock,
 ) -> None:
-    """Test a happy-path config flow creates the entry."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": SOURCE_USER}
-    )
+    """A happy-path TCP flow creates the entry."""
+    result = await _advance_to_step(hass, TYPE_TCP)
     assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "user"
-    assert not result["errors"]
+    assert result["step_id"] == TYPE_TCP
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], USER_INPUT
+        result["flow_id"], TCP_INPUT
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == MOCK_HOST
+    assert result["data"][CONF_TYPE] == TYPE_TCP
     assert result["data"][CONF_HOST] == MOCK_HOST
     assert result["data"][CONF_PORT] == MOCK_PORT
+    assert result["data"][CONF_UNIT_ID] == DEFAULT_UNIT_ID
+    assert result["result"].unique_id == MOCK_SERIAL
+    assert mock_setup_entry.call_count == 1
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_user_flow_serial(
+    hass: HomeAssistant,
+    mock_setup_entry: AsyncMock,
+) -> None:
+    """A happy-path serial flow creates an entry with no host."""
+    result = await _advance_to_step(hass, TYPE_SERIAL)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == TYPE_SERIAL
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], SERIAL_INPUT
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["title"] == "/dev/ttyUSB0"
+    assert result["data"][CONF_TYPE] == TYPE_SERIAL
+    assert result["data"][CONF_DEVICE] == "/dev/ttyUSB0"
+    assert result["data"][CONF_BAUDRATE] == 19200
+    assert result["data"][CONF_UNIT_ID] == DEFAULT_UNIT_ID
+    assert CONF_HOST not in result["data"]
     assert result["result"].unique_id == MOCK_SERIAL
     assert mock_setup_entry.call_count == 1
 
@@ -86,7 +132,6 @@ async def test_user_flow(
 @pytest.mark.parametrize(
     ("exc", "expected_error"),
     [
-        (NeoPoolConnectionError("refused"), "cannot_connect"),
         (NeoPoolTimeoutError("timeout"), "cannot_connect"),
         (NeoPoolModbusError("bad payload"), "cannot_read_modbus"),
     ],
@@ -98,29 +143,50 @@ async def test_user_flow_probe_errors(
     exc: Exception,
     expected_error: str,
 ) -> None:
-    """Probe-side exceptions are mapped to user-facing errors and the flow recovers."""
+    """Probe-side exceptions map to a form error and the flow recovers."""
+    result = await _advance_to_step(hass, TYPE_TCP)
+
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(
             config_flow,
-            "async_probe_serial",
+            "async_probe_serial_unit",
             AsyncMock(side_effect=exc),
         )
-
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], USER_INPUT
+            result["flow_id"], TCP_INPUT
         )
 
     assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {CONF_HOST: expected_error}
+    assert result["errors"] == {"base": expected_error}
 
     # Recover: probe now succeeds.
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], USER_INPUT
+        result["flow_id"], TCP_INPUT
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_user_flow_device_in_use(
+    hass: HomeAssistant,
+) -> None:
+    """A device held on different link settings surfaces as cannot_connect."""
+    result = await _advance_to_step(hass, TYPE_TCP)
+
+    @asynccontextmanager
+    async def _in_use(*_args: object, **_kwargs: object) -> AsyncIterator[None]:
+        # Core raises when acquiring the temporary unit, i.e. at __aenter__.
+        raise HomeAssistantError("in use")
+        yield  # pragma: no cover
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(config_flow, "async_get_temporary_unit", _in_use)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], TCP_INPUT
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
@@ -128,18 +194,12 @@ async def test_user_flow_already_configured(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """Test config flow aborts when the same device is already configured."""
+    """The flow aborts when the same device is already configured."""
     mock_config_entry.add_to_hass(hass)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": SOURCE_USER}
-    )
+    result = await _advance_to_step(hass, TYPE_TCP)
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            CONF_HOST: MOCK_HOST,
-            CONF_PORT: MOCK_PORT,
-        },
+        result["flow_id"], TCP_INPUT
     )
 
     assert result["type"] is FlowResultType.ABORT
@@ -168,14 +228,15 @@ async def test_reconfigure_flow_happy_path(
         {
             CONF_HOST: "192.0.2.50",
             CONF_PORT: 1502,
-            CONF_UNIT_ID: 2,
             CONF_MODBUS_FRAMER: "tcp",
+            SECTION_MORE_OPTIONS: {CONF_UNIT_ID: 2},
         },
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     assert mock_config_entry.data[CONF_HOST] == "192.0.2.50"
     assert mock_config_entry.data[CONF_PORT] == 1502
+    assert mock_config_entry.data[CONF_UNIT_ID] == 2
 
     # Reconfigure triggers an entry reload which schedules the coordinator's
     # update_interval timer; wait for the reload to finish, then unload to
@@ -187,10 +248,40 @@ async def test_reconfigure_flow_happy_path(
     await hass.async_block_till_done()
 
 
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_reconfigure_flow_serial(
+    hass: HomeAssistant,
+    mock_config_entry_serial: MockConfigEntry,
+) -> None:
+    """A serial entry reconfigures through the serial step."""
+    mock_config_entry_serial.add_to_hass(hass)
+
+    result = await mock_config_entry_serial.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_DEVICE: "/dev/ttyUSB1",
+            CONF_BAUDRATE: 19200,
+            SECTION_MORE_OPTIONS: {CONF_UNIT_ID: DEFAULT_UNIT_ID},
+        },
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert mock_config_entry_serial.data[CONF_DEVICE] == "/dev/ttyUSB1"
+    assert CONF_HOST not in mock_config_entry_serial.data
+
+    while mock_config_entry_serial.state is not ConfigEntryState.LOADED:
+        await hass.async_block_till_done()
+    await hass.config_entries.async_unload(mock_config_entry_serial.entry_id)
+    await hass.async_block_till_done()
+
+
 @pytest.mark.parametrize(
     ("exc", "expected_error"),
     [
-        (NeoPoolConnectionError("refused"), "cannot_connect"),
         (NeoPoolTimeoutError("timeout"), "cannot_connect"),
         (NeoPoolModbusError("bad payload"), "cannot_read_modbus"),
     ],
@@ -209,7 +300,7 @@ async def test_reconfigure_flow_probe_errors(
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(
             config_flow,
-            "async_probe_serial",
+            "async_probe_serial_unit",
             AsyncMock(side_effect=exc),
         )
         result = await hass.config_entries.flow.async_configure(
@@ -217,12 +308,12 @@ async def test_reconfigure_flow_probe_errors(
             {
                 CONF_HOST: "192.0.2.99",
                 CONF_PORT: 502,
-                CONF_UNIT_ID: 1,
                 CONF_MODBUS_FRAMER: "tcp",
+                SECTION_MORE_OPTIONS: {CONF_UNIT_ID: 1},
             },
         )
     assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {CONF_HOST: expected_error}
+    assert result["errors"] == {"base": expected_error}
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
@@ -238,7 +329,7 @@ async def test_reconfigure_flow_serial_mismatch(
         # The probe returns a *different* serial than the entry's unique_id.
         mp.setattr(
             config_flow,
-            "async_probe_serial",
+            "async_probe_serial_unit",
             AsyncMock(return_value="9999999999"),
         )
         result = await hass.config_entries.flow.async_configure(
@@ -246,8 +337,8 @@ async def test_reconfigure_flow_serial_mismatch(
             {
                 CONF_HOST: "192.0.2.50",
                 CONF_PORT: 502,
-                CONF_UNIT_ID: 1,
                 CONF_MODBUS_FRAMER: "tcp",
+                SECTION_MORE_OPTIONS: {CONF_UNIT_ID: 1},
             },
         )
     assert result["type"] is FlowResultType.ABORT

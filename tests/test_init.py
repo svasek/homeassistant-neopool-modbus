@@ -6,22 +6,25 @@ from modbus_connection import ModbusSerialParams, ModbusTcpParams
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neopool import _build_modbus_params
 from custom_components.neopool.const import (
+    CONF_BAUDRATE,
     CONF_CAPABILITIES,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
     CURRENT_VERSION,
+    DEFAULT_BAUDRATE,
     DEFAULT_PORT,
     DOMAIN,
+    TYPE_SERIAL,
 )
+from custom_components.neopool.helpers import build_modbus_params
 
 # CUSTOM-ONLY START
 from custom_components.neopool.migration import REMOVED_ENTITY_KEYS
 
 # CUSTOM-ONLY END
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
@@ -171,7 +174,7 @@ async def test_setup_retries_when_unit_unavailable(
 @pytest.mark.parametrize("framer", ["tcp", "socket"])
 def test_build_modbus_params_tcp(framer: str) -> None:
     """Modbus TCP framers build ModbusTcpParams reaching host/port directly."""
-    params = _build_modbus_params(
+    params = build_modbus_params(
         {CONF_HOST: "1.2.3.4", CONF_PORT: 502, CONF_MODBUS_FRAMER: framer}
     )
     assert isinstance(params, ModbusTcpParams)
@@ -181,7 +184,7 @@ def test_build_modbus_params_tcp(framer: str) -> None:
 
 def test_build_modbus_params_rtu_is_serial_over_socket() -> None:
     """RTU framing builds a serial link over a socket:// device (no deprecation)."""
-    params = _build_modbus_params(
+    params = build_modbus_params(
         {CONF_HOST: "1.2.3.4", CONF_PORT: 1502, CONF_MODBUS_FRAMER: "rtu"}
     )
     assert isinstance(params, ModbusSerialParams)
@@ -193,7 +196,7 @@ def test_build_modbus_params_rtu_is_serial_over_socket() -> None:
 
 def test_build_modbus_params_rtu_brackets_ipv6_host() -> None:
     """An IPv6 host is bracketed so its colons do not read as the port separator."""
-    params = _build_modbus_params(
+    params = build_modbus_params(
         {CONF_HOST: "fd00::1", CONF_PORT: 502, CONF_MODBUS_FRAMER: "rtu"}
     )
     assert isinstance(params, ModbusSerialParams)
@@ -204,12 +207,12 @@ def test_build_modbus_params_rtu_brackets_ipv6_host() -> None:
 def test_build_modbus_params_is_warning_free(
     framer: str, recwarn: pytest.WarningsRecorder
 ) -> None:
-    """No path emits a DeprecationWarning.
+    """No network path emits a DeprecationWarning.
 
     TCP omits the framer (passing it is deprecated), and RTU builds
     ModbusSerialParams directly rather than a deprecated ModbusTcpParams(rtu).
     """
-    _build_modbus_params(
+    build_modbus_params(
         {CONF_HOST: "1.2.3.4", CONF_PORT: 502, CONF_MODBUS_FRAMER: framer}
     )
     assert not [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)]
@@ -217,9 +220,41 @@ def test_build_modbus_params_is_warning_free(
 
 def test_build_modbus_params_defaults_port_and_framer() -> None:
     """Missing port and framer fall back to the Modbus TCP defaults."""
-    params = _build_modbus_params({CONF_HOST: "1.2.3.4"})
+    params = build_modbus_params({CONF_HOST: "1.2.3.4"})
     assert params.port == DEFAULT_PORT
     assert params.framer == "socket"
+
+
+def test_build_modbus_params_serial() -> None:
+    """A serial entry builds an RTU serial link on the device path."""
+    params = build_modbus_params(
+        {CONF_TYPE: TYPE_SERIAL, CONF_DEVICE: "/dev/ttyUSB0", CONF_BAUDRATE: 9600}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "/dev/ttyUSB0"
+    assert params.framer == "rtu"
+    assert params.baudrate == 9600
+
+
+def test_build_modbus_params_serial_default_baudrate() -> None:
+    """A serial entry without a baud rate falls back to NeoPool's RS485 rate."""
+    params = build_modbus_params({CONF_TYPE: TYPE_SERIAL, CONF_DEVICE: "/dev/ttyUSB0"})
+    assert isinstance(params, ModbusSerialParams)
+    assert params.baudrate == DEFAULT_BAUDRATE
+
+
+def test_build_modbus_params_no_type_defaults_tcp() -> None:
+    """An entry predating the connection-type choice reads as a Modbus TCP link."""
+    params = build_modbus_params({CONF_HOST: "1.2.3.4"})
+    assert isinstance(params, ModbusTcpParams)
+
+
+def test_build_modbus_params_serial_is_warning_free(
+    recwarn: pytest.WarningsRecorder,
+) -> None:
+    """The serial path emits no DeprecationWarning."""
+    build_modbus_params({CONF_TYPE: TYPE_SERIAL, CONF_DEVICE: "/dev/ttyUSB0"})
+    assert not [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)]
 
 
 # CUSTOM-ONLY START, legacy v1→v4 migration cleanup tests (migration is HACS-only).

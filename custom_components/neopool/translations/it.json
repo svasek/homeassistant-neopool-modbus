@@ -12,43 +12,94 @@
             "cannot_read_modbus": "Connesso, ma impossibile leggere dal dispositivo Modbus. Verificare l'ID unità e le impostazioni del frame."
         },
         "step": {
-            "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
-                "title": "Import from existing VistaPool integration"
+            "user": {
+                "title": "Connessione NeoPool",
+                "description": "Scegli come viene raggiunto il tuo controller NeoPool.",
+                "menu_options": {
+                    "tcp": "Rete (Modbus TCP o gateway TCP)",
+                    "serial": "Dispositivo seriale"
+                }
+            },
+            "tcp": {
+                "data": {
+                    "host": "Host",
+                    "modbus_framer": "Framer Modbus",
+                    "port": "Porta"
+                },
+                "data_description": {
+                    "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
+                    "modbus_framer": "Protocollo di trasmissione utilizzato dal gateway. Selezionare TCP per il framing MBAP (predefinito per gateway Ethernet nativi). Selezionare RTU per il framing RTU tunnelizzato tramite un socket TCP, usato dai bridge seriale-verso-TCP di tipo passthrough come lo stream_server di ESPHome.",
+                    "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502)."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Altre opzioni",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Indirizzo del dispositivo Modbus (1-247). Identifica il dispositivo specifico su un bus condiviso. La maggior parte dei dispositivi collegati direttamente usa 1. I gateway possono instradare le richieste a indirizzi diversi."
+                        }
+                    }
+                },
+                "description": "Configura la connessione di rete al tuo controller NeoPool.",
+                "title": "Connessione di rete NeoPool"
+            },
+            "serial": {
+                "data": {
+                    "device": "Dispositivo seriale",
+                    "baudrate": "Velocità in baud"
+                },
+                "data_description": {
+                    "device": "Seleziona la porta seriale a cui è collegato il controller. Un adattatore USB o un proxy seriale ESPHome compare qui come porta locale.",
+                    "baudrate": "Velocità della linea seriale. Il bus RS485 di NeoPool funziona a 19200 baud; modificala solo se il tuo cablaggio è diverso."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Altre opzioni",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Indirizzo del dispositivo Modbus (1-247). Identifica il dispositivo specifico su un bus condiviso. La maggior parte dei dispositivi collegati direttamente usa 1. I gateway possono instradare le richieste a indirizzi diversi."
+                        }
+                    }
+                },
+                "description": "Configura la connessione seriale al tuo controller NeoPool.",
+                "title": "Connessione seriale NeoPool"
             },
             "reconfigure": {
                 "data": {
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
                     "port": "Porta",
-                    "unit_id": "Unit ID"
+                    "device": "Dispositivo seriale",
+                    "baudrate": "Velocità in baud"
                 },
                 "data_description": {
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
                     "modbus_framer": "Protocollo di trasmissione utilizzato dal gateway. Selezionare TCP per il framing MBAP (predefinito per gateway Ethernet nativi). Selezionare RTU per il framing RTU tunnelizzato tramite un socket TCP, usato dai bridge seriale-verso-TCP di tipo passthrough come lo stream_server di ESPHome.",
                     "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "unit_id": "Indirizzo del dispositivo Modbus (1-247). Identifica il dispositivo specifico su un bus condiviso. La maggior parte dei dispositivi collegati direttamente usa 1. I gateway possono instradare le richieste a indirizzi diversi."
+                    "device": "Seleziona la porta seriale a cui è collegato il controller. Un adattatore USB o un proxy seriale ESPHome compare qui come porta locale.",
+                    "baudrate": "Velocità della linea seriale. Il bus RS485 di NeoPool funziona a 19200 baud; modificala solo se il tuo cablaggio è diverso."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Altre opzioni",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Indirizzo del dispositivo Modbus (1-247). Identifica il dispositivo specifico su un bus condiviso. La maggior parte dei dispositivi collegati direttamente usa 1. I gateway possono instradare le richieste a indirizzi diversi."
+                        }
+                    }
                 },
                 "description": "Aggiorna le impostazioni di connessione al tuo controller NeoPool.",
                 "title": "Riconfigura connessione NeoPool"
             },
-            "user": {
-                "data": {
-                    "filtration_pump_power": "Potenza della pompa di filtrazione (W, 0 = disabilitato)",
-                    "host": "Host",
-                    "modbus_framer": "Framer Modbus",
-                    "port": "Porta",
-                    "unit_id": "Unit ID"
-                },
-                "data_description": {
-                    "filtration_pump_power": "Specificare la potenza nominale della pompa di filtrazione. Con un valore diverso da zero vengono creati due sensori: potenza istantanea (W) ed energia cumulata (Wh), entrambi utilizzabili nel pannello energetico.",
-                    "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
-                    "modbus_framer": "Protocollo di trasmissione utilizzato dal gateway. Selezionare TCP per il framing MBAP (predefinito per gateway Ethernet nativi). Selezionare RTU per il framing RTU tunnelizzato tramite un socket TCP, usato dai bridge seriale-verso-TCP di tipo passthrough come lo stream_server di ESPHome.",
-                    "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "unit_id": "Indirizzo del dispositivo Modbus (1-247). Identifica il dispositivo specifico su un bus condiviso. La maggior parte dei dispositivi collegati direttamente usa 1. I gateway possono instradare le richieste a indirizzi diversi."
-                },
-                "description": "Configura la connessione al tuo controller NeoPool.",
-                "title": "Connessione NeoPool"
+            "import_from_vistapool": {
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "title": "Import from existing VistaPool integration"
             }
         }
     },

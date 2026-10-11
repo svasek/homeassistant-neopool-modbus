@@ -12,43 +12,94 @@
             "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte unit ID a nastavení rámce."
         },
         "step": {
-            "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
-                "title": "Import from existing VistaPool integration"
+            "user": {
+                "title": "Připojení NeoPool",
+                "description": "Zvolte, jak je váš řadič NeoPool připojen.",
+                "menu_options": {
+                    "tcp": "Síť (Modbus TCP nebo TCP brána)",
+                    "serial": "Sériové zařízení"
+                }
+            },
+            "tcp": {
+                "data": {
+                    "host": "Hostitel",
+                    "modbus_framer": "Modbus rámec",
+                    "port": "Port"
+                },
+                "data_description": {
+                    "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
+                    "modbus_framer": "Přenosový protokol brány. Zvolte TCP pro rámování MBAP (výchozí pro brány s nativním Ethernetem). Zvolte RTU pro rámování RTU tunelované přes TCP soket, používané průchozími mosty sériové linky přes TCP jako ESPHome stream_server.",
+                    "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502)."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Další možnosti",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adresa zařízení na sběrnici Modbus (1-247). Identifikuje konkrétní zařízení na sdílené sběrnici. Většina přímo připojených zařízení používá 1. Brány mohou směrovat požadavky na různé adresy."
+                        }
+                    }
+                },
+                "description": "Nakonfigurujte síťové připojení k vašemu řadiči NeoPool.",
+                "title": "Síťové připojení NeoPool"
+            },
+            "serial": {
+                "data": {
+                    "device": "Sériové zařízení",
+                    "baudrate": "Přenosová rychlost"
+                },
+                "data_description": {
+                    "device": "Zvolte sériový port, ke kterému je řadič připojen. USB adaptér nebo sériová proxy ESPHome se zde zobrazí jako lokální port.",
+                    "baudrate": "Rychlost sériové linky. Sběrnice RS485 systému NeoPool běží na 19200 baud; měňte jen pokud se vaše zapojení liší."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Další možnosti",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adresa zařízení na sběrnici Modbus (1-247). Identifikuje konkrétní zařízení na sdílené sběrnici. Většina přímo připojených zařízení používá 1. Brány mohou směrovat požadavky na různé adresy."
+                        }
+                    }
+                },
+                "description": "Nakonfigurujte sériové připojení k vašemu řadiči NeoPool.",
+                "title": "Sériové připojení NeoPool"
             },
             "reconfigure": {
                 "data": {
                     "host": "Hostitel",
                     "modbus_framer": "Modbus rámec",
                     "port": "Port",
-                    "unit_id": "Unit ID"
+                    "device": "Sériové zařízení",
+                    "baudrate": "Přenosová rychlost"
                 },
                 "data_description": {
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Přenosový protokol brány. Zvolte TCP pro rámování MBAP (výchozí pro brány s nativním Ethernetem). Zvolte RTU pro rámování RTU tunelované přes TCP soket, používané průchozími mosty sériové linky přes TCP jako ESPHome stream_server.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "unit_id": "Adresa zařízení na sběrnici Modbus (1-247). Identifikuje konkrétní zařízení na sdílené sběrnici. Většina přímo připojených zařízení používá 1. Brány mohou směrovat požadavky na různé adresy."
+                    "device": "Zvolte sériový port, ke kterému je řadič připojen. USB adaptér nebo sériová proxy ESPHome se zde zobrazí jako lokální port.",
+                    "baudrate": "Rychlost sériové linky. Sběrnice RS485 systému NeoPool běží na 19200 baud; měňte jen pokud se vaše zapojení liší."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Další možnosti",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adresa zařízení na sběrnici Modbus (1-247). Identifikuje konkrétní zařízení na sdílené sběrnici. Většina přímo připojených zařízení používá 1. Brány mohou směrovat požadavky na různé adresy."
+                        }
+                    }
                 },
                 "description": "Aktualizujte nastavení připojení k vašemu řadiči NeoPool.",
                 "title": "Překonfigurovat připojení NeoPool"
             },
-            "user": {
-                "data": {
-                    "filtration_pump_power": "Příkon filtračního čerpadla (W, 0 = zakázáno)",
-                    "host": "Hostitel",
-                    "modbus_framer": "Modbus rámec",
-                    "port": "Port",
-                    "unit_id": "Unit ID"
-                },
-                "data_description": {
-                    "filtration_pump_power": "Zadejte jmenovitý příkon filtračního čerpadla. Při nenulové hodnotě se vytvoří dva senzory: okamžitý příkon (W) a kumulativní spotřeba energie (Wh), oba použitelné v přehledu energie.",
-                    "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
-                    "modbus_framer": "Přenosový protokol brány. Zvolte TCP pro rámování MBAP (výchozí pro brány s nativním Ethernetem). Zvolte RTU pro rámování RTU tunelované přes TCP soket, používané průchozími mosty sériové linky přes TCP jako ESPHome stream_server.",
-                    "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "unit_id": "Adresa zařízení na sběrnici Modbus (1-247). Identifikuje konkrétní zařízení na sdílené sběrnici. Většina přímo připojených zařízení používá 1. Brány mohou směrovat požadavky na různé adresy."
-                },
-                "description": "Nakonfigurujte připojení k vašemu řadiči NeoPool.",
-                "title": "Připojení NeoPool"
+            "import_from_vistapool": {
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "title": "Import from existing VistaPool integration"
             }
         }
     },

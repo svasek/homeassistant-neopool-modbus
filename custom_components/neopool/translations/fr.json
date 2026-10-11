@@ -12,43 +12,94 @@
             "cannot_read_modbus": "Connecté, mais impossible de lire le périphérique Modbus. Vérifiez l'ID d'unité et les paramètres du cadre."
         },
         "step": {
-            "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
-                "title": "Import from existing VistaPool integration"
+            "user": {
+                "title": "Connexion NeoPool",
+                "description": "Choisissez comment votre contrôleur NeoPool est atteint.",
+                "menu_options": {
+                    "tcp": "Réseau (Modbus TCP ou passerelle TCP)",
+                    "serial": "Périphérique série"
+                }
+            },
+            "tcp": {
+                "data": {
+                    "host": "Hôte",
+                    "modbus_framer": "Framer Modbus",
+                    "port": "Port"
+                },
+                "data_description": {
+                    "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
+                    "modbus_framer": "Protocole utilisé par la passerelle. Sélectionnez TCP pour la trame MBAP (valeur par défaut pour les passerelles Ethernet natives). Sélectionnez RTU pour la trame RTU tunnelisée via un socket TCP, utilisée par les ponts série vers TCP en mode passthrough comme le stream_server d'ESPHome.",
+                    "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard (par défaut : 502)."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Plus d'options",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adresse du périphérique Modbus (1-247). Identifie le périphérique spécifique sur un bus partagé. La plupart des périphériques connectés directement utilisent 1. Les passerelles peuvent router les requêtes vers différentes adresses."
+                        }
+                    }
+                },
+                "description": "Configurez la connexion réseau à votre contrôleur NeoPool.",
+                "title": "Connexion réseau NeoPool"
+            },
+            "serial": {
+                "data": {
+                    "device": "Périphérique série",
+                    "baudrate": "Débit en bauds"
+                },
+                "data_description": {
+                    "device": "Sélectionnez le port série auquel le contrôleur est câblé. Un adaptateur USB ou un proxy série ESPHome apparaît ici comme un port local.",
+                    "baudrate": "Vitesse de la ligne série. Le bus RS485 de NeoPool fonctionne à 19200 bauds ; ne le modifiez que si votre câblage diffère."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Plus d'options",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adresse du périphérique Modbus (1-247). Identifie le périphérique spécifique sur un bus partagé. La plupart des périphériques connectés directement utilisent 1. Les passerelles peuvent router les requêtes vers différentes adresses."
+                        }
+                    }
+                },
+                "description": "Configurez la connexion série à votre contrôleur NeoPool.",
+                "title": "Connexion série NeoPool"
             },
             "reconfigure": {
                 "data": {
                     "host": "Hôte",
                     "modbus_framer": "Framer Modbus",
                     "port": "Port",
-                    "unit_id": "Unit ID"
+                    "device": "Périphérique série",
+                    "baudrate": "Débit en bauds"
                 },
                 "data_description": {
                     "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
                     "modbus_framer": "Protocole utilisé par la passerelle. Sélectionnez TCP pour la trame MBAP (valeur par défaut pour les passerelles Ethernet natives). Sélectionnez RTU pour la trame RTU tunnelisée via un socket TCP, utilisée par les ponts série vers TCP en mode passthrough comme le stream_server d'ESPHome.",
                     "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard (par défaut : 502).",
-                    "unit_id": "Adresse du périphérique Modbus (1-247). Identifie le périphérique spécifique sur un bus partagé. La plupart des périphériques connectés directement utilisent 1. Les passerelles peuvent router les requêtes vers différentes adresses."
+                    "device": "Sélectionnez le port série auquel le contrôleur est câblé. Un adaptateur USB ou un proxy série ESPHome apparaît ici comme un port local.",
+                    "baudrate": "Vitesse de la ligne série. Le bus RS485 de NeoPool fonctionne à 19200 bauds ; ne le modifiez que si votre câblage diffère."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Plus d'options",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adresse du périphérique Modbus (1-247). Identifie le périphérique spécifique sur un bus partagé. La plupart des périphériques connectés directement utilisent 1. Les passerelles peuvent router les requêtes vers différentes adresses."
+                        }
+                    }
                 },
                 "description": "Mettez à jour les paramètres de connexion à votre contrôleur NeoPool.",
                 "title": "Reconfigurer la connexion NeoPool"
             },
-            "user": {
-                "data": {
-                    "filtration_pump_power": "Puissance de la pompe de filtration (W, 0 = désactivé)",
-                    "host": "Hôte",
-                    "modbus_framer": "Framer Modbus",
-                    "port": "Port",
-                    "unit_id": "Unit ID"
-                },
-                "data_description": {
-                    "filtration_pump_power": "Indiquez la puissance nominale de la pompe de filtration. Avec une valeur non nulle, deux capteurs sont créés : puissance instantanée (W) et énergie cumulée (Wh), tous deux utilisables dans le tableau de bord énergétique.",
-                    "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
-                    "modbus_framer": "Protocole utilisé par la passerelle. Sélectionnez TCP pour la trame MBAP (valeur par défaut pour les passerelles Ethernet natives). Sélectionnez RTU pour la trame RTU tunnelisée via un socket TCP, utilisée par les ponts série vers TCP en mode passthrough comme le stream_server d'ESPHome.",
-                    "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard (par défaut : 502).",
-                    "unit_id": "Adresse du périphérique Modbus (1-247). Identifie le périphérique spécifique sur un bus partagé. La plupart des périphériques connectés directement utilisent 1. Les passerelles peuvent router les requêtes vers différentes adresses."
-                },
-                "description": "Configurez la connexion à votre contrôleur NeoPool.",
-                "title": "Connexion NeoPool"
+            "import_from_vistapool": {
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "title": "Import from existing VistaPool integration"
             }
         }
     },

@@ -12,43 +12,94 @@
             "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID jednostki i ustawienia ramki."
         },
         "step": {
-            "import_from_vistapool": {
-                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
-                "title": "Import from existing VistaPool integration"
+            "user": {
+                "title": "Połączenie NeoPool",
+                "description": "Wybierz sposób połączenia ze sterownikiem NeoPool.",
+                "menu_options": {
+                    "tcp": "Sieć (Modbus TCP lub brama TCP)",
+                    "serial": "Urządzenie szeregowe"
+                }
+            },
+            "tcp": {
+                "data": {
+                    "host": "Host",
+                    "modbus_framer": "Framer Modbus",
+                    "port": "Port"
+                },
+                "data_description": {
+                    "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
+                    "modbus_framer": "Protokół używany przez bramkę. Wybierz TCP dla ramkowania MBAP (domyślne dla bramek natywnych dla sieci Ethernet). Wybierz RTU dla ramkowania RTU tunelowanego przez gniazdo TCP, używanego przez przezroczyste mosty szeregowo-TCP takie jak stream_server w ESPHome.",
+                    "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502)."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Więcej opcji",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adres urządzenia Modbus (1-247). Identyfikuje konkretne urządzenie na wspólnej magistrali. Większość urządzeń podłączonych bezpośrednio używa 1. Bramki mogą kierować żądania do różnych adresów."
+                        }
+                    }
+                },
+                "description": "Skonfiguruj połączenie sieciowe ze sterownikiem NeoPool.",
+                "title": "Połączenie sieciowe NeoPool"
+            },
+            "serial": {
+                "data": {
+                    "device": "Urządzenie szeregowe",
+                    "baudrate": "Prędkość transmisji"
+                },
+                "data_description": {
+                    "device": "Wybierz port szeregowy, do którego podłączony jest sterownik. Adapter USB lub szeregowe proxy ESPHome pojawia się tutaj jako port lokalny.",
+                    "baudrate": "Prędkość linii szeregowej. Magistrala RS485 w NeoPool działa z prędkością 19200 bodów; zmieniaj tylko wtedy, gdy okablowanie jest inne."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Więcej opcji",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adres urządzenia Modbus (1-247). Identyfikuje konkretne urządzenie na wspólnej magistrali. Większość urządzeń podłączonych bezpośrednio używa 1. Bramki mogą kierować żądania do różnych adresów."
+                        }
+                    }
+                },
+                "description": "Skonfiguruj połączenie szeregowe ze sterownikiem NeoPool.",
+                "title": "Połączenie szeregowe NeoPool"
             },
             "reconfigure": {
                 "data": {
                     "host": "Host",
                     "modbus_framer": "Framer Modbus",
                     "port": "Port",
-                    "unit_id": "Unit ID"
+                    "device": "Urządzenie szeregowe",
+                    "baudrate": "Prędkość transmisji"
                 },
                 "data_description": {
                     "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
                     "modbus_framer": "Protokół używany przez bramkę. Wybierz TCP dla ramkowania MBAP (domyślne dla bramek natywnych dla sieci Ethernet). Wybierz RTU dla ramkowania RTU tunelowanego przez gniazdo TCP, używanego przez przezroczyste mosty szeregowo-TCP takie jak stream_server w ESPHome.",
                     "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
-                    "unit_id": "Adres urządzenia Modbus (1-247). Identyfikuje konkretne urządzenie na wspólnej magistrali. Większość urządzeń podłączonych bezpośrednio używa 1. Bramki mogą kierować żądania do różnych adresów."
+                    "device": "Wybierz port szeregowy, do którego podłączony jest sterownik. Adapter USB lub szeregowe proxy ESPHome pojawia się tutaj jako port lokalny.",
+                    "baudrate": "Prędkość linii szeregowej. Magistrala RS485 w NeoPool działa z prędkością 19200 bodów; zmieniaj tylko wtedy, gdy okablowanie jest inne."
+                },
+                "sections": {
+                    "more_options": {
+                        "name": "Więcej opcji",
+                        "data": {
+                            "unit_id": "Unit ID"
+                        },
+                        "data_description": {
+                            "unit_id": "Adres urządzenia Modbus (1-247). Identyfikuje konkretne urządzenie na wspólnej magistrali. Większość urządzeń podłączonych bezpośrednio używa 1. Bramki mogą kierować żądania do różnych adresów."
+                        }
+                    }
                 },
                 "description": "Zaktualizuj ustawienia połączenia z kontrolerem NeoPool.",
                 "title": "Skonfiguruj ponownie połączenie NeoPool"
             },
-            "user": {
-                "data": {
-                    "filtration_pump_power": "Moc pompy filtracyjnej (W, 0 = wyłączone)",
-                    "host": "Host",
-                    "modbus_framer": "Framer Modbus",
-                    "port": "Port",
-                    "unit_id": "Unit ID"
-                },
-                "data_description": {
-                    "filtration_pump_power": "Podaj nominalną moc pompy filtracyjnej. Przy wartości różnej od zera tworzone są dwa czujniki: chwilowa moc (W) i skumulowana energia (Wh), oba możliwe do użycia na panelu energetycznym.",
-                    "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
-                    "modbus_framer": "Protokół używany przez bramkę. Wybierz TCP dla ramkowania MBAP (domyślne dla bramek natywnych dla sieci Ethernet). Wybierz RTU dla ramkowania RTU tunelowanego przez gniazdo TCP, używanego przez przezroczyste mosty szeregowo-TCP takie jak stream_server w ESPHome.",
-                    "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
-                    "unit_id": "Adres urządzenia Modbus (1-247). Identyfikuje konkretne urządzenie na wspólnej magistrali. Większość urządzeń podłączonych bezpośrednio używa 1. Bramki mogą kierować żądania do różnych adresów."
-                },
-                "description": "Skonfiguruj połączenie z kontrolerem NeoPool.",
-                "title": "Połączenie NeoPool"
+            "import_from_vistapool": {
+                "description": "Detected an existing VistaPool integration entry **{entry_title}** (legacy `vistapool` domain).\n\nClick **Submit** to migrate it to the new `neopool` domain in one step:\n\n- All entity IDs, history and customizations are preserved\n- Connection settings (host, port, unit ID, options) are copied automatically\n- Device area assignment, custom name and labels are restored\n- The leftover `custom_components/vistapool/` folder is cleaned up\n\nIf you instead want to add a *separate* NeoPool device, cancel and first remove the legacy VistaPool integration manually.",
+                "title": "Import from existing VistaPool integration"
             }
         }
     },
