@@ -155,11 +155,11 @@ async def test_unload_does_not_close_borrowed_unit(
 
 
 @pytest.mark.usefixtures("mock_neopool_client")
-async def test_setup_retries_when_unit_unavailable(
+async def test_setup_fails_when_unit_unavailable(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """A link already held with different settings surfaces as a setup retry."""
+    """A link already held with different settings fails setup without retrying."""
     with patch(
         "custom_components.neopool.async_get_unit",
         side_effect=HomeAssistantError("different link settings"),
@@ -168,7 +168,7 @@ async def test_setup_retries_when_unit_unavailable(
         await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
-    assert mock_config_entry.state is ConfigEntryState.SETUP_RETRY
+    assert mock_config_entry.state is ConfigEntryState.SETUP_ERROR
 
 
 @pytest.mark.parametrize("framer", ["tcp", "socket"])
