@@ -474,6 +474,9 @@
     "register_write_failed": {
       "message": "Register write failed at {address}: {error}"
     },
+    "setup_link_conflict": {
+      "message": "The device is already in use over different Modbus link settings, which one shared connection cannot honour: {error}"
+    },
     "timer_failed": { "message": "Timer setting failed: {error}" },
     "write_failed": { "message": "Write to register {address} failed" },
     "write_verification_failed": {

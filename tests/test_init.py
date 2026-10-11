@@ -190,8 +190,9 @@ def test_build_modbus_params_rtu_is_serial_over_socket() -> None:
     assert isinstance(params, ModbusSerialParams)
     assert params.device == "socket://1.2.3.4:1502"
     assert params.framer == "rtu"
-    # 19200 is NeoPool's RS485 rate; it only sets the socket-carried inter-frame gap.
-    assert params.baudrate == 19200
+    # 115200 matches the modbus integration's canonical socket-carried RTU rate,
+    # so consumers sharing a gateway compare equal.
+    assert params.baudrate == 115200
 
 
 def test_build_modbus_params_rtu_brackets_ipv6_host() -> None:

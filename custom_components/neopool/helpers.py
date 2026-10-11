@@ -57,7 +57,8 @@ def build_modbus_params(
     gateway) is a serial link reached through a ``socket://`` device, so it uses
     ``ModbusSerialParams`` directly; that is what the modbus integration would
     canonicalise an RTU ``ModbusTcpParams`` to anyway, built here to avoid the
-    deprecation warning.
+    deprecation warning. Its baud rate matches the modbus integration's
+    canonical 115200, so consumers sharing a gateway compare equal.
 
     Entries predating the connection-type choice carry no ``CONF_TYPE``; they are
     all network entries, so a missing type reads as TCP.
@@ -79,7 +80,7 @@ def build_modbus_params(
     return ModbusSerialParams(
         device=f"socket://{device_host}:{port}",
         framer=serial_framer,
-        baudrate=DEFAULT_BAUDRATE,
+        baudrate=115200,
     )
 
 
