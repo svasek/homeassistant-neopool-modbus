@@ -1,6 +1,13 @@
 # Runtime dependency (Modbus communication via NeoPool library)
 neopool-modbus>=4.13.0
 
+# Pin pymodbus to the version Home Assistant's modbus integration ships
+# (manifest pins pymodbus==3.13.1). neopool-modbus leaves pymodbus unpinned,
+# so without this CI resolves a newer pymodbus (3.16.0) whose serial transport
+# references pyserial at import time, which is only an optional extra and is
+# absent here, breaking collection with a NameError.
+pymodbus==3.13.1
+
 # Shared Modbus connection support (provided at runtime by the modbus
 # integration; needed here so tests and type checks can import it)
 modbus-connection[tmodbus]>=4.12.4
