@@ -204,6 +204,19 @@ def test_build_modbus_params_rtu_brackets_ipv6_host() -> None:
     assert params.device == "socket://[fd00::1]:502"
 
 
+def test_build_modbus_params_rtu_folds_host_case() -> None:
+    """The socket device host is lower-cased so a gateway dedupes regardless of case.
+
+    ModbusTcpParams folds the host for TCP; the socket:// device string has to
+    match, or Gateway.Local and gateway.local would open two links to one device.
+    """
+    params = build_modbus_params(
+        {CONF_HOST: "Gateway.Local", CONF_PORT: 502, CONF_MODBUS_FRAMER: "rtu"}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "socket://gateway.local:502"
+
+
 @pytest.mark.parametrize("framer", ["tcp", "socket", "rtu", "ascii"])
 def test_build_modbus_params_is_warning_free(
     framer: str, recwarn: pytest.WarningsRecorder

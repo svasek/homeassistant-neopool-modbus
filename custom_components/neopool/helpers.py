@@ -41,6 +41,18 @@ from .const import (
 )
 
 
+def _normalize_host(host: str) -> str:
+    """Fold the host to lower case, matching ModbusTcpParams.
+
+    ModbusTcpParams lower-cases the host it is given, so a TCP endpoint dedupes
+    regardless of case. The socket:// device string an RTU/ASCII link builds has
+    to be folded the same way, or Device.local and device.local would open two
+    links to one gateway. An IPv6 scope id after a % is left untouched.
+    """
+    address, separator, scope = host.partition("%")
+    return address.lower() + separator + scope
+
+
 def build_modbus_params(
     data: Mapping[str, Any],
 ) -> ModbusTcpParams | ModbusSerialParams:
@@ -69,7 +81,7 @@ def build_modbus_params(
             baudrate=data.get(CONF_BAUDRATE, DEFAULT_BAUDRATE),
             framer="rtu",
         )
-    host = data[CONF_HOST]
+    host = _normalize_host(data[CONF_HOST])
     port = data.get(CONF_PORT, DEFAULT_PORT)
     framer = framer_to_socket_name(data.get(CONF_MODBUS_FRAMER, "tcp"))
     if framer == "socket":
