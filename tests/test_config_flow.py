@@ -31,6 +31,7 @@ from custom_components.neopool.const import (
     CONF_USE_COVER_SENSOR,
     CONF_USE_LIGHT,
     CURRENT_VERSION,
+    DEFAULT_BAUDRATE,
     DEFAULT_UNIT_ID,
     DOMAIN,
     TYPE_SERIAL,
@@ -279,6 +280,125 @@ async def test_reconfigure_flow_serial(
     assert result["reason"] == "reconfigure_successful"
     assert mock_config_entry_serial.data[CONF_DEVICE] == "/dev/ttyUSB1"
     assert CONF_HOST not in mock_config_entry_serial.data
+
+    while mock_config_entry_serial.state is not ConfigEntryState.LOADED:
+        await hass.async_block_till_done()
+    await hass.config_entries.async_unload(mock_config_entry_serial.entry_id)
+    await hass.async_block_till_done()
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_reconfigure_flow_relink_same_endpoint(
+    hass: HomeAssistant,
+    mock_config_entry_serial: MockConfigEntry,
+) -> None:
+    """A new baud rate on the same serial device takes the entry off the bus.
+
+    The device path is unchanged, so the probe shares the endpoint the loaded
+    entry holds; the entry has to be unloaded before the new line settings can
+    be probed, then the reload brings it back up.
+    """
+    await setup_integration(hass, mock_config_entry_serial)
+    assert mock_config_entry_serial.state is ConfigEntryState.LOADED
+
+    states: list[ConfigEntryState] = []
+
+    @asynccontextmanager
+    async def _probe_watching_the_entry(
+        *_args: object, **_kwargs: object
+    ) -> AsyncIterator[MagicMock]:
+        states.append(mock_config_entry_serial.state)
+        yield MagicMock()
+
+    result = await mock_config_entry_serial.start_reconfigure_flow(hass)
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(config_flow, "async_get_temporary_unit", _probe_watching_the_entry)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_DEVICE: "/dev/ttyUSB0",
+                CONF_BAUDRATE: 9600,
+                SECTION_MORE_OPTIONS: {CONF_UNIT_ID: DEFAULT_UNIT_ID},
+            },
+        )
+
+    # Unloaded before the probe ran; the reload at the end probes again, so
+    # only the first recorded state is the flow's.
+    assert states[0] is ConfigEntryState.NOT_LOADED
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert mock_config_entry_serial.data[CONF_BAUDRATE] == 9600
+
+    while mock_config_entry_serial.state is not ConfigEntryState.LOADED:
+        await hass.async_block_till_done()
+    await hass.config_entries.async_unload(mock_config_entry_serial.entry_id)
+    await hass.async_block_till_done()
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_reconfigure_flow_relink_restores_on_error(
+    hass: HomeAssistant,
+    mock_config_entry_serial: MockConfigEntry,
+) -> None:
+    """A failed probe puts the relinked entry back on the bus it was taken off."""
+    await setup_integration(hass, mock_config_entry_serial)
+    assert mock_config_entry_serial.state is ConfigEntryState.LOADED
+
+    result = await mock_config_entry_serial.start_reconfigure_flow(hass)
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(
+            config_flow,
+            "async_probe_serial_unit",
+            AsyncMock(side_effect=NeoPoolTimeoutError("boom")),
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_DEVICE: "/dev/ttyUSB0",
+                CONF_BAUDRATE: 9600,
+                SECTION_MORE_OPTIONS: {CONF_UNIT_ID: DEFAULT_UNIT_ID},
+            },
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
+    assert mock_config_entry_serial.data[CONF_BAUDRATE] == DEFAULT_BAUDRATE
+
+    while mock_config_entry_serial.state is not ConfigEntryState.LOADED:
+        await hass.async_block_till_done()
+    await hass.config_entries.async_unload(mock_config_entry_serial.entry_id)
+    await hass.async_block_till_done()
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_reconfigure_flow_relink_restores_on_mismatch(
+    hass: HomeAssistant,
+    mock_config_entry_serial: MockConfigEntry,
+) -> None:
+    """A different controller on the new settings restores the relinked entry."""
+    await setup_integration(hass, mock_config_entry_serial)
+    assert mock_config_entry_serial.state is ConfigEntryState.LOADED
+
+    result = await mock_config_entry_serial.start_reconfigure_flow(hass)
+    with pytest.MonkeyPatch.context() as mp:
+        # The probe reaches a different controller than the entry's unique_id.
+        mp.setattr(
+            config_flow,
+            "async_probe_serial_unit",
+            AsyncMock(return_value="9999999999"),
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_DEVICE: "/dev/ttyUSB0",
+                CONF_BAUDRATE: 9600,
+                SECTION_MORE_OPTIONS: {CONF_UNIT_ID: DEFAULT_UNIT_ID},
+            },
+        )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "serial_mismatch"
+    assert mock_config_entry_serial.data[CONF_BAUDRATE] == DEFAULT_BAUDRATE
 
     while mock_config_entry_serial.state is not ConfigEntryState.LOADED:
         await hass.async_block_till_done()
