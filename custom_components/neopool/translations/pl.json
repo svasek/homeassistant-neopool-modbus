@@ -16,8 +16,8 @@
                 "title": "Połączenie NeoPool",
                 "description": "Wybierz sposób połączenia ze sterownikiem NeoPool.",
                 "menu_options": {
-                    "tcp": "Sieć (Modbus TCP lub brama TCP)",
-                    "serial": "Urządzenie szeregowe"
+                    "tcp": "Sieć (Modbus TCP / RTU przez socket)",
+                    "serial": "Szeregowe (adapter USB RS485 lub szeregowe proxy ESPHome)"
                 }
             },
             "tcp": {
@@ -43,7 +43,7 @@
                     }
                 },
                 "description": "Skonfiguruj połączenie sieciowe ze sterownikiem NeoPool.",
-                "title": "Połączenie sieciowe NeoPool"
+                "title": "NeoPool - Połączenie sieciowe"
             },
             "serial": {
                 "data": {
@@ -51,8 +51,8 @@
                     "baudrate": "Prędkość transmisji"
                 },
                 "data_description": {
-                    "device": "Wybierz port szeregowy, do którego podłączony jest sterownik. Adapter USB lub szeregowe proxy ESPHome pojawia się tutaj jako port lokalny.",
-                    "baudrate": "Prędkość linii szeregowej. Magistrala RS485 w NeoPool działa z prędkością 19200 bodów; zmieniaj tylko wtedy, gdy okablowanie jest inne."
+                    "device": "Port szeregowy lub ścieżka urządzenia USB dla adaptera RS485 podłączonego do sterownika basenu.",
+                    "baudrate": "Prędkość transmisji RS485. Sterowniki NeoPool używają 19200 bodów."
                 },
                 "sections": {
                     "more_options": {
@@ -66,7 +66,7 @@
                     }
                 },
                 "description": "Skonfiguruj połączenie szeregowe ze sterownikiem NeoPool.",
-                "title": "Połączenie szeregowe NeoPool"
+                "title": "NeoPool - Połączenie szeregowe"
             },
             "reconfigure": {
                 "data": {
@@ -80,8 +80,8 @@
                     "host": "Wprowadź adres IP bramki Modbus TCP podłączonej do kontrolera basenu.",
                     "modbus_framer": "Protokół używany przez bramkę. Wybierz TCP dla ramkowania MBAP (domyślne dla bramek natywnych dla sieci Ethernet). Wybierz RTU dla ramkowania RTU tunelowanego przez gniazdo TCP, używanego przez przezroczyste mosty szeregowo-TCP takie jak stream_server w ESPHome.",
                     "port": "Standardowy port Modbus TCP. Zmień tylko jeśli bramka używa niestandardowego portu (domyślnie: 502).",
-                    "device": "Wybierz port szeregowy, do którego podłączony jest sterownik. Adapter USB lub szeregowe proxy ESPHome pojawia się tutaj jako port lokalny.",
-                    "baudrate": "Prędkość linii szeregowej. Magistrala RS485 w NeoPool działa z prędkością 19200 bodów; zmieniaj tylko wtedy, gdy okablowanie jest inne."
+                    "device": "Port szeregowy lub ścieżka urządzenia USB dla adaptera RS485 podłączonego do sterownika basenu.",
+                    "baudrate": "Prędkość transmisji RS485. Sterowniki NeoPool używają 19200 bodów."
                 },
                 "sections": {
                     "more_options": {

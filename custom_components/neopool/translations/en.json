@@ -16,8 +16,8 @@
                 "title": "NeoPool Connection",
                 "description": "Choose how your NeoPool controller is reached.",
                 "menu_options": {
-                    "tcp": "Network (Modbus TCP or TCP gateway)",
-                    "serial": "Serial device"
+                    "tcp": "Network (Modbus TCP / RTU-over-socket)",
+                    "serial": "Serial (USB RS485 adapter or ESPHome serial proxy)"
                 }
             },
             "tcp": {
@@ -43,7 +43,7 @@
                     }
                 },
                 "description": "Configure the network connection to your NeoPool controller.",
-                "title": "NeoPool Network Connection"
+                "title": "NeoPool - Network Connection"
             },
             "serial": {
                 "data": {
@@ -51,8 +51,8 @@
                     "baudrate": "Baud rate"
                 },
                 "data_description": {
-                    "device": "Select the serial port the controller is wired to. A USB adapter or an ESPHome serial proxy appears here as a local port.",
-                    "baudrate": "Serial line speed. NeoPool's RS485 bus runs at 19200 baud; change only if your wiring differs."
+                    "device": "Serial port or USB device path for the RS485 adapter connected to your pool controller.",
+                    "baudrate": "RS485 baud rate. NeoPool controllers use 19200 baud."
                 },
                 "sections": {
                     "more_options": {
@@ -66,7 +66,7 @@
                     }
                 },
                 "description": "Configure the serial connection to your NeoPool controller.",
-                "title": "NeoPool Serial Connection"
+                "title": "NeoPool - Serial Connection"
             },
             "reconfigure": {
                 "data": {
@@ -80,8 +80,8 @@
                     "host": "Enter the IP address of the Modbus TCP gateway connected to your pool controller.",
                     "modbus_framer": "Wire protocol used by the gateway. Select TCP for MBAP framing (default for Ethernet-native gateways). Select RTU for RTU framing tunnelled through a TCP socket, used by passthrough serial-to-TCP bridges like ESPHome's stream_server.",
                     "port": "Standard Modbus TCP port (default: 502). Change only if your gateway uses a non-standard port.",
-                    "device": "Select the serial port the controller is wired to. A USB adapter or an ESPHome serial proxy appears here as a local port.",
-                    "baudrate": "Serial line speed. NeoPool's RS485 bus runs at 19200 baud; change only if your wiring differs."
+                    "device": "Serial port or USB device path for the RS485 adapter connected to your pool controller.",
+                    "baudrate": "RS485 baud rate. NeoPool controllers use 19200 baud."
                 },
                 "sections": {
                     "more_options": {

@@ -16,8 +16,8 @@
                 "title": "Connessione NeoPool",
                 "description": "Scegli come viene raggiunto il tuo controller NeoPool.",
                 "menu_options": {
-                    "tcp": "Rete (Modbus TCP o gateway TCP)",
-                    "serial": "Dispositivo seriale"
+                    "tcp": "Rete (Modbus TCP / RTU su socket)",
+                    "serial": "Seriale (adattatore USB RS485 o proxy seriale ESPHome)"
                 }
             },
             "tcp": {
@@ -43,7 +43,7 @@
                     }
                 },
                 "description": "Configura la connessione di rete al tuo controller NeoPool.",
-                "title": "Connessione di rete NeoPool"
+                "title": "NeoPool - Connessione di rete"
             },
             "serial": {
                 "data": {
@@ -51,8 +51,8 @@
                     "baudrate": "Velocità in baud"
                 },
                 "data_description": {
-                    "device": "Seleziona la porta seriale a cui è collegato il controller. Un adattatore USB o un proxy seriale ESPHome compare qui come porta locale.",
-                    "baudrate": "Velocità della linea seriale. Il bus RS485 di NeoPool funziona a 19200 baud; modificala solo se il tuo cablaggio è diverso."
+                    "device": "Porta seriale o percorso del dispositivo USB per l'adattatore RS485 collegato al controller della piscina.",
+                    "baudrate": "Velocità in baud RS485. I controller NeoPool usano 19200 baud."
                 },
                 "sections": {
                     "more_options": {
@@ -66,7 +66,7 @@
                     }
                 },
                 "description": "Configura la connessione seriale al tuo controller NeoPool.",
-                "title": "Connessione seriale NeoPool"
+                "title": "NeoPool - Connessione seriale"
             },
             "reconfigure": {
                 "data": {
@@ -80,8 +80,8 @@
                     "host": "Inserire l'indirizzo IP del gateway Modbus TCP collegato al controller della piscina.",
                     "modbus_framer": "Protocollo di trasmissione utilizzato dal gateway. Selezionare TCP per il framing MBAP (predefinito per gateway Ethernet nativi). Selezionare RTU per il framing RTU tunnelizzato tramite un socket TCP, usato dai bridge seriale-verso-TCP di tipo passthrough come lo stream_server di ESPHome.",
                     "port": "Porta Modbus TCP standard. Modificare solo se il gateway utilizza una porta non standard (predefinito: 502).",
-                    "device": "Seleziona la porta seriale a cui è collegato il controller. Un adattatore USB o un proxy seriale ESPHome compare qui come porta locale.",
-                    "baudrate": "Velocità della linea seriale. Il bus RS485 di NeoPool funziona a 19200 baud; modificala solo se il tuo cablaggio è diverso."
+                    "device": "Porta seriale o percorso del dispositivo USB per l'adattatore RS485 collegato al controller della piscina.",
+                    "baudrate": "Velocità in baud RS485. I controller NeoPool usano 19200 baud."
                 },
                 "sections": {
                     "more_options": {

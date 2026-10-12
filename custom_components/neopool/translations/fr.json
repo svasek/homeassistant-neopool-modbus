@@ -16,8 +16,8 @@
                 "title": "Connexion NeoPool",
                 "description": "Choisissez comment votre contrôleur NeoPool est atteint.",
                 "menu_options": {
-                    "tcp": "Réseau (Modbus TCP ou passerelle TCP)",
-                    "serial": "Périphérique série"
+                    "tcp": "Réseau (Modbus TCP / RTU sur socket)",
+                    "serial": "Série (adaptateur USB RS485 ou proxy série ESPHome)"
                 }
             },
             "tcp": {
@@ -43,7 +43,7 @@
                     }
                 },
                 "description": "Configurez la connexion réseau à votre contrôleur NeoPool.",
-                "title": "Connexion réseau NeoPool"
+                "title": "NeoPool - Connexion réseau"
             },
             "serial": {
                 "data": {
@@ -51,8 +51,8 @@
                     "baudrate": "Débit en bauds"
                 },
                 "data_description": {
-                    "device": "Sélectionnez le port série auquel le contrôleur est câblé. Un adaptateur USB ou un proxy série ESPHome apparaît ici comme un port local.",
-                    "baudrate": "Vitesse de la ligne série. Le bus RS485 de NeoPool fonctionne à 19200 bauds ; ne le modifiez que si votre câblage diffère."
+                    "device": "Port série ou chemin du périphérique USB de l'adaptateur RS485 connecté à votre contrôleur de piscine.",
+                    "baudrate": "Débit en bauds RS485. Les contrôleurs NeoPool utilisent 19200 bauds."
                 },
                 "sections": {
                     "more_options": {
@@ -66,7 +66,7 @@
                     }
                 },
                 "description": "Configurez la connexion série à votre contrôleur NeoPool.",
-                "title": "Connexion série NeoPool"
+                "title": "NeoPool - Connexion série"
             },
             "reconfigure": {
                 "data": {
@@ -80,8 +80,8 @@
                     "host": "Entrez l'adresse IP de la passerelle Modbus TCP connectée à votre contrôleur de piscine.",
                     "modbus_framer": "Protocole utilisé par la passerelle. Sélectionnez TCP pour la trame MBAP (valeur par défaut pour les passerelles Ethernet natives). Sélectionnez RTU pour la trame RTU tunnelisée via un socket TCP, utilisée par les ponts série vers TCP en mode passthrough comme le stream_server d'ESPHome.",
                     "port": "Port Modbus TCP standard. Ne le modifiez que si votre passerelle utilise un port non standard (par défaut : 502).",
-                    "device": "Sélectionnez le port série auquel le contrôleur est câblé. Un adaptateur USB ou un proxy série ESPHome apparaît ici comme un port local.",
-                    "baudrate": "Vitesse de la ligne série. Le bus RS485 de NeoPool fonctionne à 19200 bauds ; ne le modifiez que si votre câblage diffère."
+                    "device": "Port série ou chemin du périphérique USB de l'adaptateur RS485 connecté à votre contrôleur de piscine.",
+                    "baudrate": "Débit en bauds RS485. Les contrôleurs NeoPool utilisent 19200 bauds."
                 },
                 "sections": {
                     "more_options": {

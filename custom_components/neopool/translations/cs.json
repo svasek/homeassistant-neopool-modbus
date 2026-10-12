@@ -16,8 +16,8 @@
                 "title": "Připojení NeoPool",
                 "description": "Zvolte, jak je váš řadič NeoPool připojen.",
                 "menu_options": {
-                    "tcp": "Síť (Modbus TCP nebo TCP brána)",
-                    "serial": "Sériové zařízení"
+                    "tcp": "Síť (Modbus TCP / RTU přes socket)",
+                    "serial": "Sériové (USB RS485 adaptér nebo sériová proxy ESPHome)"
                 }
             },
             "tcp": {
@@ -43,7 +43,7 @@
                     }
                 },
                 "description": "Nakonfigurujte síťové připojení k vašemu řadiči NeoPool.",
-                "title": "Síťové připojení NeoPool"
+                "title": "NeoPool - Síťové připojení"
             },
             "serial": {
                 "data": {
@@ -51,8 +51,8 @@
                     "baudrate": "Přenosová rychlost"
                 },
                 "data_description": {
-                    "device": "Zvolte sériový port, ke kterému je řadič připojen. USB adaptér nebo sériová proxy ESPHome se zde zobrazí jako lokální port.",
-                    "baudrate": "Rychlost sériové linky. Sběrnice RS485 systému NeoPool běží na 19200 baud; měňte jen pokud se vaše zapojení liší."
+                    "device": "Sériový port nebo cesta k USB zařízení pro RS485 adaptér připojený k vašemu řadiči bazénu.",
+                    "baudrate": "Přenosová rychlost RS485. Řadiče NeoPool používají 19200 baud."
                 },
                 "sections": {
                     "more_options": {
@@ -66,7 +66,7 @@
                     }
                 },
                 "description": "Nakonfigurujte sériové připojení k vašemu řadiči NeoPool.",
-                "title": "Sériové připojení NeoPool"
+                "title": "NeoPool - Sériové připojení"
             },
             "reconfigure": {
                 "data": {
@@ -80,8 +80,8 @@
                     "host": "Zadejte IP adresu Modbus TCP brány připojené k vašemu řadiči bazénu.",
                     "modbus_framer": "Přenosový protokol brány. Zvolte TCP pro rámování MBAP (výchozí pro brány s nativním Ethernetem). Zvolte RTU pro rámování RTU tunelované přes TCP soket, používané průchozími mosty sériové linky přes TCP jako ESPHome stream_server.",
                     "port": "Standardní port Modbus TCP. Změňte pouze pokud vaše brána používá nestandardní port (výchozí: 502).",
-                    "device": "Zvolte sériový port, ke kterému je řadič připojen. USB adaptér nebo sériová proxy ESPHome se zde zobrazí jako lokální port.",
-                    "baudrate": "Rychlost sériové linky. Sběrnice RS485 systému NeoPool běží na 19200 baud; měňte jen pokud se vaše zapojení liší."
+                    "device": "Sériový port nebo cesta k USB zařízení pro RS485 adaptér připojený k vašemu řadiči bazénu.",
+                    "baudrate": "Přenosová rychlost RS485. Řadiče NeoPool používají 19200 baud."
                 },
                 "sections": {
                     "more_options": {
