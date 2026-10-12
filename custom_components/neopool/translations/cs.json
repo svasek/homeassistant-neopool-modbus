@@ -10,7 +10,7 @@
         },
         "error": {
             "cannot_connect": "Nepodařilo se připojit",
-            "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte unit ID a nastavení rámce."
+            "cannot_read_modbus": "Připojeno, ale nelze číst z Modbus zařízení. Zkontrolujte unit ID a nastavení připojení."
         },
         "step": {
             "user": {

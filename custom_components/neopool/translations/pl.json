@@ -10,7 +10,7 @@
         },
         "error": {
             "cannot_connect": "Nie udało się połączyć",
-            "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID jednostki i ustawienia ramki."
+            "cannot_read_modbus": "Połączono, ale nie można odczytać danych z urządzenia Modbus. Sprawdź ID jednostki i ustawienia połączenia."
         },
         "step": {
             "user": {

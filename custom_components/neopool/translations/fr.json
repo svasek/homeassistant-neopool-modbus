@@ -10,7 +10,7 @@
         },
         "error": {
             "cannot_connect": "Échec de la connexion",
-            "cannot_read_modbus": "Connecté, mais impossible de lire le périphérique Modbus. Vérifiez l'ID d'unité et les paramètres du cadre."
+            "cannot_read_modbus": "Connecté, mais impossible de lire le périphérique Modbus. Vérifiez l'ID d'unité et les paramètres de connexion."
         },
         "step": {
             "user": {
