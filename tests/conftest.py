@@ -31,11 +31,18 @@ from custom_components.neopool.const import (
     TYPE_SERIAL,
 )
 from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_NAME, CONF_PORT, CONF_TYPE
+from homeassistant.core import HomeAssistant
 
 MOCK_HOST = "192.0.2.1"
 MOCK_PORT = DEFAULT_PORT
 MOCK_NAME = "Pool"
 MOCK_SERIAL = "1234567890"
+
+
+@pytest.fixture(autouse=True)
+async def mock_usb_component(hass: HomeAssistant) -> None:
+    """Mark the usb component as loaded so neopool's dependency is satisfied."""
+    hass.config.components.add("usb")
 
 
 def _patch_config_flow_probe() -> AbstractContextManager[None]:

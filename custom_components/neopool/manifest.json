@@ -1,10 +1,9 @@
 {
   "domain": "neopool",
   "name": "NeoPool",
-  "after_dependencies": ["usb"],
   "codeowners": ["@svasek"],
   "config_flow": true,
-  "dependencies": ["modbus"],
+  "dependencies": ["modbus", "usb"],
   "documentation": "https://github.com/svasek/homeassistant-neopool-modbus",
   "integration_type": "hub",
   "iot_class": "local_polling",
