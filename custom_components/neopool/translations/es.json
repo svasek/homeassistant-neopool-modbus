@@ -5,7 +5,7 @@
             "migration_complete": "Migration completed successfully. Your VistaPool integration was moved to the new NeoPool domain. Please **restart Home Assistant** to clean up the old integration loaded in memory.",
             "migration_failed": "Migration failed: {error}\n\nCheck the Home Assistant logs and report the issue on GitHub. The legacy VistaPool integration is unaffected and continues to work.",
             "reconfigure_successful": "La reconfiguración se realizó correctamente",
-            "reconfigure_unload_failed": "No se pudo descargar la configuración existente. Inténtelo de nuevo.",
+            "reconfigure_unload_failed": "No se pudo descargar la configuración existente. Reinicie Home Assistant e inténtelo de nuevo.",
             "serial_mismatch": "El dispositivo en esta dirección tiene un número de serie diferente al configurado originalmente."
         },
         "error": {
