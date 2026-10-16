@@ -15,6 +15,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool import config_flow
+from custom_components.neopool.config_flow import SECTION_MORE_OPTIONS
 from custom_components.neopool.const import (
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
@@ -61,10 +62,15 @@ async def test_create_entry_aborts_unmigrated_v1_duplicate(
         DOMAIN, context={"source": SOURCE_USER}
     )
     result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": "tcp"}
+    )
+    result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {
             CONF_HOST: "192.168.1.100",
             CONF_PORT: DEFAULT_PORT,
+            CONF_MODBUS_FRAMER: "tcp",
+            SECTION_MORE_OPTIONS: {CONF_UNIT_ID: DEFAULT_UNIT_ID},
         },
     )
     assert result["type"] is FlowResultType.ABORT
@@ -116,8 +122,8 @@ async def test_import_step_falls_back_to_user_when_legacy_gone() -> None:
 
     result = await flow.async_step_import_from_vistapool(user_input=None)
     assert result is not None
-    # Fall through path, the regular new-entry form is shown
-    assert result["type"] == "form"
+    # Fall through path, the regular connection-type menu is shown.
+    assert result["type"] == "menu"
     assert result["step_id"] == "user"
 
 
@@ -134,7 +140,7 @@ async def test_import_step_falls_back_when_entry_is_not_vistapool() -> None:
     flow.hass.config_entries.async_entries = MagicMock(return_value=[])
 
     result = await flow.async_step_import_from_vistapool(user_input=None)
-    assert result["type"] == "form"
+    assert result["type"] == "menu"
     assert result["step_id"] == "user"
 
 
@@ -217,6 +223,6 @@ async def test_import_step_falls_through_when_legacy_disappears_in_helper() -> N
     ):
         result = await flow.async_step_import_from_vistapool(user_input={})
 
-    # async_step_user shows the regular new-entry form
-    assert result["type"] == "form"
+    # async_step_user shows the regular connection-type menu
+    assert result["type"] == "menu"
     assert result["step_id"] == "user"
