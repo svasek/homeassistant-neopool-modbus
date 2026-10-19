@@ -1,24 +1,33 @@
 """Test the NeoPool integration setup and unload."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
+from modbus_connection import ModbusSerialParams, ModbusTcpParams
+from neopool_modbus import NeoPoolModbusClient
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.neopool.const import (
+    CONF_BAUDRATE,
     CONF_CAPABILITIES,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
     CURRENT_VERSION,
+    DEFAULT_BAUDRATE,
+    DEFAULT_PORT,
     DOMAIN,
+    TYPE_SERIAL,
 )
+from custom_components.neopool.helpers import build_modbus_params
 
 # CUSTOM-ONLY START
 from custom_components.neopool.migration import REMOVED_ENTITY_KEYS
 
 # CUSTOM-ONLY END
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
 from . import setup_integration
@@ -87,6 +96,197 @@ async def test_setup_in_winter_mode(
     )
     await setup_integration(hass, entry)
     assert entry.state is ConfigEntryState.LOADED
+
+
+async def test_setup_borrows_shared_unit(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """Setup asks the modbus integration for a unit and hands it to the client."""
+    sentinel = MagicMock()
+    with (
+        patch(
+            "custom_components.neopool.async_get_unit", return_value=sentinel
+        ) as mock_get_unit,
+        patch(
+            "custom_components.neopool.NeoPoolModbusClient", autospec=True
+        ) as mock_client_cls,
+    ):
+        mock_client = mock_client_cls.return_value
+        mock_client.async_read_all = AsyncMock(return_value={})
+        mock_client.read_all_timers = AsyncMock(return_value={})
+        mock_client.close = AsyncMock()
+        await setup_integration(hass, mock_config_entry)
+
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+    mock_get_unit.assert_called_once()
+    # The borrowed unit is passed through to the library client.
+    assert mock_client_cls.call_args.kwargs["unit"] is sentinel
+
+
+async def test_unload_does_not_close_borrowed_unit(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """Unload must not tear down the shared unit; core releases it on unload.
+
+    The borrowed connection is owned by the modbus integration, which registers
+    its own release via async_get_unit. NeoPool must never close or disconnect
+    the handle itself.
+    """
+    sentinel = MagicMock()
+    with (
+        patch("custom_components.neopool.async_get_unit", return_value=sentinel),
+        patch(
+            "custom_components.neopool.NeoPoolModbusClient", autospec=True
+        ) as mock_client_cls,
+    ):
+        mock_client = mock_client_cls.return_value
+        mock_client.async_read_all = AsyncMock(return_value={})
+        mock_client.read_all_timers = AsyncMock(return_value={})
+        mock_client.close = AsyncMock()
+        await setup_integration(hass, mock_config_entry)
+
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    # The integration never calls teardown on the borrowed unit itself.
+    for teardown in ("close", "disconnect", "async_close"):
+        assert not getattr(sentinel, teardown).called
+
+
+async def test_client_close_leaves_borrowed_unit_open() -> None:
+    """A client built on a borrowed unit must not close it on unload.
+
+    This locks the ownership boundary at the layer the mocked unload test
+    cannot reach: async_unload_entry calls client.close(), and with an injected
+    unit that close has to be a no-op, since the modbus integration owns the
+    shared connection and may be lending it to other consumers.
+    """
+    unit = MagicMock()
+    client = NeoPoolModbusClient({CONF_UNIT_ID: 1}, unit=unit)
+
+    await client.close()
+
+    for teardown in ("close", "disconnect", "async_close"):
+        assert not getattr(unit, teardown).called
+
+
+@pytest.mark.usefixtures("mock_neopool_client")
+async def test_setup_fails_when_unit_unavailable(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """A link already held with different settings fails setup without retrying."""
+    with patch(
+        "custom_components.neopool.async_get_unit",
+        side_effect=HomeAssistantError("different link settings"),
+    ):
+        mock_config_entry.add_to_hass(hass)
+        await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert mock_config_entry.state is ConfigEntryState.SETUP_ERROR
+
+
+@pytest.mark.parametrize("framer", ["tcp", "socket"])
+def test_build_modbus_params_tcp(framer: str) -> None:
+    """Modbus TCP framers build ModbusTcpParams reaching host/port directly."""
+    params = build_modbus_params(
+        {CONF_HOST: "1.2.3.4", CONF_PORT: 502, CONF_MODBUS_FRAMER: framer}
+    )
+    assert isinstance(params, ModbusTcpParams)
+    assert params.host == "1.2.3.4"
+    assert params.port == 502
+
+
+def test_build_modbus_params_rtu_is_serial_over_socket() -> None:
+    """RTU framing builds a serial link over a socket:// device (no deprecation)."""
+    params = build_modbus_params(
+        {CONF_HOST: "1.2.3.4", CONF_PORT: 1502, CONF_MODBUS_FRAMER: "rtu"}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "socket://1.2.3.4:1502"
+    assert params.framer == "rtu"
+    # 115200 matches the modbus integration's canonical socket-carried RTU rate,
+    # so consumers sharing a gateway compare equal.
+    assert params.baudrate == 115200
+
+
+def test_build_modbus_params_rtu_brackets_ipv6_host() -> None:
+    """An IPv6 host is bracketed so its colons do not read as the port separator."""
+    params = build_modbus_params(
+        {CONF_HOST: "fd00::1", CONF_PORT: 502, CONF_MODBUS_FRAMER: "rtu"}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "socket://[fd00::1]:502"
+
+
+def test_build_modbus_params_rtu_folds_host_case() -> None:
+    """The socket device host is lower-cased so a gateway dedupes regardless of case.
+
+    ModbusTcpParams folds the host for TCP; the socket:// device string has to
+    match, or Gateway.Local and gateway.local would open two links to one device.
+    """
+    params = build_modbus_params(
+        {CONF_HOST: "Gateway.Local", CONF_PORT: 502, CONF_MODBUS_FRAMER: "rtu"}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "socket://gateway.local:502"
+
+
+@pytest.mark.parametrize("framer", ["tcp", "socket", "rtu", "ascii"])
+def test_build_modbus_params_is_warning_free(
+    framer: str, recwarn: pytest.WarningsRecorder
+) -> None:
+    """No network path emits a DeprecationWarning.
+
+    TCP omits the framer (passing it is deprecated), and RTU builds
+    ModbusSerialParams directly rather than a deprecated ModbusTcpParams(rtu).
+    """
+    build_modbus_params(
+        {CONF_HOST: "1.2.3.4", CONF_PORT: 502, CONF_MODBUS_FRAMER: framer}
+    )
+    assert not [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)]
+
+
+def test_build_modbus_params_defaults_port_and_framer() -> None:
+    """Missing port and framer fall back to the Modbus TCP defaults."""
+    params = build_modbus_params({CONF_HOST: "1.2.3.4"})
+    assert params.port == DEFAULT_PORT
+    assert params.framer == "socket"
+
+
+def test_build_modbus_params_serial() -> None:
+    """A serial entry builds an RTU serial link on the device path."""
+    params = build_modbus_params(
+        {CONF_TYPE: TYPE_SERIAL, CONF_DEVICE: "/dev/ttyUSB0", CONF_BAUDRATE: 9600}
+    )
+    assert isinstance(params, ModbusSerialParams)
+    assert params.device == "/dev/ttyUSB0"
+    assert params.framer == "rtu"
+    assert params.baudrate == 9600
+
+
+def test_build_modbus_params_serial_default_baudrate() -> None:
+    """A serial entry without a baud rate falls back to NeoPool's RS485 rate."""
+    params = build_modbus_params({CONF_TYPE: TYPE_SERIAL, CONF_DEVICE: "/dev/ttyUSB0"})
+    assert isinstance(params, ModbusSerialParams)
+    assert params.baudrate == DEFAULT_BAUDRATE
+
+
+def test_build_modbus_params_no_type_defaults_tcp() -> None:
+    """An entry predating the connection-type choice reads as a Modbus TCP link."""
+    params = build_modbus_params({CONF_HOST: "1.2.3.4"})
+    assert isinstance(params, ModbusTcpParams)
+
+
+def test_build_modbus_params_serial_is_warning_free(
+    recwarn: pytest.WarningsRecorder,
+) -> None:
+    """The serial path emits no DeprecationWarning."""
+    build_modbus_params({CONF_TYPE: TYPE_SERIAL, CONF_DEVICE: "/dev/ttyUSB0"})
+    assert not [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)]
 
 
 # CUSTOM-ONLY START, legacy v1→v4 migration cleanup tests (migration is HACS-only).

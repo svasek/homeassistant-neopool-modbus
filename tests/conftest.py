@@ -1,6 +1,7 @@
 """Common fixtures for the NeoPool tests."""
 
-from collections.abc import Generator
+from collections.abc import AsyncIterator, Generator
+from contextlib import AbstractContextManager, asynccontextmanager
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -13,6 +14,7 @@ from syrupy.assertion import SnapshotAssertion
 
 # CUSTOM-ONLY END
 from custom_components.neopool.const import (
+    CONF_BAUDRATE,
     CONF_MODBUS_FRAMER,
     CONF_UNIT_ID,
     CONF_USE_AUX1,
@@ -22,16 +24,43 @@ from custom_components.neopool.const import (
     CONF_USE_COVER_SENSOR,
     CONF_USE_LIGHT,
     CURRENT_VERSION,
+    DEFAULT_BAUDRATE,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
     DOMAIN,
+    TYPE_SERIAL,
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_NAME, CONF_PORT, CONF_TYPE
+from homeassistant.core import HomeAssistant
 
 MOCK_HOST = "192.0.2.1"
 MOCK_PORT = DEFAULT_PORT
 MOCK_NAME = "Pool"
 MOCK_SERIAL = "1234567890"
+
+
+@pytest.fixture(autouse=True)
+async def mock_usb_component(hass: HomeAssistant) -> None:
+    """Mark the usb component as loaded so neopool's dependency is satisfied."""
+    hass.config.components.add("usb")
+
+
+def _patch_config_flow_probe() -> AbstractContextManager[None]:
+    """Patch the config-flow probe so no real connection is opened.
+
+    Probing borrows a temporary shared unit and reads its serial through
+    ``async_probe_serial_unit``; both are stubbed so the flow stays offline.
+    """
+
+    @asynccontextmanager
+    async def _temporary_unit(*_args: Any, **_kwargs: Any) -> AsyncIterator[MagicMock]:
+        yield MagicMock()
+
+    return patch.multiple(
+        "custom_components.neopool.config_flow",
+        async_get_temporary_unit=_temporary_unit,
+        async_probe_serial_unit=AsyncMock(return_value=MOCK_SERIAL),
+    )
 
 
 # CUSTOM-ONLY START
@@ -260,6 +289,24 @@ def mock_config_entry() -> MockConfigEntry:
 
 
 @pytest.fixture
+def mock_config_entry_serial() -> MockConfigEntry:
+    """Return a config entry reached over a direct serial device."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title="/dev/ttyUSB0",
+        unique_id=MOCK_SERIAL,
+        version=CURRENT_VERSION,
+        data={
+            CONF_TYPE: TYPE_SERIAL,
+            CONF_DEVICE: "/dev/ttyUSB0",
+            CONF_BAUDRATE: DEFAULT_BAUDRATE,
+            CONF_NAME: MOCK_NAME,
+            CONF_UNIT_ID: DEFAULT_UNIT_ID,
+        },
+    )
+
+
+@pytest.fixture
 def mock_config_entry_light() -> MockConfigEntry:
     """Return a config entry with the pool light option enabled."""
     return MockConfigEntry(
@@ -389,9 +436,12 @@ def mock_neopool_client() -> Generator[MagicMock]:
             "custom_components.neopool.NeoPoolModbusClient",
             autospec=True,
         ) as mock_client_cls,
+        _patch_config_flow_probe(),
+        # Setup borrows a shared Modbus unit from the modbus integration; hand
+        # back a stub so setup does not touch a real connection.
         patch(
-            "custom_components.neopool.config_flow.async_probe_serial",
-            new=AsyncMock(return_value=MOCK_SERIAL),
+            "custom_components.neopool.async_get_unit",
+            return_value=MagicMock(),
         ),
     ):
         mock_client = mock_client_cls.return_value
@@ -477,14 +527,11 @@ def minimal_pool_data() -> dict[str, Any]:
 
 @pytest.fixture
 def mock_socket_connection() -> Generator[None]:
-    """Patch the lib probe in config_flow so we don't hit the network.
+    """Patch the config-flow probe so we don't hit the network.
 
     Not autouse, opt in via the fixture name when the integration's
     config-flow setup runs in the test (it would otherwise try to open
-    a real TCP connection through ``async_probe_serial``).
+    a real connection while probing).
     """
-    with patch(
-        "custom_components.neopool.config_flow.async_probe_serial",
-        new=AsyncMock(return_value=MOCK_SERIAL),
-    ):
+    with _patch_config_flow_probe():
         yield

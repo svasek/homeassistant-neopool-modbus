@@ -97,7 +97,7 @@ If you find this integration useful, consider supporting its development:
 
 ## Features
 
-- **Reliable single Modbus TCP connection per device/hub** (improves stability, avoids connection issues).
+- **Shared Modbus connection**: the integration borrows its connection from Home Assistant's built-in Modbus integration, so several integrations talking to the same device share a single link and the connection shows up in the **Settings → Devices & Services → Modbus** connections panel.
 - **Multi-hub support**: Add multiple NeoPool devices, each with a custom prefix (used in entity IDs).
 - **Sensors**:
   pH, Redox (ORP), Salt, Conductivity, Water Temperature, Ionization, Hydrolysis Intensity/Voltage, Device Time, Status/Alarm bits, Filtration speed _(if supported)_, Backwash remaining time _(if Besgo automatic filter valve is configured)_, **Filtration pump power & energy** _(if pump wattage is configured in Options)_, **Hydrolysis cell runtime** counters (since-reset; total/per-polarity/polarity-changes are diagnostic, disabled by default).
@@ -237,10 +237,10 @@ Additional Besgo-only entities are created automatically when `MBF_PAR_FILTVALVE
 
 ## Data Update
 
-This integration polls the NeoPool controller over Modbus TCP using a Home Assistant **DataUpdateCoordinator**. A single shared Modbus client per hub fetches all registers in batched reads and distributes the result to every entity, so adding more entities does not increase Modbus traffic.
+This integration polls the NeoPool controller over Modbus TCP using a Home Assistant **DataUpdateCoordinator**. The connection is shared: the integration borrows a Modbus unit from Home Assistant's Modbus integration rather than opening its own socket, so every integration on the same device reuses one link. All registers are fetched in batched reads and distributed to every entity, so adding more entities does not increase Modbus traffic.
 
 - **Default interval:** 20 seconds (configurable from 5 s to 300 s in **Options → Scan interval**).
-- **Adaptive backoff:** When a Modbus read fails, all entities become **unavailable** immediately (`UpdateFailed`) and the polling interval is automatically extended (exponentially up to 3 minutes) to avoid hammering an offline device. Entities recover and the interval resets to the user-configured value as soon as the next read succeeds.
+- **Backoff on failure:** When a Modbus read fails, all entities become **unavailable** immediately (`UpdateFailed`) and polling backs off before retrying, so an offline device is not hammered. Entities recover and the interval resets to the user-configured value as soon as the next read succeeds.
 - **Write-then-refresh:** When you toggle a switch, change a number, or call a service, a follow-up refresh is scheduled 2 seconds after the write so the UI reflects the new state without waiting for the next poll cycle.
 - **Winter Mode:** When enabled, polling is fully suspended (no TCP connection attempts, no error logs). See [Winter Mode](#winter-mode).
 
