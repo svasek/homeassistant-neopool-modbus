@@ -51,7 +51,7 @@ from .conftest import MOCK_HOST, MOCK_PORT, MOCK_SERIAL
 pytestmark = pytest.mark.usefixtures("mock_socket_connection")
 
 # Sectioned step input: the device ID lives in a collapsed section.
-TCP_INPUT = {
+USER_INPUT = {
     CONF_HOST: MOCK_HOST,
     CONF_PORT: MOCK_PORT,
     CONF_MODBUS_FRAMER: "tcp",
@@ -92,7 +92,7 @@ async def test_user_flow_tcp(
     assert result["step_id"] == TYPE_TCP
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], TCP_INPUT
+        result["flow_id"], USER_INPUT
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -156,7 +156,7 @@ async def test_user_flow_rejects_out_of_range_unit_id(
     with pytest.raises(InvalidData):
         await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {**TCP_INPUT, SECTION_MORE_OPTIONS: {CONF_UNIT_ID: unit_id}},
+            {**USER_INPUT, SECTION_MORE_OPTIONS: {CONF_UNIT_ID: unit_id}},
         )
 
 
@@ -184,7 +184,7 @@ async def test_user_flow_probe_errors(
             AsyncMock(side_effect=exc),
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], TCP_INPUT
+            result["flow_id"], USER_INPUT
         )
 
     assert result["type"] is FlowResultType.FORM
@@ -192,7 +192,7 @@ async def test_user_flow_probe_errors(
 
     # Recover: probe now succeeds.
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], TCP_INPUT
+        result["flow_id"], USER_INPUT
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
@@ -212,7 +212,7 @@ async def test_user_flow_device_in_use(
             MagicMock(side_effect=HomeAssistantError("in use")),
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], TCP_INPUT
+            result["flow_id"], USER_INPUT
         )
 
     assert result["type"] is FlowResultType.FORM
@@ -220,7 +220,7 @@ async def test_user_flow_device_in_use(
 
     # Recover: the conflict clears and the flow finishes.
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], TCP_INPUT
+        result["flow_id"], USER_INPUT
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
@@ -235,7 +235,7 @@ async def test_user_flow_already_configured(
 
     result = await _advance_to_step(hass, TYPE_TCP)
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], TCP_INPUT
+        result["flow_id"], USER_INPUT
     )
 
     assert result["type"] is FlowResultType.ABORT
