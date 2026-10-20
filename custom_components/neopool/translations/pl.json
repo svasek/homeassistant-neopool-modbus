@@ -218,7 +218,7 @@
                 "name": "Docelowa wartość chloru"
             },
             "heating_temp": {
-                "name": "Docelowa wartość temperatury"
+                "name": "Temperatura w trybie grzania"
             },
             "hidro": {
                 "name": "Docelowy poziom produkcji elektrolizy"
@@ -228,6 +228,9 @@
             },
             "hidro_shutdown_temperature": {
                 "name": "Próg temp. wyłączenia elektrolizy"
+            },
+            "intelligent_temp": {
+                "name": "Temperatura w trybie inteligentnym"
             },
             "ph1": {
                 "name": "Maksymalny limit pH"

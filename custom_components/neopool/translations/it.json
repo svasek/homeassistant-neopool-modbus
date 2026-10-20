@@ -218,7 +218,7 @@
                 "name": "Valore cloro target"
             },
             "heating_temp": {
-                "name": "Valore temperatura target"
+                "name": "Temperatura in modalità riscaldamento"
             },
             "hidro": {
                 "name": "Livello produzione idrolisi target"
@@ -228,6 +228,9 @@
             },
             "hidro_shutdown_temperature": {
                 "name": "Soglia temp. spegnimento idrolisi"
+            },
+            "intelligent_temp": {
+                "name": "Temperatura in modalità intelligente"
             },
             "ph1": {
                 "name": "Limite massimo pH"

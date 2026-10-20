@@ -218,7 +218,7 @@
                 "name": "Setpoint chloru"
             },
             "heating_temp": {
-                "name": "Požadovaná teplota"
+                "name": "Teplota v režimu ohřevu"
             },
             "hidro": {
                 "name": "Hydrolýza (intenzita)"
@@ -228,6 +228,9 @@
             },
             "hidro_shutdown_temperature": {
                 "name": "Teplotní práh vyp. elektrolýzy"
+            },
+            "intelligent_temp": {
+                "name": "Teplota v inteligentním režimu"
             },
             "ph1": {
                 "name": "pH max. limit"
