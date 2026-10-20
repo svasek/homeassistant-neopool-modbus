@@ -35,6 +35,9 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import SectionConfig, section
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
     SelectSelector,
     SelectSelectorConfig,
     SerialPortSelector,
@@ -85,7 +88,12 @@ _MORE_OPTIONS = {
         probatio.Schema(
             {
                 probatio.Optional(CONF_UNIT_ID, default=DEFAULT_UNIT_ID): probatio.All(
-                    probatio.Coerce(int), probatio.Range(min=1, max=247)
+                    NumberSelector(
+                        NumberSelectorConfig(
+                            mode=NumberSelectorMode.BOX, min=1, max=247
+                        )
+                    ),
+                    probatio.Coerce(int),
                 ),
             }
         ),
