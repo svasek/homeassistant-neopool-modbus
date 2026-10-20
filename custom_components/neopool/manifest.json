@@ -10,5 +10,5 @@
   "issue_tracker": "https://github.com/svasek/homeassistant-neopool-modbus/issues",
   "loggers": ["modbus_connection", "neopool_modbus", "tmodbus"],
   "requirements": ["neopool-modbus>=4.13.0"],
-  "version": "6.9.0"
+  "version": "6.10.0"
 }
