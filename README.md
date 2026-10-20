@@ -14,7 +14,7 @@
 [![Conventional Branch](https://img.shields.io/badge/Conventional%20Branch-Spec-6192c3)](https://conventional-branch.github.io/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/)
 [![Gitmoji](https://img.shields.io/badge/gitmoji-%20%F0%9F%98%9C%20%F0%9F%98%8D-FFDD67.svg)](https://gitmoji.dev/specification)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/svasek/homeassistant-neopool-modbus/2-getting-started)
+[![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACUElEQVR4nJ2Wu4sUQRDGu2cXH6CCchziH+ChYCKCj9TAxEPOzEBBMDww0EBM1EQzwczAzEDFxEA48C4WDORS8QEKegqCgSJ6tzv7k1q+HsrennXXgqW6p6q/qqn6umZDCCEAFRC13gncAdaAK8Dm3Gcq8YeA88Bb/paXwHzJf+IAwD7guQOtgYF0kifAbvlPHeSSQH5noGjfG67gtPw7k2J3pddDCHUIwQ5WmU9lmLLXheTMbr9BjHHQFiAKvD8mmY7Zlb013ILGGKMFHQLLZoHw2Q1tyalFkD5ogDHGnmVra+AYcBPYKxsjJQQuq8a/1FwvNbCh3w/gHLBLxLjrevYduAHsyMEt5CHgtQPtK1CfsnwF1t0+kcDkHXAW6A774y7YduC6MvHySSW4CrzJbCkRpH2g4zkT0noOeAh8A24DM842o4tYF+icZEO2U6VSdd1+q1vb627R+lqhLPlbmZz0LDKJiS3AphDCXMaixCSz/UsampZKdAJ4oSyWjADOdgD4oizbCJCav9CURtpo98g51k4/BR4XCOCbXLug9uywr71l/dM5JvB+S41XgQ/ume/HswTeDEV30WzY5TJwF+0jcMTR+iLwWX6vgDOeNL4HiwUee+lJLyZWubN7dLG2uYpUpWE3bsZH6ffpsDKsYoxrIYT7etbR8GtY1GSiUcwY2tXmb0POwDUxrVdpEtugGxnnPkDHAflpWGtvQCMACtQ+5lWzWeBeRtH02UTNv6XGTv/JdMGOAstZgx8A+/8LMHuLpizABWAl+zfhyzmx/AFW7D1rA9xBKAAAAABJRU5ErkJggg==)](https://deepwiki.com/svasek/homeassistant-neopool-modbus/2-getting-started)
 [![Sponsor me](https://img.shields.io/badge/sponsor-❤-brightgreen?style=flat)](https://github.com/sponsors/svasek)
 [![Ko-fi](https://img.shields.io/badge/ko--fi-support-29abe0?style=flat&logo=ko-fi)](https://ko-fi.com/svasek)
 
@@ -24,8 +24,8 @@ Hidrolife • Aquascenic • Oxilife • Bionet • Hidroniser • UVScenic • 
 **Distributed by** (vendors selling NeoPool-based hardware):  
 Hayward • Brilix (Albixon) • Bayrol • Certikin • Poolstar • GrupAquadirect • Pentair • ProducPool • Pool Technologie • Kripsol
 
-> [!TIP]
-> **This integration is available via [HACS](https://hacs.xyz/)**
+> [!IMPORTANT]
+> **NeoPool is now built into Home Assistant.** A **NeoPool** integration has shipped in Home Assistant Core since **Home Assistant 2026.8**, and from **2026.11** it covers the complete feature set. You can set it up from **Settings → Devices & services** without installing anything extra. This custom integration remains the leading edge and adds a few features on top. See [Also available in Home Assistant Core](#also-available-in-home-assistant-core) below for the details and how the two relate.
 
 ---
 
@@ -118,26 +118,48 @@ If you find this integration useful, consider supporting its development:
 
 ---
 
+## Also available in Home Assistant Core
+
+This integration has been ported upstream into Home Assistant itself. A **NeoPool** integration has shipped in Home Assistant Core since **Home Assistant 2026.8**, added one platform at a time; from **2026.11** it covers the complete feature set of this project, with a few exceptions noted below. You can set it up from **Settings → Devices & services** without any add-ons.
+
+> [!NOTE]
+> The core integration and this custom integration are not two separate things: they share the same domain (`neopool`) and most of the same code. If you install this custom integration, it **replaces** the core NeoPool integration (a custom integration takes precedence over the core one of the same domain). You do not run both; you run this one instead, and it brings the extra features listed below.
+
+Home Assistant 2026.11 also turns HACS into a built-in **Marketplace** (the former HACS, now shipped in Home Assistant Core). Existing HACS installations are migrated automatically, so this integration stays installable and updatable the same way, now from the built-in Marketplace.
+
+### What this custom integration still adds on top
+
+A handful of features live here and are not (yet) part of the core integration:
+
+- **Winter mode**: suspends Modbus communication for the season while keeping all entities registered, with automation-friendly control.
+- **Automatic device-time sync**: a switch that keeps the controller's clock aligned with Home Assistant _(the core version exposes only the `get_device_time` / `set_device_time` actions, so you would sync time from an automation yourself)_.
+- **Extra services**: `neopool.set_timer`, `neopool.write_register`, and `neopool.read_register` _(the core version ships only `get_device_time` and `set_device_time`)_.
+- **"Measure when filtration is off"** option, to keep readings live while the pump is idle.
+- **Filtration pump power and energy** sensors _(when the pump wattage is set in the options)_, including an energy sensor for the Home Assistant Energy Dashboard.
+- **Aggregated filtration time remaining** sensor across all filtration blocks.
+
+New features generally land here first and are then contributed back to Home Assistant Core over time, so the core integration tends to follow a little behind.
+
+---
+
 ## Installation
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=svasek&repository=homeassistant-neopool-modbus&category=Integration)
 
-### [HACS](https://hacs.xyz/) (recommended)
+### Marketplace (recommended)
 
-1. Open **HACS** in Home Assistant.
-2. Go to **Integrations** and search for **NeoPool Modbus Integration** (no need to add a custom repository, this integration is included in the HACS default list).
+On **Home Assistant 2026.11** and newer, use the built-in **Marketplace** (the former HACS, now shipped in Home Assistant Core):
+
+1. Open **Settings → Marketplace** in Home Assistant.
+2. Search for **NeoPool Modbus Integration** (no need to add a custom repository, this integration is included in the default list).
 3. Install **NeoPool Modbus Integration**.
 4. Restart Home Assistant.
 
-> ### Manual
->
-> 1. Download or clone this repository.
-> 2. Copy the `custom_components/neopool` folder to your `/config/custom_components` directory.
-> 3. Restart Home Assistant.
+On older Home Assistant releases, install [HACS](https://hacs.xyz/) first and use the same steps from the HACS panel. Existing HACS installations are migrated to the Marketplace automatically when you upgrade.
 
 ## Setup and Configuration
 
-After installing the integration via HACS and restarting Home Assistant:
+After installing the integration and restarting Home Assistant:
 
 ### 1. Add Your Pool to Home Assistant
 
