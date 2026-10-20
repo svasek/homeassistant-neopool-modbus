@@ -218,7 +218,7 @@
                 "name": "Valeur cible de chlore"
             },
             "heating_temp": {
-                "name": "Valeur cible de température"
+                "name": "Température en mode chauffage"
             },
             "hidro": {
                 "name": "Niveau de production d’hydrolyse cible"
@@ -228,6 +228,9 @@
             },
             "hidro_shutdown_temperature": {
                 "name": "Seuil temp. arrêt hydrolyse"
+            },
+            "intelligent_temp": {
+                "name": "Température en mode intelligent"
             },
             "ph1": {
                 "name": "Limite maximale pH"

@@ -27,7 +27,6 @@ from neopool_modbus.exceptions import NeoPoolError
 from neopool_modbus.registers import (
     MAX_RELAY_GPIO,
     TIMER_BLOCKS,
-    SetpointKind,
     find_corrupted_gpio_registers,
     is_valid_relay_gpio,
 )
@@ -293,71 +292,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     # CUSTOM-ONLY END
 
-    async def _sync_heating_intelligent_setpoints(self, data: dict[str, Any]) -> None:
-        """Keep heating and intelligent setpoints synchronized last-change-wins."""
-        prev = self.data
-        heat = data.get("MBF_PAR_HEATING_TEMP")
-        intel = data.get("MBF_PAR_INTELLIGENT_TEMP")
-        if heat is None or intel is None or heat == intel:
-            return
-        h_old = prev.get("MBF_PAR_HEATING_TEMP") if prev else None
-        i_old = prev.get("MBF_PAR_INTELLIGENT_TEMP") if prev else None
-        heating_changed = h_old is None or heat != h_old
-        intelligent_changed = i_old is None or intel != i_old
-
-        if heating_changed ^ intelligent_changed:
-            winner_val = int(heat if heating_changed else intel)
-            loser_kind = (
-                SetpointKind.INTELLIGENT if heating_changed else SetpointKind.HEATING
-            )
-            await self.client.async_set_setpoint(loser_kind, winner_val, apply=True)
-            data["MBF_PAR_HEATING_TEMP"] = winner_val
-            data["MBF_PAR_INTELLIGENT_TEMP"] = winner_val
-            _LOGGER.debug(
-                "Auto-synced setpoints (last-change-wins) -> heating=%s, intelligent=%s",
-                data["MBF_PAR_HEATING_TEMP"],
-                data["MBF_PAR_INTELLIGENT_TEMP"],
-            )
-        elif heating_changed and intelligent_changed:
-            _LOGGER.warning(
-                "Both heating and intelligent setpoints changed simultaneously "
-                "(heating: %s→%s, intelligent: %s→%s). Reverting both to previous values to prevent conflict",
-                h_old,
-                heat,
-                i_old,
-                intel,
-            )
-            if h_old is not None and i_old is not None:
-                await self.client.async_set_setpoint(
-                    SetpointKind.HEATING, int(h_old), apply=False
-                )
-                await self.client.async_set_setpoint(
-                    SetpointKind.INTELLIGENT, int(i_old), apply=True
-                )
-                data["MBF_PAR_HEATING_TEMP"] = h_old
-                data["MBF_PAR_INTELLIGENT_TEMP"] = i_old
-                _LOGGER.debug(
-                    "Reverted setpoints -> heating=%s, intelligent=%s",
-                    data["MBF_PAR_HEATING_TEMP"],
-                    data["MBF_PAR_INTELLIGENT_TEMP"],
-                )
-        else:
-            _LOGGER.info(
-                "Setpoints differ but neither changed (heating=%s, intelligent=%s). "
-                "Performing initial sync: setting intelligent to match heating",
-                heat,
-                intel,
-            )
-            await self.client.async_set_setpoint(
-                SetpointKind.INTELLIGENT, int(heat), apply=True
-            )
-            data["MBF_PAR_INTELLIGENT_TEMP"] = heat
-            _LOGGER.debug(
-                "Initial sync completed -> heating=%s, intelligent=%s",
-                data["MBF_PAR_HEATING_TEMP"],
-                data["MBF_PAR_INTELLIGENT_TEMP"],
-            )
-
     def _persist_capability_snapshot(self, data: dict[str, Any]) -> None:
         """Persist the capability snapshot so platform setup survives HA restarts."""
         new_snapshot = {k: data[k] for k in CAPABILITY_KEYS if k in data}
@@ -405,11 +339,6 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # CUSTOM-ONLY START
         self._apply_dev_overrides(data)
         # CUSTOM-ONLY END
-
-        try:
-            await self._sync_heating_intelligent_setpoints(data)
-        except Exception as sync_err:  # noqa: BLE001  # pragma: no cover
-            _LOGGER.debug("Setpoint auto-sync skipped due to error: %s", sync_err)
 
         self._persist_capability_snapshot(data)
         return data

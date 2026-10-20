@@ -218,7 +218,7 @@
                 "name": "Chlor-Sollwert"
             },
             "heating_temp": {
-                "name": "Gewünschte Temperatur"
+                "name": "Temperatur im Heizmodus"
             },
             "hidro": {
                 "name": "Hydrolyse Ziel-Produktionsniveau"
@@ -228,6 +228,9 @@
             },
             "hidro_shutdown_temperature": {
                 "name": "Hydrolyse Abschalttemp.-Schwelle"
+            },
+            "intelligent_temp": {
+                "name": "Temperatur im intelligenten Modus"
             },
             "ph1": {
                 "name": "pH Maximalgrenze"

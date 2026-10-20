@@ -218,7 +218,7 @@
                 "name": "Valor objetivo de cloro"
             },
             "heating_temp": {
-                "name": "Valor objetivo de temperatura"
+                "name": "Temperatura en modo calefacción"
             },
             "hidro": {
                 "name": "Nivel objetivo de producción de hidrólisis"
@@ -228,6 +228,9 @@
             },
             "hidro_shutdown_temperature": {
                 "name": "Umbral temp. apagado hidrólisis"
+            },
+            "intelligent_temp": {
+                "name": "Temperatura en modo inteligente"
             },
             "ph1": {
                 "name": "Límite máximo de pH"

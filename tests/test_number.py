@@ -300,6 +300,13 @@ async def test_heating_setpoint_writes_via_high_level_api(
             SetpointKind.SMART_TEMP_LOW,
             12,
         ),
+        pytest.param(
+            "mbf_par_intelligent_temp",
+            "MBF_PAR_INTELLIGENT_TEMP",
+            24,
+            SetpointKind.INTELLIGENT,
+            24,
+        ),
     ],
 )
 async def test_setpoint_write_targets_map_to_kind_and_scale(
