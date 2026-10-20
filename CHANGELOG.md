@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.11.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.10.0...v6.11.0) (2026-10-20)
+
+
+### ✨ Features
+
+* **number:** ✨ expose intelligent-mode temperature as its own setpoint ([#287](https://github.com/svasek/homeassistant-neopool-modbus/issues/287)) ([0977776](https://github.com/svasek/homeassistant-neopool-modbus/commit/097777613307aa627d73f5c16614b543766da77f))
+
 ## [6.10.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.9.0...v6.10.0) (2026-10-20)
 
 
