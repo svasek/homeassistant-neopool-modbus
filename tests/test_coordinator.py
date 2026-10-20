@@ -573,6 +573,84 @@ async def test_filtration_remaining_enabled_polls_all_three(
     assert "filtration3" in enabled_timers
 
 
+def _filtration_remaining_entry() -> MockConfigEntry:
+    """Return a config entry used by the force-read scoping tests."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title="Pool",
+        unique_id="neopool_force_read",
+        version=CURRENT_VERSION,
+        data={
+            "host": "192.0.2.24",
+            "port": 502,
+            "name": "Pool",
+            CONF_UNIT_ID: 1,
+            CONF_MODBUS_FRAMER: "tcp",
+        },
+        options={CONF_MODBUS_FRAMER: "tcp"},
+    )
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_force_reads_blocks_while_pump_runs(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """With the sensor enabled and the pump on, filtration blocks bypass the cache."""
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": True,
+    }
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, _filtration_remaining_entry())
+    await _poll_once_more(hass, None, freezer)
+
+    force_read = calls[-1][1]
+    assert force_read is not None
+    assert set(force_read) == {"filtration1", "filtration2", "filtration3"}
+
+
+async def test_filtration_remaining_disabled_keeps_cached_reads(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A time-only context does not force-read, even with the pump running.
+
+    The aggregate sensor is disabled by default, so only the default-enabled
+    filtration1 time entities register a block context. That context must not
+    trigger a cache-bypassing force-read.
+    """
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": True,
+    }
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, _filtration_remaining_entry())
+    await _poll_once_more(hass, None, freezer)
+
+    assert calls[-1][1] is None
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_no_force_read_when_idle(
+    hass: HomeAssistant,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """With the sensor enabled but pump off and no countdown, nothing is force-read."""
+    mock_neopool_client.async_read_all.return_value = {
+        **MOCK_POOL_DATA,
+        "Filtration Pump": False,
+    }
+    calls = _capture_timer_calls(mock_neopool_client)
+    await setup_integration(hass, _filtration_remaining_entry())
+    await _poll_once_more(hass, None, freezer)
+
+    assert calls[-1][1] is None
+
+
 async def test_aux_base_polls_but_b_subtimer_gated_when_disabled(
     hass: HomeAssistant,
     mock_neopool_client: MagicMock,
