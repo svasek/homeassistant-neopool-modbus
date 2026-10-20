@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.10.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.9.0...v6.10.0) (2026-10-20)
+
+
+### ✨ Features
+
+* ✨ add shared Modbus connection and serial port support ([#284](https://github.com/svasek/homeassistant-neopool-modbus/issues/284)) ([189ac94](https://github.com/svasek/homeassistant-neopool-modbus/commit/189ac94c4c65a7906b2ff801d90c630805f553ce))
+
+
+### 🐛 Bug Fixes
+
+* 🩹 satisfy stricter homeassistant-stubs 2026.10 typing ([#282](https://github.com/svasek/homeassistant-neopool-modbus/issues/282)) ([24da78d](https://github.com/svasek/homeassistant-neopool-modbus/commit/24da78dccf5ef5a22b6df02e46d176189cd46692))
+* **binary_sensor:** 🩹 import BinarySensorDeviceClass from correct ([50601d8](https://github.com/svasek/homeassistant-neopool-modbus/commit/50601d863c63fdfabbcf38f8618a4be53f17cc2e))
+* **select:** 🐛 write per-timer filtration speed to its own slot ([#281](https://github.com/svasek/homeassistant-neopool-modbus/issues/281)) ([a1b39bd](https://github.com/svasek/homeassistant-neopool-modbus/commit/a1b39bd429f3ea1819d2504c683499c071eceb9d))
+
+
+### ♻️ Refactoring
+
+* **switch:** ♻️ type write callbacks as NeoPoolModbusClient ([#285](https://github.com/svasek/homeassistant-neopool-modbus/issues/285)) ([5119050](https://github.com/svasek/homeassistant-neopool-modbus/commit/5119050c2893687e10688bf12bcd5959cb2dab59))
+
 ## [6.9.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.8.0...v6.9.0) (2026-09-26)
 
 
