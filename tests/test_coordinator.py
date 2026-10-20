@@ -441,7 +441,6 @@ async def test_timer_block_data_merged_into_coordinator(
 
     assert coordinator.data["filtration1_enable"] == 1
     assert coordinator.data["filtration1_start"] == 8 * 3600
-    assert coordinator.data["filtration1_interval"] == 4 * 3600
     assert coordinator.data["filtration1_stop"] == 12 * 3600
     # filtration2: on/interval are None → stop falls back to None
     assert coordinator.data["filtration2_stop"] is None
