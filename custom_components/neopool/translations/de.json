@@ -309,7 +309,20 @@
                 }
             },
             "intelligent_filt_min_time": {
-                "name": "Intelligent: Minimale Filterzeit"
+                "name": "Intelligent: Minimale Filterzeit",
+                "state": {
+                    "2h": "2 Stunden",
+                    "3h": "3 Stunden",
+                    "4h": "4 Stunden",
+                    "5h": "5 Stunden",
+                    "6h": "6 Stunden",
+                    "7h": "7 Stunden",
+                    "8h": "8 Stunden",
+                    "9h": "9 Stunden",
+                    "10h": "10 Stunden",
+                    "11h": "11 Stunden",
+                    "12h": "12 Stunden"
+                }
             },
             "relay_activation_delay": {
                 "name": "pH-Pumpenstartverzögerung",
@@ -340,6 +353,7 @@
             "relay_light_period": {
                 "name": "Licht-Timer - Intervall",
                 "state": {
+                    "no_repeat": "Nicht wiederholen",
                     "1_day": "1 Tag",
                     "1_week": "1 Woche",
                     "2_days": "2 Tage",
@@ -371,6 +385,7 @@
             "relay_aux_period": {
                 "name": "Timer Aux {number} ({subtimer}) - Intervall",
                 "state": {
+                    "no_repeat": "Nicht wiederholen",
                     "1_day": "1 Tag",
                     "1_week": "1 Woche",
                     "2_days": "2 Tage",
@@ -640,6 +655,9 @@
         },
         "winter_mode_active": {
             "message": "Dieser Dienst ist nicht verfügbar, während der Wintermodus aktiv ist. Deaktivieren Sie zuerst den Wintermodus, um mit dem Controller zu kommunizieren."
+        },
+        "setup_link_conflict": {
+            "message": "Das Gerät wird bereits mit anderen Modbus-Verbindungseinstellungen verwendet, die eine gemeinsame Verbindung nicht unterstützen kann: {error}"
         }
     },
     "issues": {

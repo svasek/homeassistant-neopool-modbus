@@ -309,7 +309,20 @@
                 }
             },
             "intelligent_filt_min_time": {
-                "name": "Inteligente: Tiempo mínimo de filtración"
+                "name": "Inteligente: Tiempo mínimo de filtración",
+                "state": {
+                    "2h": "2 horas",
+                    "3h": "3 horas",
+                    "4h": "4 horas",
+                    "5h": "5 horas",
+                    "6h": "6 horas",
+                    "7h": "7 horas",
+                    "8h": "8 horas",
+                    "9h": "9 horas",
+                    "10h": "10 horas",
+                    "11h": "11 horas",
+                    "12h": "12 horas"
+                }
             },
             "relay_activation_delay": {
                 "name": "Retardo de activación de la bomba de pH",
@@ -340,6 +353,7 @@
             "relay_light_period": {
                 "name": "Temporizador Luz - Intervalo",
                 "state": {
+                    "no_repeat": "Sin repetición",
                     "1_day": "1 día",
                     "1_week": "1 semana",
                     "2_days": "2 días",
@@ -371,6 +385,7 @@
             "relay_aux_period": {
                 "name": "Temporizador Aux {number} ({subtimer}) - Intervalo",
                 "state": {
+                    "no_repeat": "Sin repetición",
                     "1_day": "1 día",
                     "1_week": "1 semana",
                     "2_days": "2 días",
@@ -640,6 +655,9 @@
         },
         "winter_mode_active": {
             "message": "Este servicio no está disponible mientras el Modo invierno está activo. Desactive primero el Modo invierno para comunicarse con el controlador."
+        },
+        "setup_link_conflict": {
+            "message": "El dispositivo ya está en uso con una configuración de enlace Modbus diferente, que una conexión compartida no puede atender: {error}"
         }
     },
     "issues": {

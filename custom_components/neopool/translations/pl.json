@@ -309,7 +309,20 @@
                 }
             },
             "intelligent_filt_min_time": {
-                "name": "Inteligentny: Minimalny czas filtracji"
+                "name": "Inteligentny: Minimalny czas filtracji",
+                "state": {
+                    "2h": "2 godziny",
+                    "3h": "3 godziny",
+                    "4h": "4 godziny",
+                    "5h": "5 godzin",
+                    "6h": "6 godzin",
+                    "7h": "7 godzin",
+                    "8h": "8 godzin",
+                    "9h": "9 godzin",
+                    "10h": "10 godzin",
+                    "11h": "11 godzin",
+                    "12h": "12 godzin"
+                }
             },
             "relay_activation_delay": {
                 "name": "Opóźnienie uruchomienia pompy pH",
@@ -340,6 +353,7 @@
             "relay_light_period": {
                 "name": "Timer Światła - Interwał",
                 "state": {
+                    "no_repeat": "Bez powtarzania",
                     "1_day": "1 dzień",
                     "1_week": "1 tydzień",
                     "2_days": "2 dni",
@@ -371,6 +385,7 @@
             "relay_aux_period": {
                 "name": "Timer Aux {number} ({subtimer}) - Interwał",
                 "state": {
+                    "no_repeat": "Bez powtarzania",
                     "1_day": "1 dzień",
                     "1_week": "1 tydzień",
                     "2_days": "2 dni",
@@ -640,6 +655,9 @@
         },
         "winter_mode_active": {
             "message": "Ta usługa jest niedostępna, gdy Tryb zimowy jest aktywny. Najpierw wyłącz Tryb zimowy, aby komunikować się ze sterownikiem."
+        },
+        "setup_link_conflict": {
+            "message": "Urządzenie jest już używane z innymi ustawieniami łącza Modbus, których jedno współdzielone połączenie nie może obsłużyć: {error}"
         }
     },
     "issues": {

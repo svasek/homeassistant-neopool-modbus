@@ -309,7 +309,20 @@
                 }
             },
             "intelligent_filt_min_time": {
-                "name": "Inteligentní: Minimální doba filtrace"
+                "name": "Inteligentní: Minimální doba filtrace",
+                "state": {
+                    "2h": "2 hodiny",
+                    "3h": "3 hodiny",
+                    "4h": "4 hodiny",
+                    "5h": "5 hodin",
+                    "6h": "6 hodin",
+                    "7h": "7 hodin",
+                    "8h": "8 hodin",
+                    "9h": "9 hodin",
+                    "10h": "10 hodin",
+                    "11h": "11 hodin",
+                    "12h": "12 hodin"
+                }
             },
             "relay_activation_delay": {
                 "name": "Zpoždění aktivace pH pumpy",
@@ -340,6 +353,7 @@
             "relay_light_period": {
                 "name": "Timer Světla - Interval",
                 "state": {
+                    "no_repeat": "Neopakovat",
                     "1_day": "1 den",
                     "1_week": "1 týden",
                     "2_days": "2 dny",
@@ -371,6 +385,7 @@
             "relay_aux_period": {
                 "name": "Timer Aux {number} ({subtimer}) - Interval",
                 "state": {
+                    "no_repeat": "Neopakovat",
                     "1_day": "1 den",
                     "1_week": "1 týden",
                     "2_days": "2 dny",
@@ -640,6 +655,9 @@
         },
         "winter_mode_active": {
             "message": "Tato služba není dostupná, když je aktivní Zimní režim. Nejprve vypněte Zimní režim, abyste mohli komunikovat s ovladačem."
+        },
+        "setup_link_conflict": {
+            "message": "Zařízení je již používáno s jinými nastaveními Modbus linky, která jedno sdílené spojení nemůže obsloužit: {error}"
         }
     },
     "issues": {

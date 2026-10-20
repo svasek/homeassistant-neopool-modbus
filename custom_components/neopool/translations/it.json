@@ -309,7 +309,20 @@
                 }
             },
             "intelligent_filt_min_time": {
-                "name": "Intelligente: Tempo minimo di filtrazione"
+                "name": "Intelligente: Tempo minimo di filtrazione",
+                "state": {
+                    "2h": "2 ore",
+                    "3h": "3 ore",
+                    "4h": "4 ore",
+                    "5h": "5 ore",
+                    "6h": "6 ore",
+                    "7h": "7 ore",
+                    "8h": "8 ore",
+                    "9h": "9 ore",
+                    "10h": "10 ore",
+                    "11h": "11 ore",
+                    "12h": "12 ore"
+                }
             },
             "relay_activation_delay": {
                 "name": "Ritardo di attivazione pompa pH",
@@ -340,6 +353,7 @@
             "relay_light_period": {
                 "name": "Timer Luce - Intervallo",
                 "state": {
+                    "no_repeat": "Nessuna ripetizione",
                     "1_day": "1 giorno",
                     "1_week": "1 settimana",
                     "2_days": "2 giorni",
@@ -371,6 +385,7 @@
             "relay_aux_period": {
                 "name": "Timer Aux {number} ({subtimer}) - Intervallo",
                 "state": {
+                    "no_repeat": "Nessuna ripetizione",
                     "1_day": "1 giorno",
                     "1_week": "1 settimana",
                     "2_days": "2 giorni",
@@ -640,6 +655,9 @@
         },
         "winter_mode_active": {
             "message": "Questo servizio non è disponibile mentre la Modalità invernale è attiva. Disattivare prima la Modalità invernale per comunicare con il controller."
+        },
+        "setup_link_conflict": {
+            "message": "Il dispositivo è già in uso con impostazioni di collegamento Modbus diverse, che una singola connessione condivisa non può supportare: {error}"
         }
     },
     "issues": {

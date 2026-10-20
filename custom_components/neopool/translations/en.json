@@ -317,7 +317,20 @@
                 }
             },
             "intelligent_filt_min_time": {
-                "name": "Intelligent: minimum filtration time"
+                "name": "Intelligent: minimum filtration time",
+                "state": {
+                    "2h": "2 hours",
+                    "3h": "3 hours",
+                    "4h": "4 hours",
+                    "5h": "5 hours",
+                    "6h": "6 hours",
+                    "7h": "7 hours",
+                    "8h": "8 hours",
+                    "9h": "9 hours",
+                    "10h": "10 hours",
+                    "11h": "11 hours",
+                    "12h": "12 hours"
+                }
             },
             "relay_activation_delay": {
                 "name": "pH pump activation delay",
@@ -357,6 +370,7 @@
             "relay_light_period": {
                 "name": "Light timer - interval",
                 "state": {
+                    "no_repeat": "No repeat",
                     "1_day": "1 Day",
                     "1_week": "1 Week",
                     "2_days": "2 Days",
@@ -371,6 +385,7 @@
             "relay_aux_period": {
                 "name": "Timer Aux {number} ({subtimer}) - interval",
                 "state": {
+                    "no_repeat": "No repeat",
                     "1_day": "1 Day",
                     "1_week": "1 Week",
                     "2_days": "2 Days",
@@ -642,7 +657,7 @@
             "message": "Write verification failed at {address}: wrote {value}, read back {confirmed}"
         },
         "winter_mode_active": {
-            "message": "This service is unavailable while winter mode is active. Turn off winter mode first to communicate with the controller."
+            "message": "This service is unavailable because polling is disabled for this device. Re-enable polling in the device's system options to communicate with the controller."
         }
     },
     "issues": {
@@ -671,8 +686,8 @@
                     "use_aux2": "Enable Aux2 Relay",
                     "use_aux3": "Enable Aux3 Relay",
                     "use_aux4": "Enable Aux4 Relay",
-                    "use_cover_sensor": "Enable Pool Cover Sensor",
-                    "use_light": "Enable Light Relay"
+                    "use_cover_sensor": "Enable pool cover options",
+                    "use_light": "Enable pool light relay"
                 },
                 "data_description": {
                     "auto_time_sync": "When enabled, the controller clock is corrected on each poll if it drifts from Home Assistant time.",
@@ -687,10 +702,10 @@
                     "use_light": "Creates entities to control and monitor the pool light relay."
                 },
                 "description": "WARNING: Changing enabled relays will automatically reload the integration! Changes take effect immediately.",
-                "title": "NeoPool Settings",
+                "title": "NeoPool settings",
                 "sections": {
                     "advanced": {
-                        "name": "Advanced Settings",
+                        "name": "Advanced settings",
                         "description": "⚠️ WARNING: Incorrect use may damage filtration!",
                         "data": {
                             "dev_overrides": "Developer overrides (JSON object of \"key\":value)",

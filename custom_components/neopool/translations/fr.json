@@ -309,7 +309,20 @@
                 }
             },
             "intelligent_filt_min_time": {
-                "name": "Intelligent: Temps minimum de filtration"
+                "name": "Intelligent: Temps minimum de filtration",
+                "state": {
+                    "2h": "2 heures",
+                    "3h": "3 heures",
+                    "4h": "4 heures",
+                    "5h": "5 heures",
+                    "6h": "6 heures",
+                    "7h": "7 heures",
+                    "8h": "8 heures",
+                    "9h": "9 heures",
+                    "10h": "10 heures",
+                    "11h": "11 heures",
+                    "12h": "12 heures"
+                }
             },
             "relay_activation_delay": {
                 "name": "Délai d'activation de la pompe pH",
@@ -340,6 +353,7 @@
             "relay_light_period": {
                 "name": "Minuteur Lumière - Intervalle",
                 "state": {
+                    "no_repeat": "Sans répétition",
                     "1_day": "1 jour",
                     "1_week": "1 semaine",
                     "2_days": "2 jours",
@@ -371,6 +385,7 @@
             "relay_aux_period": {
                 "name": "Minuteur Aux {number} ({subtimer}) - Intervalle",
                 "state": {
+                    "no_repeat": "Sans répétition",
                     "1_day": "1 jour",
                     "1_week": "1 semaine",
                     "2_days": "2 jours",
@@ -640,6 +655,9 @@
         },
         "winter_mode_active": {
             "message": "Ce service est indisponible lorsque le Mode hiver est actif. Désactivez d'abord le Mode hiver pour communiquer avec le contrôleur."
+        },
+        "setup_link_conflict": {
+            "message": "L'appareil est déjà utilisé avec des paramètres de liaison Modbus différents, qu'une connexion partagée ne peut pas prendre en charge : {error}"
         }
     },
     "issues": {

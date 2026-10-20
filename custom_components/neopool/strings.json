@@ -505,8 +505,8 @@
           "use_aux2": "Enable Aux2 Relay",
           "use_aux3": "Enable Aux3 Relay",
           "use_aux4": "Enable Aux4 Relay",
-          "use_cover_sensor": "Enable Pool Cover Sensor",
-          "use_light": "Enable Light Relay"
+          "use_cover_sensor": "Enable pool cover options",
+          "use_light": "Enable pool light relay"
         },
         "data_description": {
           "auto_time_sync": "When enabled, the controller clock is corrected on each poll if it drifts from Home Assistant time.",
@@ -535,7 +535,7 @@
           }
         },
         "description": "WARNING: Changing enabled relays will automatically reload the integration! Changes take effect immediately.",
-        "title": "NeoPool Settings"
+        "title": "NeoPool settings"
       }
     }
   },
