@@ -18,7 +18,11 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, override
 
-from neopool_modbus import InvalidStateReason, NeoPoolInvalidStateError
+from neopool_modbus import (
+    InvalidStateReason,
+    NeoPoolInvalidStateError,
+    NeoPoolModbusClient,
+)
 from neopool_modbus.capabilities import (
     has_filtvalve,
     has_heating_relay,
@@ -69,7 +73,9 @@ _HA_SETTING_TYPES = frozenset({_HA_SETTING_WINTER_MODE})
 # CUSTOM-ONLY END
 
 
-type _WriteFn = Callable[["NeoPoolSwitch", Any, bool], Awaitable[dict[str, Any]]]
+type _WriteFn = Callable[
+    ["NeoPoolSwitch", NeoPoolModbusClient, bool], Awaitable[dict[str, Any]]
+]
 type _IsOnFn = Callable[[dict[str, Any]], bool]
 
 
@@ -87,7 +93,7 @@ class NeoPoolSwitchEntityDescription(SwitchEntityDescription):
 
 
 async def _write_manual_filtration(
-    entity: "NeoPoolSwitch", client: Any, state: bool
+    entity: "NeoPoolSwitch", client: NeoPoolModbusClient, state: bool
 ) -> dict[str, Any]:
     """Toggle the manual filtration pump.
 
@@ -109,7 +115,7 @@ async def _write_manual_filtration(
 
 
 async def _write_backwash(
-    entity: "NeoPoolSwitch", client: Any, state: bool
+    entity: "NeoPoolSwitch", client: NeoPoolModbusClient, state: bool
 ) -> dict[str, Any]:
     """Start a backwash with the configured duration, or stop it by writing 0."""
     data = entity.coordinator.data
@@ -144,7 +150,7 @@ def _make_write_relay_state(relay: RelayKind) -> _WriteFn:
     enable_key = _RELAY_TIMER_ENABLE_KEY[relay]
 
     async def _write(
-        entity: "NeoPoolSwitch", client: Any, state: bool
+        entity: "NeoPoolSwitch", client: NeoPoolModbusClient, state: bool
     ) -> dict[str, Any]:
         # Fail-safe: only fire when the relay is confirmed manual.
         if entity.coordinator.data.get(enable_key) not in (
@@ -164,7 +170,7 @@ def _make_write_binary_flag(flag: BinaryConfigFlag) -> _WriteFn:
     """Build a write_fn that toggles a binary configuration flag."""
 
     async def _write(
-        entity: "NeoPoolSwitch", client: Any, state: bool
+        entity: "NeoPoolSwitch", client: NeoPoolModbusClient, state: bool
     ) -> dict[str, Any]:
         return await client.async_set_binary_flag(flag, state)
 
@@ -175,7 +181,7 @@ def _make_write_bitmask_flag(flag: BitmaskConfigFlag) -> _WriteFn:
     """Build a write_fn that flips a bit in the shared HIDRO cover register."""
 
     async def _write(
-        entity: "NeoPoolSwitch", client: Any, state: bool
+        entity: "NeoPoolSwitch", client: NeoPoolModbusClient, state: bool
     ) -> dict[str, Any]:
         return await client.async_set_bitmask_flag(flag, state)
 
