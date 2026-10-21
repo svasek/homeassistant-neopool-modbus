@@ -119,8 +119,9 @@ class NeoPoolDebouncedWriteEntity[_T](NeoPoolEntity):
     diverging across the two platforms.
     """
 
-    def _init_write_state(self) -> None:
-        """Initialize the debounce write state; call from the subclass __init__."""
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the entity and its debounce write state."""
+        super().__init__(*args, **kwargs)
         self._write_unsub: CALLBACK_TYPE | None = None
         self._pending_value: _T | None = None
         # Bumped per set_value; a flush clears only the value it queued.

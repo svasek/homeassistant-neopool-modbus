@@ -173,7 +173,6 @@ class NeoPoolTime(NeoPoolDebouncedWriteEntity[int], TimeEntity):
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
         )
-        self._init_write_state()
 
     def _decode_raw(self) -> dt_time | None:
         """Decode the coordinator-data seconds into HH:MM:SS."""

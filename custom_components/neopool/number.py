@@ -311,7 +311,6 @@ class NeoPoolNumber(NeoPoolDebouncedWriteEntity[float], NumberEntity):
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
         )
-        self._init_write_state()
 
     def _decode_raw(self) -> float | None:
         """Decode the current coordinator-data value for this entity."""
