@@ -31,6 +31,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 
 from . import setup_integration
 from .conftest import MOCK_POOL_DATA
@@ -590,3 +591,148 @@ async def test_sensor_unavailable_in_winter_mode(
         state = hass.states.get(sensor.entity_id)
         assert state is not None
         assert state.state == STATE_UNAVAILABLE
+
+
+def _filtration_timers(countdown: int) -> dict[str, dict[str, object]]:
+    """Return a read_all_timers payload with the given filtration countdown."""
+    return {
+        "filtration1": {
+            "enable": 1,
+            "on": 0,
+            "interval": 0,
+            "stop": None,
+            "period": 0,
+            "countdown": countdown,
+        },
+    }
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_reports_end_time(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """The countdown is rendered as its absolute end time."""
+    mock_neopool_client.read_all_timers.side_effect = lambda *_a, **_k: (
+        _filtration_timers(3600)
+    )
+    await setup_integration(hass, mock_config_entry)
+    # The sensor's context registers after setup; poll again so the coordinator
+    # reads the filtration blocks and aggregates their countdown.
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert state is not None
+    # 3600s ahead, truncated to whole seconds.
+    expected = (dt_util.utcnow() + timedelta(seconds=3600)).replace(microsecond=0)
+    assert state.state == expected.isoformat()
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_unknown_when_not_counting_down(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """With no positive countdown, the end time is unknown, not a stale value."""
+    mock_neopool_client.read_all_timers.side_effect = lambda *_a, **_k: (
+        _filtration_timers(0)
+    )
+    await setup_integration(hass, mock_config_entry)
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert state is not None
+    assert state.state == STATE_UNKNOWN
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_holds_steady_within_variance(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A countdown ticking down in step with the clock keeps one stable end time.
+
+    Per-second drift stays within tolerance, so the end time only moves on a
+    real change.
+    """
+    countdown = {"value": 3600}
+    mock_neopool_client.read_all_timers.side_effect = lambda *_a, **_k: (
+        _filtration_timers(countdown["value"])
+    )
+    await setup_integration(hass, mock_config_entry)
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    first = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert first is not None
+
+    # 20s later the device reports 20s less, landing on the same end. Hold it.
+    countdown["value"] = 3580
+    freezer.tick(timedelta(seconds=20))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    second = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert second is not None
+    assert second.state == first.state
+
+    # A real jump beyond the tolerance (pump restarted) moves the end time.
+    countdown["value"] = 7200
+    freezer.tick(timedelta(seconds=20))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    third = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert third is not None
+    assert third.state != first.state
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_resets_after_countdown_stops(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A new countdown after a stop is not masked by the held end time.
+
+    A short new countdown can land within the tolerance of the stopped one, so
+    the held end time must be dropped on the stop, not reused.
+    """
+    countdown = {"value": 20}
+    mock_neopool_client.read_all_timers.side_effect = lambda *_a, **_k: (
+        _filtration_timers(countdown["value"])
+    )
+    await setup_integration(hass, mock_config_entry)
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.neopool_filtration_time_remaining") is not None
+
+    # Countdown stops.
+    countdown["value"] = 0
+    freezer.tick(timedelta(seconds=20))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    stopped = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert stopped is not None
+    assert stopped.state == STATE_UNKNOWN
+
+    # A new short countdown whose end falls within the tolerance of the stopped
+    # one must be reported fresh, not held over.
+    countdown["value"] = 5
+    freezer.tick(timedelta(seconds=20))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    restarted = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert restarted is not None
+    expected = (dt_util.utcnow() + timedelta(seconds=5)).replace(microsecond=0)
+    assert restarted.state == expected.isoformat()

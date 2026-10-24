@@ -16,7 +16,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
 from typing import Any, override
 
@@ -66,8 +66,13 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
+from homeassistant.util.variance import ignore_variance
 
-from .const import CONF_FILTRATION_PUMP_POWER, CONF_MEASURE_WHEN_FILTRATION_OFF
+from .const import (
+    CONF_FILTRATION_PUMP_POWER,
+    CONF_MEASURE_WHEN_FILTRATION_OFF,
+    DEFAULT_SCAN_INTERVAL,
+)
 from .coordinator import NeoPoolConfigEntry, NeoPoolCoordinator
 from .entity import NeoPoolEntity
 
@@ -86,6 +91,9 @@ class NeoPoolSensorEntityDescription(SensorEntityDescription):
     # Coordinator update context, so the coordinator polls a timer block only
     # while an entity that needs it is enabled (see FILTRATION_REMAINING).
     context: Any = None
+    # Seconds remaining, rendered as an end timestamp so it stays correct
+    # between polls. Returns None (unavailable) when nothing is counting down.
+    remaining_fn: Callable[[dict[str, Any]], int | None] | None = None
 
 
 SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
@@ -242,13 +250,12 @@ SENSOR_DESCRIPTIONS: dict[str, NeoPoolSensorEntityDescription] = {
     "FILTRATION_REMAINING": NeoPoolSensorEntityDescription(
         key="FILTRATION_REMAINING",
         translation_key="filtration_remaining",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-        device_class=SensorDeviceClass.DURATION,
-        suggested_display_precision=0,
+        device_class=SensorDeviceClass.TIMESTAMP,
         entity_registry_enabled_default=False,
         # Aggregates all three filtration countdowns, so keep every block polled
         # while this sensor is enabled.
         context=("filtration1", "filtration2", "filtration3"),
+        remaining_fn=lambda data: data.get("FILTRATION_REMAINING"),
     ),
     "CELL_RUNTIME_TOTAL": NeoPoolSensorEntityDescription(
         key="CELL_RUNTIME_TOTAL",
@@ -392,6 +399,24 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
         self._attr_unique_id = (
             f"{self.coordinator.config_entry.unique_id}_{key.lower()}"
         )
+        # Holds the countdown end time across polls to absorb per-second drift
+        # and poll jitter. One poll cycle plus a margin absorbs a late poll
+        # without swallowing a short backwash; the interval follows the
+        # configured scan interval. Recreated on a stop so a new countdown is
+        # not masked (see native_value).
+        interval = coordinator.update_interval or timedelta(
+            seconds=DEFAULT_SCAN_INTERVAL
+        )
+        self._remaining_variance = interval + timedelta(seconds=10)
+        self._remaining_end = self._new_remaining_filter()
+
+    def _new_remaining_filter(self) -> Callable[[int], datetime]:
+        """Return a fresh end-time filter that ignores sub-tolerance drift."""
+
+        def _end_time(seconds: int) -> datetime:
+            return dt_util.utcnow() + timedelta(seconds=seconds)
+
+        return ignore_variance(_end_time, self._remaining_variance)
 
     @property
     @override
@@ -437,6 +462,14 @@ class NeoPoolSensor(NeoPoolEntity, SensorEntity):
             return None
         if self._is_production_suppressed():
             return 0
+        if (remaining_fn := self.entity_description.remaining_fn) is not None:
+            remaining = remaining_fn(self.coordinator.data)
+            if remaining is None or remaining <= 0:
+                # Countdown stopped; recreate the filter so a new countdown is
+                # not held over as an expired end time within tolerance.
+                self._remaining_end = self._new_remaining_filter()
+                return None
+            return self._remaining_end(remaining)
         if (value_fn := self.entity_description.value_fn) is not None:
             value: float | int | str | datetime | None = value_fn(self.coordinator.data)
             return value
