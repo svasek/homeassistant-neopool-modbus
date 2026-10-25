@@ -136,7 +136,6 @@ A handful of features live here and are not (yet) part of the core integration:
 - **Extra services**: `neopool.set_timer`, `neopool.write_register`, and `neopool.read_register` _(the core version ships only `get_device_time` and `set_device_time`)_.
 - **"Measure when filtration is off"** option, to keep readings live while the pump is idle.
 - **Filtration pump power and energy** sensors _(when the pump wattage is set in the options)_, including an energy sensor for the Home Assistant Energy Dashboard.
-- **Aggregated filtration time remaining** sensor across all filtration blocks.
 
 New features generally land here first and are then contributed back to Home Assistant Core over time, so the core integration tends to follow a little behind.
 
