@@ -241,31 +241,56 @@ class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         enabled += [ft for ft in _FILT_TIMERS if ft in active]
         return enabled
 
+    def _filtration_remaining_blocks(self) -> set[str]:
+        """Return filtration blocks needed by the remaining-time sensor.
+
+        Only the FILTRATION_REMAINING sensor registers its context as a
+        collection of block names; the time entities register a single block
+        name as a plain string. Returning just the collection-sourced blocks
+        keeps force-reads tied to that sensor, so a running pump does not
+        bypass the cache for time-only contexts.
+        """
+        blocks: set[str] = set()
+        for ctx in self.async_contexts():
+            if isinstance(ctx, (set, frozenset, tuple, list)):
+                blocks.update(ft for ft in ctx if ft in _FILT_TIMERS)
+        return blocks
+
     async def _read_timers_into_data(self, data: dict[str, Any]) -> None:
-        """Read every enabled timer block and merge derived fields into data."""
+        """Read every enabled timer block and merge derived fields into data.
+
+        Exposes the enable flag (the light platform's manual-mode guard), the
+        start/stop endpoints consumed by the time platform, the repeat period
+        consumed by the select platform, and the countdown aggregated into
+        FILTRATION_REMAINING by the sensor platform.
+        """
         enabled_timers = self._get_enabled_timers(data)
-        # FILTRATION_REMAINING must stay fresh while the pump runs, so force-read
-        # the gated-in filtration blocks even if their countdown looks static.
-        prev_remaining = self.data.get("FILTRATION_REMAINING") if self.data else None
-        filtration_active = bool(data.get("Filtration Pump")) or bool(
-            prev_remaining and prev_remaining > 0
-        )
-        force_read = (
-            [ft for ft in _FILT_TIMERS if ft in enabled_timers]
-            if filtration_active
-            else None
-        )
-        timers = await self.client.read_all_timers(
-            enabled_timers=enabled_timers,
-            force_read=force_read,
-        )
-        for t_name, t in timers.items():
-            data[f"{t_name}_enable"] = t["enable"]
-            data[f"{t_name}_start"] = t["on"]  # seconds since midnight
-            data[f"{t_name}_interval"] = t["interval"]
-            data[f"{t_name}_period"] = t["period"]
-            data[f"{t_name}_countdown"] = t["countdown"]
-            data[f"{t_name}_stop"] = t.get("stop")
+        if enabled_timers:
+            # FILTRATION_REMAINING must stay fresh while the pump runs, so
+            # force-read the sensor's filtration blocks even if their countdown
+            # looks static between polls. Scope this to the sensor's context so
+            # a time-only context keeps using the cache.
+            remaining_blocks = self._filtration_remaining_blocks()
+            prev_remaining = (
+                self.data.get("FILTRATION_REMAINING") if self.data else None
+            )
+            filtration_active = bool(data.get("Filtration Pump")) or bool(
+                prev_remaining and prev_remaining > 0
+            )
+            force_read = (
+                tuple(ft for ft in enabled_timers if ft in remaining_blocks)
+                if filtration_active and remaining_blocks
+                else None
+            )
+            timers = await self.client.read_all_timers(
+                enabled_timers=enabled_timers, force_read=force_read
+            )
+            for t_name, t in timers.items():
+                data[f"{t_name}_enable"] = t["enable"]
+                data[f"{t_name}_start"] = t["on"]  # seconds since midnight
+                data[f"{t_name}_period"] = t["period"]
+                data[f"{t_name}_countdown"] = t["countdown"]
+                data[f"{t_name}_stop"] = t.get("stop")
 
         data["FILTRATION_REMAINING"] = aggregate_filtration_remaining(data)
 
