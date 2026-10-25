@@ -736,3 +736,39 @@ async def test_filtration_remaining_resets_after_countdown_stops(
     assert restarted is not None
     expected = (dt_util.utcnow() + timedelta(seconds=5)).replace(microsecond=0)
     assert restarted.state == expected.isoformat()
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_filtration_remaining_takes_new_end_when_held_one_expired(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_neopool_client: MagicMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A restart without a zero reading is not masked by an expired end time.
+
+    A countdown that restarts between polls can report the same short value
+    twice; the held end time has expired by then and must not be held over,
+    even though the new end falls within the tolerance.
+    """
+    countdown = {"value": 10}
+    mock_neopool_client.read_all_timers.side_effect = lambda *_a, **_k: (
+        _filtration_timers(countdown["value"])
+    )
+    await setup_integration(hass, mock_config_entry)
+    freezer.tick(timedelta(seconds=60))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    first = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert first is not None
+
+    # 20s later the same 10s countdown is reported again (a restart). The held
+    # end time is now 10s in the past, so the new one must be taken.
+    freezer.tick(timedelta(seconds=20))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    second = hass.states.get("sensor.neopool_filtration_time_remaining")
+    assert second is not None
+    expected = (dt_util.utcnow() + timedelta(seconds=10)).replace(microsecond=0)
+    assert second.state == expected.isoformat()
+    assert second.state != first.state
