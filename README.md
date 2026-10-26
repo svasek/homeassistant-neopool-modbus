@@ -106,11 +106,11 @@ If you find this integration useful, consider supporting its development:
 - **Numbers**:
   Setpoints for pH, Redox, Chlorine, Temperature, Hydrolysis production, Hydrolysis cover reduction % _(if hydrolysis module present + cover sensor enabled)_, Hydrolysis shutdown temperature threshold _(if hydrolysis module + temperature sensor + cover sensor enabled)_.
 - **Switches**:
-  Manual filtration, relays (_Light & AUX1–AUX4_, can be enabled in Options), automatic time sync to Home Assistant (default: disabled), **winter mode** (suspends Modbus communication while keeping all entities registered in Home Assistant), **Climate mode** _(if heating relay + temperature sensor)_, **Smart antifreeze** _(if temperature sensor)_, **UV mode** _(if UV relay is assigned)_, Hydrolysis cover reduction enable _(if hydrolysis module present + cover sensor enabled)_, Hydrolysis temperature shutdown enable _(if hydrolysis module + temperature sensor + cover sensor enabled)_.
+  Manual filtration, relays (_Light & AUX1–AUX4_, can be enabled in Options), automatic time sync to Home Assistant (default: disabled), **winter mode** (suspends Modbus communication while keeping all entities registered in Home Assistant), **Backwash** _(start/stop, if a Besgo automatic filter valve is configured)_, **Climate mode** _(if heating relay + temperature sensor)_, **Smart antifreeze** _(if temperature sensor)_, **UV mode** _(if UV relay is assigned)_, Hydrolysis cover reduction enable _(if hydrolysis module present + cover sensor enabled)_, Hydrolysis temperature shutdown enable _(if hydrolysis module + temperature sensor + cover sensor enabled)_.
 - **Selects**:
-  Filtration mode (Manual, Auto, Heating, Smart, Intelligent, **Backwash** _(auto-enabled if Besgo valve configured)_), timers for automatic filtration, filtration speed _(if supported)_, boost control _(if Hydro/Electrolysis module is present)_, pH pump activation delay, **Intelligent mode minimum filtration time** _(if heating + temperature sensor)_, **Backwash Repeat Interval** _(if Besgo valve configured)_, **Backwash Valve Mode** _(if Besgo valve configured)_, plus per-relay timer/period/mode controls for AUX and Light relays.
+  Filtration mode (Manual, Auto, Heating, Smart, Intelligent, **Backwash** _(shown only while the controller itself reports backwash)_), timers for automatic filtration, filtration speed _(if supported)_, boost control _(if Hydro/Electrolysis module is present)_, pH pump activation delay, **Intelligent mode minimum filtration time** _(if heating + temperature sensor)_, **Backwash Repeat Interval** _(if Besgo valve configured)_, **Backwash Valve Mode** _(if Besgo valve configured)_, plus per-relay timer/period/mode controls for AUX and Light relays.
 - **Buttons**:
-  Manual time sync, reset alarm/error states, **Start Backwash** _(only if Besgo automatic filter valve is configured on the device)_, **Reset cell runtime counter** _(if hydrolysis module is present, disabled by default; the controller resets all user counters — cell partial, ION, UV — in one atomic operation)_.
+  Manual time sync, reset alarm/error states, **Reset cell runtime counter** _(if hydrolysis module is present, disabled by default; the controller resets all user counters, cell partial, ION, and UV, in one atomic operation)_.
 - **Modbus diagnostic services**:
   `neopool.write_register` for direct register writes, `neopool.read_register` for reading raw register values (input or holding registers, auto-selected from the address).
 - **Diagnostic entities** (disabled by default — enable per-entity in Settings → Devices & Services if needed):
@@ -186,12 +186,11 @@ Or add manually:
 After initial setup, you can fine-tune the integration:
 
 - **Scan interval** (default: 20s)
-- **Timer resolution** (default: 15m)
-- **Enable/disable relays** (Light and AUX1–AUX4 are default: disabled)
-- **Enable/disable cover sensor** (pool cover input — enables cover-related entities; default: disabled)
-- **Enable/disable filtration timers** (filtration1, filtration2, filtration3)
+- **Measure values even when filtration is off** (default: disabled; when off, chemical readings are only taken while the pump runs)
+- **Automatically sync device clock** (default: disabled)
 - **Filtration pump power** (rated wattage in W; when non-zero, creates instantaneous power and cumulative energy sensors usable in the Energy dashboard)
-- **Unlock advanced features** (see [below](#advanced-options-unlocking-backwash-mode))
+- **Enable/disable relays** (Light and AUX1–AUX4 are default: disabled)
+- **Enable pool cover options** (pool cover input — enables cover-related entities; default: disabled)
 
 > [!TIP]
 > Go to **Settings → Devices & Services → NeoPool Modbus Integration → Configure** to adjust options at any time.
@@ -214,35 +213,16 @@ If your pool controller is **physically disconnected during winter** (e.g. drain
 
 ---
 
-### Advanced Options: Unlocking “Backwash” Mode
+### Backwash Switch (Besgo Automatic Filter Valve)
 
-The "Backwash" option in the **filtration mode select** is hidden by default, as its remote use can be risky and is intended only for advanced users.
+If your device is configured with a **Besgo automatic filter valve** (a relay assigned to the valve, or `MBF_PAR_FILTVALVE_ENABLE = 1`), a dedicated **Backwash** switch (`switch.<name>_backwash`) is created automatically.
 
-To enable it:
+- Turning it **on** starts a backwash cycle: the controller opens the Besgo valve and runs the cleaning action for the configured duration (**Backwash Repeat Interval**), with the remaining time counting down in `sensor.<name>_filtvalve_remaining`.
+- Turning it **off** stops the cycle immediately and returns the valve to the filtration position.
+- The switch requires a non-zero cleaning interval; starting a backwash without one is rejected.
+- While the valve is in **Automatic** mode the controller drives backwashes on its own, so manual start/stop from this switch is rejected. Set **Backwash Valve Mode** to a manual mode first.
 
-1. Go to **Settings → Devices & Services → NeoPool Modbus Integration → Configure**.
-2. In the options dialog, find the field **Unlock advanced options**.
-3. Enter the code: `<device_prefix><current_year>`
-
-- Example: If your pool's prefix is `neopool` and the year is 2025, enter `neopool2025`.
-- The prefix is the same as in your entity IDs (e.g., `switch.neopool_light`).
-
-4. Submit the form. The advanced settings page will open, allowing you to enable "Backwash" mode.
-
-> [!WARNING]
-> Enabling "Backwash" exposes this function in filtration mode selection.
-> **Improper use may damage your filtration system! Only activate if you fully understand the risks.**
-
-### Start Backwash Button (Besgo Automatic Filter Valve)
-
-If your device is configured with a **Besgo automatic filter valve** (`MBF_PAR_FILTVALVE_ENABLE = 1`), a dedicated **`Start Backwash`** button (`button.<name>_backwash`) is automatically available — no unlock code required.
-
-- Pressing it sets the filtration mode to backwash (mode 13) and the controller opens the Besgo valve, then runs the cleaning cycle automatically.
-- When switching **from manual filtration mode to backwash** on a device with a Besgo valve, the pump is intentionally **not** stopped before the mode change — this ensures the valve opens correctly under pressure.
-- On devices **without** a Besgo valve (manual multi-way valve), the pump IS stopped first so the user can safely rotate the valve before the backwash cycle begins.
-- The **Backwash** option in the filtration mode select is **automatically shown** when a Besgo valve is detected (no unlock code needed).
-
-Additional Besgo-only entities are created automatically when `MBF_PAR_FILTVALVE_ENABLE = 1`:
+Additional Besgo-only entities are created automatically when a Besgo valve is detected:
 
 | Entity                                   | Description                                                 |
 | ---------------------------------------- | ----------------------------------------------------------- |
@@ -286,6 +266,7 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
 - **Switches**:
   `switch.<name>_winter_mode`,
   `switch.<name>_filt_manual_state`, `switch.<name>_time_auto_sync`,
+  `switch.<name>_backwash` _(if Besgo valve configured)_,
   `switch.<name>_light`, `switch.<name>_aux1`-`switch.<name>_aux4` _(if enabled)_,
   `switch.<name>_hidro_cover_enable`, `switch.<name>_hidro_temp_shutdown` _(if supported + cover sensor enabled in Options)_
 - **Selects**:
@@ -296,7 +277,6 @@ Entities are lowercased and prefixed by your custom name, e.g. `sensor.pool1_fil
   `select.<name>_filtvalve_period_minutes`, `select.<name>_filtvalve_mode` _(if Besgo valve configured)_
 - **Buttons**:
   `button.<name>_sync_time`, `button.<name>_escape`,
-  `button.<name>_backwash` _(if Besgo automatic filter valve is configured)_,
   `button.<name>_reset_cell_partial` _(if hydrolysis module is present, disabled by default)_
 
 ---
@@ -348,33 +328,27 @@ automation:
     mode: single
 ```
 
-### Auto-enable Winter Mode on November 1st, disable on April 1st
+### Keep the controller clock in sync
+
+Check the controller's clock once an hour and correct it only when it has drifted more than two minutes from Home Assistant time, using the `get_device_time` / `set_device_time` actions.
 
 ```yaml
-automation:
-  - alias: "Pool: enter winter mode"
-    triggers:
-      - trigger: time
-        at: "00:00:00"
-    conditions:
+alias: "NeoPool - keep the controller clock in sync"
+triggers:
+  - trigger: time_pattern
+    hours: "/1"
+actions:
+  - action: neopool.get_device_time
+    data:
+      device_id: abc123device456
+    response_variable: pool_time
+  - if:
       - condition: template
-        value_template: "{{ now().month == 11 and now().day == 1 }}"
-    actions:
-      - action: switch.turn_on
-        target:
-          entity_id: switch.pool_winter_mode
-
-  - alias: "Pool: exit winter mode"
-    triggers:
-      - trigger: time
-        at: "00:00:00"
-    conditions:
-      - condition: template
-        value_template: "{{ now().month == 4 and now().day == 1 }}"
-    actions:
-      - action: switch.turn_off
-        target:
-          entity_id: switch.pool_winter_mode
+        value_template: "{{ pool_time.drift_seconds | abs > 120 }}"
+    then:
+      - action: neopool.set_device_time
+        data:
+          device_id: abc123device456
 ```
 
 ### Direct register access via the `write_register` service
@@ -417,10 +391,9 @@ response_variable: user_dump
 
 - **Only enabled timers and relays (per Options) are shown in Home Assistant.**
 - **Winter Mode:** Suspends all Modbus polling while keeping entities registered in Home Assistant (control entities become unavailable, sensors show unknown values). See [Winter Mode](#winter-mode) above.
-- **Timer resolution:** Can be set (in minutes) in integration Options.
 - **Entities cache last value** if there is a Modbus communication problem.
-- **Backwash (filtration mode select):** Hidden by default; unlock via advanced options. See above for details.
-- **Backwash button:** Automatically available when a Besgo automatic filter valve is configured on the device. See above for details.
+- **Backwash (filtration mode select):** Shown only while the controller itself reports backwash; it is display-only and cannot be selected manually.
+- **Backwash switch:** Created when a Besgo automatic filter valve is configured on the device. See above for details.
 - **Besgo valve entities** (`sensor filtvalve_remaining`, `select filtvalve_period_minutes`, `select filtvalve_mode`): Only created when Besgo valve is detected (`MBF_PAR_FILTVALVE_ENABLE = 1`).
 - **Reload on options change:** Integration is reloaded automatically on option changes.
 - **Filtration speed sensor/control:** Only available for variable-speed pump models.
@@ -452,11 +425,11 @@ If the integration does not work as expected, work through these checks before o
 
 The integration creates a non-fixable [Repair issue](https://www.home-assistant.io/docs/repairs/) when it detects an out-of-range value in the controller's GPIO mapping registers. The most common cause is a **Modbus framer mismatch** — for example using `tcp` framer with a transparent gateway that expects `rtu`. Switching the framer in **Settings → Devices & Services → Configure** usually clears the issue on the next read. Until the values are valid again the affected switch/light/relay entities may behave unpredictably.
 
-### Backwash button does not appear
+### Backwash switch does not appear
 
-The integration creates the **Start Backwash** button when it detects a Besgo automatic filter valve. Detection succeeds if **either**:
+The integration creates the **Backwash** switch when it detects a Besgo automatic filter valve. Detection succeeds if **either**:
 
-- `MBF_PAR_FILTVALVE_GPIO` holds a valid relay number (`1`–`7`) — i.e. a relay is physically assigned to the valve, **or**
+- `MBF_PAR_FILTVALVE_GPIO` holds a valid relay number (`1`–`7`), that is, a relay is physically assigned to the valve, **or**
 - `MBF_PAR_FILTVALVE_ENABLE` is set to `1`.
 
 If neither condition is met, configure the valve from the controller's local UI (assign a free relay or enable the filter cleaning mode) and wait for the next poll cycle.
