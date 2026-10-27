@@ -1,5 +1,27 @@
 # Changelog
 
+## [6.11.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.10.0...v6.11.0) (2026-10-27)
+
+
+### ✨ Features
+
+* **number:** ✨ expose intelligent-mode temperature as its own setpoint ([#287](https://github.com/svasek/homeassistant-neopool-modbus/issues/287)) ([0977776](https://github.com/svasek/homeassistant-neopool-modbus/commit/097777613307aa627d73f5c16614b543766da77f))
+
+
+### 🐛 Bug Fixes
+
+* **sensor:** 🐛 report filtration time remaining as a timestamp ([#291](https://github.com/svasek/homeassistant-neopool-modbus/issues/291)) ([9602448](https://github.com/svasek/homeassistant-neopool-modbus/commit/960244821ddc1a2eebddccea2d18ec8fa319645e))
+
+
+### ⚡ Performance
+
+* **coordinator:** ⚡️ skip timer read when no block is enabled ([#289](https://github.com/svasek/homeassistant-neopool-modbus/issues/289)) ([9003f92](https://github.com/svasek/homeassistant-neopool-modbus/commit/9003f92bb622abd6665ba0c0cf04565504cc94c7))
+
+
+### ♻️ Refactoring
+
+* ♻️ extract shared debounced-write lifecycle ([#290](https://github.com/svasek/homeassistant-neopool-modbus/issues/290)) ([b91059f](https://github.com/svasek/homeassistant-neopool-modbus/commit/b91059f92e4a1b53f7c7400d4da7b24116c545dd))
+
 ## [6.10.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.9.0...v6.10.0) (2026-10-20)
 
 
