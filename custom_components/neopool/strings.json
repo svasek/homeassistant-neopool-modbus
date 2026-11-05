@@ -16,7 +16,7 @@
         "description": "Choose how your NeoPool controller is reached.",
         "menu_options": {
           "tcp": "Network (Modbus TCP / RTU-over-socket)",
-          "serial": "Serial (USB RS485 adapter or ESPHome serial proxy)"
+          "serial": "[%key:component::modbus::common::serial_rtu%]"
         }
       },
       "tcp": {
@@ -46,11 +46,11 @@
       },
       "serial": {
         "data": {
-          "device": "Serial device",
-          "baudrate": "Baud rate"
+          "device": "[%key:component::modbus::common::serial_port%]",
+          "baudrate": "[%key:component::modbus::common::baud_rate%]"
         },
         "data_description": {
-          "device": "Serial port or USB device path for the RS485 adapter connected to your pool controller.",
+          "device": "[%key:component::modbus::common::serial_port_description%]",
           "baudrate": "RS485 baud rate. NeoPool controllers use 19200 baud."
         },
         "sections": {
@@ -72,15 +72,15 @@
           "host": "[%key:common::config_flow::data::host%]",
           "modbus_framer": "[%key:component::neopool::config::step::tcp::data::modbus_framer%]",
           "port": "[%key:common::config_flow::data::port%]",
-          "device": "[%key:component::neopool::config::step::serial::data::device%]",
-          "baudrate": "[%key:component::neopool::config::step::serial::data::baudrate%]"
+          "device": "[%key:component::modbus::common::serial_port%]",
+          "baudrate": "[%key:component::modbus::common::baud_rate%]"
         },
         "data_description": {
           "host": "[%key:component::neopool::config::step::tcp::data_description::host%]",
           "modbus_framer": "[%key:component::neopool::config::step::tcp::data_description::modbus_framer%]",
           "port": "[%key:component::neopool::config::step::tcp::data_description::port%]",
-          "device": "[%key:component::neopool::config::step::serial::data_description::device%]",
-          "baudrate": "[%key:component::neopool::config::step::serial::data_description::baudrate%]"
+          "device": "[%key:component::modbus::common::serial_port_description%]",
+          "baudrate": "[%key:component::modbus::common::baud_rate%]"
         },
         "sections": {
           "more_options": {

@@ -74,7 +74,7 @@ _TIMER_OPTIONS: dict[str, str] = {
 _LOGGER = logging.getLogger(__name__)
 
 
-type NeoPoolConfigEntry = ConfigEntry["NeoPoolCoordinator"]
+type NeoPoolConfigEntry = ConfigEntry[NeoPoolCoordinator]
 
 
 class NeoPoolCoordinator(DataUpdateCoordinator[dict[str, Any]]):
