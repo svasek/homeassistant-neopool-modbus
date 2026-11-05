@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.12.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.11.0...v6.12.0) (2026-11-05)
+
+
+### ✨ Features
+
+* **coordinator:** ✨ make repair issues unique per config entry ([#292](https://github.com/svasek/homeassistant-neopool-modbus/issues/292)) ([8e5e531](https://github.com/svasek/homeassistant-neopool-modbus/commit/8e5e5319da075f465793573b52978f442c5efe03))
+
+
+### ♻️ Refactoring
+
+* ♻️ code quality improvements ([#296](https://github.com/svasek/homeassistant-neopool-modbus/issues/296)) ([c01e6f4](https://github.com/svasek/homeassistant-neopool-modbus/commit/c01e6f4b0a45e3a70d01d89b1003f182ce228682))
+
 ## [6.11.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.10.0...v6.11.0) (2026-10-27)
 
 
