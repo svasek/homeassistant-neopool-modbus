@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from modbus_connection import ModbusSerialParams, ModbusTcpParams
 from neopool_modbus import NeoPoolModbusClient
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.neopool.const import (
     CONF_BAUDRATE,

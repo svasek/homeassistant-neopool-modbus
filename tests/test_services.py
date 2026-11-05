@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from neopool_modbus.decoders import decode_device_time
 import probatio
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry, MockUser
+from pytest_homeassistant.common import MockConfigEntry, MockUser
 
 from custom_components.neopool.const import DOMAIN
 from custom_components.neopool.helpers import prepare_device_time

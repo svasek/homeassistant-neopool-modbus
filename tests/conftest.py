@@ -6,13 +6,10 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-# CUSTOM-ONLY START
-from pytest_homeassistant_custom_component.syrupy import HomeAssistantSnapshotExtension
+from pytest_homeassistant.common import MockConfigEntry
+from pytest_homeassistant.syrupy import HomeAssistantSnapshotExtension
 from syrupy.assertion import SnapshotAssertion
 
-# CUSTOM-ONLY END
 from custom_components.neopool.const import (
     CONF_BAUDRATE,
     CONF_MODBUS_FRAMER,
@@ -63,18 +60,6 @@ def _patch_config_flow_probe() -> AbstractContextManager[None]:
     )
 
 
-# CUSTOM-ONLY START
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    """Auto-load the custom integration in every test.
-
-    pytest-homeassistant-custom-component ships an `enable_custom_integrations`
-    fixture but it is opt-in by default; making it autouse means every test
-    can resolve `custom_components.neopool` without each one redeclaring it.
-    """
-    return
-
-
 @pytest.fixture
 def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     """Return a syrupy fixture using HA's snapshot extension.
@@ -83,24 +68,6 @@ def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     instead of syrupy's default `tests/__snapshots__/`.
     """
     return snapshot.use_extension(HomeAssistantSnapshotExtension)
-
-
-@pytest.fixture
-def entity_registry_enabled_by_default() -> Generator[None]:
-    """Enable all entities in the registry (local copy of the core fixture).
-
-    Core ships this in tests/components/conftest.py; phacc does not, so the
-    custom suite defines it locally. Lets snapshot tests capture entities
-    that are `entity_registry_enabled_default=False`.
-    """
-    with patch(
-        "homeassistant.helpers.entity.Entity.entity_registry_enabled_default",
-        return_value=True,
-    ):
-        yield
-
-
-# CUSTOM-ONLY END
 
 
 # Minimal coordinator data for a healthy controller. Real device returns

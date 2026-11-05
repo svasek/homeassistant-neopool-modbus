@@ -16,7 +16,7 @@ from neopool_modbus.registers import (
     TimerRelayMode,
 )
 import pytest
-from pytest_homeassistant_custom_component.common import (
+from pytest_homeassistant.common import (
     MockConfigEntry,
     async_fire_time_changed,
     snapshot_platform,

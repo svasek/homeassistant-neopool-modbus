@@ -65,6 +65,7 @@ check-filenames = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 pythonpath = ["."]
+addopts = "-p no:respx"
 
 [tool.coverage.run]
 source = ["custom_components/neopool"]

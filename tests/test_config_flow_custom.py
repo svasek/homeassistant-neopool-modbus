@@ -12,7 +12,7 @@ script excludes this whole file via ``EXCLUDE_TEST_FILES``.
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.neopool import config_flow
 from custom_components.neopool.config_flow import SECTION_MORE_OPTIONS
