@@ -1,8 +1,10 @@
 {
   "domain": "neopool",
   "name": "NeoPool",
+  "categories": ["water.pools_spas"],
   "codeowners": ["@svasek"],
   "config_flow": true,
+  "connectivity": ["modbus"],
   "dependencies": ["modbus", "usb"],
   "documentation": "https://github.com/svasek/homeassistant-neopool-modbus",
   "integration_type": "hub",
