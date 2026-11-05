@@ -7,10 +7,7 @@ from neopool_modbus import NeoPoolError
 from neopool_modbus.exceptions import InvalidStateReason, NeoPoolInvalidStateError
 from neopool_modbus.registers import ConfigKind, FiltValveMode, RelayKind, RelayMode
 import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    snapshot_platform,
-)
+from pytest_homeassistant.common import MockConfigEntry, snapshot_platform
 from syrupy.assertion import SnapshotAssertion
 
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
