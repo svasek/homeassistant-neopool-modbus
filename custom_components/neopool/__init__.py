@@ -76,7 +76,7 @@ def _async_build_client(
     return NeoPoolModbusClient(entry.data, unit=unit)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> None:
     """Set up the NeoPool integration from a config entry."""
     client = _async_build_client(hass, entry)
     coordinator = NeoPoolCoordinator(hass, client, entry)
@@ -100,14 +100,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> b
     # every context exists instead of waiting for the next scheduled poll.
     await coordinator.async_refresh()
 
-    return True
 
-
-async def async_unload_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: NeoPoolConfigEntry) -> None:
     """Unload a NeoPool config entry."""
-    coordinator = entry.runtime_data
-    coordinator.cancel_follow_up_refresh()
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok and coordinator.client is not None:
-        await coordinator.client.close()
-    return unload_ok
+    entry.runtime_data.cancel_follow_up_refresh()
+    await hass.config_entries.async_unload_platforms_or_raise(entry, PLATFORMS)
+    await entry.runtime_data.client.close()

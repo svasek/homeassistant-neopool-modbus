@@ -15,7 +15,7 @@
 """Helper functions for the NeoPool integration."""
 
 from collections.abc import Mapping
-import datetime
+import datetime as dt
 from typing import Any, Literal
 
 from modbus_connection import ModbusSerialParams, ModbusTcpParams
@@ -87,7 +87,7 @@ def build_modbus_params(
 
 def prepare_device_time(hass: HomeAssistant) -> int:
     """Return the unix timestamp the device should display as local wall-clock."""
-    tz = dt_util.get_time_zone(hass.config.time_zone) or datetime.UTC
+    tz = dt_util.get_time_zone(hass.config.time_zone) or dt.UTC
     return encode_device_time(dt_util.now(tz))
 
 
