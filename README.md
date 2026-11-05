@@ -143,18 +143,14 @@ New features generally land here first and are then contributed back to Home Ass
 
 ## Installation
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=svasek&repository=homeassistant-neopool-modbus&category=Integration)
+[![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=svasek&repository=homeassistant-neopool-modbus)
 
 ### Marketplace (recommended)
-
-On **Home Assistant 2026.11** and newer, use the built-in **Marketplace** (the former HACS, now shipped in Home Assistant Core):
 
 1. Open **Settings → Marketplace** in Home Assistant.
 2. Search for **NeoPool Modbus Integration** (no need to add a custom repository, this integration is included in the default list).
 3. Install **NeoPool Modbus Integration**.
 4. Restart Home Assistant.
-
-On older Home Assistant releases, install [HACS](https://hacs.xyz/) first and use the same steps from the HACS panel. Existing HACS installations are migrated to the Marketplace automatically when you upgrade.
 
 ## Setup and Configuration
 
