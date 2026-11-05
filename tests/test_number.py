@@ -10,7 +10,7 @@ from freezegun.api import FrozenDateTimeFactory
 from neopool_modbus.exceptions import NeoPoolConnectionError
 from neopool_modbus.registers import MaskedFlag, SetpointKind
 import pytest
-from pytest_homeassistant_custom_component.common import (
+from pytest_homeassistant.common import (
     MockConfigEntry,
     async_fire_time_changed,
     snapshot_platform,
