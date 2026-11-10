@@ -678,6 +678,9 @@
         }
     },
     "options": {
+        "abort": {
+            "entry_not_loaded": "Die Optionen können geändert werden, sobald das Gerät eingerichtet ist."
+        },
         "step": {
             "init": {
                 "data": {
