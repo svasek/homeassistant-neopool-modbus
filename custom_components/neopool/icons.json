@@ -39,6 +39,10 @@
         "default": "mdi:pump-off",
         "state": { "on": "mdi:pump" }
       },
+      "ph_base_pump": {
+        "default": "mdi:pump-off",
+        "state": { "on": "mdi:pump" }
+      },
       "ph_measurement_active": {
         "default": "mdi:scale-off",
         "state": { "on": "mdi:scale" }

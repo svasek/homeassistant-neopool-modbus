@@ -129,6 +129,7 @@
       "ion_on_target": { "name": "Ionizer on target" },
       "ion_program_time_exceeded": { "name": "Ionizer program time exceeded" },
       "ph_acid_pump": { "name": "pH acid pump" },
+      "ph_base_pump": { "name": "pH base pump" },
       "ph_control_module": { "name": "pH regulation active" },
       "ph_measurement_active": { "name": "pH measurement" },
       "ph_module_control_status": { "name": "pH flow detection control" },
