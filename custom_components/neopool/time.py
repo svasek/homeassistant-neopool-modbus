@@ -52,13 +52,6 @@ class NeoPoolTimeEntityDescription(TimeEntityDescription):
     translation_placeholders: dict[str, str] | None = None
 
 
-def _option_supported(
-    opt_flag: str,
-) -> Callable[[dict[str, Any], Mapping[str, Any]], bool]:
-    """Return a supported_fn gating an entity on the given option flag."""
-    return lambda _data, opts: bool(opts.get(opt_flag))  # pragma: no cover
-
-
 def _light_supported(data: dict[str, Any], opts: Mapping[str, Any]) -> bool:
     """Gate the light timer on its option and a valid lighting GPIO.
 
@@ -123,8 +116,6 @@ def _build_descriptions() -> dict[str, NeoPoolTimeEntityDescription]:
                 digits = block.removeprefix("relay_aux")
                 aux_number = int(digits.rstrip("b"))
                 supported_fn = _aux_supported(opt_flag, aux_number)
-            elif opt_flag is not None:  # pragma: no cover - no non-aux opt-flag blocks
-                supported_fn = _option_supported(opt_flag)
             else:
                 supported_fn = None
             out[key] = NeoPoolTimeEntityDescription(
