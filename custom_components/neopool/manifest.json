@@ -11,6 +11,6 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/svasek/homeassistant-neopool-modbus/issues",
   "loggers": ["modbus_connection", "neopool_modbus", "tmodbus"],
-  "requirements": ["neopool-modbus>=4.14.0"],
+  "requirements": ["neopool-modbus>=4.15.0"],
   "version": "6.12.0"
 }

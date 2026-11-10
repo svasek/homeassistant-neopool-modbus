@@ -681,6 +681,9 @@
         }
     },
     "options": {
+        "abort": {
+            "entry_not_loaded": "Opcje można zmienić po skonfigurowaniu urządzenia."
+        },
         "step": {
             "init": {
                 "data": {

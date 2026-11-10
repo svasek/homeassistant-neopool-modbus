@@ -681,6 +681,9 @@
         }
     },
     "options": {
+        "abort": {
+            "entry_not_loaded": "Možnosti lze změnit, jakmile je zařízení nastaveno."
+        },
         "step": {
             "init": {
                 "data": {
