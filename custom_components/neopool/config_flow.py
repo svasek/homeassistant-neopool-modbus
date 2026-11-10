@@ -20,7 +20,7 @@ from typing import Any, override
 
 from neopool_modbus import async_probe_serial_unit
 from neopool_modbus.exceptions import NeoPoolModbusError, NeoPoolTimeoutError
-from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER
+from neopool_modbus.registers import DEFAULT_MODBUS_FRAMER, aux_relay_available
 import probatio
 
 from homeassistant.components.modbus import async_get_temporary_unit
@@ -338,11 +338,31 @@ class NeoPoolConfigFlow(ConfigFlow, domain=DOMAIN):
 class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
     """Handle options flow for NeoPool integration."""
 
+    # AUX option key per physical AUX relay number (AUX1=relay4 .. AUX4=relay7).
+    _AUX_OPTION_KEYS: dict[int, str] = {
+        1: CONF_USE_AUX1,
+        2: CONF_USE_AUX2,
+        3: CONF_USE_AUX3,
+        4: CONF_USE_AUX4,
+    }
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step of the options flow."""
+        # The AUX relay gating reads the live capability snapshot off the
+        # coordinator, so the entry has to be loaded before the form is built.
+        if self.config_entry.state is not ConfigEntryState.LOADED:
+            return self.async_abort(reason="entry_not_loaded")
+
         options = dict(self.config_entry.options)
+        data = self.config_entry.runtime_data.data
+
+        # AUXn whose physical relay the device has assigned to a built-in
+        # function cannot be driven directly, so hide its checkbox.
+        aux_available = {
+            aux: aux_relay_available(aux, data) for aux in self._AUX_OPTION_KEYS
+        }
 
         schema_dict = {
             # CUSTOM-ONLY START
@@ -378,40 +398,34 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
                 CONF_USE_COVER_SENSOR,
                 default=options.get(CONF_USE_COVER_SENSOR, False),
             ): bool,
-            probatio.Optional(
-                CONF_USE_AUX1,
-                default=options.get(CONF_USE_AUX1, False),
-            ): bool,
-            probatio.Optional(
-                CONF_USE_AUX2,
-                default=options.get(CONF_USE_AUX2, False),
-            ): bool,
-            probatio.Optional(
-                CONF_USE_AUX3,
-                default=options.get(CONF_USE_AUX3, False),
-            ): bool,
-            probatio.Optional(
-                CONF_USE_AUX4,
-                default=options.get(CONF_USE_AUX4, False),
-            ): bool,
-            # CUSTOM-ONLY START
-            probatio.Required(CONF_ADVANCED): section(
-                probatio.Schema(
-                    {
-                        probatio.Optional(
-                            CONF_DEV_OVERRIDES_ENABLED,
-                            default=options.get(CONF_DEV_OVERRIDES_ENABLED, False),
-                        ): bool,
-                        probatio.Optional(
-                            CONF_DEV_OVERRIDES,
-                            default=options.get(CONF_DEV_OVERRIDES, "{}"),
-                        ): str,
-                    }
-                ),
-                SectionConfig(collapsed=True),
-            ),
-            # CUSTOM-ONLY END
         }
+
+        for aux, option_key in self._AUX_OPTION_KEYS.items():
+            if aux_available[aux]:
+                schema_dict[
+                    probatio.Optional(
+                        option_key,
+                        default=options.get(option_key, False),
+                    )
+                ] = bool
+
+        # CUSTOM-ONLY START
+        schema_dict[probatio.Required(CONF_ADVANCED)] = section(
+            probatio.Schema(
+                {
+                    probatio.Optional(
+                        CONF_DEV_OVERRIDES_ENABLED,
+                        default=options.get(CONF_DEV_OVERRIDES_ENABLED, False),
+                    ): bool,
+                    probatio.Optional(
+                        CONF_DEV_OVERRIDES,
+                        default=options.get(CONF_DEV_OVERRIDES, "{}"),
+                    ): str,
+                }
+            ),
+            SectionConfig(collapsed=True),
+        )
+        # CUSTOM-ONLY END
 
         schema = probatio.Schema(schema_dict)
 
@@ -423,6 +437,14 @@ class NeoPoolOptionsFlowHandler(OptionsFlowWithReload):
             advanced = user_input.pop(CONF_ADVANCED, {})
             user_input.update(advanced)
             # CUSTOM-ONLY END
+            # Clear the enabled flag of any AUX relay the device has claimed: the
+            # relay assignment is a hardware setting that rarely changes, so a
+            # stale "on" toggle the controller will never honour is dropped
+            # rather than preserved. (CONF_CAPABILITIES below is kept because it
+            # is a live snapshot, not a user toggle.)
+            for aux, option_key in self._AUX_OPTION_KEYS.items():
+                if not aux_available[aux]:
+                    user_input[option_key] = False
             # Preserve the internal capability snapshot the coordinator persists
             # in options; the form only carries the user-selected toggles, so it
             # would otherwise drop and break offline setup while winter mode is on.
