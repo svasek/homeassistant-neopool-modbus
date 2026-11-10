@@ -216,9 +216,9 @@ jobs:
           > ⚠️ This is a **pre-release** for testing purposes only.
 
           ### Installation
-          1. In HACS, find *NeoPool Modbus Integration* in the integrations list
-          2. Click ⋮ on that row → *Redownload*
-          3. Pick version \`${VERSION}\` from the version selector and install
+          1. In the Marketplace, find *NeoPool Modbus Integration* in the integrations list
+          2. Click ⋮ on that row → *Install another version*
+          3. Pick version \`${VERSION}\` and install
           4. Restart Home Assistant"
 
           gh release create "$TAG" neopool_modbus.zip \
@@ -241,10 +241,10 @@ jobs:
 
           COMMENT="🧪 **Alpha pre-release created:** [\`${VERSION}\`](${RELEASE_URL})
 
-          To install via HACS:
-          1. In HACS, find *NeoPool Modbus Integration* in the integrations list
-          2. Click ⋮ on that row → *Redownload*
-          3. Pick version \`${VERSION}\` from the version selector and install
+          To install via the Marketplace:
+          1. In the Marketplace, find *NeoPool Modbus Integration* in the integrations list
+          2. Click ⋮ on that row → *Install another version*
+          3. Pick version \`${VERSION}\` and install
           4. Restart Home Assistant"
 
           gh pr comment "$PR_NUMBER" --body "$COMMENT"
@@ -265,10 +265,10 @@ jobs:
           for ISSUE_NUM in "${ISSUES[@]}"; do
             COMMENT="🧪 **Alpha pre-release [\`${VERSION}\`](${RELEASE_URL})** is available for testing (from PR #${PR_NUMBER}).
 
-          To install via HACS:
-          1. In HACS, find *NeoPool Modbus Integration* in the integrations list
-          2. Click ⋮ on that row → *Redownload*
-          3. Pick version \`${VERSION}\` from the version selector and install
+          To install via the Marketplace:
+          1. In the Marketplace, find *NeoPool Modbus Integration* in the integrations list
+          2. Click ⋮ on that row → *Install another version*
+          3. Pick version \`${VERSION}\` and install
           4. Restart Home Assistant"
 
             gh issue comment "$ISSUE_NUM" --body "$COMMENT"
