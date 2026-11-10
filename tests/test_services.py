@@ -10,13 +10,7 @@ from pytest_homeassistant.common import MockConfigEntry, MockUser
 
 from custom_components.neopool.const import DOMAIN
 from custom_components.neopool.helpers import prepare_device_time
-from custom_components.neopool.services import (
-    SERVICE_GET_DEVICE_TIME,
-    SERVICE_SET_DEVICE_TIME,
-    SERVICE_SET_TIMER,
-    SERVICE_WRITE_REGISTER,
-    _get_coordinator,
-)
+from custom_components.neopool.services import NeoPoolService, _get_coordinator
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import Context, HomeAssistant, ServiceCall
@@ -56,7 +50,7 @@ async def test_set_timer_writes_to_client(
 
     await hass.services.async_call(
         DOMAIN,
-        SERVICE_SET_TIMER,
+        NeoPoolService.SET_TIMER,
         {
             "device_id": _device_id(hass, mock_config_entry),
             "timer": "filtration1",
@@ -83,7 +77,7 @@ async def test_set_timer_forwards_enable_field(
 
     await hass.services.async_call(
         DOMAIN,
-        SERVICE_SET_TIMER,
+        NeoPoolService.SET_TIMER,
         {
             "device_id": _device_id(hass, mock_config_entry),
             "timer": "relay_aux1",
@@ -108,7 +102,7 @@ async def test_set_timer_falls_back_to_single_loaded_entry(
 
     await hass.services.async_call(
         DOMAIN,
-        SERVICE_SET_TIMER,
+        NeoPoolService.SET_TIMER,
         {
             "timer": "filtration1",
             "start": "08:30",
@@ -130,7 +124,7 @@ async def test_set_timer_unknown_device_id_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {
                 "device_id": "nonexistent",
                 "timer": "filtration1",
@@ -158,7 +152,7 @@ async def test_set_timer_empty_device_id_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {
                 "device_id": "",
                 "timer": "filtration1",
@@ -189,7 +183,7 @@ async def test_set_timer_explicit_device_id_must_be_loaded(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {
                 "device_id": device_id,
                 "timer": "filtration1",
@@ -214,7 +208,7 @@ async def test_set_timer_no_loaded_entry_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {"timer": "filtration1", "start": "08:30", "stop": "10:15"},
             blocking=True,
         )
@@ -282,7 +276,7 @@ async def test_get_coordinator_resolves_by_device_id(
     fake_call = ServiceCall(
         hass,
         DOMAIN,
-        SERVICE_SET_TIMER,
+        NeoPoolService.SET_TIMER,
         {ATTR_DEVICE_ID: _device_id(hass, mock_config_entry)},
     )
 
@@ -300,7 +294,7 @@ async def test_set_timer_invalid_timer_name_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {"timer": "not_a_real_timer"},
             blocking=True,
         )
@@ -324,7 +318,7 @@ async def test_set_timer_invalid_time_format_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {"timer": "filtration1", "start": "not-a-time", "stop": "10:00"},
             blocking=True,
         )
@@ -343,7 +337,7 @@ async def test_set_timer_empty_time_string_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {"timer": "filtration1", "start": "", "stop": "10:00"},
             blocking=True,
         )
@@ -362,7 +356,7 @@ async def test_set_timer_stop_without_start_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {"timer": "filtration1", "stop": "10:00"},
             blocking=True,
         )
@@ -381,7 +375,7 @@ async def test_set_timer_no_fields_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {"timer": "filtration1"},
             blocking=True,
         )
@@ -401,7 +395,7 @@ async def test_set_timer_client_failure_translates_to_error(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_TIMER,
+            NeoPoolService.SET_TIMER,
             {
                 "timer": "filtration1",
                 "start": "08:30",
@@ -441,7 +435,7 @@ async def test_write_register_decimal_and_hex(
 
     await hass.services.async_call(
         DOMAIN,
-        SERVICE_WRITE_REGISTER,
+        NeoPoolService.WRITE_REGISTER,
         {
             "device_id": _device_id(hass, mock_config_entry),
             "address": address,
@@ -467,7 +461,7 @@ async def test_write_register_apply_false(
 
     await hass.services.async_call(
         DOMAIN,
-        SERVICE_WRITE_REGISTER,
+        NeoPoolService.WRITE_REGISTER,
         {
             "device_id": _device_id(hass, mock_config_entry),
             "address": "1539",
@@ -492,7 +486,7 @@ async def test_write_register_invalid_hex_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_WRITE_REGISTER,
+            NeoPoolService.WRITE_REGISTER,
             {
                 "device_id": _device_id(hass, mock_config_entry),
                 "address": "0xZZZZ",
@@ -515,7 +509,7 @@ async def test_write_register_out_of_range_raises(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_WRITE_REGISTER,
+            NeoPoolService.WRITE_REGISTER,
             {
                 "device_id": _device_id(hass, mock_config_entry),
                 "address": "1539",
@@ -540,7 +534,7 @@ async def test_write_register_verification_mismatch_raises(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_WRITE_REGISTER,
+            NeoPoolService.WRITE_REGISTER,
             {
                 "device_id": _device_id(hass, mock_config_entry),
                 "address": "1539",
@@ -563,7 +557,7 @@ async def test_write_register_returns_none_raises(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_WRITE_REGISTER,
+            NeoPoolService.WRITE_REGISTER,
             {
                 "device_id": _device_id(hass, mock_config_entry),
                 "address": "1539",
@@ -588,7 +582,7 @@ async def test_write_register_client_failure_raises(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_WRITE_REGISTER,
+            NeoPoolService.WRITE_REGISTER,
             {
                 "device_id": _device_id(hass, mock_config_entry),
                 "address": "1539",
@@ -611,7 +605,7 @@ async def test_write_register_denied_for_non_admin(
     with pytest.raises(Unauthorized):
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_WRITE_REGISTER,
+            NeoPoolService.WRITE_REGISTER,
             {
                 "device_id": _device_id(hass, mock_config_entry),
                 "address": "1539",
@@ -813,7 +807,7 @@ async def test_get_device_time_reads_fresh_from_device(
 
     response = await hass.services.async_call(
         DOMAIN,
-        SERVICE_GET_DEVICE_TIME,
+        NeoPoolService.GET_DEVICE_TIME,
         {"device_id": _device_id(hass, mock_config_entry)},
         blocking=True,
         return_response=True,
@@ -842,7 +836,7 @@ async def test_get_device_time_read_error_translates(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_GET_DEVICE_TIME,
+            NeoPoolService.GET_DEVICE_TIME,
             {"device_id": _device_id(hass, mock_config_entry)},
             blocking=True,
             return_response=True,
@@ -862,7 +856,7 @@ async def test_get_device_time_short_read_translates(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_GET_DEVICE_TIME,
+            NeoPoolService.GET_DEVICE_TIME,
             {"device_id": _device_id(hass, mock_config_entry)},
             blocking=True,
             return_response=True,
@@ -888,7 +882,7 @@ async def test_get_device_time_undecodable_translates(
     ):
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_GET_DEVICE_TIME,
+            NeoPoolService.GET_DEVICE_TIME,
             {"device_id": _device_id(hass, mock_config_entry)},
             blocking=True,
             return_response=True,
@@ -912,7 +906,7 @@ async def test_set_device_time_writes_ha_now(
 
     await hass.services.async_call(
         DOMAIN,
-        SERVICE_SET_DEVICE_TIME,
+        NeoPoolService.SET_DEVICE_TIME,
         {"device_id": _device_id(hass, mock_config_entry)},
         blocking=True,
     )
@@ -934,7 +928,7 @@ async def test_set_device_time_none_response_raises(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_DEVICE_TIME,
+            NeoPoolService.SET_DEVICE_TIME,
             {"device_id": _device_id(hass, mock_config_entry)},
             blocking=True,
         )
@@ -955,7 +949,7 @@ async def test_set_device_time_error_translates(
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_DEVICE_TIME,
+            NeoPoolService.SET_DEVICE_TIME,
             {"device_id": _device_id(hass, mock_config_entry)},
             blocking=True,
         )
@@ -975,7 +969,7 @@ async def test_get_device_time_rejected_in_winter_mode(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_GET_DEVICE_TIME,
+            NeoPoolService.GET_DEVICE_TIME,
             {"device_id": _device_id(hass, mock_config_entry)},
             blocking=True,
             return_response=True,
@@ -997,7 +991,7 @@ async def test_set_device_time_rejected_in_winter_mode(
     with pytest.raises(ServiceValidationError) as exc_info:
         await hass.services.async_call(
             DOMAIN,
-            SERVICE_SET_DEVICE_TIME,
+            NeoPoolService.SET_DEVICE_TIME,
             {"device_id": _device_id(hass, mock_config_entry)},
             blocking=True,
         )

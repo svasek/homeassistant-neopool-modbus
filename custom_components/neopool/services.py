@@ -14,6 +14,7 @@
 
 """Services for the NeoPool integration."""
 
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -53,49 +54,60 @@ from .helpers import parse_register_int, prepare_device_time
 
 _LOGGER = logging.getLogger(__name__)
 
-SERVICE_SET_TIMER = "set_timer"
-SERVICE_WRITE_REGISTER = "write_register"
-SERVICE_READ_REGISTER = "read_register"
-SERVICE_GET_DEVICE_TIME = "get_device_time"
-SERVICE_SET_DEVICE_TIME = "set_device_time"
 
-ATTR_TIMER = "timer"
-ATTR_START = "start"
-ATTR_STOP = "stop"
-ATTR_PERIOD = "period"
-ATTR_ENABLE = "enable"
-ATTR_ADDRESS = "address"
-ATTR_VALUE = "value"
-ATTR_APPLY = "apply"
-ATTR_COUNT = "count"
+class NeoPoolService(StrEnum):
+    """Store keys for NeoPool services."""
+
+    SET_TIMER = "set_timer"
+    WRITE_REGISTER = "write_register"
+    READ_REGISTER = "read_register"
+    GET_DEVICE_TIME = "get_device_time"
+    SET_DEVICE_TIME = "set_device_time"
+
+
+class NeoPoolServiceArgument(StrEnum):
+    """Store keys for NeoPool service arguments."""
+
+    TIMER = "timer"
+    START = "start"
+    STOP = "stop"
+    PERIOD = "period"
+    ENABLE = "enable"
+    ADDRESS = "address"
+    VALUE = "value"
+    APPLY = "apply"
+    COUNT = "count"
+
 
 SERVICE_SET_TIMER_SCHEMA = probatio.Schema(
     {
         probatio.Optional(ATTR_DEVICE_ID): cv.string,
-        probatio.Required(ATTR_TIMER): cv.string,
-        probatio.Optional(ATTR_START): cv.string,
-        probatio.Optional(ATTR_STOP): cv.string,
-        probatio.Optional(ATTR_PERIOD): probatio.All(
+        probatio.Required(NeoPoolServiceArgument.TIMER): cv.string,
+        probatio.Optional(NeoPoolServiceArgument.START): cv.string,
+        probatio.Optional(NeoPoolServiceArgument.STOP): cv.string,
+        probatio.Optional(NeoPoolServiceArgument.PERIOD): probatio.All(
             int, probatio.Range(min=1, max=604800)
         ),
-        probatio.Optional(ATTR_ENABLE): probatio.All(int, probatio.Range(min=0, max=4)),
+        probatio.Optional(NeoPoolServiceArgument.ENABLE): probatio.All(
+            int, probatio.Range(min=0, max=4)
+        ),
     }
 )
 
 SERVICE_WRITE_REGISTER_SCHEMA = probatio.Schema(
     {
         probatio.Optional(ATTR_DEVICE_ID): cv.string,
-        probatio.Required(ATTR_ADDRESS): cv.string,
-        probatio.Required(ATTR_VALUE): cv.string,
-        probatio.Optional(ATTR_APPLY, default=True): cv.boolean,
+        probatio.Required(NeoPoolServiceArgument.ADDRESS): cv.string,
+        probatio.Required(NeoPoolServiceArgument.VALUE): cv.string,
+        probatio.Optional(NeoPoolServiceArgument.APPLY, default=True): cv.boolean,
     }
 )
 
 SERVICE_READ_REGISTER_SCHEMA = probatio.Schema(
     {
         probatio.Optional(ATTR_DEVICE_ID): cv.string,
-        probatio.Required(ATTR_ADDRESS): cv.string,
-        probatio.Optional(ATTR_COUNT, default=1): probatio.All(
+        probatio.Required(NeoPoolServiceArgument.ADDRESS): cv.string,
+        probatio.Optional(NeoPoolServiceArgument.COUNT, default=1): probatio.All(
             int, probatio.Range(min=1, max=MAX_REGISTERS_PER_READ)
         ),
     }
@@ -162,7 +174,7 @@ async def _get_coordinator(
 
 async def _async_set_timer(call: ServiceCall) -> None:
     """Set a timer on the pool controller."""
-    timer_name = call.data[ATTR_TIMER]
+    timer_name = call.data[NeoPoolServiceArgument.TIMER]
     if timer_name not in TIMER_BLOCKS:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
@@ -174,10 +186,10 @@ async def _async_set_timer(call: ServiceCall) -> None:
         )
 
     coordinator = await _get_coordinator(call.hass, call)
-    start = call.data.get(ATTR_START)
-    stop = call.data.get(ATTR_STOP)
-    period = call.data.get(ATTR_PERIOD)
-    enable = call.data.get(ATTR_ENABLE)
+    start = call.data.get(NeoPoolServiceArgument.START)
+    stop = call.data.get(NeoPoolServiceArgument.STOP)
+    period = call.data.get(NeoPoolServiceArgument.PERIOD)
+    enable = call.data.get(NeoPoolServiceArgument.ENABLE)
 
     if stop is not None and start is None:
         raise ServiceValidationError(
@@ -234,9 +246,9 @@ async def _async_set_timer(call: ServiceCall) -> None:
 
 async def _async_write_register(call: ServiceCall) -> None:
     """Write a value to a Modbus holding register."""
-    address = parse_register_int(call.data[ATTR_ADDRESS], "address")
-    value = parse_register_int(call.data[ATTR_VALUE], "value")
-    apply = call.data[ATTR_APPLY]
+    address = parse_register_int(call.data[NeoPoolServiceArgument.ADDRESS], "address")
+    value = parse_register_int(call.data[NeoPoolServiceArgument.VALUE], "value")
+    apply = call.data[NeoPoolServiceArgument.APPLY]
     coordinator = await _get_coordinator(call.hass, call)
 
     try:
@@ -289,8 +301,8 @@ async def _async_write_register(call: ServiceCall) -> None:
 
 async def _async_read_register(call: ServiceCall) -> ServiceResponse:
     """Read one or more Modbus registers and return the raw u16 values."""
-    address = parse_register_int(call.data[ATTR_ADDRESS], "address")
-    count = call.data[ATTR_COUNT]
+    address = parse_register_int(call.data[NeoPoolServiceArgument.ADDRESS], "address")
+    count = call.data[NeoPoolServiceArgument.COUNT]
     coordinator = await _get_coordinator(call.hass, call)
 
     try:
@@ -413,27 +425,27 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async_register_admin_service(
         hass,
         DOMAIN,
-        SERVICE_SET_TIMER,
+        NeoPoolService.SET_TIMER,
         _async_set_timer,
         schema=SERVICE_SET_TIMER_SCHEMA,
     )
     async_register_admin_service(
         hass,
         DOMAIN,
-        SERVICE_WRITE_REGISTER,
+        NeoPoolService.WRITE_REGISTER,
         _async_write_register,
         schema=SERVICE_WRITE_REGISTER_SCHEMA,
     )
     hass.services.async_register(
         DOMAIN,
-        SERVICE_READ_REGISTER,
+        NeoPoolService.READ_REGISTER,
         _async_read_register,
         schema=SERVICE_READ_REGISTER_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(
         DOMAIN,
-        SERVICE_GET_DEVICE_TIME,
+        NeoPoolService.GET_DEVICE_TIME,
         _async_get_device_time,
         schema=SERVICE_DEVICE_TIME_SCHEMA,
         supports_response=SupportsResponse.ONLY,
@@ -441,7 +453,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async_register_admin_service(
         hass,
         DOMAIN,
-        SERVICE_SET_DEVICE_TIME,
+        NeoPoolService.SET_DEVICE_TIME,
         _async_set_device_time,
         schema=SERVICE_DEVICE_TIME_SCHEMA,
     )
