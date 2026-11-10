@@ -166,6 +166,9 @@
             "ph_acid_pump": {
                 "name": "Čerpadlo kyseliny"
             },
+            "ph_base_pump": {
+                "name": "Čerpadlo zásady"
+            },
             "ph_control_module": {
                 "name": "Regulace pH aktivní"
             },

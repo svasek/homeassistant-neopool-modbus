@@ -1,5 +1,5 @@
 # Runtime dependency (Modbus communication via NeoPool library)
-neopool-modbus>=4.13.0
+neopool-modbus>=4.14.0
 
 # Pin pymodbus to the version Home Assistant's modbus integration ships
 # (manifest pins pymodbus==3.13.1). neopool-modbus leaves pymodbus unpinned,

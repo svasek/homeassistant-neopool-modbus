@@ -166,6 +166,9 @@
             "ph_acid_pump": {
                 "name": "Pompa kwasu pH"
             },
+            "ph_base_pump": {
+                "name": "Pompa zasady pH"
+            },
             "ph_control_module": {
                 "name": "Regulacja pH aktywna"
             },

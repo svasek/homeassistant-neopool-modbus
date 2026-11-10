@@ -166,6 +166,9 @@
             "ph_acid_pump": {
                 "name": "pH-Säurepumpe"
             },
+            "ph_base_pump": {
+                "name": "pH-Basenpumpe"
+            },
             "ph_control_module": {
                 "name": "pH-Regelung aktiv"
             },
