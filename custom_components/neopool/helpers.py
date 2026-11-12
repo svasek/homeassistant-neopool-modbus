@@ -16,6 +16,7 @@
 
 from collections.abc import Mapping
 import datetime as dt
+import re
 from typing import Any, Literal
 
 from modbus_connection import ModbusSerialParams, ModbusTcpParams
@@ -23,11 +24,12 @@ from neopool_modbus.decoders import (
     encode_device_time,
     parse_register_int as _lib_parse_register_int,
 )
-from neopool_modbus.registers import framer_to_socket_name
+from neopool_modbus.registers import aux_relay_available, framer_to_socket_name
 
 from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import entity_registry as er
 import homeassistant.util.dt as dt_util
 
 from .const import (
@@ -39,6 +41,10 @@ from .const import (
     TYPE_SERIAL,
     TYPE_TCP,
 )
+
+# AUX relay number embedded in an entity unique_id, e.g. "..._aux1" or
+# "..._relay_aux2b_period". All AUX entity keys carry an "aux<n>" token.
+_AUX_UNIQUE_ID_RE = re.compile(r"aux([1-4])")
 
 
 def _normalize_host(host: str) -> str:
@@ -124,3 +130,27 @@ def parse_register_int(raw: int | str, name: str) -> int:
             translation_key=key,
             translation_placeholders={"name": name, "value": str(raw)},
         ) from err
+
+
+def cleanup_occupied_aux_entities(
+    hass: HomeAssistant,
+    entry_id: str,
+    platform: str,
+    data: Mapping[str, Any],
+) -> None:
+    """Remove disabled registry entries for AUX relays claimed by a function.
+
+    An AUX whose physical relay the device has assigned to a built-in function
+    is no longer created (supported_fn gates it out). On an existing install its
+    registry entry would otherwise linger as a restored, unavailable entity.
+    Only disabled entries are removed, so a user-enabled AUX that later becomes
+    occupied keeps its customisations; the relay assignment is reversible on the
+    device.
+    """
+    registry = er.async_get(hass)
+    for entry in registry.entities.get_entries_for_config_entry_id(entry_id):
+        if entry.domain != platform or not entry.disabled:
+            continue
+        match = _AUX_UNIQUE_ID_RE.search(entry.unique_id)
+        if match and not aux_relay_available(int(match.group(1)), data):
+            registry.async_remove(entry.entity_id)
