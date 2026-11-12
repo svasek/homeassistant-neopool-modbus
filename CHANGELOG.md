@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.13.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.12.0...v6.13.0) (2026-11-12)
+
+
+### ✨ Features
+
+* **binary_sensor:** ✨ add pH base pump running sensor ([#302](https://github.com/svasek/homeassistant-neopool-modbus/issues/302)) ([4fecf6a](https://github.com/svasek/homeassistant-neopool-modbus/commit/4fecf6adcf9cc6f6774d2a7d7205db9fdf69fa1c))
+* **select:** ✨ gate AUX select and timer entities on relay availability ([#304](https://github.com/svasek/homeassistant-neopool-modbus/issues/304)) ([17f58c3](https://github.com/svasek/homeassistant-neopool-modbus/commit/17f58c3938177f2b8d506857e551c403bffa5c5b))
+* **switch:** ✨ gate AUX relays assigned to a built-in function ([#303](https://github.com/svasek/homeassistant-neopool-modbus/issues/303)) ([fed5efd](https://github.com/svasek/homeassistant-neopool-modbus/commit/fed5efd0067c20f1d20202631613d7b5899e1f0a))
+
+
+### 🐛 Bug Fixes
+
+* **binary_sensor:** 🐛 gate pool cover on HIDRO_COVER_ENABLE instead of filtration pump ([#305](https://github.com/svasek/homeassistant-neopool-modbus/issues/305)) ([fefa0c5](https://github.com/svasek/homeassistant-neopool-modbus/commit/fefa0c5fb2a664377f3b227be00529547c8429c3)), closes [#299](https://github.com/svasek/homeassistant-neopool-modbus/issues/299)
+* **binary_sensor:** 🐛 mask cover-enable bit when gating pool cover ([#307](https://github.com/svasek/homeassistant-neopool-modbus/issues/307)) ([0b071bc](https://github.com/svasek/homeassistant-neopool-modbus/commit/0b071bcc7f077a90a1086d4b94ca95aa4ae53e54))
+* **helpers:** 🐛 remove disabled registry entries for occupied AUX relays ([#306](https://github.com/svasek/homeassistant-neopool-modbus/issues/306)) ([bef82a7](https://github.com/svasek/homeassistant-neopool-modbus/commit/bef82a727673192c304873f9e5707ed88c0826ae))
+
+
+### ♻️ Refactoring
+
+* **services:** ♻️ replace SERVICE_*/ATTR_* constants with action enums ([#300](https://github.com/svasek/homeassistant-neopool-modbus/issues/300)) ([27b8cd3](https://github.com/svasek/homeassistant-neopool-modbus/commit/27b8cd3b02dfa28a9ccfb180fa5c102d669b4dcb))
+
 ## [6.12.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.11.0...v6.12.0) (2026-11-05)
 
 
