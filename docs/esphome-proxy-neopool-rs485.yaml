@@ -1,0 +1,140 @@
+# =============================================================================
+# NeoPool Modbus RTU over ESPHome Serial Proxy
+# =============================================================================
+#
+# Exposes the RS-485 port of an M5Stack Atom + Tail485 as a network serial
+# port in Home Assistant, so the NeoPool Modbus integration can talk to the
+# pool controller without a separate Modbus TCP gateway.
+#
+#   Home Assistant  <--(ESPHome native API, Wi-Fi)-->  Atom + Tail485  <--RS-485-->  NeoPool
+#
+# Repository: https://github.com/svasek/homeassistant-neopool-modbus
+#
+# -----------------------------------------------------------------------------
+# Requirements
+# -----------------------------------------------------------------------------
+#   - Home Assistant 2026.5 or newer (serial proxy support)
+#   - ESPHome 2026.5 or newer (the `serial_proxy` component)
+#   - M5Stack Atom Lite S3 (tested) or Atom Lite (see pin table below)
+#   - M5Stack Tail485 (SKU T002) mounted on the Atom
+#
+# NOTE: `serial_proxy` is still marked EXPERIMENTAL in ESPHome. Its API may
+# change without notice, so re-check the connection after upgrading ESPHome
+# or Home Assistant.
+#
+# -----------------------------------------------------------------------------
+# Wiring (Tail485 <-> Atom)
+# -----------------------------------------------------------------------------
+# Tail485 plugs directly into the Atom connector (G, 5V, TX, RX):
+#
+#   Board            | ESP TX pin | ESP RX pin | Status
+#   -----------------|------------|------------|---------------------------
+#   Atom Lite S3     | GPIO2      | GPIO1      | Tested
+#   Atom Lite        | GPIO26     | GPIO32     | Untested (same connector
+#                    |            |            | position, different GPIOs)
+#
+# Connect the RS-485 terminals of the Tail485 to the NeoPool controller
+# (A to A, B to B). If there is no response, swap A/B.
+# Tail485 has automatic direction control, so no RTS/DE pin is needed.
+#
+# -----------------------------------------------------------------------------
+# Setup
+# -----------------------------------------------------------------------------
+#   1. Add these keys to your ESPHome secrets.yaml:
+#        wifi_ssid, wifi_password, api_enc_key, ota_password
+#      Generate api_enc_key with: openssl rand -base64 32
+#   2. For Atom Lite (non-S3), change the board and the UART pins below
+#      (board: m5stack-atom, variant: esp32, framework can stay esp-idf).
+#   3. Flash the device (first time via USB), then add it in Home Assistant:
+#      Settings -> Devices & services -> ESPHome.
+#   4. Add the NeoPool integration, choose the serial connection and select
+#      the port "NeoPool RS485" (listed with the other serial ports).
+#
+# Serial parameters (19200 baud, 8N1) match the NeoPool Modbus defaults.
+# The port settings are also pushed by Home Assistant on connect.
+#
+# -----------------------------------------------------------------------------
+# Troubleshooting
+# -----------------------------------------------------------------------------
+#   - Port visible, but no response (Modbus timeouts):
+#       1. Swap tx_pin and rx_pin.
+#       2. Swap RS-485 A/B on the terminal block.
+#       3. Enable the UART `debug` block below and check the ESPHome log:
+#          ">>>" lines are bytes sent to the bus, "<<<" lines are received.
+#          Requests visible, but no "<<<" -> wiring or bus parameters.
+#   - Keep `debug` disabled during normal operation: it logs every byte.
+# =============================================================================
+
+esphome:
+  name: neopool-rs485
+  friendly_name: NeoPool Modbus
+  min_version: 2026.5.0
+
+esp32:
+  board: m5stack-atoms3
+  variant: esp32s3
+  # For the Atom Lite (non-S3), use these instead:
+  #   board: m5stack-atom
+  #   variant: esp32
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_enc_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  min_auth_mode: WPA2
+  # Avoid added latency, which can cause Modbus response timeouts
+  power_save_mode: none
+
+uart:
+  - id: rs485_uart
+    # Tail485 on Atom Lite S3: GPIO2 = TX, GPIO1 = RX
+    # Tail485 on Atom Lite:    GPIO26 = TX, GPIO32 = RX
+    tx_pin: GPIO2
+    rx_pin: GPIO1
+    baud_rate: 19200
+    data_bits: 8
+    parity: NONE
+    stop_bits: 1
+    rx_buffer_size: 1024
+    # Uncomment for troubleshooting only (logs all traffic in both directions)
+    # debug:
+    #   direction: BOTH
+    #   dummy_receiver: false
+    #   after:
+    #     bytes: 32
+    #     timeout: 50ms
+    #   sequence:
+    #     # Log raw bytes in both directions
+    #     - lambda: UARTDebug::log_hex(direction, bytes, ':');
+
+serial_proxy:
+  - id: neopool_serial
+    uart_id: rs485_uart
+    name: NeoPool RS485
+    port_type: RS485
+
+# Optional: also use this device as a Bluetooth proxy for Home Assistant.
+# Both boards above support BLE, which is all the proxy needs (the Atom Lite S3
+# uses an ESP32-S3, the Atom Lite an ESP32-PICO-D4). Bluetooth shares the radio
+# with Wi-Fi, so on these single-antenna boards it may add latency to the Modbus
+# poll; if you see Modbus timeouts, leave this disabled.
+# esp32_ble_tracker:
+#
+# bluetooth_proxy:
+#   active: true
+
+button:
+  - platform: restart
+    name: "Restart"
+    disabled_by_default: true

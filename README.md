@@ -71,6 +71,9 @@ If you find this integration useful, consider supporting its development:
 > [!TIP]
 > **See the [Modbus Connection Guide](docs/modbus-connection-guide.md)** for more info and images.
 
+> [!TIP]
+> No gateway box? An ESP32 with an RS-485 adapter can expose the serial port to Home Assistant over Wi-Fi through the ESPHome serial proxy, a good migration target from a Tasmota ESP. See the [docs folder README](docs/README.md) for a ready to flash M5Stack Atom config and setup walkthrough.
+
 ### Plug Connector
 
 - **RS485 port**: Use the `WIFI` or `EXTERNAL` connector (do **not** use `DISPLAY`, unless the internal LCD is disconnected).
