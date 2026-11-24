@@ -456,6 +456,9 @@ class NeoPoolSwitch(NeoPoolEntity, SwitchEntity):
         # HA settings are always available (not device state).
         if self.entity_description.ha_setting in _HA_SETTING_TYPES:
             return True
-        return super().available
+        desc = self.entity_description
+        return super().available and (
+            desc.supported_fn is None or desc.supported_fn(self.coordinator.data)
+        )
 
     # CUSTOM-ONLY END
