@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.13.1](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.13.0...v6.13.1) (2026-11-24)
+
+
+### 🐛 Bug Fixes
+
+* 🐛 mark AUX relay entities unavailable when relay is assigned to a device function ([#308](https://github.com/svasek/homeassistant-neopool-modbus/issues/308)) ([a359950](https://github.com/svasek/homeassistant-neopool-modbus/commit/a3599507857423ea88c8ca8dda0c43311fd2abc3))
+
 ## [6.13.0](https://github.com/svasek/homeassistant-neopool-modbus/compare/v6.12.0...v6.13.0) (2026-11-12)
 
 
