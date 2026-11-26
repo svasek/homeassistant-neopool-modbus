@@ -4,6 +4,7 @@
 - NeoPool is a control system originally developed by **Sugar Valley** (acquired by **Hayward** in 2016), available under many brand names and in multiple device variants.
 - Full local control, real-time sensors, timers, relays, automation support, and more.
 
+<!-- ha-marketplace:exclude-start -->
 [![Release](https://github.com/svasek/homeassistant-neopool-modbus/actions/workflows/release.yaml/badge.svg)](https://github.com/svasek/homeassistant-neopool-modbus/actions/workflows/release.yaml)
 [![Hassfest](https://github.com/svasek/homeassistant-neopool-modbus/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/svasek/homeassistant-neopool-modbus/actions/workflows/hassfest.yaml)
 [![HACS](https://github.com/svasek/homeassistant-neopool-modbus/actions/workflows/hacs.yaml/badge.svg)](https://github.com/svasek/homeassistant-neopool-modbus/actions/workflows/hacs.yaml)
@@ -17,6 +18,7 @@
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACUElEQVR4nJ2Wu4sUQRDGu2cXH6CCchziH+ChYCKCj9TAxEPOzEBBMDww0EBM1EQzwczAzEDFxEA48C4WDORS8QEKegqCgSJ6tzv7k1q+HsrennXXgqW6p6q/qqn6umZDCCEAFRC13gncAdaAK8Dm3Gcq8YeA88Bb/paXwHzJf+IAwD7guQOtgYF0kifAbvlPHeSSQH5noGjfG67gtPw7k2J3pddDCHUIwQ5WmU9lmLLXheTMbr9BjHHQFiAKvD8mmY7Zlb013ILGGKMFHQLLZoHw2Q1tyalFkD5ogDHGnmVra+AYcBPYKxsjJQQuq8a/1FwvNbCh3w/gHLBLxLjrevYduAHsyMEt5CHgtQPtK1CfsnwF1t0+kcDkHXAW6A774y7YduC6MvHySSW4CrzJbCkRpH2g4zkT0noOeAh8A24DM842o4tYF+icZEO2U6VSdd1+q1vb627R+lqhLPlbmZz0LDKJiS3AphDCXMaixCSz/UsampZKdAJ4oSyWjADOdgD4oizbCJCav9CURtpo98g51k4/BR4XCOCbXLug9uywr71l/dM5JvB+S41XgQ/ume/HswTeDEV30WzY5TJwF+0jcMTR+iLwWX6vgDOeNL4HiwUee+lJLyZWubN7dLG2uYpUpWE3bsZH6ffpsDKsYoxrIYT7etbR8GtY1GSiUcwY2tXmb0POwDUxrVdpEtugGxnnPkDHAflpWGtvQCMACtQ+5lWzWeBeRtH02UTNv6XGTv/JdMGOAstZgx8A+/8LMHuLpizABWAl+zfhyzmx/AFW7D1rA9xBKAAAAABJRU5ErkJggg==)](https://deepwiki.com/svasek/homeassistant-neopool-modbus/2-getting-started)
 [![Sponsor me](https://img.shields.io/badge/sponsor-❤-brightgreen?style=flat)](https://github.com/sponsors/svasek)
 [![Ko-fi](https://img.shields.io/badge/ko--fi-support-29abe0?style=flat&logo=ko-fi)](https://ko-fi.com/svasek)
+<!-- ha-marketplace:exclude-end -->
 
 **Supported device models** (Sugar Valley / Hayward product lines):  
 Hidrolife • Aquascenic • Oxilife • Bionet • Hidroniser • UVScenic • Station • Aquarite
@@ -144,8 +146,8 @@ New features generally land here first and are then contributed back to Home Ass
 
 ---
 
+<!-- ha-marketplace:exclude-start -->
 ## Installation
-
 [![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=svasek&repository=homeassistant-neopool-modbus)
 
 ### Marketplace (recommended)
@@ -154,6 +156,7 @@ New features generally land here first and are then contributed back to Home Ass
 2. Search for **NeoPool Modbus Integration** (no need to add a custom repository, this integration is included in the default list).
 3. Install **NeoPool Modbus Integration**.
 4. Restart Home Assistant.
+<!-- ha-marketplace:exclude-end -->
 
 ## Setup and Configuration
 
@@ -161,11 +164,13 @@ After installing the integration and restarting Home Assistant:
 
 ### 1. Add Your Pool to Home Assistant
 
+<!-- ha-marketplace:exclude-start -->
 You can use the button below to start configuration:
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=neopool)
 
 Or add manually:
+<!-- ha-marketplace:exclude-end -->
 
 - Go to **Settings → Devices & Services**.
 - Click **Add Integration**.
